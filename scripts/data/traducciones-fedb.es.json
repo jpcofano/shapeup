@@ -1,0 +1,2319 @@
+{
+  "Goblet_Squat": {
+    "nombre": "Sentadilla goblet",
+    "patron": "Dominante de rodilla",
+    "unilateral": false,
+    "sinonimos": [
+      "sentadilla copa",
+      "goblet squat"
+    ],
+    "instrucciones": [
+      "Sostené una mancuerna o pesa rusa contra el pecho, con los codos hacia abajo.",
+      "Pies al ancho de hombros, puntas levemente hacia afuera.",
+      "Bajá llevando la cadera atrás y abajo, manteniendo el torso erguido, hasta que los muslos queden al menos paralelos al piso.",
+      "Subí empujando el piso con los talones hasta extender cadera y rodillas."
+    ],
+    "puntosClave": [
+      "El peso al pecho te ayuda a mantener el torso vertical.",
+      "Rodillas en línea con las puntas de los pies."
+    ],
+    "erroresComunes": [
+      "Inclinarse demasiado hacia adelante.",
+      "Despegar los talones del piso."
+    ]
+  },
+  "Pushups": {
+    "nombre": "Flexiones de brazos",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "lagartijas",
+      "push ups"
+    ],
+    "instrucciones": [
+      "Manos apoyadas al ancho de los hombros, cuerpo en línea recta de la cabeza a los talones.",
+      "Bajá flexionando los codos a unos 45° del torso, hasta que el pecho casi toque el piso.",
+      "Empujá hasta extender los codos sin hundir ni elevar la cadera."
+    ],
+    "puntosClave": [
+      "Glúteos y abdomen activos: el cuerpo es una tabla."
+    ],
+    "erroresComunes": [
+      "Dejar caer la cadera.",
+      "Hacer un recorrido corto."
+    ]
+  },
+  "Band_Assisted_Pull-Up": {
+    "nombre": "Dominada asistida con banda",
+    "patron": "Tracción vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "dominada con banda",
+      "pull-up asistida"
+    ],
+    "instrucciones": [
+      "Enganchá una banda en la barra y apoyá una rodilla o un pie en ella.",
+      "Colgá con agarre prono algo más ancho que los hombros, brazos extendidos.",
+      "Tirá llevando el pecho hacia la barra, bajando los codos hacia las costillas.",
+      "Bajá controlando hasta extender por completo los brazos."
+    ],
+    "puntosClave": [
+      "Iniciá deprimiendo las escápulas antes de flexionar los codos.",
+      "La banda da más ayuda abajo, que es donde más cuesta."
+    ],
+    "erroresComunes": [
+      "Balancearse para tomar impulso.",
+      "No completar el recorrido."
+    ]
+  },
+  "Chin-Up": {
+    "nombre": "Dominada supina (chin-up)",
+    "patron": "Tracción vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "chin up",
+      "dominada agarre supino"
+    ],
+    "instrucciones": [
+      "Colgá de la barra con agarre supino (palmas hacia vos), al ancho de hombros.",
+      "Tirá llevando el pecho hacia la barra, juntando los omóplatos.",
+      "Bajá controlando hasta extender los brazos."
+    ],
+    "puntosClave": [
+      "El agarre supino suma más bíceps que la dominada prona."
+    ],
+    "erroresComunes": [
+      "Balanceo (kipping) involuntario."
+    ]
+  },
+  "One-Arm_Dumbbell_Row": {
+    "nombre": "Remo con mancuerna a una mano",
+    "patron": "Tracción horizontal",
+    "unilateral": true,
+    "sinonimos": [
+      "remo unilateral",
+      "remo serrucho"
+    ],
+    "instrucciones": [
+      "Apoyá una rodilla y la mano del mismo lado en un banco; la espalda queda casi paralela al piso.",
+      "Con la otra mano sostené la mancuerna, brazo extendido.",
+      "Tirá la mancuerna hacia la cadera bajando el codo pegado al cuerpo.",
+      "Bajá controlando, estirando bien el dorsal."
+    ],
+    "puntosClave": [
+      "Mantené la espalda neutra; no rotes el torso para levantar más peso."
+    ],
+    "erroresComunes": [
+      "Encogerse de hombro en vez de remar.",
+      "Girar la columna."
+    ]
+  },
+  "Dumbbell_Shoulder_Press": {
+    "nombre": "Press de hombros con mancuernas",
+    "patron": "Empuje vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "press militar con mancuernas",
+      "shoulder press"
+    ],
+    "instrucciones": [
+      "Sentado o de pie, mancuernas a la altura de los hombros, palmas hacia adelante.",
+      "Apretá glúteos y abdomen; empujá las mancuernas hacia arriba hasta extender los codos.",
+      "Bajá controlando hasta la altura de las orejas."
+    ],
+    "puntosClave": [
+      "Costillas abajo: no arquees la espalda baja."
+    ],
+    "erroresComunes": [
+      "Usar impulso de piernas.",
+      "Arquear la lumbar."
+    ]
+  },
+  "Romanian_Deadlift": {
+    "nombre": "Peso muerto rumano",
+    "patron": "Dominante de cadera",
+    "unilateral": false,
+    "sinonimos": [
+      "rdl",
+      "rumano",
+      "peso muerto piernas rígidas"
+    ],
+    "instrucciones": [
+      "De pie con la pesa (mancuernas o barra), rodillas apenas flexionadas.",
+      "Llevá la cadera hacia atrás bajando la pesa pegada a las piernas.",
+      "Sentí el estiramiento en los isquios y volvé extendiendo la cadera.",
+      "Terminá de pie, apretando glúteos, sin arquear la lumbar."
+    ],
+    "puntosClave": [
+      "El movimiento nace de la cadera (bisagra), no de la rodilla.",
+      "Espalda siempre neutra."
+    ],
+    "erroresComunes": [
+      "Convertirlo en sentadilla.",
+      "Redondear la espalda."
+    ]
+  },
+  "Dumbbell_Rear_Lunge": {
+    "nombre": "Zancada hacia atrás con mancuernas",
+    "patron": "Zancada / unilateral",
+    "unilateral": true,
+    "sinonimos": [
+      "estocada atrás",
+      "reverse lunge"
+    ],
+    "instrucciones": [
+      "Mancuernas a los costados, de pie y erguido.",
+      "Dá un paso largo hacia atrás y bajá hasta que la rodilla de atrás casi toque el piso.",
+      "Empujá con la pierna de adelante para volver a la posición inicial.",
+      "Alterná las piernas o completá todas de un lado y cambiá."
+    ],
+    "puntosClave": [
+      "Torso erguido; la rodilla de adelante alineada con el pie."
+    ],
+    "erroresComunes": [
+      "Dar un paso corto que carga de más la rodilla."
+    ]
+  },
+  "One-Arm_Kettlebell_Swings": {
+    "nombre": "Swing ruso a una mano",
+    "patron": "Dominante de cadera",
+    "unilateral": true,
+    "sinonimos": [
+      "swing con pesa rusa",
+      "swing con mancuerna"
+    ],
+    "instrucciones": [
+      "Pesa entre los pies, cadera atrás y espalda neutra.",
+      "Llevá la pesa atrás entre las piernas y proyectá la cadera hacia adelante con fuerza.",
+      "La pesa sube por impulso de la cadera hasta la altura del pecho; los brazos solo guían.",
+      "Dejá que baje y encadená el siguiente repetición."
+    ],
+    "puntosClave": [
+      "La potencia es de la cadera, no de los hombros."
+    ],
+    "erroresComunes": [
+      "Hacer una sentadilla en vez de bisagra.",
+      "Levantar la pesa con los brazos."
+    ]
+  },
+  "Mountain_Climbers": {
+    "nombre": "Escaladores",
+    "modalidad": "Cardio",
+    "patron": "Locomoción / cardio",
+    "unilateral": false,
+    "sinonimos": [
+      "mountain climbers"
+    ],
+    "instrucciones": [
+      "En posición de plancha alta, manos bajo los hombros.",
+      "Llevá una rodilla hacia el pecho y alterná rápido como si corrieras en el lugar.",
+      "Mantené la cadera baja y estable durante todo el movimiento."
+    ],
+    "puntosClave": [
+      "Cadera estable; no rebotes hacia arriba."
+    ],
+    "erroresComunes": [
+      "Subir la cola al acelerar."
+    ]
+  },
+  "Plank": {
+    "nombre": "Plancha",
+    "modalidad": "Isométrico",
+    "patron": "Core anti-extensión",
+    "unilateral": false,
+    "sinonimos": [
+      "plank"
+    ],
+    "instrucciones": [
+      "Antebrazos en el piso, bajo los hombros; cuerpo en línea recta.",
+      "Apretá glúteos y abdomen; mirada hacia el piso.",
+      "Mantené la posición respirando con normalidad."
+    ],
+    "puntosClave": [
+      "Cadera ni hundida ni elevada: una línea recta."
+    ],
+    "erroresComunes": [
+      "Subir la cola.",
+      "Hundir la zona lumbar."
+    ]
+  },
+  "Dead_Bug": {
+    "nombre": "Bicho muerto (dead bug)",
+    "patron": "Core anti-extensión",
+    "unilateral": false,
+    "sinonimos": [
+      "dead bug"
+    ],
+    "instrucciones": [
+      "Boca arriba, brazos hacia el techo y rodillas a 90°.",
+      "Pegá la zona lumbar al piso.",
+      "Bajá a la vez el brazo de un lado y la pierna del otro, sin despegar la lumbar.",
+      "Volvé y alterná los lados."
+    ],
+    "puntosClave": [
+      "La lumbar nunca se despega del piso."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda al estirar la pierna."
+    ]
+  },
+  "Russian_Twist": {
+    "nombre": "Giro ruso",
+    "patron": "Core anti-rotación",
+    "unilateral": false,
+    "sinonimos": [
+      "russian twist"
+    ],
+    "instrucciones": [
+      "Sentado, torso inclinado hacia atrás a unos 45°, pies apoyados o elevados.",
+      "Llevá las manos (o un peso) de un lado al otro rotando el torso.",
+      "Controlá el giro, sin tirones."
+    ],
+    "puntosClave": [
+      "El giro nace del torso, no de los brazos."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda."
+    ]
+  },
+  "Bench_Dips": {
+    "nombre": "Fondos de tríceps en banco",
+    "patron": "Empuje vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "fondos en silla",
+      "bench dips"
+    ],
+    "instrucciones": [
+      "Manos en el borde de un banco o silla, dedos hacia adelante; piernas extendidas o flexionadas.",
+      "Bajá flexionando los codos hacia atrás hasta unos 90°.",
+      "Empujá hasta extender los codos sin bloquear de golpe."
+    ],
+    "puntosClave": [
+      "Mantené la espalda cerca del banco."
+    ],
+    "erroresComunes": [
+      "Bajar demasiado y forzar el hombro."
+    ]
+  },
+  "Dumbbell_Bicep_Curl": {
+    "nombre": "Curl de bíceps con mancuernas",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "curl de biceps"
+    ],
+    "instrucciones": [
+      "De pie, mancuernas a los costados, codos pegados al torso.",
+      "Flexioná llevando las mancuernas hacia los hombros.",
+      "Bajá lento, controlando."
+    ],
+    "puntosClave": [
+      "Codos quietos: solo se mueve el antebrazo."
+    ],
+    "erroresComunes": [
+      "Balancear el cuerpo para subir."
+    ]
+  },
+  "Calf_Raises_-_With_Bands": {
+    "nombre": "Elevación de gemelos con banda",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "elevacion de pantorrillas",
+      "calf raise"
+    ],
+    "instrucciones": [
+      "Parado, pasá la banda bajo las puntas de los pies y sostené los extremos.",
+      "Subí lo más alto posible sobre las puntas.",
+      "Bajá lento sintiendo el estiramiento en el gemelo."
+    ],
+    "puntosClave": [
+      "Rango completo y pausa arriba."
+    ],
+    "erroresComunes": [
+      "Rebotar sin control."
+    ]
+  },
+  "Rope_Jumping": {
+    "nombre": "Saltar la cuerda",
+    "modalidad": "Cardio",
+    "patron": "Locomoción / cardio",
+    "unilateral": false,
+    "sinonimos": [
+      "soga",
+      "comba",
+      "jump rope"
+    ],
+    "instrucciones": [
+      "Codos cerca del cuerpo; girá la cuerda con las muñecas.",
+      "Hacé saltos bajos sobre las puntas de los pies.",
+      "Mantené un ritmo constante."
+    ],
+    "puntosClave": [
+      "Saltos chiquitos y eficientes."
+    ],
+    "erroresComunes": [
+      "Saltar muy alto y cansarse enseguida."
+    ]
+  },
+  "Single_Leg_Glute_Bridge": {
+    "nombre": "Puente de glúteos a una pierna",
+    "patron": "Dominante de cadera",
+    "unilateral": true,
+    "sinonimos": [
+      "hip bridge unilateral"
+    ],
+    "instrucciones": [
+      "Boca arriba, rodillas flexionadas y pies apoyados.",
+      "Estirá una pierna y empujá con el talón de la otra para subir la cadera.",
+      "Apretá el glúteo arriba, alineando torso y muslo; bajá controlando."
+    ],
+    "puntosClave": [
+      "Empujá con el talón; apretá glúteo arriba sin arquear la lumbar."
+    ],
+    "erroresComunes": [
+      "Hiperextender la zona lumbar en vez de usar el glúteo."
+    ]
+  },
+  "Pallof_Press": {
+    "nombre": "Press Pallof",
+    "patron": "Core anti-rotación",
+    "unilateral": true,
+    "sinonimos": [
+      "pallof",
+      "press anti-rotacion"
+    ],
+    "instrucciones": [
+      "Anclá una banda a la altura del pecho y posicionate de costado a ella.",
+      "Sostené el extremo con ambas manos frente al pecho.",
+      "Extendé los brazos al frente resistiendo la rotación que tira la banda.",
+      "Volvé al pecho de forma controlada."
+    ],
+    "puntosClave": [
+      "El trabajo es resistir el giro, no girar."
+    ],
+    "erroresComunes": [
+      "Dejar que el torso rote hacia la banda."
+    ]
+  },
+  "Cat_Stretch": {
+    "nombre": "Estiramiento del gato (gato-camello)",
+    "modalidad": "Movilidad",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "cat cow",
+      "gato camello"
+    ],
+    "instrucciones": [
+      "En cuatro apoyos, manos bajo los hombros y rodillas bajo la cadera.",
+      "Redondeá la espalda llevando el mentón al pecho (gato).",
+      "Después arqueá suave mirando al frente (camello). Alterná lento."
+    ],
+    "puntosClave": [
+      "Movimiento suave y segmentado de toda la columna."
+    ],
+    "erroresComunes": [
+      "Forzar el rango."
+    ]
+  },
+  "90_90_Hamstring": {
+    "nombre": "Estiramiento de isquios 90/90",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "estiramiento isquiotibiales 90 90"
+    ],
+    "instrucciones": [
+      "Boca arriba, llevá una pierna a 90° de cadera y 90° de rodilla.",
+      "Sostené el muslo con las manos y extendé despacio la rodilla hacia el techo.",
+      "Mantené el estiramiento detrás del muslo y respirá."
+    ],
+    "puntosClave": [
+      "Estiramiento suave, sin rebotes."
+    ],
+    "erroresComunes": [
+      "Tirar con tirones."
+    ]
+  },
+  "Arm_Circles": {
+    "nombre": "Círculos de brazos",
+    "modalidad": "Movilidad",
+    "patron": "Empuje vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "circulos de hombros"
+    ],
+    "instrucciones": [
+      "De pie, brazos extendidos a los costados a la altura de los hombros.",
+      "Hacé círculos chicos hacia adelante y después hacia atrás.",
+      "Aumentá de a poco el tamaño del círculo."
+    ],
+    "puntosClave": [
+      "Ideal para calentar el hombro al inicio."
+    ],
+    "erroresComunes": [
+      "Encoger los hombros hacia las orejas."
+    ]
+  },
+  "Bodyweight_Squat": {
+    "nombre": "Sentadilla con peso corporal",
+    "patron": "Dominante de rodilla",
+    "unilateral": false,
+    "sinonimos": [
+      "sentadilla libre",
+      "air squat"
+    ],
+    "instrucciones": [
+      "De pie, pies al ancho de hombros y puntas apenas hacia afuera.",
+      "Bajá llevando la cadera atrás y abajo, brazos al frente para equilibrar, hasta al menos paralelo.",
+      "Subí empujando el piso con los talones hasta quedar de pie."
+    ],
+    "puntosClave": [
+      "Pecho arriba y peso repartido en todo el pie."
+    ],
+    "erroresComunes": [
+      "Que las rodillas se metan hacia adentro.",
+      "Levantar los talones."
+    ]
+  },
+  "Dumbbell_Step_Ups": {
+    "nombre": "Subidas al cajón con mancuernas",
+    "patron": "Zancada / unilateral",
+    "unilateral": true,
+    "sinonimos": [
+      "step ups",
+      "subidas al banco"
+    ],
+    "instrucciones": [
+      "Mancuernas a los costados, frente a un cajón o banco firme.",
+      "Subí apoyando todo el pie sobre el cajón y empujando con esa pierna.",
+      "Bajá controlando con la misma pierna y alterná."
+    ],
+    "puntosClave": [
+      "Empujá con el talón de la pierna de arriba; evitá impulsarte con la de abajo."
+    ],
+    "erroresComunes": [
+      "Tomar envión con la pierna de abajo."
+    ]
+  },
+  "Hammer_Curls": {
+    "nombre": "Curl martillo",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "hammer curl",
+      "curl martillo con mancuernas"
+    ],
+    "instrucciones": [
+      "De pie, mancuernas a los costados con agarre neutro (palmas enfrentadas).",
+      "Flexioná los codos manteniendo el agarre neutro.",
+      "Bajá controlando sin mover los codos."
+    ],
+    "puntosClave": [
+      "Trabaja braquial y antebrazo además del bíceps."
+    ],
+    "erroresComunes": [
+      "Rotar la muñeca.",
+      "Balancear el cuerpo."
+    ]
+  },
+  "Side_Lateral_Raise": {
+    "nombre": "Elevaciones laterales",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "laterales",
+      "lateral raise"
+    ],
+    "instrucciones": [
+      "De pie, mancuernas a los costados, codos apenas flexionados.",
+      "Elevá los brazos hacia los lados hasta la altura de los hombros.",
+      "Bajá lento, controlando."
+    ],
+    "puntosClave": [
+      "Liderá con los codos, no con las manos."
+    ],
+    "erroresComunes": [
+      "Usar impulso.",
+      "Subir por encima del hombro."
+    ]
+  },
+  "Front_Dumbbell_Raise": {
+    "nombre": "Elevaciones frontales con mancuernas",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "front raise",
+      "elevacion frontal"
+    ],
+    "instrucciones": [
+      "De pie, mancuernas al frente de los muslos.",
+      "Elevá un brazo (o ambos) al frente hasta la altura del hombro.",
+      "Bajá controlando."
+    ],
+    "puntosClave": [
+      "Sin balanceo; movimiento limpio."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar para tomar impulso."
+    ]
+  },
+  "Arnold_Dumbbell_Press": {
+    "nombre": "Press Arnold",
+    "patron": "Empuje vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "arnold press"
+    ],
+    "instrucciones": [
+      "Sentado, mancuernas frente a los hombros con palmas hacia vos.",
+      "Mientras empujás hacia arriba, girá las muñecas hasta que las palmas queden hacia adelante.",
+      "Bajá invirtiendo el giro hasta la posición inicial."
+    ],
+    "puntosClave": [
+      "El giro suma trabajo en todo el deltoides."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda baja."
+    ]
+  },
+  "Standing_Dumbbell_Triceps_Extension": {
+    "nombre": "Extensión de tríceps sobre la cabeza",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "frances con mancuerna",
+      "overhead triceps extension"
+    ],
+    "instrucciones": [
+      "De pie, sostené una mancuerna con ambas manos por encima de la cabeza.",
+      "Bajá la mancuerna detrás de la cabeza flexionando los codos.",
+      "Extendé los codos hasta arriba sin abrirlos."
+    ],
+    "puntosClave": [
+      "Codos apuntando al frente y quietos."
+    ],
+    "erroresComunes": [
+      "Abrir los codos hacia los costados."
+    ]
+  },
+  "Tricep_Dumbbell_Kickback": {
+    "nombre": "Patada de tríceps con mancuerna",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "kickback",
+      "patada de triceps"
+    ],
+    "instrucciones": [
+      "Inclinado con el torso casi paralelo al piso, codo pegado al costado y flexionado a 90°.",
+      "Extendé el codo llevando la mancuerna hacia atrás hasta estirar el brazo.",
+      "Volvé controlando sin mover el codo."
+    ],
+    "puntosClave": [
+      "Solo se mueve el antebrazo; el codo queda fijo."
+    ],
+    "erroresComunes": [
+      "Mover el hombro en lugar del codo."
+    ]
+  },
+  "Side_Bridge": {
+    "nombre": "Plancha lateral",
+    "modalidad": "Isométrico",
+    "patron": "Core anti-rotación",
+    "unilateral": true,
+    "sinonimos": [
+      "side plank",
+      "plancha de costado"
+    ],
+    "instrucciones": [
+      "De costado, antebrazo bajo el hombro y pies apilados.",
+      "Elevá la cadera formando una línea recta de pies a cabeza.",
+      "Mantené sin dejar caer ni rotar la cadera."
+    ],
+    "puntosClave": [
+      "Cadera bien arriba durante todo el tiempo."
+    ],
+    "erroresComunes": [
+      "Rotar el torso hacia el piso."
+    ]
+  },
+  "Hanging_Leg_Raise": {
+    "nombre": "Elevación de piernas colgado",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "hanging leg raise"
+    ],
+    "instrucciones": [
+      "Colgá de la barra sin balancearte.",
+      "Elevá las piernas (rectas o con rodillas flexionadas) llevando la pelvis hacia arriba.",
+      "Bajá controlando sin tomar impulso."
+    ],
+    "puntosClave": [
+      "Lo que sube es la pelvis, no solo las piernas."
+    ],
+    "erroresComunes": [
+      "Usar balanceo para subir."
+    ]
+  },
+  "Childs_Pose": {
+    "nombre": "Postura del niño",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "child pose",
+      "balasana"
+    ],
+    "instrucciones": [
+      "Arrodillado, sentate sobre los talones y llevá el torso hacia adelante.",
+      "Estirá los brazos al frente y apoyá la frente en el piso.",
+      "Respirá profundo relajando la espalda baja."
+    ],
+    "puntosClave": [
+      "Relaja zona lumbar y caderas; buena para enfriar."
+    ],
+    "erroresComunes": [
+      "Tensar los hombros."
+    ]
+  },
+  "Kneeling_Hip_Flexor": {
+    "nombre": "Estiramiento de flexor de cadera (arrodillado)",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "estiramiento psoas",
+      "hip flexor stretch"
+    ],
+    "instrucciones": [
+      "Arrodillado en una pierna, la otra adelante con el pie apoyado.",
+      "Llevá la cadera hacia adelante manteniendo el torso erguido.",
+      "Sentí el estiramiento al frente de la cadera de la pierna de atrás."
+    ],
+    "puntosClave": [
+      "Apretá el glúteo del lado que estirás para profundizar."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar en vez de llevar la cadera."
+    ]
+  },
+  "Dynamic_Chest_Stretch": {
+    "nombre": "Estiramiento dinámico de pecho",
+    "modalidad": "Movilidad",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "apertura dinamica de pecho"
+    ],
+    "instrucciones": [
+      "De pie, brazos extendidos al frente a la altura del pecho.",
+      "Abrí los brazos hacia atrás juntando los omóplatos.",
+      "Volvé al frente y repetí con ritmo controlado."
+    ],
+    "puntosClave": [
+      "Movilidad de entrada en calor, sin forzar."
+    ],
+    "erroresComunes": [
+      "Hacerlo brusco o con rebote fuerte."
+    ]
+  },
+  "Inverted_Row": {
+    "nombre": "Remo invertido",
+    "patron": "Tracción horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "inverted row",
+      "remo australiano"
+    ],
+    "instrucciones": [
+      "Tomá una barra baja (o anillas) con el cuerpo por debajo, talones apoyados y cuerpo recto.",
+      "Tirá llevando el pecho hacia la barra, juntando los omóplatos.",
+      "Bajá controlando hasta extender los brazos."
+    ],
+    "puntosClave": [
+      "Cuerpo en tabla; cuanto más horizontal, más difícil."
+    ],
+    "erroresComunes": [
+      "Dejar caer la cadera.",
+      "Encoger los hombros."
+    ]
+  },
+  "Band_Pull_Apart": {
+    "nombre": "Aperturas con banda (pull-apart)",
+    "patron": "Tracción horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "band pull apart"
+    ],
+    "instrucciones": [
+      "De pie, sostené una banda al frente con los brazos extendidos a la altura del pecho.",
+      "Abrí los brazos separando la banda, juntando los omóplatos.",
+      "Volvé controlando al frente."
+    ],
+    "puntosClave": [
+      "Ideal para postura y salud del hombro."
+    ],
+    "erroresComunes": [
+      "Encoger los hombros hacia las orejas."
+    ]
+  },
+  "Freehand_Jump_Squat": {
+    "nombre": "Sentadilla con salto",
+    "modalidad": "Fuerza",
+    "patron": "Dominante de rodilla",
+    "unilateral": false,
+    "sinonimos": [
+      "jump squat",
+      "sentadilla pliometrica"
+    ],
+    "instrucciones": [
+      "Hacé una sentadilla y, al subir, empujá con fuerza para despegar del piso.",
+      "Caé suave amortiguando con las rodillas, directo a la próxima sentadilla."
+    ],
+    "puntosClave": [
+      "Caída blanda y controlada para cuidar las rodillas."
+    ],
+    "erroresComunes": [
+      "Caer con las piernas rígidas."
+    ]
+  },
+  "Flutter_Kicks": {
+    "nombre": "Patadas de tijera (flutter kicks)",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "flutter kicks",
+      "aleteo"
+    ],
+    "instrucciones": [
+      "Boca arriba, piernas extendidas y manos bajo los glúteos.",
+      "Pegá la lumbar al piso y subí apenas las piernas.",
+      "Alterná pequeñas patadas verticales sin tocar el piso."
+    ],
+    "puntosClave": [
+      "La lumbar no se despega del piso."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda baja."
+    ]
+  },
+  "Superman": {
+    "nombre": "Superman",
+    "patron": "Core anti-extensión",
+    "unilateral": false,
+    "sinonimos": [
+      "superman",
+      "extension lumbar"
+    ],
+    "instrucciones": [
+      "Boca abajo, brazos extendidos al frente.",
+      "Elevá a la vez brazos, pecho y piernas unos centímetros.",
+      "Mantené un instante y bajá controlando."
+    ],
+    "puntosClave": [
+      "Trabajá la espalda baja sin hiperextender el cuello."
+    ],
+    "erroresComunes": [
+      "Tirar la cabeza hacia atrás."
+    ]
+  },
+  "Band_Good_Morning": {
+    "nombre": "Buenos días con banda",
+    "patron": "Dominante de cadera",
+    "unilateral": false,
+    "sinonimos": [
+      "good morning",
+      "buenos dias"
+    ],
+    "instrucciones": [
+      "Parado sobre la banda, pasala por detrás del cuello/hombros.",
+      "Con rodillas apenas flexionadas, llevá la cadera atrás bajando el torso.",
+      "Volvé extendiendo la cadera hasta quedar erguido."
+    ],
+    "puntosClave": [
+      "Bisagra de cadera con espalda neutra."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda.",
+      "Flexionar de rodilla en vez de cadera."
+    ]
+  },
+  "Incline_Push-Up": {
+    "nombre": "Flexiones inclinadas",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "flexiones en banco",
+      "incline push up"
+    ],
+    "instrucciones": [
+      "Apoyá las manos en una superficie elevada (banco, mesa), cuerpo recto.",
+      "Bajá el pecho hacia el borde flexionando los codos.",
+      "Empujá hasta extender los brazos."
+    ],
+    "puntosClave": [
+      "Cuanto más alta la superficie, más fácil: buena regresión de la flexión."
+    ],
+    "erroresComunes": [
+      "Hundir la cadera."
+    ]
+  },
+  "Crunches": {
+    "nombre": "Abdominales (crunch)",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "crunch",
+      "encogimientos"
+    ],
+    "instrucciones": [
+      "Boca arriba, rodillas flexionadas y pies apoyados.",
+      "Elevá los hombros del piso llevando las costillas hacia la pelvis.",
+      "Bajá controlando sin relajar del todo."
+    ],
+    "puntosClave": [
+      "Es un movimiento corto; no es una sentadilla de tronco."
+    ],
+    "erroresComunes": [
+      "Tirar del cuello con las manos."
+    ]
+  },
+  "Reverse_Crunch": {
+    "nombre": "Crunch inverso",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "reverse crunch"
+    ],
+    "instrucciones": [
+      "Boca arriba, rodillas flexionadas y elevadas.",
+      "Llevá las rodillas hacia el pecho elevando la pelvis del piso.",
+      "Bajá controlando sin apoyar del todo."
+    ],
+    "puntosClave": [
+      "Sube la pelvis, no solo las piernas."
+    ],
+    "erroresComunes": [
+      "Tomar impulso con las piernas."
+    ]
+  },
+  "Bodyweight_Walking_Lunge": {
+    "nombre": "Zancadas caminando",
+    "patron": "Zancada / unilateral",
+    "unilateral": true,
+    "sinonimos": [
+      "walking lunge",
+      "estocadas caminando"
+    ],
+    "instrucciones": [
+      "De pie, dá un paso largo al frente y bajá hasta que la rodilla de atrás casi toque el piso.",
+      "Empujá con la pierna de adelante para avanzar y dar el siguiente paso con la otra.",
+      "Seguí caminando alternando."
+    ],
+    "puntosClave": [
+      "Torso erguido; rodilla de adelante sobre el pie."
+    ],
+    "erroresComunes": [
+      "Pasos cortos que cargan la rodilla."
+    ]
+  },
+  "Glute_Kickback": {
+    "nombre": "Patada de glúteo",
+    "patron": "Dominante de cadera",
+    "unilateral": true,
+    "sinonimos": [
+      "glute kickback",
+      "patada de gluteo en cuadrupedia"
+    ],
+    "instrucciones": [
+      "En cuatro apoyos, manos bajo hombros y rodillas bajo cadera.",
+      "Llevá una pierna hacia atrás y arriba extendiendo la cadera, sin arquear la lumbar.",
+      "Bajá controlando y repetí; cambiá de lado."
+    ],
+    "puntosClave": [
+      "El movimiento es de cadera; apretá el glúteo arriba."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda baja para subir más."
+    ]
+  },
+  "Dumbbell_Bench_Press": {
+    "nombre": "Press de pecho con mancuernas",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "press banca con mancuernas",
+      "dumbbell bench press"
+    ],
+    "instrucciones": [
+      "Acostado en banco (o en el piso), mancuernas a la altura del pecho, codos a ~45° del torso.",
+      "Empujá hacia arriba hasta extender los codos, sin chocar las mancuernas.",
+      "Bajá controlando hasta sentir estiramiento en el pecho."
+    ],
+    "puntosClave": [
+      "Muñecas firmes y omóplatos retraídos."
+    ],
+    "erroresComunes": [
+      "Abrir los codos a 90° (estrés de hombro)."
+    ]
+  },
+  "Dumbbell_Flyes": {
+    "nombre": "Aperturas con mancuernas",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "flyes",
+      "aperturas de pecho"
+    ],
+    "instrucciones": [
+      "Acostado, mancuernas arriba del pecho con codos apenas flexionados.",
+      "Abrí los brazos en arco hasta sentir estiramiento, manteniendo el codo fijo.",
+      "Volvé juntando las mancuernas arriba como si abrazaras."
+    ],
+    "puntosClave": [
+      "El codo mantiene siempre el mismo ángulo."
+    ],
+    "erroresComunes": [
+      "Flexionar el codo y convertirlo en press."
+    ]
+  },
+  "Straight-Arm_Dumbbell_Pullover": {
+    "nombre": "Pullover con mancuerna",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "pullover"
+    ],
+    "instrucciones": [
+      "Acostado, sostené una mancuerna con ambas manos sobre el pecho, brazos casi extendidos.",
+      "Bajá la mancuerna en arco por detrás de la cabeza hasta sentir estiramiento.",
+      "Volvé al pecho controlando."
+    ],
+    "puntosClave": [
+      "Movimiento amplio y controlado; trabaja pecho y dorsal."
+    ],
+    "erroresComunes": [
+      "Arquear demasiado la lumbar."
+    ]
+  },
+  "Around_The_Worlds": {
+    "nombre": "Círculos con mancuernas (around the world)",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "around the world"
+    ],
+    "instrucciones": [
+      "Acostado, mancuernas a los costados de los muslos.",
+      "Llevalas en arco amplio por los costados hasta arriba de la cabeza.",
+      "Volvé por el mismo camino, controlando."
+    ],
+    "puntosClave": [
+      "Recorrido amplio y lento; pesos livianos."
+    ],
+    "erroresComunes": [
+      "Usar impulso."
+    ]
+  },
+  "Alternating_Renegade_Row": {
+    "nombre": "Remo renegado alternado",
+    "patron": "Tracción horizontal",
+    "unilateral": true,
+    "sinonimos": [
+      "renegade row",
+      "remo en plancha"
+    ],
+    "instrucciones": [
+      "En plancha alta con las manos sobre dos mancuernas, pies algo separados.",
+      "Remá una mancuerna hacia la cadera sin rotar la cadera ni el torso.",
+      "Apoyá y repetí del otro lado, alternando."
+    ],
+    "puntosClave": [
+      "La cadera queda quieta: el core anti-rota."
+    ],
+    "erroresComunes": [
+      "Girar el torso al remar."
+    ]
+  },
+  "Standing_Dumbbell_Upright_Row": {
+    "nombre": "Remo al mentón con mancuernas",
+    "patron": "Tracción vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "upright row",
+      "remo verticla al menton"
+    ],
+    "instrucciones": [
+      "De pie, mancuernas al frente de los muslos, agarre cerrado.",
+      "Subí las mancuernas pegadas al cuerpo llevando los codos hacia arriba y afuera.",
+      "Bajá controlando."
+    ],
+    "puntosClave": [
+      "No subas los codos más allá de los hombros (cuida el hombro)."
+    ],
+    "erroresComunes": [
+      "Subir demasiado y pinzar el hombro."
+    ]
+  },
+  "Concentration_Curls": {
+    "nombre": "Curl concentrado",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "concentration curl"
+    ],
+    "instrucciones": [
+      "Sentado, codo del brazo que trabaja apoyado en la cara interna del muslo.",
+      "Flexioná llevando la mancuerna al hombro, aislando el bíceps.",
+      "Bajá lento, controlando."
+    ],
+    "puntosClave": [
+      "Máximo aislamiento; nada de impulso."
+    ],
+    "erroresComunes": [
+      "Despegar el codo del muslo."
+    ]
+  },
+  "Plie_Dumbbell_Squat": {
+    "nombre": "Sentadilla sumo (plié) con mancuerna",
+    "patron": "Dominante de rodilla",
+    "unilateral": false,
+    "sinonimos": [
+      "plie squat",
+      "sentadilla sumo"
+    ],
+    "instrucciones": [
+      "Pies bien separados, puntas hacia afuera; sostené una mancuerna entre las piernas.",
+      "Bajá manteniendo el torso erguido y las rodillas hacia las puntas.",
+      "Subí apretando glúteos."
+    ],
+    "puntosClave": [
+      "Trabaja más aductores y glúteos."
+    ],
+    "erroresComunes": [
+      "Que las rodillas se metan hacia adentro."
+    ]
+  },
+  "Kettlebell_Sumo_High_Pull": {
+    "nombre": "Tirón alto sumo con pesa rusa",
+    "patron": "Tracción vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "sumo high pull"
+    ],
+    "instrucciones": [
+      "Pies separados, pesa en el piso entre las piernas, cadera atrás.",
+      "Extendé cadera con fuerza y, con ese impulso, tirá la pesa hacia el mentón con los codos altos.",
+      "Bajá controlando a la posición inicial."
+    ],
+    "puntosClave": [
+      "El impulso viene de la cadera, no de los brazos."
+    ],
+    "erroresComunes": [
+      "Tirar solo con los brazos."
+    ]
+  },
+  "Worlds_Greatest_Stretch": {
+    "nombre": "Estiramiento del mundo (world's greatest)",
+    "modalidad": "Movilidad",
+    "patron": "Zancada / unilateral",
+    "unilateral": true,
+    "sinonimos": [
+      "worlds greatest stretch"
+    ],
+    "instrucciones": [
+      "Desde una zancada larga, apoyá la mano de adentro en el piso.",
+      "Llevá el codo de ese lado hacia el piso, cerca del pie.",
+      "Rotá abriendo ese brazo hacia el techo; volvé y cambiá de lado."
+    ],
+    "puntosClave": [
+      "Abre cadera, dorsal y torácica de una; ideal de entrada en calor."
+    ],
+    "erroresComunes": [
+      "Hacerlo apurado sin control."
+    ]
+  },
+  "Side_Neck_Stretch": {
+    "nombre": "Estiramiento lateral de cuello",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "estiramiento de cuello"
+    ],
+    "instrucciones": [
+      "Sentado o de pie, llevá suave la oreja hacia el hombro del mismo lado.",
+      "Ayudá con la mano sin tirar fuerte.",
+      "Mantené, respirá y cambiá de lado."
+    ],
+    "puntosClave": [
+      "Suave; el cuello es delicado."
+    ],
+    "erroresComunes": [
+      "Tirar con fuerza."
+    ]
+  },
+  "Kettlebell_Turkish_Get-Up_Squat_style": {
+    "nombre": "Turkish get-up con pesa rusa",
+    "modalidad": "Fuerza",
+    "patron": "Empuje vertical",
+    "unilateral": true,
+    "sinonimos": [
+      "turkish get up",
+      "tgu"
+    ],
+    "instrucciones": [
+      "Acostado, sostené la pesa con un brazo extendido hacia el techo.",
+      "Incorporate paso a paso (codo, mano, cadera arriba, rodilla) hasta quedar de pie, siempre con el brazo extendido.",
+      "Revertí la secuencia para volver al piso."
+    ],
+    "puntosClave": [
+      "Movimiento lento y controlado; la vista en la pesa."
+    ],
+    "erroresComunes": [
+      "Apurar los pasos y perder el control del peso."
+    ]
+  },
+  "One-Arm_Kettlebell_Push_Press": {
+    "nombre": "Push press a una mano con pesa rusa",
+    "patron": "Empuje vertical",
+    "unilateral": true,
+    "sinonimos": [
+      "push press"
+    ],
+    "instrucciones": [
+      "Pesa a la altura del hombro en posición de rack.",
+      "Hacé un pequeño impulso con las piernas y empujá la pesa arriba hasta extender el brazo.",
+      "Bajá controlando al hombro."
+    ],
+    "puntosClave": [
+      "El impulso de piernas ayuda a mover más peso que un press estricto."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar al empujar."
+    ]
+  },
+  "Hip_Extension_with_Bands": {
+    "nombre": "Extensión de cadera con banda",
+    "patron": "Dominante de cadera",
+    "unilateral": true,
+    "sinonimos": [
+      "patada de gluteo con banda"
+    ],
+    "instrucciones": [
+      "Anclá la banda baja y pasala por un tobillo.",
+      "Parado y estable, llevá la pierna hacia atrás extendiendo la cadera.",
+      "Volvé controlando sin arquear la lumbar."
+    ],
+    "puntosClave": [
+      "El movimiento es de cadera; apretá el glúteo atrás."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda baja para llegar más."
+    ]
+  },
+  "Split_Squat_with_Dumbbells": {
+    "nombre": "Sentadilla búlgara (split squat) con mancuernas",
+    "patron": "Zancada / unilateral",
+    "unilateral": true,
+    "sinonimos": [
+      "bulgarian split squat",
+      "split squat"
+    ],
+    "instrucciones": [
+      "Mancuernas a los costados; un pie adelante y el otro atrás (apoyado en un banco si querés versión búlgara).",
+      "Bajá flexionando la pierna de adelante hasta que la rodilla de atrás casi toque el piso.",
+      "Subí empujando con el talón de adelante."
+    ],
+    "puntosClave": [
+      "Torso erguido; el peso en la pierna de adelante."
+    ],
+    "erroresComunes": [
+      "Cargar la pierna de atrás.",
+      "Que la rodilla de adelante se vaya hacia adentro."
+    ]
+  },
+  "Kettlebell_Pistol_Squat": {
+    "nombre": "Sentadilla pistol con pesa rusa",
+    "patron": "Dominante de rodilla",
+    "unilateral": true,
+    "sinonimos": [
+      "pistol squat",
+      "sentadilla a una pierna"
+    ],
+    "instrucciones": [
+      "Sostené la pesa al frente como contrapeso; parate en una pierna con la otra extendida al frente.",
+      "Bajá en una sola pierna lo más profundo que controles.",
+      "Subí empujando con el talón."
+    ],
+    "puntosClave": [
+      "La pesa al frente hace de contrapeso y ayuda al equilibrio."
+    ],
+    "erroresComunes": [
+      "Perder el control de la bajada."
+    ]
+  },
+  "Isometric_Neck_Exercise_-_Sides": {
+    "nombre": "Isométrico de cuello (laterales)",
+    "modalidad": "Isométrico",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "isometrico de cuello"
+    ],
+    "instrucciones": [
+      "Apoyá la palma en un costado de la cabeza.",
+      "Empujá la cabeza contra la mano sin que haya movimiento (isométrico).",
+      "Mantené unos segundos y cambiá de lado."
+    ],
+    "puntosClave": [
+      "Fuerza suave y progresiva; sin movimiento."
+    ],
+    "erroresComunes": [
+      "Empujar de golpe o demasiado fuerte."
+    ]
+  },
+  "Frog_Hops": {
+    "nombre": "Saltos de rana",
+    "modalidad": "Cardio",
+    "patron": "Locomoción / cardio",
+    "unilateral": false,
+    "sinonimos": [
+      "frog hops",
+      "saltos de sapo"
+    ],
+    "instrucciones": [
+      "Desde una sentadilla profunda, saltá hacia adelante con ambos pies.",
+      "Caé en sentadilla amortiguando con las rodillas.",
+      "Encadená el siguiente salto."
+    ],
+    "puntosClave": [
+      "Caída blanda; explosividad en la subida."
+    ],
+    "erroresComunes": [
+      "Caer con piernas rígidas."
+    ]
+  },
+  "Sit-Up": {
+    "nombre": "Abdominal completo (sit-up)",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "sit up",
+      "abdominal"
+    ],
+    "instrucciones": [
+      "Boca arriba, rodillas flexionadas y pies apoyados.",
+      "Elevá el torso hasta quedar sentado, enrollando la columna.",
+      "Bajá controlando vértebra por vértebra."
+    ],
+    "puntosClave": [
+      "Enrollá la columna; no subas con la espalda recta de golpe."
+    ],
+    "erroresComunes": [
+      "Tirar del cuello con las manos."
+    ]
+  },
+  "Oblique_Crunches": {
+    "nombre": "Crunch oblicuo",
+    "patron": "Core flexión",
+    "unilateral": true,
+    "sinonimos": [
+      "abdominales oblicuos"
+    ],
+    "instrucciones": [
+      "Boca arriba, llevá un tobillo sobre la rodilla opuesta.",
+      "Elevá el hombro contrario hacia esa rodilla, contrayendo el oblicuo.",
+      "Bajá controlando y completá el lado; después cambiá."
+    ],
+    "puntosClave": [
+      "Llevá el codo hacia la rodilla opuesta."
+    ],
+    "erroresComunes": [
+      "Tironear del cuello."
+    ]
+  },
+  "Side_Leg_Raises": {
+    "nombre": "Elevaciones laterales de pierna",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "abductores",
+      "side leg raise"
+    ],
+    "instrucciones": [
+      "Acostado de costado, piernas extendidas y alineadas con el cuerpo.",
+      "Elevá la pierna de arriba sin rotar la cadera.",
+      "Bajá controlando; completá y cambiá de lado."
+    ],
+    "puntosClave": [
+      "Trabaja abductores y glúteo medio."
+    ],
+    "erroresComunes": [
+      "Rotar la cadera hacia atrás."
+    ]
+  },
+  "Standing_Hip_Flexors": {
+    "nombre": "Estiramiento de flexores de cadera (de pie)",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "estiramiento psoas de pie"
+    ],
+    "instrucciones": [
+      "En posición de zancada de pie, llevá la cadera hacia adelante.",
+      "Mantené el torso erguido y apretá el glúteo de atrás.",
+      "Sentí el estiramiento al frente de la cadera; cambiá de lado."
+    ],
+    "puntosClave": [
+      "Apretar el glúteo profundiza el estiramiento."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar."
+    ]
+  },
+  "Step-up_with_Knee_Raise": {
+    "nombre": "Subida al cajón con elevación de rodilla",
+    "patron": "Zancada / unilateral",
+    "unilateral": true,
+    "sinonimos": [
+      "step up con rodilla"
+    ],
+    "instrucciones": [
+      "Frente a un cajón firme, subí apoyando todo el pie y empujando con esa pierna.",
+      "Arriba, elevá la rodilla contraria hacia el pecho.",
+      "Bajá controlando y alterná."
+    ],
+    "puntosClave": [
+      "Empujá con el talón de la pierna de arriba."
+    ],
+    "erroresComunes": [
+      "Impulsarte con la pierna de abajo."
+    ]
+  },
+  "Dumbbell_Seated_One-Leg_Calf_Raise": {
+    "nombre": "Elevación de gemelo sentado a una pierna",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "calf raise sentado"
+    ],
+    "instrucciones": [
+      "Sentado, apoyá la mancuerna sobre el muslo de la pierna que trabaja, con la punta del pie en un escalón.",
+      "Subí lo más alto posible sobre la punta.",
+      "Bajá lento sintiendo el estiramiento."
+    ],
+    "puntosClave": [
+      "Rango completo y pausa arriba."
+    ],
+    "erroresComunes": [
+      "Rebotar sin control."
+    ]
+  },
+  "Reverse_Flyes": {
+    "nombre": "Aperturas invertidas (deltoide posterior)",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "rear delt fly",
+      "pajaros"
+    ],
+    "instrucciones": [
+      "Inclinado con el torso casi paralelo al piso, mancuernas colgando bajo el pecho, codos apenas flexionados.",
+      "Abrí los brazos hacia los lados juntando los omóplatos.",
+      "Bajá controlando."
+    ],
+    "puntosClave": [
+      "Liderá con los codos; trabajá el deltoide posterior, no la espalda baja."
+    ],
+    "erroresComunes": [
+      "Usar impulso o subir el torso."
+    ]
+  },
+  "Dumbbell_Shrug": {
+    "nombre": "Encogimientos con mancuernas",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "shrugs",
+      "encogimiento de hombros"
+    ],
+    "instrucciones": [
+      "De pie, mancuernas a los costados, brazos extendidos.",
+      "Encogé los hombros hacia arriba como apuntando a las orejas.",
+      "Bajá controlando sin rotar los hombros."
+    ],
+    "puntosClave": [
+      "Subí recto; no hagas círculos con el hombro."
+    ],
+    "erroresComunes": [
+      "Rotar los hombros hacia atrás."
+    ]
+  },
+  "Bent_Over_Two-Dumbbell_Row": {
+    "nombre": "Remo con dos mancuernas inclinado",
+    "patron": "Tracción horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "bent over row",
+      "remo con mancuernas"
+    ],
+    "instrucciones": [
+      "Bisagra de cadera, torso a ~45°, espalda neutra, mancuernas colgando.",
+      "Remá ambas mancuernas hacia la cadera bajando los codos.",
+      "Bajá controlando estirando la espalda."
+    ],
+    "puntosClave": [
+      "El torso queda quieto: trabaja la espalda."
+    ],
+    "erroresComunes": [
+      "Redondear la lumbar.",
+      "Subir el torso con cada repetición."
+    ]
+  },
+  "Zottman_Curl": {
+    "nombre": "Curl Zottman",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "zottman"
+    ],
+    "instrucciones": [
+      "De pie, subí las mancuernas con agarre supino como un curl normal.",
+      "Arriba, rotá las muñecas a agarre prono (palmas abajo).",
+      "Bajá con ese agarre prono y volvé a rotar abajo."
+    ],
+    "puntosClave": [
+      "Combina bíceps (subida) y antebrazo (bajada)."
+    ],
+    "erroresComunes": [
+      "Bajar rápido sin controlar."
+    ]
+  },
+  "Standing_Dumbbell_Reverse_Curl": {
+    "nombre": "Curl inverso con mancuernas",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "reverse curl",
+      "curl prono"
+    ],
+    "instrucciones": [
+      "De pie, mancuernas con agarre prono (palmas hacia atrás), codos al cuerpo.",
+      "Flexioná llevando las mancuernas hacia los hombros sin rotar la muñeca.",
+      "Bajá controlando."
+    ],
+    "puntosClave": [
+      "Enfatiza braquial y antebrazo."
+    ],
+    "erroresComunes": [
+      "Mover los codos hacia adelante."
+    ]
+  },
+  "Seated_Dumbbell_Palms-Up_Wrist_Curl": {
+    "nombre": "Curl de muñeca (antebrazos)",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "wrist curl",
+      "flexion de muñeca"
+    ],
+    "instrucciones": [
+      "Sentado, antebrazos sobre los muslos, palmas hacia arriba y muñecas pasando la rodilla.",
+      "Subí el peso flexionando solo la muñeca.",
+      "Bajá controlando en rango completo."
+    ],
+    "puntosClave": [
+      "Solo se mueve la muñeca."
+    ],
+    "erroresComunes": [
+      "Mover el antebrazo."
+    ]
+  },
+  "Air_Bike": {
+    "nombre": "Bicicleta (air bike)",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "bicycle crunch",
+      "abdominal bicicleta"
+    ],
+    "instrucciones": [
+      "Boca arriba, manos en la nuca y piernas elevadas.",
+      "Llevá un codo hacia la rodilla opuesta mientras estirás la otra pierna.",
+      "Alterná de forma fluida, como pedaleando."
+    ],
+    "puntosClave": [
+      "La rotación nace del torso, no del cuello."
+    ],
+    "erroresComunes": [
+      "Tironear de la cabeza."
+    ]
+  },
+  "Toe_Touchers": {
+    "nombre": "Toques de punta (abdominales)",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "toe touch crunch"
+    ],
+    "instrucciones": [
+      "Boca arriba, piernas extendidas hacia el techo.",
+      "Elevá los hombros llevando las manos hacia las puntas de los pies.",
+      "Bajá controlando."
+    ],
+    "puntosClave": [
+      "Es un crunch corto hacia los pies, contrae el abdomen."
+    ],
+    "erroresComunes": [
+      "Empujar el cuello con los brazos."
+    ]
+  },
+  "Hanging_Pike": {
+    "nombre": "Elevación en pica colgado",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "hanging pike",
+      "toes to bar"
+    ],
+    "instrucciones": [
+      "Colgá de la barra sin balancearte.",
+      "Con piernas rectas, elevá los pies hacia la barra plegando la cadera.",
+      "Bajá controlando sin impulso."
+    ],
+    "puntosClave": [
+      "Avanzado: requiere fuerza de core y agarre."
+    ],
+    "erroresComunes": [
+      "Balancearse para subir."
+    ]
+  },
+  "Scissor_Kick": {
+    "nombre": "Patada de tijera (scissor kick)",
+    "patron": "Core flexión",
+    "unilateral": false,
+    "sinonimos": [
+      "scissor kick"
+    ],
+    "instrucciones": [
+      "Boca arriba, manos bajo los glúteos y piernas extendidas algo elevadas.",
+      "Cruzá una pierna sobre la otra alternando, como tijeras.",
+      "Mantené la lumbar pegada al piso."
+    ],
+    "puntosClave": [
+      "La lumbar no se despega."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda baja."
+    ]
+  },
+  "Alternate_Heel_Touchers": {
+    "nombre": "Toques de talón alternados",
+    "patron": "Core flexión",
+    "unilateral": true,
+    "sinonimos": [
+      "heel touches",
+      "oblicuos"
+    ],
+    "instrucciones": [
+      "Boca arriba, rodillas flexionadas y hombros apenas despegados.",
+      "Inclinate hacia un lado tocando el talón con la mano.",
+      "Volvé al centro y alterná."
+    ],
+    "puntosClave": [
+      "Trabaja oblicuos con un movimiento corto y lateral."
+    ],
+    "erroresComunes": [
+      "Hacerlo muy rápido sin contraer."
+    ]
+  },
+  "Push_Up_to_Side_Plank": {
+    "nombre": "Flexión a plancha lateral",
+    "patron": "Empuje horizontal",
+    "unilateral": true,
+    "sinonimos": [
+      "push up to side plank"
+    ],
+    "instrucciones": [
+      "Hacé una flexión completa.",
+      "Al subir, rotá el cuerpo a plancha lateral extendiendo un brazo al techo.",
+      "Volvé y repetí alternando el lado en cada flexión."
+    ],
+    "puntosClave": [
+      "Combina empuje y core anti-rotación."
+    ],
+    "erroresComunes": [
+      "Dejar caer la cadera al rotar."
+    ]
+  },
+  "Knee_Tuck_Jump": {
+    "nombre": "Salto con rodillas al pecho",
+    "modalidad": "Fuerza",
+    "patron": "Dominante de rodilla",
+    "unilateral": false,
+    "sinonimos": [
+      "tuck jump"
+    ],
+    "instrucciones": [
+      "Desde semi-sentadilla, saltá lo más alto posible.",
+      "En el aire, llevá las rodillas hacia el pecho.",
+      "Caé suave amortiguando y encadená."
+    ],
+    "puntosClave": [
+      "Caída blanda; explosividad arriba."
+    ],
+    "erroresComunes": [
+      "Caer con piernas rígidas."
+    ]
+  },
+  "Double_Leg_Butt_Kick": {
+    "nombre": "Talones a los glúteos (butt kicks)",
+    "modalidad": "Cardio",
+    "patron": "Locomoción / cardio",
+    "unilateral": false,
+    "sinonimos": [
+      "butt kicks",
+      "talones al gluteo"
+    ],
+    "instrucciones": [
+      "Trotando en el lugar, llevá los talones hacia los glúteos alternando rápido.",
+      "Mantené el torso erguido y un ritmo parejo."
+    ],
+    "puntosClave": [
+      "Bueno para entrada en calor o cardio liviano."
+    ],
+    "erroresComunes": [
+      "Inclinarse demasiado adelante."
+    ]
+  },
+  "Star_Jump": {
+    "nombre": "Salto estrella",
+    "modalidad": "Cardio",
+    "patron": "Locomoción / cardio",
+    "unilateral": false,
+    "sinonimos": [
+      "star jump",
+      "salto estrella"
+    ],
+    "instrucciones": [
+      "Desde semi-sentadilla con manos al centro, saltá abriendo brazos y piernas en estrella.",
+      "Caé suave volviendo a la posición inicial.",
+      "Encadená con ritmo."
+    ],
+    "puntosClave": [
+      "Caída amortiguada."
+    ],
+    "erroresComunes": [
+      "Caer rígido."
+    ]
+  },
+  "Scissors_Jump": {
+    "nombre": "Salto en tijera (split jump)",
+    "modalidad": "Fuerza",
+    "patron": "Zancada / unilateral",
+    "unilateral": true,
+    "sinonimos": [
+      "split jump",
+      "scissor jump"
+    ],
+    "instrucciones": [
+      "Desde una zancada, saltá y cambiá de pierna en el aire.",
+      "Caé en zancada con la otra pierna adelante, amortiguando.",
+      "Encadená alternando."
+    ],
+    "puntosClave": [
+      "Caída controlada; rodilla de adelante sobre el pie."
+    ],
+    "erroresComunes": [
+      "Caer con la rodilla hacia adentro."
+    ]
+  },
+  "Dumbbell_Clean": {
+    "nombre": "Cargada con mancuernas (clean)",
+    "modalidad": "Fuerza",
+    "patron": "Dominante de cadera",
+    "unilateral": false,
+    "sinonimos": [
+      "dumbbell clean",
+      "cargada"
+    ],
+    "instrucciones": [
+      "Mancuernas a los lados de los pies, cadera atrás y espalda neutra.",
+      "Extendé cadera y rodillas con fuerza y, con ese impulso, llevá las mancuernas a los hombros.",
+      "Bajá controlando a la posición inicial."
+    ],
+    "puntosClave": [
+      "La potencia viene de la cadera (triple extensión)."
+    ],
+    "erroresComunes": [
+      "Tirar solo con los brazos.",
+      "Redondear la espalda."
+    ]
+  },
+  "Kettlebell_Thruster": {
+    "nombre": "Thruster con pesa rusa",
+    "modalidad": "Fuerza",
+    "patron": "Empuje vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "thruster"
+    ],
+    "instrucciones": [
+      "Pesa(s) en posición de rack a la altura de los hombros.",
+      "Hacé una sentadilla completa.",
+      "Al subir, aprovechá el impulso para empujar la pesa por encima de la cabeza; bajá al rack."
+    ],
+    "puntosClave": [
+      "Sentadilla + press en un movimiento fluido."
+    ],
+    "erroresComunes": [
+      "Separar la sentadilla del empuje y perder el impulso."
+    ]
+  },
+  "One-Arm_Kettlebell_Snatch": {
+    "nombre": "Arranque a una mano (snatch)",
+    "modalidad": "Fuerza",
+    "patron": "Dominante de cadera",
+    "unilateral": true,
+    "sinonimos": [
+      "kettlebell snatch",
+      "arranque"
+    ],
+    "instrucciones": [
+      "Pesa entre los pies, cadera atrás.",
+      "Con un impulso explosivo de cadera, llevá la pesa en un solo movimiento hasta arriba de la cabeza, girando la mano al final.",
+      "Bajá controlando al swing y encadená."
+    ],
+    "puntosClave": [
+      "Movimiento técnico; arrancá con poco peso."
+    ],
+    "erroresComunes": [
+      "Golpearte la muñeca por no girar a tiempo."
+    ]
+  },
+  "Kettlebell_Windmill": {
+    "nombre": "Molino con pesa rusa (windmill)",
+    "modalidad": "Fuerza",
+    "patron": "Core anti-rotación",
+    "unilateral": true,
+    "sinonimos": [
+      "windmill",
+      "molino"
+    ],
+    "instrucciones": [
+      "Pesa arriba con un brazo extendido; pies algo más anchos que los hombros.",
+      "Bajá el torso de lado deslizando la mano libre por la pierna, mirando la pesa.",
+      "Volvé a la vertical sin perder la pesa de la vista."
+    ],
+    "puntosClave": [
+      "Trabaja core, cadera y movilidad de hombro."
+    ],
+    "erroresComunes": [
+      "Perder de vista la pesa.",
+      "Forzar el rango."
+    ]
+  },
+  "All_Fours_Quad_Stretch": {
+    "nombre": "Estiramiento de cuádriceps en cuadrupedia",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "estiramiento de cuadriceps"
+    ],
+    "instrucciones": [
+      "En cuatro apoyos, tomá un pie con la mano del mismo lado.",
+      "Llevá el talón hacia el glúteo sintiendo el estiramiento al frente del muslo.",
+      "Mantené y cambiá de lado."
+    ],
+    "puntosClave": [
+      "Mantené la cadera estable."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar."
+    ]
+  },
+  "Spinal_Stretch": {
+    "nombre": "Estiramiento de columna",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "estiramiento de espalda"
+    ],
+    "instrucciones": [
+      "Sentado con piernas extendidas, dejá caer el torso hacia adelante.",
+      "Relajá la cabeza y los brazos hacia los pies.",
+      "Respirá y soltá la tensión de la espalda."
+    ],
+    "puntosClave": [
+      "Suave; no rebotes."
+    ],
+    "erroresComunes": [
+      "Forzar para tocar los pies."
+    ]
+  },
+  "Standing_Toe_Touches": {
+    "nombre": "Toque de puntas de pie (estiramiento de isquios)",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "toe touch stretch"
+    ],
+    "instrucciones": [
+      "De pie, piernas casi extendidas.",
+      "Llevá la cadera atrás e inclinate hacia los pies con la espalda lo más recta posible.",
+      "Sentí el estiramiento detrás de las piernas."
+    ],
+    "puntosClave": [
+      "Bisagra de cadera; no redondees de golpe."
+    ],
+    "erroresComunes": [
+      "Encorvar la espalda para llegar."
+    ]
+  },
+  "Band_Good_Morning_Pull_Through": {
+    "nombre": "Pull-through con banda",
+    "modalidad": "Fuerza",
+    "patron": "Dominante de cadera",
+    "unilateral": false,
+    "sinonimos": [
+      "pull through",
+      "good morning con banda"
+    ],
+    "instrucciones": [
+      "Anclá la banda baja detrás tuyo y pasala entre las piernas, sosteniéndola al frente.",
+      "Con bisagra de cadera, llevá la cadera atrás y luego empujala adelante extendiendo, apretando glúteos.",
+      "Mantené la espalda neutra todo el tiempo."
+    ],
+    "puntosClave": [
+      "Patrón de bisagra de cadera con tensión de banda."
+    ],
+    "erroresComunes": [
+      "Hacerlo de rodilla en vez de cadera."
+    ]
+  },
+  "Decline_Push-Up": {
+    "nombre": "Flexión declinada (pies elevados)",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "decline push up"
+    ],
+    "instrucciones": [
+      "Pies sobre una superficie elevada y manos en el piso al ancho de hombros.",
+      "Bajá el pecho hacia el piso flexionando los codos.",
+      "Empujá hasta extender los brazos."
+    ],
+    "puntosClave": [
+      "Pone más carga en pecho superior y hombros."
+    ],
+    "erroresComunes": [
+      "Hundir la cadera."
+    ]
+  },
+  "Push-Up_Wide": {
+    "nombre": "Flexión con manos anchas",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "wide push up"
+    ],
+    "instrucciones": [
+      "Manos bastante más anchas que los hombros, cuerpo recto.",
+      "Bajá el pecho flexionando los codos hacia afuera.",
+      "Empujá hasta extender."
+    ],
+    "puntosClave": [
+      "Enfatiza más el pecho."
+    ],
+    "erroresComunes": [
+      "Abrir tanto que estrese el hombro."
+    ]
+  },
+  "Pushups_Close_and_Wide_Hand_Positions": {
+    "nombre": "Flexiones (manos juntas y anchas)",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "push ups close wide"
+    ],
+    "instrucciones": [
+      "Alterná series con manos juntas (más tríceps) y manos anchas (más pecho).",
+      "Mantené el cuerpo recto en ambas.",
+      "Recorrido completo en cada repetición."
+    ],
+    "puntosClave": [
+      "Variar el agarre cambia el énfasis."
+    ],
+    "erroresComunes": [
+      "Perder la línea del cuerpo."
+    ]
+  },
+  "Handstand_Push-Ups": {
+    "nombre": "Flexión en vertical (handstand push-up)",
+    "patron": "Empuje vertical",
+    "unilateral": false,
+    "nivel_hint": "avanzado",
+    "sinonimos": [
+      "handstand push up",
+      "hspu"
+    ],
+    "instrucciones": [
+      "En parada de manos contra la pared, cuerpo alineado.",
+      "Bajá la cabeza hacia el piso flexionando los codos.",
+      "Empujá hasta extender los brazos."
+    ],
+    "puntosClave": [
+      "Muy avanzado; empezá con apoyo o rango parcial."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda.",
+      "Perder el equilibrio."
+    ]
+  },
+  "Dumbbell_Side_Bend": {
+    "nombre": "Inclinación lateral con mancuerna",
+    "patron": "Core flexión",
+    "unilateral": true,
+    "sinonimos": [
+      "side bend",
+      "oblicuos con mancuerna"
+    ],
+    "instrucciones": [
+      "De pie, una mancuerna en una mano, la otra mano en la nuca o cintura.",
+      "Inclinate hacia el lado de la mancuerna y volvé contrayendo el oblicuo opuesto.",
+      "Completá el lado y cambiá."
+    ],
+    "puntosClave": [
+      "Movimiento solo lateral; sin rotar ni inclinarte adelante."
+    ],
+    "erroresComunes": [
+      "Inclinarte hacia adelante."
+    ]
+  },
+  "Standing_Hip_Circles": {
+    "nombre": "Círculos de cadera de pie",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "hip circles",
+      "circulos de cadera"
+    ],
+    "instrucciones": [
+      "De pie, manos en la cintura.",
+      "Hacé círculos amplios con la cadera en un sentido y después en el otro.",
+      "Mantené las rodillas algo flexionadas."
+    ],
+    "puntosClave": [
+      "Buen ejercicio de entrada en calor para la cadera."
+    ],
+    "erroresComunes": [
+      "Mover solo el torso sin la cadera."
+    ]
+  },
+  "Standing_Gastrocnemius_Calf_Stretch": {
+    "nombre": "Estiramiento de gemelo de pie",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "estiramiento de gemelo"
+    ],
+    "instrucciones": [
+      "De pie frente a una pared, una pierna atrás con la rodilla extendida y el talón en el piso.",
+      "Llevá la cadera hacia adelante hasta sentir el estiramiento en el gemelo.",
+      "Mantené y cambiá de lado."
+    ],
+    "puntosClave": [
+      "Talón pegado al piso, rodilla de atrás recta."
+    ],
+    "erroresComunes": [
+      "Despegar el talón."
+    ]
+  },
+  "Seated_Calf_Stretch": {
+    "nombre": "Estiramiento de gemelo sentado",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "estiramiento gemelo sentado"
+    ],
+    "instrucciones": [
+      "Sentado con piernas extendidas.",
+      "Tomá las puntas de los pies (o usá una banda) y tiralas hacia vos.",
+      "Sentí el estiramiento en gemelos y mantené."
+    ],
+    "puntosClave": [
+      "Sin rebotes; suave."
+    ],
+    "erroresComunes": [
+      "Redondear mucho la espalda."
+    ]
+  },
+  "Calf_Stretch_Hands_Against_Wall": {
+    "nombre": "Estiramiento de gemelo contra la pared",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "calf stretch wall"
+    ],
+    "instrucciones": [
+      "Manos apoyadas en la pared, una pierna adelante flexionada y la otra atrás extendida.",
+      "Empujá la pared llevando el talón de atrás al piso.",
+      "Mantené y cambiá."
+    ],
+    "puntosClave": [
+      "Talón de atrás en el piso."
+    ],
+    "erroresComunes": [
+      "Doblar la rodilla de atrás."
+    ]
+  },
+  "Kettlebell_One-Legged_Deadlift": {
+    "nombre": "Peso muerto a una pierna con pesa rusa",
+    "patron": "Dominante de cadera",
+    "unilateral": true,
+    "sinonimos": [
+      "single leg deadlift",
+      "peso muerto unilateral"
+    ],
+    "instrucciones": [
+      "Parado en una pierna con la pesa en la mano contraria.",
+      "Bisagra de cadera: bajá la pesa mientras la pierna libre se extiende hacia atrás.",
+      "Volvé extendiendo la cadera, manteniendo el equilibrio."
+    ],
+    "puntosClave": [
+      "Cadera y hombros mirando al piso, sin rotar."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda.",
+      "Rotar la cadera."
+    ]
+  },
+  "Kettlebell_Figure_8": {
+    "nombre": "Ocho con pesa rusa (figure 8)",
+    "patron": "Core anti-rotación",
+    "unilateral": false,
+    "sinonimos": [
+      "figure 8",
+      "ocho"
+    ],
+    "instrucciones": [
+      "Semi-sentadilla con la espalda neutra.",
+      "Pasá la pesa entre las piernas en forma de ocho, cambiándola de mano detrás de cada rodilla.",
+      "Mantené el ritmo y el core firme."
+    ],
+    "puntosClave": [
+      "El torso queda estable; trabaja coordinación y core."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda al pasar la pesa."
+    ]
+  },
+  "Standing_Dumbbell_Calf_Raise": {
+    "nombre": "Elevación de gemelos de pie con mancuernas",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "calf raise de pie"
+    ],
+    "instrucciones": [
+      "De pie con mancuernas a los costados, puntas de los pies en un escalón si tenés.",
+      "Subí lo más alto posible sobre las puntas.",
+      "Bajá lento sintiendo el estiramiento."
+    ],
+    "puntosClave": [
+      "Rango completo y pausa arriba."
+    ],
+    "erroresComunes": [
+      "Rebotar."
+    ]
+  },
+  "Close-Grip_Push-Up_off_of_a_Dumbbell": {
+    "nombre": "Flexión con agarre cerrado (sobre mancuerna)",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "close grip push up",
+      "flexion diamante"
+    ],
+    "instrucciones": [
+      "Manos juntas apoyadas sobre una mancuerna en el piso, cuerpo recto.",
+      "Bajá el pecho hacia la mano manteniendo los codos cerca del cuerpo.",
+      "Empujá hasta extender."
+    ],
+    "puntosClave": [
+      "Codos pegados: más tríceps."
+    ],
+    "erroresComunes": [
+      "Abrir los codos."
+    ]
+  },
+  "Incline_Push-Up_Close-Grip": {
+    "nombre": "Flexión inclinada con agarre cerrado",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "incline close grip push up"
+    ],
+    "instrucciones": [
+      "Manos juntas sobre una superficie elevada, cuerpo recto.",
+      "Bajá con los codos cerca del cuerpo.",
+      "Empujá hasta extender."
+    ],
+    "puntosClave": [
+      "Regresión de la flexión cerrada: más fácil cuanto más alta la superficie."
+    ],
+    "erroresComunes": [
+      "Hundir la cadera."
+    ]
+  },
+  "Clock_Push-Up": {
+    "nombre": "Flexión reloj (clock push-up)",
+    "patron": "Empuje horizontal",
+    "unilateral": false,
+    "sinonimos": [
+      "clock push up"
+    ],
+    "instrucciones": [
+      "Hacé una flexión y, arriba, 'caminá' las manos rotando el cuerpo como las agujas de un reloj.",
+      "Hacé otra flexión en la nueva posición.",
+      "Seguí rotando alrededor del círculo."
+    ],
+    "puntosClave": [
+      "Suma trabajo de hombro y core por la rotación."
+    ],
+    "erroresComunes": [
+      "Perder la línea del cuerpo al rotar."
+    ]
+  },
+  "Butt_Lift_Bridge": {
+    "nombre": "Puente de glúteos (a dos piernas)",
+    "patron": "Dominante de cadera",
+    "unilateral": false,
+    "sinonimos": [
+      "glute bridge",
+      "puente"
+    ],
+    "instrucciones": [
+      "Boca arriba, rodillas flexionadas y pies apoyados al ancho de cadera.",
+      "Empujá con los talones y subí la cadera hasta alinear torso y muslos.",
+      "Apretá glúteos arriba y bajá controlando."
+    ],
+    "puntosClave": [
+      "Empujá con el talón y apretá glúteo arriba, sin arquear la lumbar."
+    ],
+    "erroresComunes": [
+      "Hiperextender la espalda baja."
+    ]
+  },
+  "Pelvic_Tilt_Into_Bridge": {
+    "nombre": "Báscula pélvica a puente",
+    "patron": "Dominante de cadera",
+    "unilateral": false,
+    "sinonimos": [
+      "pelvic tilt bridge"
+    ],
+    "instrucciones": [
+      "Boca arriba, rodillas flexionadas; primero hacé una báscula pélvica pegando la lumbar al piso.",
+      "Desde ahí, subí la cadera vértebra por vértebra hasta el puente.",
+      "Bajá enrollando la columna al revés."
+    ],
+    "puntosClave": [
+      "Movimiento segmentado y controlado; bueno para activar glúteo y core."
+    ],
+    "erroresComunes": [
+      "Subir de golpe arqueando la lumbar."
+    ]
+  },
+  "Scapular_Pull-Up": {
+    "nombre": "Dominada escapular",
+    "patron": "Tracción vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "scapular pull up",
+      "retraccion escapular colgado"
+    ],
+    "instrucciones": [
+      "Colgá de la barra con los brazos extendidos.",
+      "Sin flexionar los codos, deprimí y juntá los omóplatos elevando apenas el cuerpo.",
+      "Volvé controlando a colgar."
+    ],
+    "puntosClave": [
+      "Activa las escápulas; base para la dominada."
+    ],
+    "erroresComunes": [
+      "Flexionar los codos (eso ya es dominada)."
+    ]
+  },
+  "Dumbbell_One-Arm_Upright_Row": {
+    "nombre": "Remo al mentón a una mano con mancuerna",
+    "patron": "Tracción vertical",
+    "unilateral": true,
+    "sinonimos": [
+      "one arm upright row"
+    ],
+    "instrucciones": [
+      "De pie, una mancuerna al frente del muslo.",
+      "Subí el codo hacia arriba y afuera, manteniendo la mancuerna cerca del cuerpo.",
+      "Bajá controlando; completá y cambiá."
+    ],
+    "puntosClave": [
+      "No subas el codo más allá del hombro."
+    ],
+    "erroresComunes": [
+      "Subir demasiado y pinzar el hombro."
+    ]
+  },
+  "Upright_Row_-_With_Bands": {
+    "nombre": "Remo al mentón con banda",
+    "patron": "Tracción vertical",
+    "unilateral": false,
+    "sinonimos": [
+      "band upright row"
+    ],
+    "instrucciones": [
+      "Parado sobre la banda, sostené los extremos al frente de los muslos.",
+      "Subí los codos hacia arriba y afuera llevando las manos al pecho.",
+      "Bajá controlando."
+    ],
+    "puntosClave": [
+      "Codos guían el movimiento; sin pasar la altura del hombro."
+    ],
+    "erroresComunes": [
+      "Encoger los hombros."
+    ]
+  },
+  "Hip_Circles_prone": {
+    "nombre": "Círculos de cadera (en cuadrupedia)",
+    "modalidad": "Movilidad",
+    "patron": "Aislamiento",
+    "unilateral": true,
+    "sinonimos": [
+      "fire hydrant circles"
+    ],
+    "instrucciones": [
+      "En cuatro apoyos, elevá una rodilla al costado.",
+      "Dibujá círculos con esa rodilla, abriendo la cadera.",
+      "Cambiá de sentido y de lado."
+    ],
+    "puntosClave": [
+      "Movilidad de cadera; mantené el core firme."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar."
+    ]
+  }
+}

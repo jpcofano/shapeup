@@ -1,0 +1,78 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "sesiones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "miembro", "order": "ASCENDING" },
+        { "fieldPath": "semanaInicio", "order": "ASCENDING" },
+        { "fieldPath": "estado", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sesiones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "miembro", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rutinas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "foco", "order": "ASCENDING" },
+        { "fieldPath": "nivelOrden", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "programas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "estado", "order": "ASCENDING" },
+        { "fieldPath": "objetivo", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "historial",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "miembro", "order": "ASCENDING" },
+        { "fieldPath": "fechaRealizadaTimestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "historial",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "idRutina", "order": "ASCENDING" },
+        { "fieldPath": "fechaRealizadaTimestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "mediciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "miembro", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "cardio",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "miembro", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recomendaciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "miembro", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

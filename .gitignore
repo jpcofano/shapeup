@@ -1,0 +1,26 @@
+# Dependencias
+node_modules
+# Build
+dist
+dist-ssr
+*.local
+# Entorno
+.env
+.env.*
+!.env.example
+# Firebase
+.firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+# Credenciales de servicio — NUNCA subir
+scripts/service-account.json
+service-account.json
+*serviceAccount*.json
+*service-account*.json
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+Thumbs.db

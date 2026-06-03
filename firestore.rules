@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ShapeUp — Reglas de seguridad de Firestore (v2)
+//  Auth por whitelist de miembros (misma familia que "Comida Familiar").
+//  Colecciones de dominio de ejercicio + módulo de salud + recomendaciones.
+// ════════════════════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Resuelve el memberId del que llama buscando su email en /config/familia.
+    function resolveMemberId() {
+      let familia = get(/databases/$(database)/documents/config/familia).data;
+      let email = request.auth.token.email.lower();
+      return familia.miembros.juanpablo.mails.hasAny([email]) ? "juanpablo" :
+             familia.miembros.maria.mails.hasAny([email]) ? "maria" :
+             familia.miembros.sofia.mails.hasAny([email]) ? "sofia" :
+             familia.miembros.federico.mails.hasAny([email]) ? "federico" : null;
+    }
+    function isFamilyMember() {
+      return request.auth != null && resolveMemberId() != null;
+    }
+    function isOwner() {
+      let memberId = resolveMemberId();
+      return request.auth != null && memberId != null
+        && get(/databases/$(database)/documents/config/familia).data.owner == memberId;
+    }
+
+    // Catálogo de ejercicios: curado por el owner; lectura para miembros.
+    match /ejercicios/{id} {
+      allow read: if isFamilyMember();
+      allow write: if isOwner();
+    }
+
+    // Rutinas, programas y sesiones: cualquier miembro (la visibilidad filtra en la app).
+    match /rutinas/{id}   { allow read, write: if isFamilyMember(); }
+    match /programas/{id} { allow read, write: if isFamilyMember(); }
+    match /sesiones/{id}  { allow read, write: if isFamilyMember(); }
+
+    // Historial (log real) con media opcional (fotos/notas del entrenamiento).
+    match /historial/{id} {
+      allow read, write: if isFamilyMember();
+      match /media/{mediaId} { allow read, write: if isFamilyMember(); }
+    }
+
+    // Módulo de salud: composición, cardio/FC y recomendaciones.
+    match /mediciones/{id}     { allow read, write: if isFamilyMember(); }
+    match /cardio/{id}         { allow read, write: if isFamilyMember(); }
+    match /recomendaciones/{id} { allow read, write: if isFamilyMember(); }
+
+    // Perfiles: cada miembro edita el suyo (equipo disponible, objetivos, zonas FC, color).
+    match /config/perfiles { allow read, write: if isFamilyMember(); }
+    // Visibilidad: la controla el owner (qué programa/rutina ve cada miembro).
+    match /config/visibilidad {
+      allow read: if isFamilyMember();
+      allow write: if isOwner();
+    }
+    // Resto de config (familia, diccionarios, metodologia): lee miembro, escribe owner.
+    match /config/{docId} {
+      allow read: if isFamilyMember();
+      allow write: if isOwner();
+    }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid && isFamilyMember();
+      allow update: if isFamilyMember() && (request.auth.uid == uid || isOwner());
+      allow delete: if isOwner();
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/20243359379/OneDrive/Documentos/AppsScript/ShapeUp/**)",
+      "Bash(Test-Path \"c:\\\\Users\\\\20243359679\\\\OneDrive\\\\Documentos\\\\AppsScript\\\\ShapeUp\\\\node_modules\")"
+    ]
+  }
+}
