@@ -1,7 +1,10 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
-// Build de producción a /dist (lo que publica Firebase Hosting).
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: "jsdom",
+    exclude: [".tsc-out/**", "node_modules/**"],
+  },
 });

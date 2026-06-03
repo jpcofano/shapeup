@@ -1,0 +1,32 @@
+/* Design tokens — ShapeUp. Claude Design los pule; Code los usa. */
+:root {
+  /* Colores */
+  --bg:          #0f1115;
+  --card:        #171a21;
+  --card-hover:  #1e2130;
+  --border:      #232733;
+  --border-dim:  #1c2030;
+  --fg:          #f5f7fa;
+  --muted:       #9aa4b2;
+  --accent:      #4ade80;
+  --accent-dim:  rgba(74, 222, 128, 0.12);
+  --danger:      #f87171;
+  --warning:     #fbbf24;
+  --info:        #60a5fa;
+
+  /* Radio */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+
+  /* Tipografía */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Reset base */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--fg); }
+a { color: inherit; }
+button { font-family: inherit; }

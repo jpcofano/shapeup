@@ -18,6 +18,8 @@ scripts/service-account.json
 service-account.json
 *serviceAccount*.json
 *service-account*.json
+# TypeScript incremental build
+.tsc-out/
 # Editor / OS
 .DS_Store
 .vscode/*

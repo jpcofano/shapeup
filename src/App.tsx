@@ -1,15 +1,43 @@
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { useAuth } from "./auth/useAuth";
+import { LoginScreen } from "./auth/LoginScreen";
+import { UnauthorizedScreen } from "./auth/UnauthorizedScreen";
+import { AppShell } from "./layout/AppShell";
+import { Home } from "./routes/Home";
+import { Biblioteca } from "./routes/Biblioteca";
+import { Catalogo } from "./routes/Catalogo";
+import { Entrenar } from "./routes/Entrenar";
+import { Historial } from "./routes/Historial";
+import { Perfil } from "./routes/Perfil";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <AppShell />,
+    children: [
+      { index: true,             element: <Home /> },
+      { path: "biblioteca",      element: <Biblioteca /> },
+      { path: "catalogo",        element: <Catalogo /> },
+      { path: "entrenar",        element: <Entrenar /> },
+      { path: "historial",       element: <Historial /> },
+      { path: "perfil",          element: <Perfil /> },
+    ],
+  },
+]);
+
 export default function App() {
-  return (
-    <main className="wrap">
-      <section className="card">
-        <h1>ShapeUp</h1>
-        <p className="tag">Your plan to get back in shape</p>
-        <p className="muted">
-          App en construcción. El esquema, las reglas de Firestore y la lógica
-          ya están en el repositorio. La interfaz se está desarrollando.
-        </p>
-        <span className="badge">shapeup-41e74 · online</span>
-      </section>
-    </main>
-  );
+  const { user, memberId, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  if (!user)     return <LoginScreen />;
+  if (!memberId) return <UnauthorizedScreen />;
+
+  return <RouterProvider router={router} />;
 }
