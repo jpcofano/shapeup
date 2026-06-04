@@ -21,6 +21,14 @@
 
 ## 2. Bitácora
 
+### [2026-06-04] Seed 07 — Juegos VR (PSVR2)
+- `scripts/seed-vr.ts` — 10 juegos PSVR2 como ejercicios de catálogo (modalidad Cardio, equipo VR, patrón "Locomoción / cardio"), IDs EJ-9001…EJ-9010
+- Sigue el mismo patrón que seed-config/seed-ejercicios: `--dry-run`, `--force`, firebase-admin
+- `npm run seed:vr` agregado a package.json
+- Campo extra `poseidoPorOwner: boolean` (ver ADR #007 — no está en el modelo, sólo en Firestore)
+
+---
+
 ### [2026-06-04] E6 — Salud (módulo)
 - `src/data/salud.ts` — CRUD /mediciones y /cardio; `importarMediciones`/`importarCardio` batch
 - `src/lib/parsearCSV.ts` — `parsearPesoCSV` y `parsearEjercicioCSV` para exports Samsung Health
@@ -143,6 +151,7 @@ scripts/
   importar-fedb.ts            ✅  (genera catalogo-ejercicios.json)
   seed-config.ts              ✅  (siembra /config/*)
   seed-ejercicios.ts          ✅  (sube 873 ejercicios a Firestore)
+  seed-vr.ts                  ✅  (10 juegos PSVR2, EJ-9001…EJ-9010, poseidoPorOwner)
 firestore.rules               ✅  desplegadas
 firestore.indexes.json        ✅  desplegados
 ```
@@ -172,4 +181,15 @@ Pendiente: tests de reglas Firestore con emulador (`@firebase/rules-unit-testing
 #004 prescripcionLabel en lib/ — reutilizable desde E3 y E4
 #005 EntrenarSesion fuera del AppShell — pantalla fullscreen sin bottom-nav
 #006 "Catálogo" reemplazado por "Salud" en bottom-nav — E2 UI pendiente
+#007 [2026-06-04] poseidoPorOwner en seed-vr.ts
+  Contexto: el script siembra 10 juegos VR; el owner no tiene todos instalados.
+  Decisión: campo extra `poseidoPorOwner: boolean` en el doc de Firestore.
+  Por qué no está en el modelo: Ejercicio es catálogo neutral (cualquier miembro);
+  "poseído" es propiedad del owner, no del ejercicio. Se guarda como metadata
+  informativa para que la UI filtre o muestre etiqueta "disponible".
+  Los scripts usan tsx (no pasan por tsc -b), por eso no rompe el type-check.
+#008 [2026-06-04] IDs reservados EJ-9001+ para VR
+  Contexto: importar-fedb.ts asigna IDs secuenciales desde EJ-0001.
+  Decisión: saltar al rango 9001+ para VR garantiza que nunca colisionan,
+  corra seed-vr.ts antes o después de seed-ejercicios.ts.
 ```

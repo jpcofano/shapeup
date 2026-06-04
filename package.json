@@ -12,7 +12,8 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "seed:config":     "npx tsx scripts/seed-config.ts",
-    "seed:ejercicios": "npx tsx scripts/seed-ejercicios.ts"
+    "seed:ejercicios": "npx tsx scripts/seed-ejercicios.ts",
+    "seed:vr":         "npx tsx scripts/seed-vr.ts"
   },
   "dependencies": {
     "firebase": "^11.0.0",
