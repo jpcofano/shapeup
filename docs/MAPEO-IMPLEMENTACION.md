@@ -31,6 +31,19 @@
 
 ---
 
+### [2026-06-04] Seed 14 — Visibilidad por miembro
+- `scripts/seed-visibilidad.ts` — idempotente; flags `--dry-run` / `--force` (sin `--force` no pisa si ya existe)
+  - Owner (`juanpablo`) no figura: ve todo por reglas de Firestore
+  - `maria` → PRG-0012 + RUT-0021/22/0004/0008 (glúteos + VR)
+  - `federico` → PRG-0010 + RUT-0017/18 (rugby juvenil)
+  - `sofia` → PRG-0011 + RUT-0019/20 (fútbol juvenil)
+  - Escribe `/config/visibilidad` (forma `VisibilidadConfig` de `src/types/models.ts`)
+  - `data/visibilidad.ts` lee el doc: owner retorna `null` → ve todo; otros retornan `VisibilidadMiembro`
+  - `npm run seed:visibilidad` agregado a package.json
+  - `tsc -b` limpio ✅; dry-run verificado
+
+---
+
 ### [2026-06-04] Seed 13 — María (glúteos y recomposición)
 - `scripts/seed-maria.ts` — aditivo; depende de seed-plan.ts, seed-vr.ts y seed-futbol-juvenil.ts (reusa EJ-8030)
   - 2 ejercicios EJ-8033/34: empuje de cadera (hip thrust) + patada de glúteo (cuadrupedia)
@@ -224,6 +237,7 @@ scripts/
   seed-rugby-juvenil.ts       ✅  (EJ-8028/29, RUT-0017/18, PRG-0010 Federico)
   seed-futbol-juvenil.ts      ✅  (EJ-8030..32, RUT-0019/20, PRG-0011 Sofía)
   seed-maria.ts               ✅  (EJ-8033/34, RUT-0021/22, PRG-0012 María)
+  seed-visibilidad.ts         ✅  (config/visibilidad: maria/federico/sofia; owner ve todo)
 firestore.rules               ✅  desplegadas
 firestore.indexes.json        ✅  desplegados
 ```

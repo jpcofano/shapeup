@@ -250,9 +250,9 @@
   },
   {
     "idEjercicio": "EJ-0008",
-    "nombre": "Air Bike",
+    "nombre": "Bicicleta (air bike)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -263,30 +263,34 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie flat on the floor with your lower back pressed to the ground. For this exercise, you will need to put your hands beside your head. Be careful however to not strain with the neck as you perform it. Now lift your shoulders into the crunch position.",
-      "Bring knees up to where they are perpendicular to the floor, with your lower legs parallel to the floor. This will be your starting position.",
-      "Now simultaneously, slowly go through a cycle pedal motion kicking forward with the right leg and bringing in the knee of the left leg. Bring your right elbow close to your left knee by crunching to the side, as you breathe out.",
-      "Go back to the initial position as you breathe in.",
-      "Crunch to the opposite side as you cycle your legs and bring closer your left elbow to your right knee and exhale.",
-      "Continue alternating in this manner until all of the recommended repetitions for each side have been completed."
+      "Boca arriba, manos en la nuca y piernas elevadas.",
+      "Llevá un codo hacia la rodilla opuesta mientras estirás la otra pierna.",
+      "Alterná de forma fluida, como pedaleando."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La rotación nace del torso, no del cuello."
+    ],
+    "erroresComunes": [
+      "Tironear de la cabeza."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Air_Bike/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Air_Bike/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "bicycle crunch",
+      "abdominal bicicleta"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Air_Bike",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0009",
-    "nombre": "All Fours Quad Stretch",
+    "nombre": "Estiramiento de cuádriceps en cuadrupedia",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
@@ -297,26 +301,32 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Start off on your hands and knees, then lift your leg off the floor and hold the foot with your hand.",
-      "Use your hand to hold the foot or ankle, keeping the knee fully flexed, stretching the quadriceps and hip flexors.",
-      "Focus on extending your hips, thrusting them towards the floor. Hold for 10-20 seconds and then switch sides."
+      "En cuatro apoyos, tomá un pie con la mano del mismo lado.",
+      "Llevá el talón hacia el glúteo sintiendo el estiramiento al frente del muslo.",
+      "Mantené y cambiá de lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Mantené la cadera estable."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/All_Fours_Quad_Stretch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/All_Fours_Quad_Stretch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "estiramiento de cuadriceps"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "All_Fours_Quad_Stretch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0010",
@@ -358,9 +368,9 @@
   },
   {
     "idEjercicio": "EJ-0011",
-    "nombre": "Alternate Heel Touchers",
+    "nombre": "Toques de talón alternados",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -368,28 +378,33 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on the floor with the knees bent and the feet on the floor around 18-24 inches apart. Your arms should be extended by your side. This will be your starting position.",
-      "Crunch over your torso forward and up about 3-4 inches to the right side and touch your right heel as you hold the contraction for a second. Exhale while performing this movement.",
-      "Now go back slowly to the starting position as you inhale.",
-      "Now crunch over your torso forward and up around 3-4 inches to the left side and touch your left heel as you hold the contraction for a second. Exhale while performing this movement and then go back to the starting position as you inhale. Now that both heels have been touched, that is considered 1 repetition.",
-      "Continue alternating sides in this manner until all prescribed repetitions are done."
+      "Boca arriba, rodillas flexionadas y hombros apenas despegados.",
+      "Inclinate hacia un lado tocando el talón con la mano.",
+      "Volvé al centro y alterná."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja oblicuos con un movimiento corto y lateral."
+    ],
+    "erroresComunes": [
+      "Hacerlo muy rápido sin contraer."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternate_Heel_Touchers/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternate_Heel_Touchers/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "heel touches",
+      "oblicuos"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Alternate_Heel_Touchers",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0012",
@@ -1393,9 +1408,9 @@
   },
   {
     "idEjercicio": "EJ-0038",
-    "nombre": "Band Good Morning (Pull Through)",
+    "nombre": "Pull-through con banda",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Isquios",
@@ -1409,23 +1424,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Loop the band around a post. Standing a little ways away, loop the opposite end around the neck. Your hands can help hold the band in position.",
-      "Begin by bending at the hips, getting your butt back as far as possible. Keep your back flat and bend forward to about 90 degrees. Your knees should be only slightly bent.",
-      "Return to the starting position be driving through with the hips to come back to a standing position."
+      "Anclá la banda baja detrás tuyo y pasala entre las piernas, sosteniéndola al frente.",
+      "Con bisagra de cadera, llevá la cadera atrás y luego empujala adelante extendiendo, apretando glúteos.",
+      "Mantené la espalda neutra todo el tiempo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Patrón de bisagra de cadera con tensión de banda."
+    ],
+    "erroresComunes": [
+      "Hacerlo de rodilla en vez de cadera."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Good_Morning_Pull_Through/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Good_Morning_Pull_Through/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "pull through",
+      "good morning con banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Band_Good_Morning_Pull_Through",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0039",
@@ -3179,7 +3201,7 @@
   },
   {
     "idEjercicio": "EJ-0085",
-    "nombre": "Bent Over Two-Dumbbell Row",
+    "nombre": "Remo con dos mancuernas inclinado",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
     "mecanica": "Compuesto",
@@ -3196,24 +3218,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "With a dumbbell in each hand (palms facing your torso), bend your knees slightly and bring your torso forward by bending at the waist; as you bend make sure to keep your back straight until it is almost parallel to the floor. Tip: Make sure that you keep the head up. The weights should hang directly in front of you as your arms hang perpendicular to the floor and your torso. This is your starting position.",
-      "While keeping the torso stationary, lift the dumbbells to your side (as you breathe out), keeping the elbows close to the body (do not exert any force with the forearm other than holding the weights). On the top contracted position, squeeze the back muscles and hold for a second.",
-      "Slowly lower the weight again to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Bisagra de cadera, torso a ~45°, espalda neutra, mancuernas colgando.",
+      "Remá ambas mancuernas hacia la cadera bajando los codos.",
+      "Bajá controlando estirando la espalda."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El torso queda quieto: trabaja la espalda."
+    ],
+    "erroresComunes": [
+      "Redondear la lumbar.",
+      "Subir el torso con cada repetición."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "bent over row",
+      "remo con mancuernas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Bent_Over_Two-Dumbbell_Row",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0086",
@@ -4050,9 +4079,9 @@
   },
   {
     "idEjercicio": "EJ-0108",
-    "nombre": "Butt Lift (Bridge)",
+    "nombre": "Puente de glúteos (a dos piernas)",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Dominante de cadera",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Glúteos",
@@ -4065,23 +4094,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie flat on the floor on your back with the hands by your side and your knees bent. Your feet should be placed around shoulder width. This will be your starting position.",
-      "Pushing mainly with your heels, lift your hips off the floor while keeping your back straight. Breathe out as you perform this part of the motion and hold at the top for a second.",
-      "Slowly go back to the starting position as you breathe in."
+      "Boca arriba, rodillas flexionadas y pies apoyados al ancho de cadera.",
+      "Empujá con los talones y subí la cadera hasta alinear torso y muslos.",
+      "Apretá glúteos arriba y bajá controlando."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Empujá con el talón y apretá glúteo arriba, sin arquear la lumbar."
+    ],
+    "erroresComunes": [
+      "Hiperextender la espalda baja."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Butt_Lift_Bridge/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Butt_Lift_Bridge/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "glute bridge",
+      "puente"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Butt_Lift_Bridge",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0109",
@@ -5201,7 +5237,7 @@
   },
   {
     "idEjercicio": "EJ-0140",
-    "nombre": "Calf Stretch Hands Against Wall",
+    "nombre": "Estiramiento de gemelo contra la pared",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -5211,26 +5247,32 @@
     "equipo": [
       "Otro"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand facing a wall from several feet away. Stagger your stance, placing one foot forward.",
-      "Lean forward and rest your hands on the wall, keeping your heel, hip and head in a straight line.",
-      "Attempt to keep your heel on the ground. Hold for 10-20 seconds and then switch sides."
+      "Manos apoyadas en la pared, una pierna adelante flexionada y la otra atrás extendida.",
+      "Empujá la pared llevando el talón de atrás al piso.",
+      "Mantené y cambiá."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Talón de atrás en el piso."
+    ],
+    "erroresComunes": [
+      "Doblar la rodilla de atrás."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Calf_Stretch_Hands_Against_Wall/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Calf_Stretch_Hands_Against_Wall/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "calf stretch wall"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Calf_Stretch_Hands_Against_Wall",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0141",
@@ -6341,7 +6383,7 @@
   },
   {
     "idEjercicio": "EJ-0170",
-    "nombre": "Clock Push-Up",
+    "nombre": "Flexión reloj (clock push-up)",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -6357,26 +6399,29 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Move into a prone position on the floor, supporting your weight on your hands and toes.",
-      "Your arms should be fully extended with the hands around shoulder width. Keep your body straight throughout the movement. This will be your starting position.",
-      "Descend by flexing at the elbow, lowering your chest toward the ground.",
-      "At the bottom, reverse the motion by pushing yourself up through elbow extension as quickly as possible until you are air borne. Aim to \"jump\" 12-18 inches to one side.",
-      "As you accelerate up, move your outside foot away from your direction of travel. Leaving the ground, shift your body about 30 degrees for the next repetition.",
-      "Return to the starting position and repeat the exercise, working all the way around until you are back where you started."
+      "Hacé una flexión y, arriba, 'caminá' las manos rotando el cuerpo como las agujas de un reloj.",
+      "Hacé otra flexión en la nueva posición.",
+      "Seguí rotando alrededor del círculo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Suma trabajo de hombro y core por la rotación."
+    ],
+    "erroresComunes": [
+      "Perder la línea del cuerpo al rotar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Clock_Push-Up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Clock_Push-Up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "clock push up"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Clock_Push-Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0171",
@@ -6608,7 +6653,7 @@
   },
   {
     "idEjercicio": "EJ-0177",
-    "nombre": "Close-Grip Push-Up off of a Dumbbell",
+    "nombre": "Flexión con agarre cerrado (sobre mancuerna)",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -6625,24 +6670,30 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie on the floor and place your hands on an upright dumbbell. Supporting your weight on your toes and hands, keep your torso rigid and your elbows in with your arms straight. This will be your starting position.",
-      "Lower your body, allowing the elbows to flex while you inhale. Keep your body straight, not allowing your hips to rise or sag.",
-      "Press yourself back up to the starting position by extending the elbows. Breathe out as you perform this step.",
-      "After a pause at the contracted position, repeat the movement for the prescribed amount of repetitions."
+      "Manos juntas apoyadas sobre una mancuerna en el piso, cuerpo recto.",
+      "Bajá el pecho hacia la mano manteniendo los codos cerca del cuerpo.",
+      "Empujá hasta extender."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Codos pegados: más tríceps."
+    ],
+    "erroresComunes": [
+      "Abrir los codos."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Close-Grip_Push-Up_off_of_a_Dumbbell/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Close-Grip_Push-Up_off_of_a_Dumbbell/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "close grip push up",
+      "flexion diamante"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Close-Grip_Push-Up_off_of_a_Dumbbell",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0178",
@@ -7579,7 +7630,7 @@
   },
   {
     "idEjercicio": "EJ-0203",
-    "nombre": "Decline Push-Up",
+    "nombre": "Flexión declinada (pies elevados)",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -7595,24 +7646,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on the floor face down and place your hands about 36 inches apart while holding your torso up at arms length. Move your feet up to a box or bench. This will be your starting position.",
-      "Next, lower yourself downward until your chest almost touches the floor as you inhale.",
-      "Now breathe out and press your upper body back up to the starting position while squeezing your chest.",
-      "After a brief pause at the top contracted position, you can begin to lower yourself downward again for as many repetitions as needed."
+      "Pies sobre una superficie elevada y manos en el piso al ancho de hombros.",
+      "Bajá el pecho hacia el piso flexionando los codos.",
+      "Empujá hasta extender los brazos."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Pone más carga en pecho superior y hombros."
+    ],
+    "erroresComunes": [
+      "Hundir la cadera."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Push-Up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Push-Up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "decline push up"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Decline_Push-Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0204",
@@ -8110,8 +8166,8 @@
   },
   {
     "idEjercicio": "EJ-0217",
-    "nombre": "Double Leg Butt Kick",
-    "modalidad": "Fuerza",
+    "nombre": "Talones a los glúteos (butt kicks)",
+    "modalidad": "Cardio",
     "patron": "Locomoción / cardio",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
@@ -8129,24 +8185,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Begin standing with your knees slightly bent.",
-      "Quickly squat a short distance, flexing the hips and knees, and immediately extend to jump for maximum vertical height.",
-      "As you go up, tuck your heels by flexing the knees, attempting to touch the buttocks.",
-      "Finish the motion by landing with the knees only partially bent, using your legs to absorb the impact."
+      "Trotando en el lugar, llevá los talones hacia los glúteos alternando rápido.",
+      "Mantené el torso erguido y un ritmo parejo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Bueno para entrada en calor o cardio liviano."
+    ],
+    "erroresComunes": [
+      "Inclinarse demasiado adelante."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Double_Leg_Butt_Kick/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Double_Leg_Butt_Kick/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "butt kicks",
+      "talones al gluteo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Double_Leg_Butt_Kick",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0218",
@@ -8415,9 +8476,9 @@
   },
   {
     "idEjercicio": "EJ-0225",
-    "nombre": "Dumbbell Clean",
+    "nombre": "Cargada con mancuernas (clean)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Isquios",
@@ -8436,25 +8497,31 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Begin standing with a dumbbell in each hand with your feet shoulder width apart.",
-      "Lower the weights to the floor by flexing at the hips and knees, pushing your hips back until the dumbbells reach the floor. This will be your starting position.",
-      "To initiate the movement, violently jump upward by extending the hips, knees, and ankles to acclerate the weights upward. Maintaining a neutral grip on the dumbbells, keep the arms straight until full extension is reached.",
-      "After full extension, rebend the hips and knees to receive the weight in a squat position. Allow the arms to bend, guiding the dumbbells to your shoulders.",
-      "Upon receiving the weight in the squat position, extend the hips and knees to finish in a standing position with the weights on your shoulders."
+      "Mancuernas a los lados de los pies, cadera atrás y espalda neutra.",
+      "Extendé cadera y rodillas con fuerza y, con ese impulso, llevá las mancuernas a los hombros.",
+      "Bajá controlando a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La potencia viene de la cadera (triple extensión)."
+    ],
+    "erroresComunes": [
+      "Tirar solo con los brazos.",
+      "Redondear la espalda."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Clean/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Clean/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "dumbbell clean",
+      "cargada"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Dumbbell_Clean",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0226",
@@ -8866,9 +8933,9 @@
   },
   {
     "idEjercicio": "EJ-0237",
-    "nombre": "Dumbbell One-Arm Upright Row",
+    "nombre": "Remo al mentón a una mano con mancuerna",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Tracción vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -8879,28 +8946,32 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Grab a dumbbell and stand up straight with your arm extended in front of you with a slight bend at the elbows and your back straight. This will be your starting position. Tip: The dumbbell should be resting on top of your thigh with the palm of your hands facing your thighs.",
-      "Keep the other hand can be kept fully extended to the side, by the waist or grabbing a fixed surface. This will be your starting position.",
-      "Use your side shoulders to lift the dumbbell as you exhale. The dumbbell should be close to the body as you move it up. Continue to lift it until the dumbbell is nearly in line with your chin. Tip: Your elbows should drive the motion. As you lift the dumbbell, your elbow should always be higher than your forearm. Also, keep your torso stationary and pause for a second at the top of the movement.",
-      "Lower the dumbbell back down slowly to the starting position. Inhale as you perform this portion of the movement.",
-      "Repeat for the recommended amount of repetitions and switch arms."
+      "De pie, una mancuerna al frente del muslo.",
+      "Subí el codo hacia arriba y afuera, manteniendo la mancuerna cerca del cuerpo.",
+      "Bajá controlando; completá y cambiá."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "No subas el codo más allá del hombro."
+    ],
+    "erroresComunes": [
+      "Subir demasiado y pinzar el hombro."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_One-Arm_Upright_Row/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_One-Arm_Upright_Row/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "one arm upright row"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Dumbbell_One-Arm_Upright_Row",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0238",
@@ -9176,9 +9247,9 @@
   },
   {
     "idEjercicio": "EJ-0245",
-    "nombre": "Dumbbell Shrug",
+    "nombre": "Encogimientos con mancuernas",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Trapecios",
@@ -9189,30 +9260,36 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand erect with a dumbbell on each hand (palms facing your torso), arms extended on the sides.",
-      "Lift the dumbbells by elevating the shoulders as high as possible while you exhale. Hold the contraction at the top for a second. Tip: The arms should remain extended at all times. Refrain from using the biceps to help lift the dumbbells. Only the shoulders should be moving up and down.",
-      "Lower the dumbbells back to the original position.",
-      "Repeat for the recommended amount of repetitions."
+      "De pie, mancuernas a los costados, brazos extendidos.",
+      "Encogé los hombros hacia arriba como apuntando a las orejas.",
+      "Bajá controlando sin rotar los hombros."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Subí recto; no hagas círculos con el hombro."
+    ],
+    "erroresComunes": [
+      "Rotar los hombros hacia atrás."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shrug/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shrug/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "shrugs",
+      "encogimiento de hombros"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Dumbbell_Shrug",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0246",
-    "nombre": "Dumbbell Side Bend",
+    "nombre": "Inclinación lateral con mancuerna",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -9220,27 +9297,33 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand up straight while holding a dumbbell on the left hand (palms facing the torso) as you have the right hand holding your waist. Your feet should be placed at shoulder width. This will be your starting position.",
-      "While keeping your back straight and your head up, bend only at the waist to the right as far as possible. Breathe in as you bend to the side. Then hold for a second and come back up to the starting position as you exhale. Tip: Keep the rest of the body stationary.",
-      "Now repeat the movement but bending to the left instead. Hold for a second and come back to the starting position.",
-      "Repeat for the recommended amount of repetitions and then change hands."
+      "De pie, una mancuerna en una mano, la otra mano en la nuca o cintura.",
+      "Inclinate hacia el lado de la mancuerna y volvé contrayendo el oblicuo opuesto.",
+      "Completá el lado y cambiá."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Movimiento solo lateral; sin rotar ni inclinarte adelante."
+    ],
+    "erroresComunes": [
+      "Inclinarte hacia adelante."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Side_Bend/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Side_Bend/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "side bend",
+      "oblicuos con mancuerna"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Dumbbell_Side_Bend",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0247",
@@ -11689,9 +11772,9 @@
   },
   {
     "idEjercicio": "EJ-0313",
-    "nombre": "Handstand Push-Ups",
+    "nombre": "Flexión en vertical (handstand push-up)",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -11704,25 +11787,31 @@
     "unilateral": false,
     "nivel": "Avanzado",
     "instrucciones": [
-      "With your back to the wall bend at the waist and place both hands on the floor at shoulder width.",
-      "Kick yourself up against the wall with your arms straight. Your body should be upside down with the arms and legs fully extended. Keep your whole body as straight as possible. Tip: If doing this for the first time, have a spotter help you. Also, make sure that you keep facing the wall with your head, rather than looking down.",
-      "Slowly lower yourself to the ground as you inhale until your head almost touches the floor. Tip: It is of utmost importance that you come down slow in order to avoid head injury.",
-      "Push yourself back up slowly as you exhale until your elbows are nearly locked.",
-      "Repeat for the recommended amount of repetitions."
+      "En parada de manos contra la pared, cuerpo alineado.",
+      "Bajá la cabeza hacia el piso flexionando los codos.",
+      "Empujá hasta extender los brazos."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Muy avanzado; empezá con apoyo o rango parcial."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda.",
+      "Perder el equilibrio."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Handstand_Push-Ups/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Handstand_Push-Ups/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "handstand push up",
+      "hspu"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Handstand_Push-Ups",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0314",
@@ -11972,9 +12061,9 @@
   },
   {
     "idEjercicio": "EJ-0320",
-    "nombre": "Hanging Pike",
+    "nombre": "Elevación en pica colgado",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -11985,25 +12074,30 @@
     "unilateral": false,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Hang from a chin-up bar with your legs and feet together using an overhand grip (palms facing away from you) that is slightly wider than shoulder width. Tip: You may use wrist wraps in order to facilitate holding on to the bar.",
-      "Now bend your knees at a 90 degree angle and bring the upper legs forward so that the calves are perpendicular to the floor while the thighs remain parallel to it. This will be your starting position.",
-      "Pull your legs up as you exhale until you almost touch your shins with the bar above you. Tip: Try to straighten your legs as much as possible while at the top.",
-      "Lower your legs as slowly as possible until you reach the starting position. Tip: Avoid swinging and using momentum at all times.",
-      "Repeat for the recommended amount of repetitions."
+      "Colgá de la barra sin balancearte.",
+      "Con piernas rectas, elevá los pies hacia la barra plegando la cadera.",
+      "Bajá controlando sin impulso."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Avanzado: requiere fuerza de core y agarre."
+    ],
+    "erroresComunes": [
+      "Balancearse para subir."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hanging_Pike/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hanging_Pike/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "hanging pike",
+      "toes to bar"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Hanging_Pike",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0321",
@@ -12118,9 +12212,9 @@
   },
   {
     "idEjercicio": "EJ-0324",
-    "nombre": "Hip Circles (prone)",
+    "nombre": "Círculos de cadera (en cuadrupedia)",
     "modalidad": "Movilidad",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Abductores",
@@ -12130,26 +12224,32 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Position yourself on your hands and knees on the ground. Maintaining good posture, raise one bent knee off of the ground. This will be your starting position.",
-      "Keeping the knee in a bent position, rotate the femur in an arc, attempting to make a big circle with your knee.",
-      "Perform this slowly for a number of repetitions, and repeat on the other side."
+      "En cuatro apoyos, elevá una rodilla al costado.",
+      "Dibujá círculos con esa rodilla, abriendo la cadera.",
+      "Cambiá de sentido y de lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Movilidad de cadera; mantené el core firme."
+    ],
+    "erroresComunes": [
+      "Arquear la lumbar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hip_Circles_prone/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hip_Circles_prone/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "fire hydrant circles"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Hip_Circles_prone",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0325",
@@ -13002,7 +13102,7 @@
   },
   {
     "idEjercicio": "EJ-0348",
-    "nombre": "Incline Push-Up Close-Grip",
+    "nombre": "Flexión inclinada con agarre cerrado",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -13018,25 +13118,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height.",
-      "Place your hands next to one another on the bar.",
-      "Position your feet back from the bar with arms and body straight. This will be your starting position.",
-      "Keeping your body straight, lower your chest to the bar by bending the arms.",
-      "Return to the starting position by extending the elbows, pressing yourself back up."
+      "Manos juntas sobre una superficie elevada, cuerpo recto.",
+      "Bajá con los codos cerca del cuerpo.",
+      "Empujá hasta extender."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Regresión de la flexión cerrada: más fácil cuanto más alta la superficie."
+    ],
+    "erroresComunes": [
+      "Hundir la cadera."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up_Close-Grip/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up_Close-Grip/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "incline close grip push up"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Incline_Push-Up_Close-Grip",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0349",
@@ -13965,9 +14069,9 @@
   },
   {
     "idEjercicio": "EJ-0374",
-    "nombre": "Kettlebell Figure 8",
+    "nombre": "Ocho con pesa rusa (figure 8)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core anti-rotación",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
     "gruposSecundarios": [
@@ -13980,22 +14084,30 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place one kettlebell between your legs and take a wider than shoulder width stance. Bend over by pushing your butt out and keeping your back flat.",
-      "Pick up a kettlebell and pass it to your other hand between your legs. The receiving hand should reach from behind the legs. Go back and forth for several repetitions."
+      "Semi-sentadilla con la espalda neutra.",
+      "Pasá la pesa entre las piernas en forma de ocho, cambiándola de mano detrás de cada rodilla.",
+      "Mantené el ritmo y el core firme."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El torso queda estable; trabaja coordinación y core."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda al pasar la pesa."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Figure_8/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Figure_8/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "figure 8",
+      "ocho"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Figure_8",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0375",
@@ -14038,9 +14150,9 @@
   },
   {
     "idEjercicio": "EJ-0376",
-    "nombre": "Kettlebell One-Legged Deadlift",
+    "nombre": "Peso muerto a una pierna con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Isquios",
@@ -14051,26 +14163,34 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Hold a kettlebell by the handle in one hand. Stand on one leg, on the same side that you hold the kettlebell.",
-      "Keeping that knee slightly bent, perform a stiff legged deadlift by bending at the hip, extending your free leg behind you for balance.",
-      "Continue lowering the kettlebell until you are parallel to the ground, and then return to the upright position."
+      "Parado en una pierna con la pesa en la mano contraria.",
+      "Bisagra de cadera: bajá la pesa mientras la pierna libre se extiende hacia atrás.",
+      "Volvé extendiendo la cadera, manteniendo el equilibrio."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Cadera y hombros mirando al piso, sin rotar."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda.",
+      "Rotar la cadera."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_One-Legged_Deadlift/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_One-Legged_Deadlift/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "single leg deadlift",
+      "peso muerto unilateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_One-Legged_Deadlift",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0377",
@@ -14306,9 +14426,9 @@
   },
   {
     "idEjercicio": "EJ-0383",
-    "nombre": "Kettlebell Thruster",
+    "nombre": "Thruster con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -14322,24 +14442,29 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you pull the kettlebells towards your shoulders. Rotate your wrists as you do so. This will be your starting position.",
-      "Begin to squat by flexing your hips and knees, lowering your hips between your legs. Maintain an upright, straight back as you descend as low as you can.",
-      "At the bottom, reverse direction and squat by extending your knees and hips, driving through your heels. As you do so, press both kettlebells overhead by extending your arms straight up, using the momentum from the squat to help drive the weights upward.",
-      "As you begin the next repetition, return the weights to the shoulders."
+      "Pesa(s) en posición de rack a la altura de los hombros.",
+      "Hacé una sentadilla completa.",
+      "Al subir, aprovechá el impulso para empujar la pesa por encima de la cabeza; bajá al rack."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Sentadilla + press en un movimiento fluido."
+    ],
+    "erroresComunes": [
+      "Separar la sentadilla del empuje y perder el impulso."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Thruster/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Thruster/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "thruster"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Thruster",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0384",
@@ -14427,9 +14552,9 @@
   },
   {
     "idEjercicio": "EJ-0386",
-    "nombre": "Kettlebell Windmill",
+    "nombre": "Molino con pesa rusa (windmill)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core anti-rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -14442,26 +14567,34 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place a kettlebell in front of your lead foot and clean and press it overhead with your opposite arm. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulders. Rotate your wrist as you do so, so that the palm faces forward. Press it overhead by extending the elbow.",
-      "Keeping the kettlebell locked out at all times, push your butt out in the direction of the locked out kettlebell. Turn your feet out at a forty-five degree angle from the arm with the locked out kettlebell. Bending at the hip to one side, sticking your butt out, slowly lean until you can touch the floor with your free hand. Keep your eyes on the kettlebell that you hold over your head at all times.",
-      "Pause for a second after reaching the ground and reverse the motion back to the starting position."
+      "Pesa arriba con un brazo extendido; pies algo más anchos que los hombros.",
+      "Bajá el torso de lado deslizando la mano libre por la pierna, mirando la pesa.",
+      "Volvé a la vertical sin perder la pesa de la vista."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja core, cadera y movilidad de hombro."
+    ],
+    "erroresComunes": [
+      "Perder de vista la pesa.",
+      "Forzar el rango."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Windmill/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Windmill/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "windmill",
+      "molino"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Windmill",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0387",
@@ -14613,9 +14746,9 @@
   },
   {
     "idEjercicio": "EJ-0391",
-    "nombre": "Knee Tuck Jump",
+    "nombre": "Salto con rodillas al pecho",
     "modalidad": "Fuerza",
-    "patron": "Locomoción / cardio",
+    "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Isquios",
@@ -14632,23 +14765,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Begin in a comfortable standing position with your knees slightly bent. Hold your hands in front of you, palms down with your fingertips together at chest height. This will be your starting position.",
-      "Rapidly dip down into a quarter squat and immediately explode upward. Drive the knees towards the chest, attempting to touch them to the palms of the hands.",
-      "Jump as high as you can, raising your knees up, and then ensure a good land be re-extending your legs, absorbing impact through be allowing the knees to rebend."
+      "Desde semi-sentadilla, saltá lo más alto posible.",
+      "En el aire, llevá las rodillas hacia el pecho.",
+      "Caé suave amortiguando y encadená."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Caída blanda; explosividad arriba."
+    ],
+    "erroresComunes": [
+      "Caer con piernas rígidas."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Knee_Tuck_Jump/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Knee_Tuck_Jump/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "tuck jump"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Knee_Tuck_Jump",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0392",
@@ -18415,9 +18554,9 @@
   },
   {
     "idEjercicio": "EJ-0495",
-    "nombre": "One-Arm Kettlebell Snatch",
+    "nombre": "Arranque a una mano (snatch)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -18432,26 +18571,33 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Place a kettlebell between your feet. Bend your knees and push your butt back to get in the proper starting position.",
-      "Look straight ahead and swing the kettlebell back between your legs.",
-      "Immediately reverse the direction and drive through with your hips and knees, accelerating the kettlebell upward. As the kettlebell rises to your shoulder rotate your hand and punch straight up, using momentum to receive the weight locked out overhead."
+      "Pesa entre los pies, cadera atrás.",
+      "Con un impulso explosivo de cadera, llevá la pesa en un solo movimiento hasta arriba de la cabeza, girando la mano al final.",
+      "Bajá controlando al swing y encadená."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Movimiento técnico; arrancá con poco peso."
+    ],
+    "erroresComunes": [
+      "Golpearte la muñeca por no girar a tiempo."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Snatch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Snatch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "kettlebell snatch",
+      "arranque"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Snatch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0496",
@@ -19862,9 +20008,9 @@
   },
   {
     "idEjercicio": "EJ-0533",
-    "nombre": "Pelvic Tilt Into Bridge",
+    "nombre": "Báscula pélvica a puente",
     "modalidad": "Movilidad",
-    "patron": "Aislamiento",
+    "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Lumbares",
@@ -19875,23 +20021,29 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie down with your feet on the floor, heels directly under your knees.",
-      "Lift only your tailbone to the ceiling to stretch your lower back. (Don't lift the entire spine yet.) Pull in your stomach.",
-      "To go into a bridge, lift the entire spine except the neck."
+      "Boca arriba, rodillas flexionadas; primero hacé una báscula pélvica pegando la lumbar al piso.",
+      "Desde ahí, subí la cadera vértebra por vértebra hasta el puente.",
+      "Bajá enrollando la columna al revés."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Movimiento segmentado y controlado; bueno para activar glúteo y core."
+    ],
+    "erroresComunes": [
+      "Subir de golpe arqueando la lumbar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pelvic_Tilt_Into_Bridge/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pelvic_Tilt_Into_Bridge/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "pelvic tilt bridge"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Pelvic_Tilt_Into_Bridge",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0534",
@@ -20924,9 +21076,9 @@
   },
   {
     "idEjercicio": "EJ-0561",
-    "nombre": "Push-Up Wide",
+    "nombre": "Flexión con manos anchas",
     "modalidad": "Fuerza",
-    "patron": "Aislamiento",
+    "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
     "grupoMuscularPrimario": "Pecho",
     "gruposSecundarios": [
@@ -20940,24 +21092,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "With your hands wide apart, support your body on your toes and hands in a plank position. Your elbows should be extended and your body straight. Do not allow your hips to sag. This will be your starting position.",
-      "To begin, allow the elbows to flex, lowering your chest to the floor as you inhale.",
-      "Using your pectoral muscles, press your upper body back up to the starting position by extending the elbows. Exhale as you perform this step.",
-      "After pausing at the contracted position, repeat the movement for the prescribed amount of repetitions."
+      "Manos bastante más anchas que los hombros, cuerpo recto.",
+      "Bajá el pecho flexionando los codos hacia afuera.",
+      "Empujá hasta extender."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Enfatiza más el pecho."
+    ],
+    "erroresComunes": [
+      "Abrir tanto que estrese el hombro."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push-Up_Wide/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push-Up_Wide/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "wide push up"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Push-Up_Wide",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0562",
@@ -21143,7 +21300,7 @@
   },
   {
     "idEjercicio": "EJ-0567",
-    "nombre": "Push Up to Side Plank",
+    "nombre": "Flexión a plancha lateral",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -21157,28 +21314,32 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Get into pushup position on the toes with your hands just outside of shoulder width.",
-      "Perform a pushup by allowing the elbows to flex. As you descend, keep your body straight.",
-      "Do one pushup and as you come up, shift your weight on the left side of the body, twist to the side while bringing the right arm up towards the ceiling in a side plank.",
-      "Lower the arm back to the floor for another pushup and then twist to the other side.",
-      "Repeat the series, alternating each side, for 10 or more reps."
+      "Hacé una flexión completa.",
+      "Al subir, rotá el cuerpo a plancha lateral extendiendo un brazo al techo.",
+      "Volvé y repetí alternando el lado en cada flexión."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina empuje y core anti-rotación."
+    ],
+    "erroresComunes": [
+      "Dejar caer la cadera al rotar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push_Up_to_Side_Plank/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push_Up_to_Side_Plank/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "push up to side plank"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Push_Up_to_Side_Plank",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0568",
@@ -21226,7 +21387,7 @@
   },
   {
     "idEjercicio": "EJ-0569",
-    "nombre": "Pushups (Close and Wide Hand Positions)",
+    "nombre": "Flexiones (manos juntas y anchas)",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -21242,24 +21403,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on the floor face down and body straight with your toes on the floor and the hands wider than shoulder width for a wide hand position and closer than shoulder width for a close hand position. Make sure you are holding your torso up at arms length.",
-      "Lower yourself until your chest almost touches the floor as you inhale.",
-      "Using your pectoral muscles, press your upper body back up to the starting position and squeeze your chest. Breathe out as you perform this step.",
-      "After a second pause at the contracted position, repeat the movement for the prescribed amount of repetitions."
+      "Alterná series con manos juntas (más tríceps) y manos anchas (más pecho).",
+      "Mantené el cuerpo recto en ambas.",
+      "Recorrido completo en cada repetición."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Variar el agarre cambia el énfasis."
+    ],
+    "erroresComunes": [
+      "Perder la línea del cuerpo."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups_Close_and_Wide_Hand_Positions/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups_Close_and_Wide_Hand_Positions/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "push ups close wide"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Pushups_Close_and_Wide_Hand_Positions",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0570",
@@ -21969,9 +22135,9 @@
   },
   {
     "idEjercicio": "EJ-0589",
-    "nombre": "Reverse Flyes",
+    "nombre": "Aperturas invertidas (deltoide posterior)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -21982,26 +22148,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To begin, lie down on an incline bench with the chest and stomach pressing against the incline. Have the dumbbells in each hand with the palms facing each other (neutral grip).",
-      "Extend the arms in front of you so that they are perpendicular to the angle of the bench. The legs should be stationary while applying pressure with the ball of your toes. This is the starting position.",
-      "Maintaining the slight bend of the elbows, move the weights out and away from each other (to the side) in an arc motion while exhaling. Tip: Try to squeeze your shoulder blades together to get the best results from this exercise.",
-      "The arms should be elevated until they are parallel to the floor.",
-      "Feel the contraction and slowly lower the weights back down to the starting position while inhaling.",
-      "Repeat for the recommended amount of repetitions."
+      "Inclinado con el torso casi paralelo al piso, mancuernas colgando bajo el pecho, codos apenas flexionados.",
+      "Abrí los brazos hacia los lados juntando los omóplatos.",
+      "Bajá controlando."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Liderá con los codos; trabajá el deltoide posterior, no la espalda baja."
+    ],
+    "erroresComunes": [
+      "Usar impulso o subir el torso."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Flyes/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Flyes/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "rear delt fly",
+      "pajaros"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Reverse_Flyes",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0590",
@@ -22988,9 +23158,9 @@
   },
   {
     "idEjercicio": "EJ-0616",
-    "nombre": "Scapular Pull-Up",
+    "nombre": "Dominada escapular",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Tracción vertical",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Trapecios",
@@ -23004,29 +23174,36 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Take a pronated grip on a pull-up bar.",
-      "From a hanging position, raise yourself a few inches without using your arms. Do this by depressing your shoulder girdle in a reverse shrugging motion.",
-      "Pause at the completion of the movement, and then slowly return to the starting position before performing more repetitions."
+      "Colgá de la barra con los brazos extendidos.",
+      "Sin flexionar los codos, deprimí y juntá los omóplatos elevando apenas el cuerpo.",
+      "Volvé controlando a colgar."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Activa las escápulas; base para la dominada."
+    ],
+    "erroresComunes": [
+      "Flexionar los codos (eso ya es dominada)."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scapular_Pull-Up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scapular_Pull-Up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "scapular pull up",
+      "retraccion escapular colgado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Scapular_Pull-Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0617",
-    "nombre": "Scissor Kick",
+    "nombre": "Patada de tijera (scissor kick)",
     "modalidad": "Movilidad",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -23037,31 +23214,35 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To begin, lie down with your back pressed against the floor or on an exercise mat (optional). Your arms should be fully extended to the sides with your palms facing down. Note: The arms should be stationary the entire time.",
-      "With a slight bend at the knees, lift your legs up so that your heels are about 6 inches off the ground. This is the starting position.",
-      "Now lift your left leg up to about a 45 degree angle while your right leg is lowered until the heel is about 2-3 inches from the ground.",
-      "Switch movements by raising your right leg up and lowering your left leg. Remember to breathe while performing this exercise.",
-      "Repeat for the recommended amount of repetitions."
+      "Boca arriba, manos bajo los glúteos y piernas extendidas algo elevadas.",
+      "Cruzá una pierna sobre la otra alternando, como tijeras.",
+      "Mantené la lumbar pegada al piso."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La lumbar no se despega."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda baja."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scissor_Kick/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scissor_Kick/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "scissor kick"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Scissor_Kick",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0618",
-    "nombre": "Scissors Jump",
+    "nombre": "Salto en tijera (split jump)",
     "modalidad": "Fuerza",
-    "patron": "Locomoción / cardio",
+    "patron": "Zancada / unilateral",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Cuádriceps",
@@ -23072,27 +23253,33 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Assume a lunge stance position with one foot forward with the knee bent, and the rear knee nearly touching the ground.",
-      "Ensure that the front knee is over the midline of the foot. Extending through both legs, jump as high as possible, swinging your arms to gain lift.",
-      "As you jump as high as you can, switch the position of your legs, moving your front leg to the back and the rear leg to the front.",
-      "As you land, absorb the impact through the legs by adopting the lunge position, and repeat."
+      "Desde una zancada, saltá y cambiá de pierna en el aire.",
+      "Caé en zancada con la otra pierna adelante, amortiguando.",
+      "Encadená alternando."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Caída controlada; rodilla de adelante sobre el pie."
+    ],
+    "erroresComunes": [
+      "Caer con la rodilla hacia adentro."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scissors_Jump/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scissors_Jump/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "split jump",
+      "scissor jump"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Scissors_Jump",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0619",
@@ -23459,7 +23646,7 @@
   },
   {
     "idEjercicio": "EJ-0629",
-    "nombre": "Seated Calf Stretch",
+    "nombre": "Estiramiento de gemelo sentado",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
@@ -23474,24 +23661,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sit up straight on an exercise mat.",
-      "Bend one knee and put that foot on the floor to stabilize the torso.",
-      "Straighten your other leg and flex your ankle.",
-      "Using a band, towel, or your hand if you can reach, pull the toes toward you. Hold for 10 to 20 seconds, then switch sides."
+      "Sentado con piernas extendidas.",
+      "Tomá las puntas de los pies (o usá una banda) y tiralas hacia vos.",
+      "Sentí el estiramiento en gemelos y mantené."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Sin rebotes; suave."
+    ],
+    "erroresComunes": [
+      "Redondear mucho la espalda."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Calf_Stretch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Calf_Stretch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "estiramiento gemelo sentado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Calf_Stretch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0630",
@@ -23638,9 +23830,9 @@
   },
   {
     "idEjercicio": "EJ-0634",
-    "nombre": "Seated Dumbbell Palms-Up Wrist Curl",
+    "nombre": "Curl de muñeca (antebrazos)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Antebrazos",
@@ -23651,27 +23843,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start out by placing two dumbbells on the floor in front of a flat bench.",
-      "Sit down on the edge of the flat bench with your legs at about shoulder width apart. Make sure to keep your feet on the floor.",
-      "Use your arms to grab both of the dumbbells and bring them up so that your forearms are resting against your thighs with the palms of the hands facing up. Your wrists should be hanging over the edge of your thighs.",
-      "Start out by curling your wrist upwards and exhaling.",
-      "Slowly lower your wrists back down to the starting position while inhaling. Make sure to inhale during this part of the exercise. Tip: Your forearms should be stationary as your wrist is the only movement needed to perform this exercise.",
-      "Repeat for the recommended amount of repetitions.",
-      "When finished, simply lower the dumbbells to the floor."
+      "Sentado, antebrazos sobre los muslos, palmas hacia arriba y muñecas pasando la rodilla.",
+      "Subí el peso flexionando solo la muñeca.",
+      "Bajá controlando en rango completo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Solo se mueve la muñeca."
+    ],
+    "erroresComunes": [
+      "Mover el antebrazo."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Dumbbell_Palms-Up_Wrist_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Dumbbell_Palms-Up_Wrist_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "wrist curl",
+      "flexion de muñeca"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Dumbbell_Palms-Up_Wrist_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0635",
@@ -27107,7 +27302,7 @@
   },
   {
     "idEjercicio": "EJ-0728",
-    "nombre": "Spinal Stretch",
+    "nombre": "Estiramiento de columna",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -27125,24 +27320,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sit in a chair so your back is straight and your feet planted on the floor.",
-      "Interlace your fingers behind your head, elbows out and your chin down.",
-      "Twist your upper body to one side about 3 times as far as you can. Then lean forward and twist your torso to reach your elbow to the floor on the inside of your knee.",
-      "Return to upright position and then repeat for your other side."
+      "Sentado con piernas extendidas, dejá caer el torso hacia adelante.",
+      "Relajá la cabeza y los brazos hacia los pies.",
+      "Respirá y soltá la tensión de la espalda."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Suave; no rebotes."
+    ],
+    "erroresComunes": [
+      "Forzar para tocar los pies."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Spinal_Stretch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Spinal_Stretch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "estiramiento de espalda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Spinal_Stretch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0729",
@@ -28108,9 +28308,9 @@
   },
   {
     "idEjercicio": "EJ-0754",
-    "nombre": "Standing Dumbbell Calf Raise",
+    "nombre": "Elevación de gemelos de pie con mancuernas",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Pantorrillas",
@@ -28121,24 +28321,29 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Stand with your torso upright holding two dumbbells in your hands by your sides. Place the ball of the foot on a sturdy and stable wooden board (that is around 2-3 inches tall) while your heels extend off and touch the floor. This will be your starting position.",
-      "With the toes pointing either straight (to hit all parts equally), inwards (for emphasis on the outer head) or outwards (for emphasis on the inner head), raise the heels off the floor as you exhale by contracting the calves. Hold the top contraction for a second.",
-      "As you inhale, go back to the starting position by slowly lowering the heels.",
-      "Repeat for the recommended amount of times."
+      "De pie con mancuernas a los costados, puntas de los pies en un escalón si tenés.",
+      "Subí lo más alto posible sobre las puntas.",
+      "Bajá lento sintiendo el estiramiento."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Rango completo y pausa arriba."
+    ],
+    "erroresComunes": [
+      "Rebotar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Dumbbell_Calf_Raise/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Dumbbell_Calf_Raise/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "calf raise de pie"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Dumbbell_Calf_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0755",
@@ -28177,9 +28382,9 @@
   },
   {
     "idEjercicio": "EJ-0756",
-    "nombre": "Standing Dumbbell Reverse Curl",
+    "nombre": "Curl inverso con mancuernas",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Bíceps",
@@ -28192,24 +28397,30 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "To begin, stand straight with a dumbbell in each hand using a pronated grip (palms facing down). Your arms should be fully extended while your feet are shoulder width apart from each other. This is the starting position.",
-      "While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the muscle.",
-      "Slowly begin to bring the dumbbells back to starting position as your breathe in.",
-      "Repeat for the recommended amount of repetitions."
+      "De pie, mancuernas con agarre prono (palmas hacia atrás), codos al cuerpo.",
+      "Flexioná llevando las mancuernas hacia los hombros sin rotar la muñeca.",
+      "Bajá controlando."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Enfatiza braquial y antebrazo."
+    ],
+    "erroresComunes": [
+      "Mover los codos hacia adelante."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Dumbbell_Reverse_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Dumbbell_Reverse_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "reverse curl",
+      "curl prono"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Dumbbell_Reverse_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0757",
@@ -28398,7 +28609,7 @@
   },
   {
     "idEjercicio": "EJ-0762",
-    "nombre": "Standing Gastrocnemius Calf Stretch",
+    "nombre": "Estiramiento de gemelo de pie",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
@@ -28409,26 +28620,32 @@
     "equipo": [
       "Otro"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place your right heel on a step with your knee extended and lean forward to grab your right toe with your right hand. Your left knee should be slightly bent and your back should be straight.",
-      "Support your weight on your left leg and place your left hand on your left thigh.",
-      "Pull your right toes toward your knee until you feel a stretch in your calf."
+      "De pie frente a una pared, una pierna atrás con la rodilla extendida y el talón en el piso.",
+      "Llevá la cadera hacia adelante hasta sentir el estiramiento en el gemelo.",
+      "Mantené y cambiá de lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Talón pegado al piso, rodilla de atrás recta."
+    ],
+    "erroresComunes": [
+      "Despegar el talón."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Gastrocnemius_Calf_Stretch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Gastrocnemius_Calf_Stretch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "estiramiento de gemelo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Gastrocnemius_Calf_Stretch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0763",
@@ -28464,9 +28681,9 @@
   },
   {
     "idEjercicio": "EJ-0764",
-    "nombre": "Standing Hip Circles",
+    "nombre": "Círculos de cadera de pie",
     "modalidad": "Movilidad",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Abductores",
@@ -28479,24 +28696,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Begin standing on one leg, holding to a vertical support.",
-      "Raise the unsupported knee to 90 degrees. This will be your starting position.",
-      "Open the hip as far as possible, attempting to make a big circle with your knee.",
-      "Perform this movement slowly for a number of repetitions, and repeat on the other side."
+      "De pie, manos en la cintura.",
+      "Hacé círculos amplios con la cadera en un sentido y después en el otro.",
+      "Mantené las rodillas algo flexionadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Buen ejercicio de entrada en calor para la cadera."
+    ],
+    "erroresComunes": [
+      "Mover solo el torso sin la cadera."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Hip_Circles/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Hip_Circles/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "hip circles",
+      "circulos de cadera"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Hip_Circles",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0765",
@@ -29192,7 +29415,7 @@
   },
   {
     "idEjercicio": "EJ-0784",
-    "nombre": "Standing Toe Touches",
+    "nombre": "Toque de puntas de pie (estiramiento de isquios)",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
@@ -29206,22 +29429,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand with some space in front and behind you.",
-      "Bend at the waist, keeping your legs straight, until you can relax and let your upper body hang down in front of you. Let your arms and hands hang down naturally. Hold for 10 to 20 seconds."
+      "De pie, piernas casi extendidas.",
+      "Llevá la cadera atrás e inclinate hacia los pies con la espalda lo más recta posible.",
+      "Sentí el estiramiento detrás de las piernas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Bisagra de cadera; no redondees de golpe."
+    ],
+    "erroresComunes": [
+      "Encorvar la espalda para llegar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Toe_Touches/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Toe_Touches/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "toe touch stretch"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Toe_Touches",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0785",
@@ -29295,8 +29525,8 @@
   },
   {
     "idEjercicio": "EJ-0787",
-    "nombre": "Star Jump",
-    "modalidad": "Fuerza",
+    "nombre": "Salto estrella",
+    "modalidad": "Cardio",
     "patron": "Locomoción / cardio",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
@@ -29313,23 +29543,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Begin in a relaxed stance with your feet shoulder width apart and hold your arms close to the body.",
-      "To initiate the move, squat down halfway and explode back up as high as possible. Fully extend your entire body, spreading your legs and arms away from the body.",
-      "As you land, bring your limbs back in and absorb your impact through the legs."
+      "Desde semi-sentadilla con manos al centro, saltá abriendo brazos y piernas en estrella.",
+      "Caé suave volviendo a la posición inicial.",
+      "Encadená con ritmo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Caída amortiguada."
+    ],
+    "erroresComunes": [
+      "Caer rígido."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Star_Jump/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Star_Jump/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "star jump",
+      "salto estrella"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Star_Jump",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0788",
@@ -30482,9 +30719,9 @@
   },
   {
     "idEjercicio": "EJ-0818",
-    "nombre": "Toe Touchers",
+    "nombre": "Toques de punta (abdominales)",
     "modalidad": "Movilidad",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -30495,26 +30732,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To begin, lie down on the floor or an exercise mat with your back pressed against the floor. Your arms should be lying across your sides with the palms facing down.",
-      "Your legs should be touching each other. Slowly elevate your legs up in the air until they are almost perpendicular to the floor with a slight bend at the knees. Your feet should be parallel to the floor.",
-      "Move your arms so that they are fully extended at a 45 degree angle from the floor. This is the starting position.",
-      "While keeping your lower back pressed against the floor, slowly lift your torso and use your hands to try and touch your toes. Remember to exhale while perform this part of the exercise.",
-      "Slowly begin to lower your torso and arms back down to the starting position while inhaling. Remember to keep your arms straight out pointing towards your toes.",
-      "Repeat for the recommended amount of repetitions."
+      "Boca arriba, piernas extendidas hacia el techo.",
+      "Elevá los hombros llevando las manos hacia las puntas de los pies.",
+      "Bajá controlando."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un crunch corto hacia los pies, contrae el abdomen."
+    ],
+    "erroresComunes": [
+      "Empujar el cuello con los brazos."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Toe_Touchers/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Toe_Touchers/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "toe touch crunch"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Toe_Touchers",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0819",
@@ -31255,9 +31495,9 @@
   },
   {
     "idEjercicio": "EJ-0840",
-    "nombre": "Upright Row - With Bands",
+    "nombre": "Remo al mentón con banda",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Tracción vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Trapecios",
@@ -31270,24 +31510,29 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To begin, stand on an exercise band so that tension begins at arm's length. Grasp the handles using a pronated (palms facing your thighs) grip that is slightly less than shoulder width. The handles should be resting on top of your thighs. Your arms should be extended with a slight bend at the elbows and your back should be straight. This will be your starting position.",
-      "Use your side shoulders to lift the handles as you exhale. The handles should be close to the body as you move them up. Continue to lift the handles until they nearly touches your chin. Tip: Your elbows should drive the motion. As you lift the handles, your elbows should always be higher than your forearms. Also, keep your torso stationary and pause for a second at the top of the movement.",
-      "Lower the handles back down slowly to the starting position. Inhale as you perform this portion of the movement.",
-      "Repeat for the recommended amount of repetitions."
+      "Parado sobre la banda, sostené los extremos al frente de los muslos.",
+      "Subí los codos hacia arriba y afuera llevando las manos al pecho.",
+      "Bajá controlando."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Codos guían el movimiento; sin pasar la altura del hombro."
+    ],
+    "erroresComunes": [
+      "Encoger los hombros."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Upright_Row_-_With_Bands/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Upright_Row_-_With_Bands/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "band upright row"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Upright_Row_-_With_Bands",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0841",
@@ -32450,9 +32695,9 @@
   },
   {
     "idEjercicio": "EJ-0872",
-    "nombre": "Zottman Curl",
+    "nombre": "Curl Zottman",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Bíceps",
@@ -32465,28 +32710,29 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Stand up with your torso upright and a dumbbell in each hand being held at arms length. The elbows should be close to the torso.",
-      "Make sure the palms of the hands are facing each other. This will be your starting position.",
-      "While holding the upper arm stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Your wrist should rotate so that you have a supinated (palms up) grip. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level.",
-      "Hold the contracted position for a second as you squeeze the biceps.",
-      "Now during the contracted position, rotate your wrist until you now have a pronated (palms facing down) grip with the thumb at a higher position than the pinky.",
-      "Slowly begin to bring the dumbbells back down using the pronated grip.",
-      "As the dumbbells close your thighs, start rotating the wrist so that you go back to a neutral (palms facing your body) grip.",
-      "Repeat for the recommended amount of repetitions."
+      "De pie, subí las mancuernas con agarre supino como un curl normal.",
+      "Arriba, rotá las muñecas a agarre prono (palmas abajo).",
+      "Bajá con ese agarre prono y volvé a rotar abajo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina bíceps (subida) y antebrazo (bajada)."
+    ],
+    "erroresComunes": [
+      "Bajar rápido sin controlar."
+    ],
     "descansoSugeridoSeg": 75,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Zottman_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Zottman_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "zottman"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Zottman_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0873",
