@@ -2,11 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Zap } from "lucide-react";
 import type { Programa, DiaPrograma, Rutina } from "../types/models";
+import type { MiembroId } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
 import { getRutina } from "../data/rutinas";
+import { getPerfiles } from "../data/perfiles";
 import { useAuth } from "../auth/useAuth";
+import { MemberAvatar } from "../components/MemberAvatar";
+import { WeekStrip } from "../components/WeekStrip";
 
 const DIAS_ES = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"] as const;
+const DIA_SEMANA_IDX: Partial<Record<string, number>> = {
+  lunes: 0, martes: 1, "miércoles": 2, jueves: 3, viernes: 4, sábado: 5, domingo: 6,
+};
 
 function diaHoy(): string {
   return DIAS_ES[new Date().getDay()];
@@ -17,6 +24,23 @@ function diaDeHoy(programa: Programa): DiaPrograma | null {
   return programa.dias.find((d) => d.diaSemana === hoy) ?? null;
 }
 
+/** Lunes de la semana actual en "YYYY-MM-DD". */
+function lunesDeSemana(): string {
+  const hoy = new Date();
+  const dia = hoy.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
+  hoy.setDate(hoy.getDate() + diff);
+  return hoy.toISOString().slice(0, 10);
+}
+
+/** Índices 0-6 (lunes=0) de los días de entrenamiento del programa. */
+function diasEntrenamiento(programa: Programa): number[] {
+  return programa.dias
+    .filter((d) => d.tipo !== "descanso" && d.diaSemana)
+    .map((d) => DIA_SEMANA_IDX[d.diaSemana!])
+    .filter((i): i is number => i !== undefined);
+}
+
 export function Home() {
   const navigate             = useNavigate();
   const { memberId }         = useAuth();
@@ -24,8 +48,14 @@ export function Home() {
   const [dia,      setDia]      = useState<DiaPrograma | null>(null);
   const [rutina,   setRutina]   = useState<Rutina | null>(null);
   const [loading,  setLoading]  = useState(true);
+  const [color,    setColor]    = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    if (memberId) {
+      getPerfiles().then((r) => {
+        if (r.ok) setColor(r.value[memberId]?.color);
+      });
+    }
     getProgramaActivo().then(async (r) => {
       if (!r.ok || !r.value) { setLoading(false); return; }
       const prog = r.value;
@@ -38,15 +68,29 @@ export function Home() {
       }
       setLoading(false);
     });
-  }, []);
+  }, [memberId]);
 
   return (
     <div className="page">
-      <div className="page-header">
+      {/* Cabecera con avatar */}
+      <div className="page-header" style={{ marginBottom: 16 }}>
         <h1 className="page-title">Inicio</h1>
+        {memberId && (
+          <MemberAvatar memberId={memberId as MiembroId} color={color} size={32} />
+        )}
       </div>
 
       {loading && <div className="loading-screen" style={{ minHeight: 120 }}><div className="spinner" /></div>}
+
+      {/* Tira de semana — siempre visible si hay programa */}
+      {!loading && programa && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          <WeekStrip
+            semanaInicio={lunesDeSemana()}
+            marcados={diasEntrenamiento(programa)}
+          />
+        </div>
+      )}
 
       {/* Sin programa activo */}
       {!loading && !programa && (
@@ -61,7 +105,7 @@ export function Home() {
         </div>
       )}
 
-      {/* Programa activo */}
+      {/* Programa activo + hoy toca */}
       {!loading && programa && (
         <>
           <div className="card" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -74,7 +118,6 @@ export function Home() {
             </p>
           </div>
 
-          {/* Hoy */}
           {!dia && (
             <div className="card" style={{ textAlign: "center", padding: "24px 16px" }}>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 14 }}>

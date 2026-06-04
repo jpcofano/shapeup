@@ -31,6 +31,15 @@
 
 ---
 
+### [2026-06-04] UI — MemberAvatar, WeekStrip y color de perfiles
+- `src/components/MemberAvatar.tsx` — círculo de iniciales + `AvatarStack`; adaptado de Comidas-Familiares; colores desde `var(--member-*)` con override opcional desde `/config/perfiles`
+- `src/components/WeekStrip.tsx` — tira de 7 días; hoy marcado en verde (var(--accent)); puntos en días con entrenamiento; adaptado de Comidas-Familiares
+- `src/data/perfiles.ts` — `getPerfiles()` lee `/config/perfiles` (con caché)
+- `src/routes/Home.tsx` — avatar en cabecera (color desde perfiles) + WeekStrip con días del programa activo marcados
+- `src/routes/Perfil.tsx` — avatar grande (52px) + nombre + objetivos del perfil
+
+---
+
 ### [2026-06-04] E2.1 — Catálogo de ejercicios (pantalla real)
 - `src/routes/Catalogo.tsx` — lista con buscador + filtros (Área/Tipo/Equipo/Nivel) usando `lib/filtros.ts`; tarjeta expandible con instrucciones/puntosClave/erroresComunes/seguridad; FAB solo visible para el owner (`juanpablo`)
 - `src/routes/EjercicioForm.tsx` — alta y edición de ejercicio (nuevo); todos los campos de `EjercicioInput`; solo navegable por el owner (el FAB/botón Editar lo renderiza Catálogo)
@@ -202,6 +211,9 @@ src/
     entrenarState.ts          ✅  entrenarState.test.ts ✅
     elegibilidad.ts           ✅
     recomendaciones.ts        ⬜ (futuro)
+  components/
+    MemberAvatar.tsx          ✅  (círculo iniciales + AvatarStack; var(--member-*))
+    WeekStrip.tsx             ✅  (tira 7 días; hoy en --accent; puntos en días con sesión)
   data/
     _helpers.ts               ✅
     ejercicios.ts             ✅  (EJ-XXXX)
@@ -210,6 +222,7 @@ src/
     sesiones.ts               ✅
     historial.ts              ✅  (finalizarSesion con runTransaction)
     visibilidad.ts            ✅
+    perfiles.ts               ✅  (getPerfiles, caché en memoria)
     salud.ts                  ✅  (MedicionCorporal + SesionCardio)
   auth/
     AuthContext.ts            ✅
