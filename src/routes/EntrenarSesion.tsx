@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { X, AlignJustify, Zap, RotateCcw } from "lucide-react";
 import type { Rutina, Ejercicio, SerieRegistro } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
+import { finalizarSesion } from "../data/historial";
+import { useAuth } from "../auth/useAuth";
 import {
-  rutinaCompleta, seriesObjetivo, objetivoSerieLabel,
+  rutinaCompleta, seriesObjetivo,
 } from "../lib/entrenarState";
 import { useEntrenarState } from "../hooks/useEntrenarState";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
@@ -20,10 +22,14 @@ export function EntrenarSesion() {
   const { rutinaId } = useParams<{ rutinaId: string }>();
   const navigate      = useNavigate();
 
+  const { memberId } = useAuth();
   const [rutina,   setRutina]   = useState<Rutina | null>(null);
   const [catalogo, setCatalogo] = useState<Map<string, Ejercicio>>(new Map());
   const [loading,  setLoading]  = useState(true);
   const [rpe,      setRpe]      = useState<number | null>(null);
+  const [saving,   setSaving]   = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const startRef = useRef<number>(Date.now());
 
   // Log rápido para modo guiado
   const [logReps,  setLogReps]  = useState("");
@@ -101,12 +107,29 @@ export function EntrenarSesion() {
             </div>
           </div>
 
+          {saveError && <p className="inline-error">{saveError}</p>}
           <button
             className="btn-primary"
             style={{ width: "100%", marginTop: 8 }}
-            onClick={() => { session.reiniciar(); navigate("/entrenar"); }}
+            disabled={saving}
+            onClick={async () => {
+              if (!rutinaId || !memberId) { session.reiniciar(); navigate("/entrenar"); return; }
+              setSaving(true);
+              setSaveError(null);
+              const durMin = Math.round((Date.now() - startRef.current) / 60_000);
+              const result = await finalizarSesion({
+                rutinaId,
+                miembro: memberId,
+                bloques: session.bloquesRegistro(),
+                rpe,
+                duracionMin: durMin || null,
+              });
+              if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
+              session.reiniciar();
+              navigate("/historial");
+            }}
           >
-            Finalizar
+            {saving ? "Guardando…" : "Finalizar y guardar"}
           </button>
           <button className="btn-secondary" style={{ width: "100%" }}
             onClick={() => { session.reiniciar(); }}>

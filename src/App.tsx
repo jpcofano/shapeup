@@ -9,28 +9,30 @@ import { Catalogo } from "./routes/Catalogo";
 import { Entrenar } from "./routes/Entrenar";
 import { EntrenarSesion } from "./routes/EntrenarSesion";
 import { Historial } from "./routes/Historial";
+import { HistorialDetalle } from "./routes/HistorialDetalle";
 import { Perfil } from "./routes/Perfil";
 import { RutinaDetalle } from "./routes/RutinaDetalle";
 import { RutinaForm } from "./routes/RutinaForm";
 
 const router = createBrowserRouter([
-  // ── Pantalla fullscreen de sesión (sin AppShell / sin bottom-nav) ──────────
+  // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
   { path: "/entrenar/:rutinaId", element: <EntrenarSesion /> },
 
-  // ── App principal con AppShell ─────────────────────────────────────────────
+  // ── App con AppShell ───────────────────────────────────────────────────────
   {
     path: "/",
     element: <AppShell />,
     children: [
-      { index: true,                   element: <Home /> },
-      { path: "biblioteca",            element: <Biblioteca /> },
-      { path: "biblioteca/nueva",      element: <RutinaForm /> },
-      { path: "biblioteca/:id",        element: <RutinaDetalle /> },
-      { path: "biblioteca/:id/editar", element: <RutinaForm /> },
-      { path: "catalogo",              element: <Catalogo /> },
-      { path: "entrenar",              element: <Entrenar /> },
-      { path: "historial",             element: <Historial /> },
-      { path: "perfil",                element: <Perfil /> },
+      { index: true,                    element: <Home /> },
+      { path: "biblioteca",             element: <Biblioteca /> },
+      { path: "biblioteca/nueva",       element: <RutinaForm /> },
+      { path: "biblioteca/:id",         element: <RutinaDetalle /> },
+      { path: "biblioteca/:id/editar",  element: <RutinaForm /> },
+      { path: "catalogo",               element: <Catalogo /> },
+      { path: "entrenar",               element: <Entrenar /> },
+      { path: "historial",              element: <Historial /> },
+      { path: "historial/:id",          element: <HistorialDetalle /> },
+      { path: "perfil",                 element: <Perfil /> },
     ],
   },
 ]);
