@@ -1,6 +1,6 @@
 /**
  * Normaliza texto para búsqueda y detección de duplicados:
- * minúsculas, sin acentos, espacios colapsados.
+ * minúsculas, sin tildes/diacríticos, espacios colapsados.
  */
 export function normalizeText(s: string): string {
   return s

@@ -9,18 +9,23 @@ import { Catalogo } from "./routes/Catalogo";
 import { Entrenar } from "./routes/Entrenar";
 import { Historial } from "./routes/Historial";
 import { Perfil } from "./routes/Perfil";
+import { RutinaDetalle } from "./routes/RutinaDetalle";
+import { RutinaForm } from "./routes/RutinaForm";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <AppShell />,
     children: [
-      { index: true,             element: <Home /> },
-      { path: "biblioteca",      element: <Biblioteca /> },
-      { path: "catalogo",        element: <Catalogo /> },
-      { path: "entrenar",        element: <Entrenar /> },
-      { path: "historial",       element: <Historial /> },
-      { path: "perfil",          element: <Perfil /> },
+      { index: true,                    element: <Home /> },
+      { path: "biblioteca",             element: <Biblioteca /> },
+      { path: "biblioteca/nueva",       element: <RutinaForm /> },
+      { path: "biblioteca/:id",         element: <RutinaDetalle /> },
+      { path: "biblioteca/:id/editar",  element: <RutinaForm /> },
+      { path: "catalogo",               element: <Catalogo /> },
+      { path: "entrenar",               element: <Entrenar /> },
+      { path: "historial",              element: <Historial /> },
+      { path: "perfil",                 element: <Perfil /> },
     ],
   },
 ]);
