@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { findMemberByEmail } from "./resolveMemberId";
+import { findMemberByEmail } from "./findMemberByEmail";
 import type { FamiliaConfig } from "../types/models";
 
 const miembros: FamiliaConfig["miembros"] = {

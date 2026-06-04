@@ -21,6 +21,16 @@
 
 ## 2. Bitácora
 
+### [2026-06-04] E1.1 — Fix: tests de auth sin entorno Firebase
+- Causa: `resolveMemberId.test.ts` importaba `findMemberByEmail` desde `resolveMemberId.ts`, que importa `db` desde `firebase.ts`, que ejecuta `getAuth(app)` al cargarse → crash en CI sin `.env.local`
+- Arreglo: `src/auth/findMemberByEmail.ts` — función pura sin imports de Firebase
+- `resolveMemberId.ts` ahora importa desde el nuevo archivo (y re-exporta para compatibilidad)
+- Test movido a `src/auth/findMemberByEmail.test.ts` — importa solo el archivo puro
+- `resolveMemberId.test.ts` eliminado
+- Resultado: 51 tests verdes; `tsc -b` limpio; el test corre sin `.env.local`
+
+---
+
 ### [2026-06-04] Seed 07 — Juegos VR (PSVR2)
 - `scripts/seed-vr.ts` — 10 juegos PSVR2 como ejercicios de catálogo (modalidad Cardio, equipo VR, patrón "Locomoción / cardio"), IDs EJ-9001…EJ-9010
 - Sigue el mismo patrón que seed-config/seed-ejercicios: `--dry-run`, `--force`, firebase-admin
@@ -79,7 +89,7 @@
 ### [2026-06-03] E1 — Base y autenticación
 - Firebase init multi-tab, Auth Google, AuthProvider, resolveMemberId, upsertUserDoc
 - AppShell + bottom-nav, rutas placeholder, tsconfig composite para `tsc -b`
-- `src/auth/resolveMemberId.test.ts` — 4 tests
+- `src/auth/findMemberByEmail.test.ts` — 4 tests (movido en E1.1 para correr sin .env)
 
 ---
 
@@ -117,7 +127,9 @@ src/
     useAuth.ts                ✅
     LoginScreen.tsx           ✅
     UnauthorizedScreen.tsx    ✅
-    resolveMemberId.ts        ✅  test ✅
+    findMemberByEmail.ts      ✅  función pura (sin Firebase)
+    findMemberByEmail.test.ts ✅  4 tests (sin .env requerido)
+    resolveMemberId.ts        ✅  (re-exporta findMemberByEmail + lógica Firestore)
     upsertUserDoc.ts          ✅
   hooks/
     useEntrenarState.ts       ✅
@@ -162,7 +174,7 @@ firestore.indexes.json        ✅  desplegados
 
 | Archivo | Tests |
 |---|---|
-| auth/resolveMemberId.test.ts | 4 |
+| auth/findMemberByEmail.test.ts | 4 |
 | lib/filtros.test.ts | 9 |
 | lib/metricas.test.ts | 11 |
 | lib/entrenarState.test.ts | 26 |
@@ -188,6 +200,15 @@ Pendiente: tests de reglas Firestore con emulador (`@firebase/rules-unit-testing
   "poseído" es propiedad del owner, no del ejercicio. Se guarda como metadata
   informativa para que la UI filtre o muestre etiqueta "disponible".
   Los scripts usan tsx (no pasan por tsc -b), por eso no rompe el type-check.
+#009 [2026-06-04] función pura separada del módulo con I/O de Firebase
+  Contexto: findMemberByEmail vivía en resolveMemberId.ts que importa firebase.ts.
+  Vitest ejecuta los imports al cargar el test; firebase.ts llama getAuth(app) que
+  tira auth/invalid-api-key sin VITE_FIREBASE_API_KEY (CI, checkout limpio).
+  Resultado: 0 tests colectados, suite falla aunque la función es pura y no toca Firebase.
+  Decisión: extraer funciones puras a archivos sin imports de Firebase.
+  Regla general: lib/ y funciones auxiliares de auth NO importan firebase.ts ni
+  ningún módulo que lo haga transitivamente.
+
 #008 [2026-06-04] IDs reservados EJ-9001+ para VR
   Contexto: importar-fedb.ts asigna IDs secuenciales desde EJ-0001.
   Decisión: saltar al rango 9001+ para VR garantiza que nunca colisionan,

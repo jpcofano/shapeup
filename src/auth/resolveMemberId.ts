@@ -3,23 +3,9 @@ import { db } from "../firebase";
 import type { MiembroId, FamiliaConfig } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
+import { findMemberByEmail } from "./findMemberByEmail";
 
-/**
- * Lógica pura: busca el memberId del email en el mapa de miembros.
- * Se exporta para testear sin Firestore.
- */
-export function findMemberByEmail(
-  miembros: FamiliaConfig["miembros"],
-  email: string,
-): MiembroId | null {
-  const normalized = email.toLowerCase();
-  for (const [id, m] of Object.entries(miembros)) {
-    if (m.mails.some((mail) => mail.toLowerCase() === normalized)) {
-      return id as MiembroId;
-    }
-  }
-  return null;
-}
+export { findMemberByEmail };
 
 /**
  * Cruza el email del usuario autenticado contra /config/familia.
