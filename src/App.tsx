@@ -14,6 +14,7 @@ import { Perfil } from "./routes/Perfil";
 import { Salud } from "./routes/Salud";
 import { RutinaDetalle } from "./routes/RutinaDetalle";
 import { RutinaForm } from "./routes/RutinaForm";
+import { EjercicioForm } from "./routes/EjercicioForm";
 
 const router = createBrowserRouter([
   // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
@@ -30,6 +31,8 @@ const router = createBrowserRouter([
       { path: "biblioteca/:id",         element: <RutinaDetalle /> },
       { path: "biblioteca/:id/editar",  element: <RutinaForm /> },
       { path: "catalogo",               element: <Catalogo /> },
+      { path: "catalogo/nueva",         element: <EjercicioForm /> },
+      { path: "catalogo/:id/editar",    element: <EjercicioForm /> },
       { path: "entrenar",               element: <Entrenar /> },
       { path: "historial",              element: <Historial /> },
       { path: "historial/:id",          element: <HistorialDetalle /> },

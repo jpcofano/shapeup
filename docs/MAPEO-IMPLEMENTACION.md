@@ -11,7 +11,7 @@
 |---|---|---|---|
 | E0 | Base ya provista (esquema, lógica, reglas, scaffold) | ✅ | 2026-06 |
 | E1 | Auth Google + whitelist + AppShell | ✅ | 2026-06-03 |
-| E2 | Catálogo — data + filtros ✅; pantalla UI | 🟦 parcial | 2026-06-03 |
+| E2 | Catálogo — data + filtros + pantalla UI | ✅ | 2026-06-04 |
 | E3 | Rutinas — data + Biblioteca + crear/editar + cache | ✅ | 2026-06-03 |
 | E4 | Entrenar — hook + sesión guiada + descanso | ✅ | 2026-06-04 |
 | E5 | Programas + sesiones + historial + visibilidad | ✅ | 2026-06-04 |
@@ -28,6 +28,16 @@
 - Test movido a `src/auth/findMemberByEmail.test.ts` — importa solo el archivo puro
 - `resolveMemberId.test.ts` eliminado
 - Resultado: 51 tests verdes; `tsc -b` limpio; el test corre sin `.env.local`
+
+---
+
+### [2026-06-04] E2.1 — Catálogo de ejercicios (pantalla real)
+- `src/routes/Catalogo.tsx` — lista con buscador + filtros (Área/Tipo/Equipo/Nivel) usando `lib/filtros.ts`; tarjeta expandible con instrucciones/puntosClave/erroresComunes/seguridad; FAB solo visible para el owner (`juanpablo`)
+- `src/routes/EjercicioForm.tsx` — alta y edición de ejercicio (nuevo); todos los campos de `EjercicioInput`; solo navegable por el owner (el FAB/botón Editar lo renderiza Catálogo)
+- `src/routes/Biblioteca.tsx` — pestañas "Rutinas | Ejercicios" en el header (via `?tab=ejercicios`); el catálogo se navega en el mismo AppShell sin tocar el nav inferior
+- `src/App.tsx` — rutas `/catalogo/nueva` y `/catalogo/:id/editar` → `EjercicioForm`
+- ExercisePicker (modal en RutinaForm) sigue funcionando independientemente
+- ADR #013: acceso al catálogo via tabs en /biblioteca (ver §5 ADR)
 
 ---
 
@@ -230,7 +240,8 @@ src/
     Biblioteca.tsx            ✅
     RutinaDetalle.tsx         ✅
     RutinaForm.tsx            ✅
-    Catalogo.tsx              ✅  (placeholder — E2 UI pendiente)
+    Catalogo.tsx              ✅  (lista + filtros + detalle inline; FAB owner)
+    EjercicioForm.tsx         ✅  (alta/edición; solo owner)
     Entrenar.tsx              ✅  (picker)
     EntrenarSesion.tsx        ✅  (fullscreen; guiada + scroll; finalizar → Historial)
     Historial.tsx             ✅
@@ -309,6 +320,16 @@ Pendiente: tests de reglas Firestore con emulador (`@firebase/rules-unit-testing
   Resultado: la app la guía linealmente; el usuario puede usar el modo scroll para
   hacer el circuito a mano. Mejora futura: soporte de grupoSet en el reducer para
   que el modo guiado recorra round-robin los bloques con el mismo grupoSet.
+
+#013 [2026-06-04] Acceso al Catálogo via tabs en /biblioteca
+  Contexto: el catálogo salió del nav inferior en ADR #006 para meter Salud (6 ítems).
+  Sin un punto de entrada no hay forma de llegar a los ejercicios desde la UI.
+  Decisión: pestañas "Rutinas | Ejercicios" en la cabecera de /biblioteca; el tab
+  activo se persiste en el query param `?tab=ejercicios`. El nav inferior no cambia.
+  Por qué no una ruta nueva en el nav: mantener 6 ítems fijos es la restricción del diseño.
+  Por qué no /catalogo standalone: las rutinas y los ejercicios se navegan juntos (al
+  crear una rutina se elige un ejercicio del catálogo); agruparlos en /biblioteca es coherente.
+  /catalogo sigue funcionando como ruta directa; Biblioteca la embebe via el tab.
 
 #009 [2026-06-04] función pura separada del módulo con I/O de Firebase
   Contexto: findMemberByEmail vivía en resolveMemberId.ts que importa firebase.ts.

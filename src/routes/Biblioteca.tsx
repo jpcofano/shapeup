@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 import type { Rutina, FocoRutina, Nivel, Lugar } from "../types/models";
 import { FOCOS_RUTINA, NIVELES, LUGARES } from "../types/models";
 import { getRutinas } from "../data/rutinas";
+import { Catalogo } from "./Catalogo";
 
 /** Filtra rutinas por foco, nivel y lugar. */
 function filtrar(
@@ -20,7 +21,9 @@ function filtrar(
   });
 }
 
-export function Biblioteca() {
+// ── Pestaña Rutinas ───────────────────────────────────────────────────────────
+
+function RutinasList() {
   const navigate = useNavigate();
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
   const [loading, setLoading]  = useState(true);
@@ -40,11 +43,7 @@ export function Biblioteca() {
   const visibles = filtrar(rutinas, foco, nivel, lugar);
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1 className="page-title">Rutinas</h1>
-      </div>
-
+    <>
       {/* Filtros */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <FilterRow label="Foco" all="" value={foco} options={FOCOS_RUTINA} onChange={(v) => setFoco(v as FocoRutina | "")} />
@@ -52,7 +51,6 @@ export function Biblioteca() {
         <FilterRow label="Lugar" all="" value={lugar} options={LUGARES} onChange={(v) => setLugar(v as Lugar | "")} />
       </div>
 
-      {/* Lista */}
       {loading && <div className="empty-state"><div className="spinner" /></div>}
       {error   && <p className="inline-error">{error}</p>}
 
@@ -69,20 +67,56 @@ export function Biblioteca() {
             <span className="badge badge-accent">{r.foco}</span>
             <span className="badge badge-muted">{r.nivel}</span>
             <span className="badge badge-muted">{r.lugar}</span>
-            {r.duracionEstimadaMin != null && (
-              <span>⏱ {r.duracionEstimadaMin} min</span>
-            )}
-            {r.totalSeries != null && (
-              <span>· {r.totalSeries} series</span>
-            )}
+            {r.duracionEstimadaMin != null && <span>⏱ {r.duracionEstimadaMin} min</span>}
+            {r.totalSeries != null && <span>· {r.totalSeries} series</span>}
           </div>
         </div>
       ))}
 
-      {/* FAB crear rutina */}
       <button className="fab" onClick={() => navigate("/biblioteca/nueva")} title="Nueva rutina">
         <Plus size={24} />
       </button>
+    </>
+  );
+}
+
+// ── Pantalla con tabs Rutinas | Ejercicios ────────────────────────────────────
+
+/** Pantalla Biblioteca con pestañas "Rutinas" y "Ejercicios" (Catálogo). */
+export function Biblioteca() {
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") === "ejercicios" ? "ejercicios" : "rutinas";
+
+  function switchTab(t: "rutinas" | "ejercicios") {
+    setParams(t === "rutinas" ? {} : { tab: "ejercicios" });
+  }
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">{tab === "rutinas" ? "Rutinas" : "Ejercicios"}</h1>
+      </div>
+
+      {/* Pestañas */}
+      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)", marginBottom: 12 }}>
+        {(["rutinas", "ejercicios"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => switchTab(t)}
+            style={{
+              flex: 1, padding: "10px 0", background: "none", border: "none",
+              borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
+              color: tab === t ? "var(--accent)" : "var(--muted)",
+              fontWeight: tab === t ? 700 : 400, fontSize: 14, cursor: "pointer",
+              textTransform: "capitalize", transition: "color 0.15s",
+            }}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {tab === "rutinas" ? <RutinasList /> : <Catalogo />}
     </div>
   );
 }
