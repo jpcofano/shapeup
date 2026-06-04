@@ -10,7 +10,9 @@
     "typecheck": "tsc -b",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "seed:config":     "npx tsx scripts/seed-config.ts",
+    "seed:ejercicios": "npx tsx scripts/seed-ejercicios.ts"
   },
   "dependencies": {
     "firebase": "^11.0.0",
@@ -24,7 +26,9 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/ui": "^4.1.8",
+    "firebase-admin": "^13.10.0",
     "jsdom": "^29.1.1",
+    "tsx": "^4.22.4",
     "typescript": "^5.6.3",
     "vite": "^6.0.0",
     "vitest": "^4.1.8"
