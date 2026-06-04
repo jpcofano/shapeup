@@ -31,6 +31,16 @@
 
 ---
 
+### [2026-06-04] Seed 09 — Plan real (ejercicios + rutinas + programas)
+- `scripts/seed-plan.ts` — en orden: 18 ejercicios curados (EJ-8001..EJ-8018) + 8 rutinas (RUT-0001..RUT-0008: Fuerza A/B/C + 5 VR) + 5 programas (PRG-0001..PRG-0005: uno Activo + 4 Plantillas)
+- Consistente con `Ejercicio`, `Rutina`, `BloqueEjercicio`, `Prescripcion`, `DiaPrograma` y `Programa` de `models.ts`
+- Idempotente, mismo patrón que seed-vr/config/ejercicios
+- `npm run seed:plan` agregado; dry-run verificado
+- Dependencia: correr `seed-vr.ts` antes (rutinas VR referencian EJ-9001+)
+- `firebase-admin` y `tsx` ya estaban en devDependencies ✅
+
+---
+
 ### [2026-06-04] Seed 07 — Juegos VR (PSVR2)
 - `scripts/seed-vr.ts` — 10 juegos PSVR2 como ejercicios de catálogo (modalidad Cardio, equipo VR, patrón "Locomoción / cardio"), IDs EJ-9001…EJ-9010
 - Sigue el mismo patrón que seed-config/seed-ejercicios: `--dry-run`, `--force`, firebase-admin
@@ -164,6 +174,7 @@ scripts/
   seed-config.ts              ✅  (siembra /config/*)
   seed-ejercicios.ts          ✅  (sube 873 ejercicios a Firestore)
   seed-vr.ts                  ✅  (10 juegos PSVR2, EJ-9001…EJ-9010, poseidoPorOwner)
+  seed-plan.ts                ✅  (18 ejercicios EJ-8001+, 8 rutinas RUT-0001+, 5 programas PRG-0001+)
 firestore.rules               ✅  desplegadas
 firestore.indexes.json        ✅  desplegados
 ```
@@ -200,6 +211,29 @@ Pendiente: tests de reglas Firestore con emulador (`@firebase/rules-unit-testing
   "poseído" es propiedad del owner, no del ejercicio. Se guarda como metadata
   informativa para que la UI filtre o muestre etiqueta "disponible".
   Los scripts usan tsx (no pasan por tsc -b), por eso no rompe el type-check.
+#010 [2026-06-04] Rangos de IDs reservados para seeds
+  EJ-0001…EJ-7999: importador FEDB (seed-ejercicios.ts)
+  EJ-8001…EJ-8999: ejercicios del plan con técnica curada (seed-plan.ts)
+  EJ-9001…EJ-9999: juegos de VR (seed-vr.ts)
+  RUT-0001+: seed-plan.ts (Fuerza A/B/C + VR); la app crea los siguientes secuencialmente
+  PRG-0001+: seed-plan.ts; la app crea los siguientes secuencialmente
+
+#011 [2026-06-04] duracionEstimadaMin y totalSeries en seeds son estimaciones
+  Contexto: calcularCacheRutina (lib/metricas.ts) necesita el catálogo de ejercicios
+  para calcular equipoNecesario, y hace los cálculos precisos de duración y series.
+  Los seeds ponen valores estimados (calculados a mano) para que la UI muestre algo
+  desde el primer día sin necesidad de editar cada rutina.
+  Resultado: en la primera edición de cada rutina desde la app, calcularCacheRutina
+  recalcula y reemplaza con los valores exactos.
+
+#012 [2026-06-04] Fuerza C (circuito) se recorre lineal en el motor actual
+  Contexto: RUT-0003 está pensada como circuito round-robin (1 serie de cada ejercicio,
+  repetir N rondas). El reducer entrenarState.ts recorre bloque por bloque: completa
+  todas las series de uno antes de pasar al siguiente.
+  Resultado: la app la guía linealmente; el usuario puede usar el modo scroll para
+  hacer el circuito a mano. Mejora futura: soporte de grupoSet en el reducer para
+  que el modo guiado recorra round-robin los bloques con el mismo grupoSet.
+
 #009 [2026-06-04] función pura separada del módulo con I/O de Firebase
   Contexto: findMemberByEmail vivía en resolveMemberId.ts que importa firebase.ts.
   Vitest ejecuta los imports al cargar el test; firebase.ts llama getAuth(app) que
