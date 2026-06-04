@@ -31,6 +31,17 @@
 
 ---
 
+### [2026-06-04] Seed 10 — Planes extra (hipertrofia, movilidad, express, deload)
+- `scripts/seed-planes-extra.ts` — aditivo; sin tocar lo de seed-plan.ts:
+  - 9 ejercicios EJ-8019..EJ-8027 (elevaciones laterales, búlgara, face pull, aperturas, gato-camello, world's greatest, círculos cadera, apertura torácica, estiramiento isquios)
+  - 8 rutinas RUT-0009..RUT-0016: Hipertrofia tren superior/inferior A/B, Movilidad cuerpo completo, Recuperación VR Z2, Full-body express A/B
+  - 4 programas PRG-0006..PRG-0009: Hipertrofia 4 días, Movilidad y recuperación, Express 2 días/30 min, Deload 1 semana
+- PRG-0009 (deload) reduce volumen vía `comoUsar`/`reglasProgresion`; reusa RUT-0001/0002 sin duplicarlas
+- Dependencias: seed-plan.ts (RUT-0001/0002) y seed-vr.ts (EJ-9003 Body Combat Z2)
+- `npm run seed:planes-extra`; dry-run verificado
+
+---
+
 ### [2026-06-04] Seed 09 — Plan real (ejercicios + rutinas + programas)
 - `scripts/seed-plan.ts` — en orden: 18 ejercicios curados (EJ-8001..EJ-8018) + 8 rutinas (RUT-0001..RUT-0008: Fuerza A/B/C + 5 VR) + 5 programas (PRG-0001..PRG-0005: uno Activo + 4 Plantillas)
 - Consistente con `Ejercicio`, `Rutina`, `BloqueEjercicio`, `Prescripcion`, `DiaPrograma` y `Programa` de `models.ts`
@@ -175,6 +186,7 @@ scripts/
   seed-ejercicios.ts          ✅  (sube 873 ejercicios a Firestore)
   seed-vr.ts                  ✅  (10 juegos PSVR2, EJ-9001…EJ-9010, poseidoPorOwner)
   seed-plan.ts                ✅  (18 ejercicios EJ-8001+, 8 rutinas RUT-0001+, 5 programas PRG-0001+)
+  seed-planes-extra.ts        ✅  (9 ejercicios EJ-8019+, 8 rutinas RUT-0009+, 4 programas PRG-0006+)
 firestore.rules               ✅  desplegadas
 firestore.indexes.json        ✅  desplegados
 ```
