@@ -21,7 +21,7 @@ export type MedicionInput = Omit<MedicionCorporal, "idMedicion" | "fechaCreacion
 export async function getMediciones(miembro: MiembroId): Promise<Result<MedicionCorporal[]>> {
   try {
     const snap = await getDocs(
-      query(collection(db, "mediciones"), where("miembro", "==", miembro), orderBy("fecha", "asc")),
+      query(collection(db, "mediciones"), where("miembro", "==", miembro), orderBy("fecha", "desc")),
     );
     return ok(snap.docs.map((d) => d.data() as MedicionCorporal));
   } catch (e) {
@@ -60,7 +60,7 @@ export type CardioInput = Omit<SesionCardio, "idCardio" | "fechaCreacion">;
 export async function getSesionesCardio(miembro: MiembroId): Promise<Result<SesionCardio[]>> {
   try {
     const snap = await getDocs(
-      query(collection(db, "cardio"), where("miembro", "==", miembro), orderBy("fecha", "asc")),
+      query(collection(db, "cardio"), where("miembro", "==", miembro), orderBy("fecha", "desc")),
     );
     return ok(snap.docs.map((d) => d.data() as SesionCardio));
   } catch (e) {

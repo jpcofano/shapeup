@@ -114,7 +114,7 @@ export function Salud() {
             <>
               {/* Últimos valores */}
               {(() => {
-                const last = mediciones[mediciones.length - 1];
+                const last = mediciones[0]; // ya viene DESC del server
                 return (
                   <div className="card">
                     <p className="section-title" style={{ marginBottom: 10 }}>Último registro — {last.fecha}</p>
@@ -137,7 +137,7 @@ export function Salud() {
               <div className="card">
                 <p className="section-title" style={{ marginBottom: 10 }}>Historial ({mediciones.length})</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[...mediciones].reverse().slice(0, 20).map((m) => (
+                  {mediciones.slice(0, 20).map((m) => (
                     <div key={m.idMedicion} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                       <span style={{ color: "var(--muted)" }}>{m.fecha}</span>
                       <span>
@@ -166,7 +166,7 @@ export function Salud() {
             <div className="card">
               <p className="section-title" style={{ marginBottom: 10 }}>Sesiones ({cardio.length})</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[...cardio].reverse().slice(0, 30).map((c) => (
+                {cardio.slice(0, 30).map((c) => (
                   <div key={c.idCardio} className="bloque-row">
                     <div className="bloque-info">
                       <p className="bloque-nombre">{c.actividad}</p>

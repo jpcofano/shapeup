@@ -121,7 +121,7 @@ export async function getHistorialMiembro(
       query(
         collection(db, "historial"),
         where("miembro", "==", miembro),
-        orderBy("fechaRealizada", "desc"),
+        orderBy("fechaRealizadaTimestamp", "desc"),
       ),
     );
     return ok(snap.docs.map((d) => d.data() as Historial));
