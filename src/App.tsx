@@ -11,6 +11,7 @@ import { EntrenarSesion } from "./routes/EntrenarSesion";
 import { Historial } from "./routes/Historial";
 import { HistorialDetalle } from "./routes/HistorialDetalle";
 import { Perfil } from "./routes/Perfil";
+import { Salud } from "./routes/Salud";
 import { RutinaDetalle } from "./routes/RutinaDetalle";
 import { RutinaForm } from "./routes/RutinaForm";
 
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
       { path: "entrenar",               element: <Entrenar /> },
       { path: "historial",              element: <Historial /> },
       { path: "historial/:id",          element: <HistorialDetalle /> },
+      { path: "salud",                  element: <Salud /> },
       { path: "perfil",                 element: <Perfil /> },
     ],
   },

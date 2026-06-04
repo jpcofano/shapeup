@@ -1,13 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Home, Library, Dumbbell, Zap, History, User } from "lucide-react";
+import { Home, Library, Heart, Zap, History, User } from "lucide-react";
 
 const NAV = [
-  { to: "/",          label: "Inicio",    Icon: Home,    end: true  },
-  { to: "/biblioteca", label: "Rutinas",  Icon: Library, end: false },
-  { to: "/catalogo",  label: "Catálogo",  Icon: Dumbbell,end: false },
-  { to: "/entrenar",  label: "Entrenar",  Icon: Zap,     end: false },
-  { to: "/historial", label: "Historial", Icon: History, end: false },
-  { to: "/perfil",    label: "Perfil",    Icon: User,    end: false },
+  { to: "/",           label: "Inicio",    Icon: Home,    end: true  },
+  { to: "/biblioteca", label: "Rutinas",   Icon: Library, end: false },
+  { to: "/entrenar",   label: "Entrenar",  Icon: Zap,     end: false },
+  { to: "/historial",  label: "Historial", Icon: History, end: false },
+  { to: "/salud",      label: "Salud",     Icon: Heart,   end: false },
+  { to: "/perfil",     label: "Perfil",    Icon: User,    end: false },
 ] as const;
 
 /** Shell principal: área de contenido + navegación inferior fija. */
