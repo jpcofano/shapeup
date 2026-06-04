@@ -31,6 +31,18 @@
 
 ---
 
+### [2026-06-04] Seed 13 — María (glúteos y recomposición)
+- `scripts/seed-maria.ts` — aditivo; depende de seed-plan.ts, seed-vr.ts y seed-futbol-juvenil.ts (reusa EJ-8030)
+  - 2 ejercicios EJ-8033/34: empuje de cadera (hip thrust) + patada de glúteo (cuadrupedia)
+  - 2 rutinas RUT-0021/22: Glúteos y piernas A + Glúteos y cuerpo completo B
+  - PRG-0012 para María (50 años): 2 días fuerza (glúteo/piernas) + 2 días cardio VR (RUT-0004 + RUT-0008)
+  - `comoUsar` incluye nota honesta: grasa abdominal no baja localizado, requiere déficit global + alimentación (nutricionista)
+  - Visibilidad de PRG-0012 para maria: setear en config/visibilidad
+  - Dependencia implícita EJ-8030 (seed-futbol-juvenil.ts) documentada en header del script
+  - `npm run seed:maria`; dry-run verificado
+
+---
+
 ### [2026-06-04] Seed 12 — Fútbol juvenil (Sofía, prevención y movilidad)
 - `scripts/seed-futbol-juvenil.ts` — aditivo; depende de seed-plan.ts y seed-rugby-juvenil.ts
   - 3 ejercicios EJ-8030..32: caminata lateral con banda, salto con aterrizaje controlado, RDL a una pierna
@@ -211,6 +223,7 @@ scripts/
   seed-planes-extra.ts        ✅  (9 ejercicios EJ-8019+, 8 rutinas RUT-0009+, 4 programas PRG-0006+)
   seed-rugby-juvenil.ts       ✅  (EJ-8028/29, RUT-0017/18, PRG-0010 Federico)
   seed-futbol-juvenil.ts      ✅  (EJ-8030..32, RUT-0019/20, PRG-0011 Sofía)
+  seed-maria.ts               ✅  (EJ-8033/34, RUT-0021/22, PRG-0012 María)
 firestore.rules               ✅  desplegadas
 firestore.indexes.json        ✅  desplegados
 ```
