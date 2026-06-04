@@ -14,6 +14,12 @@
   --warning:     #fbbf24;
   --info:        #60a5fa;
 
+  /* Colores por miembro (sincronizados con /config/perfiles seed-perfiles.ts) */
+  --member-juanpablo: #60a5fa;
+  --member-maria:     #f472b6;
+  --member-sofia:     #a78bfa;
+  --member-federico:  #34d399;
+
   /* Radio */
   --r-sm: 8px;
   --r-md: 12px;

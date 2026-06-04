@@ -31,6 +31,18 @@
 
 ---
 
+### [2026-06-04] Seed 15 — Perfiles por miembro (equipo, objetivos, zonas FC)
+- `scripts/seed-perfiles.ts` — idempotente (`--dry-run`/`--force`); escribe `/config/perfiles`
+  - `zonasFC` calculadas: FCmáx ≈ 220 − edad; Z1–Z5 por % (50/60/70/80/90/100%)
+  - juanpablo (51): FCmáx 169 · maria (50): FCmáx 170 · sofia (17): FCmáx 203 · federico (16): FCmáx 204
+  - Colores placeholder por miembro; se pueden afinar sin tocar el seed
+  - Forma `PerfilesConfig` / `PerfilMiembro` de `src/types/models.ts` (verificada)
+- `src/styles/tokens.css` — tokens `--member-juanpablo/maria/sofia/federico` sincronizados con colores del seed
+- `npm run seed:perfiles` agregado a `package.json`
+- `tsc -b` limpio ✅; dry-run verificado
+
+---
+
 ### [2026-06-04] Seed 14 — Visibilidad por miembro
 - `scripts/seed-visibilidad.ts` — idempotente; flags `--dry-run` / `--force` (sin `--force` no pisa si ya existe)
   - Owner (`juanpablo`) no figura: ve todo por reglas de Firestore
@@ -167,7 +179,7 @@
 src/
   firebase.ts                 ✅
   vite-env.d.ts               ✅
-  styles/tokens.css           ✅
+  styles/tokens.css           ✅  (+ tokens --member-* por miembro)
   types/models.ts             ✅
   lib/
     result.ts                 ✅
@@ -238,6 +250,7 @@ scripts/
   seed-futbol-juvenil.ts      ✅  (EJ-8030..32, RUT-0019/20, PRG-0011 Sofía)
   seed-maria.ts               ✅  (EJ-8033/34, RUT-0021/22, PRG-0012 María)
   seed-visibilidad.ts         ✅  (config/visibilidad: maria/federico/sofia; owner ve todo)
+  seed-perfiles.ts            ✅  (config/perfiles: color/equipo/objetivos/zonasFC por miembro)
 firestore.rules               ✅  desplegadas
 firestore.indexes.json        ✅  desplegados
 ```
