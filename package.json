@@ -15,7 +15,9 @@
     "seed:ejercicios": "npx tsx scripts/seed-ejercicios.ts",
     "seed:vr":         "npx tsx scripts/seed-vr.ts",
     "seed:plan":         "npx tsx scripts/seed-plan.ts",
-    "seed:planes-extra": "npx tsx scripts/seed-planes-extra.ts"
+    "seed:planes-extra":    "npx tsx scripts/seed-planes-extra.ts",
+    "seed:rugby-juvenil":   "npx tsx scripts/seed-rugby-juvenil.ts",
+    "seed:futbol-juvenil":  "npx tsx scripts/seed-futbol-juvenil.ts"
   },
   "dependencies": {
     "firebase": "^11.0.0",

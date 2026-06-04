@@ -31,6 +31,28 @@
 
 ---
 
+### [2026-06-04] Seed 12 — Fútbol juvenil (Sofía, prevención y movilidad)
+- `scripts/seed-futbol-juvenil.ts` — aditivo; depende de seed-plan.ts y seed-rugby-juvenil.ts
+  - 3 ejercicios EJ-8030..32: caminata lateral con banda, salto con aterrizaje controlado, RDL a una pierna
+  - 2 rutinas RUT-0019/20: Prevención A (rodilla/isquios/ingle) + Prevención B (core/glúteos/estabilidad)
+  - PRG-0011 para Sofía (17, fútbol): foco en prevención de lesión de ligamento cruzado + isquios + ingle
+  - `consejosSeguridad` en EJ-8031 (salto): pocas reps, parar si duele la rodilla
+  - Visibilidad de PRG-0011 para sofia: setear en config/visibilidad (no en el seed)
+  - `npm run seed:futbol-juvenil`; dry-run verificado
+
+---
+
+### [2026-06-04] Seed 11 — Rugby juvenil (Federico, prevención y movilidad)
+- `scripts/seed-rugby-juvenil.ts` — aditivo; depende de seed-plan.ts
+  - 2 ejercicios EJ-8028/29: curl nórdico asistido (isquios, excéntrico) + plancha copenhague (aductores)
+  - 2 rutinas RUT-0017/18: Prevención A (cadena posterior) + Prevención B (tren superior + estabilidad)
+  - PRG-0010 para Federico (16, rugby): cargas submáximas, RIR 2–3, sin fallo (crecimiento)
+  - `consejosSeguridad` en EJ-8028 y EJ-8029 (campo opcional de Ejercicio, verificado en models.ts)
+  - Visibilidad de PRG-0010 para federico: setear en config/visibilidad (no en el seed)
+  - `npm run seed:rugby-juvenil`; dry-run verificado
+
+---
+
 ### [2026-06-04] Seed 10 — Planes extra (hipertrofia, movilidad, express, deload)
 - `scripts/seed-planes-extra.ts` — aditivo; sin tocar lo de seed-plan.ts:
   - 9 ejercicios EJ-8019..EJ-8027 (elevaciones laterales, búlgara, face pull, aperturas, gato-camello, world's greatest, círculos cadera, apertura torácica, estiramiento isquios)
@@ -187,6 +209,8 @@ scripts/
   seed-vr.ts                  ✅  (10 juegos PSVR2, EJ-9001…EJ-9010, poseidoPorOwner)
   seed-plan.ts                ✅  (18 ejercicios EJ-8001+, 8 rutinas RUT-0001+, 5 programas PRG-0001+)
   seed-planes-extra.ts        ✅  (9 ejercicios EJ-8019+, 8 rutinas RUT-0009+, 4 programas PRG-0006+)
+  seed-rugby-juvenil.ts       ✅  (EJ-8028/29, RUT-0017/18, PRG-0010 Federico)
+  seed-futbol-juvenil.ts      ✅  (EJ-8030..32, RUT-0019/20, PRG-0011 Sofía)
 firestore.rules               ✅  desplegadas
 firestore.indexes.json        ✅  desplegados
 ```
