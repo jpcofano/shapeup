@@ -493,6 +493,33 @@ export interface RegistroSueno {
   fuente: FuenteDato;
 }
 
+// ── Métricas de salud genéricas (señales del motor de recomendaciones) ────────
+// Para métricas de Samsung Health SIN colección tipada propia. Granularidad diaria.
+// idMetrica = `${miembro}-${tipo}-${fecha}` → idempotente por día.
+export const TIPOS_METRICA = [
+  "hrv", "fc-reposo", "fc-max-dia", "estres", "pasos", "spo2",
+  "frecuencia-respiratoria", "temperatura-piel",
+  "presion-sistolica", "presion-diastolica",
+  "vo2max", "recovery-hr", "vitality",
+] as const;
+export type TipoMetrica = typeof TIPOS_METRICA[number];
+
+export type AgregacionMetrica = "dia" | "noche" | "ultimo-del-dia";
+
+export interface MetricaSalud {
+  idMetrica:   string;             // `${miembro}-${tipo}-${fecha}` (idempotente)
+  miembro:     MiembroId;
+  tipo:        TipoMetrica;
+  fecha:       string;             // "YYYY-MM-DD"
+  valor:       number;
+  unidad?:     string;             // "ms","bpm","%","pasos","mmHg","ml/kg/min","°C"
+  agregacion:  AgregacionMetrica;
+  payload?:    Record<string, unknown>;  // extras crudos (p.ej. bins de HRV)
+  fuente:      FuenteDato;
+  datauuid?:   string;
+  fechaCreacion?: FirestoreTimestamp;
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  MOTOR DE RECOMENDACIONES — AVANZADO / A DESARROLLAR.
 //  Lee Historial + módulo de salud y propone modificaciones. Lógica = fase futura;

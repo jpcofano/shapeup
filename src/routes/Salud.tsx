@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Upload, X } from "lucide-react";
-import type { MedicionCorporal, SesionCardio, RegistroSueno, MiembroId } from "../types/models";
+import type { MedicionCorporal, SesionCardio, RegistroSueno, MetricaSalud, MiembroId } from "../types/models";
 import {
   getMediciones, guardarMedicion,
   getSesionesCardio, guardarCardio,
@@ -8,9 +8,11 @@ import {
   importarMedicionesIdempotente,
   importarCardioIdempotente,
   importarSueno,
+  importarMetricas,
 } from "../data/salud";
 import {
   detectarTipoCsv, parsearPeso, parsearEjercicio, parsearSueno,
+  detectarTiposMetrica, parsearMetricas,
   type SamsungCsvType,
 } from "../import/samsungHealth";
 import { getPerfiles } from "../data/perfiles";
@@ -18,6 +20,7 @@ import { getHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 
 type Tab = "composicion" | "cardio" | "sueno" | "progreso";
+type ImportMode = "basico" | "completo";
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
@@ -30,8 +33,9 @@ export function Salud() {
   const [loading,    setLoading]   = useState(true);
   const [error,      setError]     = useState<string | null>(null);
   const [showManual, setShowManual]= useState(false);
-  const [importMsg,  setImportMsg] = useState<string | null>(null);
-  const [preview,    setPreview]   = useState<PreviewState | null>(null);
+  const [importMsg,   setImportMsg]  = useState<string | null>(null);
+  const [preview,     setPreview]    = useState<PreviewState | null>(null);
+  const [importMode,  setImportMode] = useState<ImportMode>("basico");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -53,9 +57,23 @@ export function Salud() {
   async function handleFile(file: File) {
     if (!memberId) return;
     const tipo = detectarTipoCsv(file.name);
-    if (tipo === "unknown") {
-      setImportMsg("No reconocí el archivo. Esperaba weight, exercise o sleep en el nombre.");
-      return;
+
+    // Modo completo: intentar también métricas genéricas
+    if (tipo === "unknown" || importMode === "completo") {
+      const metaMeta = detectarTiposMetrica(file.name);
+      if (metaMeta) {
+        const text = await file.text();
+        const r = parsearMetricas(file.name, text, memberId);
+        const previewRows = r.items.slice(0, 5).map((i) => ({
+          Fecha: i.fecha, Tipo: i.tipo, Valor: `${i.valor} ${i.unidad ?? ""}`.trim(), Agregación: i.agregacion,
+        }));
+        setPreview({ tipo: "metricas" as SamsungCsvType, file, parsedItems: r.items, parsedErrors: r.errors, previewRows });
+        return;
+      }
+      if (tipo === "unknown") {
+        setImportMsg("No reconocí el archivo. Esperaba weight, exercise, sleep o un CSV de métricas genéricas.");
+        return;
+      }
     }
     const text = await file.text();
 
@@ -116,6 +134,9 @@ export function Salud() {
       const r = await importarCardioIdempotente(preview.parsedItems as Parameters<typeof importarCardioIdempotente>[0]);
       result = r;
       if (r.ok) { const fresh = await getSesionesCardio(memberId); if (fresh.ok) setCardio(fresh.value); }
+    } else if (preview.tipo === ("metricas" as SamsungCsvType)) {
+      const r = await importarMetricas(preview.parsedItems as MetricaSalud[]);
+      result = r;
     } else {
       const r = await importarSueno(preview.parsedItems as Parameters<typeof importarSueno>[0]);
       result = r;
@@ -136,7 +157,17 @@ export function Salud() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">Salud</h1>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {/* Selector de modo */}
+          <select
+            value={importMode}
+            onChange={(e) => setImportMode(e.target.value as ImportMode)}
+            style={{ fontSize: 11, background: "var(--card)", color: "var(--muted)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "2px 6px", cursor: "pointer" }}
+            title="Modo de importación"
+          >
+            <option value="basico">Básico (peso/cardio/sueño)</option>
+            <option value="completo">Completo (+ métricas genéricas)</option>
+          </select>
           <button className="btn-icon-sm" title="Importar CSV Samsung Health" onClick={() => fileRef.current?.click()}>
             <Upload size={18} />
           </button>

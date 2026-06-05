@@ -7,7 +7,11 @@ import {
   query, where, orderBy, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { MedicionCorporal, SesionCardio, RegistroSueno, MiembroId, FuenteDato, FirestoreTimestamp } from "../types/models";
+import type {
+  MedicionCorporal, SesionCardio, RegistroSueno,
+  MetricaSalud, TipoMetrica,
+  MiembroId, FuenteDato, FirestoreTimestamp,
+} from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 
@@ -189,6 +193,51 @@ export async function importarCardioIdempotente(
           { merge: false },
         );
       }),
+    );
+    return ok(items.length);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+// ── MetricaSalud ──────────────────────────────────────────────────────────────
+
+/** Lee métricas de un miembro, opcionalmente filtradas por tipo. */
+export async function getMetricasSalud(
+  miembro: MiembroId,
+  tipo?: TipoMetrica,
+): Promise<Result<MetricaSalud[]>> {
+  try {
+    let q = query(
+      collection(db, "metricas-salud"),
+      where("miembro", "==", miembro),
+      ...(tipo ? [where("tipo", "==", tipo)] : []),
+      orderBy("fecha", "desc"),
+    );
+    const snap = await getDocs(q);
+    return ok(snap.docs.map((d) => d.data() as MetricaSalud));
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/**
+ * Importa métricas genéricas de forma idempotente.
+ * El idMetrica (`${miembro}-${tipo}-${fecha}`) actúa como ID del documento:
+ * si ya existe, setDoc con merge:false lo reemplaza con los datos frescos.
+ */
+export async function importarMetricas(
+  items: MetricaSalud[],
+): Promise<Result<number>> {
+  try {
+    await Promise.all(
+      items.map((item) =>
+        setDoc(
+          doc(db, "metricas-salud", item.idMetrica),
+          { ...item, fechaCreacion: serverTimestamp() },
+          { merge: false },
+        ),
+      ),
     );
     return ok(items.length);
   } catch (e) {

@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   detectarTipoCsv, parsearPeso, parsearEjercicio, parsearSueno, derivarZona,
+  detectarTiposMetrica, parsearMetricas,
+  minArr, maxArr, avgArr, sumArr, lastArr, idMetrica,
 } from "./samsungHealth";
 
 // ── CSV de muestra (formato Samsung Health real) ──────────────────────────────
@@ -93,6 +95,87 @@ describe("parsearSueno", () => {
     expect(items[0].horas).toBeCloseTo(7.53, 1);
   });
   it("extrae hora de acostarse", () => expect(items[0].horaAcostarse).toMatch(/^\d{2}:\d{2}$/));
+});
+
+// ── Helpers de agregación ─────────────────────────────────────────────────────
+
+describe("helpers de agregación", () => {
+  it("minArr",  () => expect(minArr([5, 2, 8])).toBe(2));
+  it("maxArr",  () => expect(maxArr([5, 2, 8])).toBe(8));
+  it("avgArr",  () => expect(avgArr([4, 6])).toBe(5));
+  it("sumArr",  () => expect(sumArr([100, 200, 300])).toBe(600));
+  it("lastArr", () => expect(lastArr([1, 2, 3])).toBe(3));
+  it("minArr vacío", () => expect(minArr([])).toBeUndefined());
+  it("idMetrica",   () => expect(idMetrica("maria", "hrv", "2024-03-15")).toBe("maria-hrv-2024-03-15"));
+});
+
+// ── detectarTiposMetrica ──────────────────────────────────────────────────────
+
+describe("detectarTiposMetrica", () => {
+  it("heart_rate → fc-reposo + fc-max-dia", () => {
+    const r = detectarTiposMetrica("com.samsung.health.tracker.heart_rate.20240315.csv");
+    expect(r?.tipos).toContain("fc-reposo");
+    expect(r?.tipos).toContain("fc-max-dia");
+  });
+  it("hrv → hrv / noche",     () => expect(detectarTiposMetrica("health.hrv.20240315.csv")?.tipos[0]).toBe("hrv"));
+  it("stress → estres / dia", () => expect(detectarTiposMetrica("stress.20240315.csv")?.tipos[0]).toBe("estres"));
+  it("step_daily → pasos",    () => expect(detectarTiposMetrica("step_daily_trend.csv")?.tipos[0]).toBe("pasos"));
+  it("blood_pressure → sistólica + diastólica", () => {
+    const r = detectarTiposMetrica("blood_pressure.csv");
+    expect(r?.tipos).toContain("presion-sistolica");
+    expect(r?.tipos).toContain("presion-diastolica");
+  });
+  it("body_weight → null (no es métrica genérica)", () =>
+    expect(detectarTiposMetrica("com.samsung.health.body_weight.csv")).toBeNull());
+});
+
+// ── parsearMetricas ───────────────────────────────────────────────────────────
+
+const HR_CSV = `com.samsung.health.tracker.heart_rate,6000001,5
+datauuid,com.samsung.health.tracker.heart_rate.start_time,com.samsung.health.tracker.heart_rate.time_offset,com.samsung.health.tracker.heart_rate.heart_rate
+uuid-hr-001,1710488400000,UTC-0300,62
+uuid-hr-002,1710492000000,UTC-0300,58
+uuid-hr-003,1710495600000,UTC-0300,175`;
+
+const STRESS_CSV = `com.samsung.shealth.stress,6000002,4
+datauuid,com.samsung.shealth.stress.start_time,com.samsung.shealth.stress.time_offset,stress_score
+uuid-st-001,1710488400000,UTC-0300,35
+uuid-st-002,1710492000000,UTC-0300,45`;
+
+const STEPS_CSV = `com.samsung.shealth.step_daily_trend,6000003,3
+datauuid,com.samsung.shealth.step_daily_trend.start_time,com.samsung.shealth.step_daily_trend.time_offset,count
+uuid-st-001,1710488400000,UTC-0300,8500`;
+
+describe("parsearMetricas — heart_rate", () => {
+  const { items, errors } = parsearMetricas("tracker.heart_rate.20240315.csv", HR_CSV, "juanpablo");
+
+  it("sin errores", () => expect(errors).toHaveLength(0));
+  it("genera fc-reposo y fc-max-dia para el día", () => {
+    expect(items.some((i) => i.tipo === "fc-reposo")).toBe(true);
+    expect(items.some((i) => i.tipo === "fc-max-dia")).toBe(true);
+  });
+  it("fc-reposo = min del día (58)", () => {
+    const r = items.find((i) => i.tipo === "fc-reposo");
+    expect(r?.valor).toBe(58);
+  });
+  it("fc-max-dia = max del día (175)", () => {
+    const r = items.find((i) => i.tipo === "fc-max-dia");
+    expect(r?.valor).toBe(175);
+  });
+  it("idMetrica idempotente por día",   () =>
+    expect(items[0].idMetrica).toBe(`juanpablo-${items[0].tipo}-${items[0].fecha}`));
+});
+
+describe("parsearMetricas — stress", () => {
+  const { items } = parsearMetricas("stress.20240315.csv", STRESS_CSV, "maria");
+  it("genera estres promediado (40)",   () => expect(items[0].valor).toBe(40));
+  it("agregacion = dia",                () => expect(items[0].agregacion).toBe("dia"));
+});
+
+describe("parsearMetricas — pasos", () => {
+  const { items } = parsearMetricas("step_daily_trend.csv", STEPS_CSV, "sofia");
+  it("genera pasos sumados (8500)",     () => expect(items[0].valor).toBe(8500));
+  it("unidad = pasos",                  () => expect(items[0].unidad).toBe("pasos"));
 });
 
 // ── derivarZona ───────────────────────────────────────────────────────────────

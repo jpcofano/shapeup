@@ -12,6 +12,7 @@
 
 import type {
   MedicionCorporal, SesionCardio, RegistroSueno, MiembroId, ZonaFC,
+  MetricaSalud, TipoMetrica, AgregacionMetrica,
 } from "../types/models";
 
 export type MedicionInput = Omit<MedicionCorporal, "idMedicion" | "fechaCreacion">;
@@ -290,4 +291,223 @@ export function parsearSueno(
     });
   }
   return { items, errors };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MÉTRICAS GENÉRICAS — granularidad diaria para el motor de recomendaciones
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Detecta si un nombre de archivo corresponde a un CSV de métricas genéricas
+ * y devuelve el/los TipoMetrica que produce.
+ * Devuelve null si el archivo no es de métricas genéricas (peso/cardio/sueño
+ * ya tienen su propio parser).
+ */
+export function detectarTiposMetrica(
+  filename: string,
+): { tipos: TipoMetrica[]; agregacion: AgregacionMetrica } | null {
+  const f = filename.toLowerCase();
+  if (f.includes("heart_rate"))         return { tipos: ["fc-reposo", "fc-max-dia"], agregacion: "dia" };
+  if (f.includes("hrv"))                return { tipos: ["hrv"],                     agregacion: "noche" };
+  if (f.includes("stress"))             return { tipos: ["estres"],                  agregacion: "dia" };
+  if (f.includes("step_daily"))         return { tipos: ["pasos"],                   agregacion: "dia" };
+  if (f.includes("oxygen_saturation"))  return { tipos: ["spo2"],                    agregacion: "dia" };
+  if (f.includes("respiratory_rate"))   return { tipos: ["frecuencia-respiratoria"], agregacion: "noche" };
+  if (f.includes("skin_temperature"))   return { tipos: ["temperatura-piel"],        agregacion: "noche" };
+  if (f.includes("blood_pressure"))     return { tipos: ["presion-sistolica", "presion-diastolica"], agregacion: "ultimo-del-dia" };
+  if (f.includes("vitality"))           return { tipos: ["vitality"],                agregacion: "dia" };
+  return null;
+}
+
+// ── Helpers de agregación (puros, testeables) ─────────────────────────────────
+
+/** Mínimo de un array de números. */
+export function minArr(nums: number[]): number | undefined {
+  if (!nums.length) return undefined;
+  return Math.min(...nums);
+}
+/** Máximo de un array de números. */
+export function maxArr(nums: number[]): number | undefined {
+  if (!nums.length) return undefined;
+  return Math.max(...nums);
+}
+/** Promedio de un array de números. */
+export function avgArr(nums: number[]): number | undefined {
+  if (!nums.length) return undefined;
+  return parseFloat((nums.reduce((s, n) => s + n, 0) / nums.length).toFixed(1));
+}
+/** Suma de un array de números. */
+export function sumArr(nums: number[]): number | undefined {
+  if (!nums.length) return undefined;
+  return nums.reduce((s, n) => s + n, 0);
+}
+/** Último elemento de un array de números. */
+export function lastArr(nums: number[]): number | undefined {
+  return nums.length ? nums[nums.length - 1] : undefined;
+}
+
+/** Construye idMetrica idempotente: `${miembro}-${tipo}-${fecha}` */
+export function idMetrica(miembro: MiembroId, tipo: TipoMetrica, fecha: string): string {
+  return `${miembro}-${tipo}-${fecha}`;
+}
+
+// ── Agrupador genérico por día ────────────────────────────────────────────────
+
+type DayMap = Map<string, number[]>;  // fecha → [valores]
+
+function groupByDay(
+  filas: Record<string, string>[],
+  colValor: string,
+  colTime = "start_time",
+  colOffset = "time_offset",
+): DayMap {
+  const map: DayMap = new Map();
+  for (const f of filas) {
+    const fecha = epochToDate(col(f, colTime), col(f, colOffset) || undefined);
+    if (!fecha) continue;
+    const v = numOpt(col(f, colValor));
+    if (v == null) continue;
+    const arr = map.get(fecha) ?? [];
+    arr.push(v);
+    map.set(fecha, arr);
+  }
+  return map;
+}
+
+function dayMapToMetricas(
+  map: DayMap,
+  miembro: MiembroId,
+  tipo: TipoMetrica,
+  agregacion: AgregacionMetrica,
+  unidad: string,
+  fn: (nums: number[]) => number | undefined,
+): MetricaSalud[] {
+  const result: MetricaSalud[] = [];
+  for (const [fecha, nums] of map) {
+    const valor = fn(nums);
+    if (valor == null) continue;
+    result.push({
+      idMetrica:  idMetrica(miembro, tipo, fecha),
+      miembro,
+      tipo,
+      fecha,
+      valor,
+      unidad,
+      agregacion,
+      fuente:     "samsung-health-csv",
+    });
+  }
+  return result;
+}
+
+// ── Parser principal para métricas genéricas ─────────────────────────────────
+
+export interface MetricaParseResult {
+  items:  MetricaSalud[];
+  errors: string[];
+}
+
+/**
+ * Parsea cualquier CSV de métricas genéricas de Samsung Health y devuelve
+ * MetricaSalud[] con un valor por día (o por noche). La agregación depende del
+ * tipo: min para fc-reposo, max para fc-max-dia, avg para estres/spo2, etc.
+ *
+ * Para HRV, intenta parsear `binning_data` y lo guarda en `payload`.
+ */
+export function parsearMetricas(
+  filename: string,
+  text: string,
+  miembro: MiembroId,
+): MetricaParseResult {
+  const meta = detectarTiposMetrica(filename);
+  if (!meta) return { items: [], errors: [`Archivo no reconocido como métrica genérica: ${filename}`] };
+
+  const filas = parseSamsungCsv(text);
+  const errors: string[] = [];
+  const all: MetricaSalud[] = [];
+  const f = filename.toLowerCase();
+
+  // ── FC (heart_rate) ───────────────────────────────────────────────────────
+  if (f.includes("heart_rate") && !f.includes("recovery")) {
+    const byDay = groupByDay(filas, "heart_rate");
+    all.push(...dayMapToMetricas(byDay, miembro, "fc-reposo",   "dia", "bpm", minArr));
+    all.push(...dayMapToMetricas(byDay, miembro, "fc-max-dia",  "dia", "bpm", maxArr));
+    return { items: all, errors };
+  }
+
+  // ── HRV ───────────────────────────────────────────────────────────────────
+  if (f.includes("hrv")) {
+    for (const row of filas) {
+      const fecha = epochToDate(col(row, "start_time"), col(row, "time_offset") || undefined);
+      if (!fecha) continue;
+      const hrv = numOpt(col(row, "hrv"));
+      // binning_data puede ser JSON string o plain number
+      let payload: Record<string, unknown> | undefined;
+      const binRaw = col(row, "binning_data");
+      if (binRaw) {
+        try { payload = { bins: JSON.parse(binRaw) }; }
+        catch { payload = { bins_raw: binRaw }; }
+      }
+      if (hrv == null) continue;
+      all.push({
+        idMetrica: idMetrica(miembro, "hrv", fecha),
+        miembro, tipo: "hrv", fecha, valor: hrv, unidad: "ms",
+        agregacion: "noche", payload, fuente: "samsung-health-csv",
+      });
+    }
+    return { items: all, errors };
+  }
+
+  // ── Estrés ────────────────────────────────────────────────────────────────
+  if (f.includes("stress")) {
+    const byDay = groupByDay(filas, "stress_score");
+    all.push(...dayMapToMetricas(byDay, miembro, "estres", "dia", "", avgArr));
+    return { items: all, errors };
+  }
+
+  // ── Pasos ─────────────────────────────────────────────────────────────────
+  if (f.includes("step_daily")) {
+    const byDay = groupByDay(filas, "count");
+    all.push(...dayMapToMetricas(byDay, miembro, "pasos", "dia", "pasos", sumArr));
+    return { items: all, errors };
+  }
+
+  // ── SpO2 ──────────────────────────────────────────────────────────────────
+  if (f.includes("oxygen_saturation")) {
+    const byDay = groupByDay(filas, "spo2");
+    all.push(...dayMapToMetricas(byDay, miembro, "spo2", "dia", "%", avgArr));
+    return { items: all, errors };
+  }
+
+  // ── Frecuencia respiratoria ───────────────────────────────────────────────
+  if (f.includes("respiratory_rate")) {
+    const byDay = groupByDay(filas, "respiratory_rate");
+    all.push(...dayMapToMetricas(byDay, miembro, "frecuencia-respiratoria", "noche", "rpm", avgArr));
+    return { items: all, errors };
+  }
+
+  // ── Temperatura de piel ───────────────────────────────────────────────────
+  if (f.includes("skin_temperature")) {
+    const byDay = groupByDay(filas, "skin_temperature");
+    all.push(...dayMapToMetricas(byDay, miembro, "temperatura-piel", "noche", "°C", avgArr));
+    return { items: all, errors };
+  }
+
+  // ── Presión arterial ──────────────────────────────────────────────────────
+  if (f.includes("blood_pressure")) {
+    const bySisDay = groupByDay(filas, "systolic");
+    const byDiaDay = groupByDay(filas, "diastolic");
+    all.push(...dayMapToMetricas(bySisDay, miembro, "presion-sistolica",  "ultimo-del-dia", "mmHg", lastArr));
+    all.push(...dayMapToMetricas(byDiaDay, miembro, "presion-diastolica", "ultimo-del-dia", "mmHg", lastArr));
+    return { items: all, errors };
+  }
+
+  // ── Vitalidad ─────────────────────────────────────────────────────────────
+  if (f.includes("vitality")) {
+    const byDay = groupByDay(filas, "vitality_score");
+    all.push(...dayMapToMetricas(byDay, miembro, "vitality", "dia", "", avgArr));
+    return { items: all, errors };
+  }
+
+  return { items: [], errors: [`Sin handler para: ${filename}`] };
 }

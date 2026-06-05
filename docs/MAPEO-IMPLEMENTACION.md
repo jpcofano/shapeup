@@ -31,22 +31,6 @@
 
 ---
 
-### [2026-06-04] E6 (completo) — Importador Samsung Health + progreso
-- `src/import/samsungHealth.ts` — parsers puros: `parsearPeso`, `parsearEjercicio`, `parsearSueno`
-  - Formato real Samsung Health: salta línea 1 (metadata), encabezado en línea 2, columnas prefijadas `com.samsung.health.*` (matchea por sufijo)
-  - Timestamps: epoch ms + `time_offset` → fecha local; `duration` ms → min; `distance` m → km; `sleep_duration` min → h
-  - `imc` calculado (peso/altura²); `zonaPrincipal` derivada de FC vs zonas del perfil; idempotencia por `datauuid`
-  - `detectarTipoCsv` detecta weight/exercise/sleep por nombre de archivo
-  - 31 tests (6 suites): parseo de los 3 tipos, conversiones, derivarZona, tipo detection
-- `src/import/samsungHealth.test.ts` — 31 tests con CSV de muestra real
-- `src/data/salud.ts` — agrega `/sueno` (RegistroSueno): `getRegistrosSueno`, `guardarSueno`, `importarSueno`; imports idempotentes por uuid (`importarMedicionesIdempotente`, `importarCardioIdempotente`)
-- `src/routes/Salud.tsx` — rediseño completo: 4 tabs (Composición/Cardio/Sueño/Progreso); **preview antes de importar** (tabla de primeras 5 filas + contador + advertencias); MiniChart SVG de barras para peso y tonelaje; tendencia peso/grasa (último vs penúltimo)
-- `firestore.rules` — agrega `/sueno` (`allow read, write: if isFamilyMember()`)
-- `src/types/models.ts` — agrega `distanciaKm?` a `SesionCardio`
-- Total tests: 120 unitarios + 38 reglas = **158 tests verdes**
-
----
-
 ### [2026-06-04] Privacidad — Mails reales fuera del repo
 - `scripts/seed-config.ts` ya no tiene emails hardcodeados; lee de `scripts/data/familia.local.json`
 - `scripts/data/familia.local.json` — gitignoreado; contiene los emails reales (no se commitea)
@@ -186,6 +170,19 @@
 
 ---
 
+### [2026-06-05] E6.1 — Métricas genéricas de Samsung Health (granularidad diaria)
+- `src/types/models.ts` — `MetricaSalud`, `TipoMetrica` (13 tipos), `AgregacionMetrica`; `idMetrica = ${miembro}-${tipo}-${fecha}` idempotente
+- `firestore.rules` — `/metricas-salud/{id}` (read/write: isFamilyMember)
+- `firestore.indexes.json` — índice compuesto `(miembro ASC, tipo ASC, fecha DESC)` para tendencias; también `/sueno`
+- `src/import/samsungHealth.ts` — `parsearMetricas(filename, text, miembro)`: 9 tipos (heart_rate, hrv, stress, steps, spo2, respiratory, skin_temp, blood_pressure, vitality); helpers `minArr/maxArr/avgArr/sumArr/lastArr/idMetrica`
+- `src/data/salud.ts` — `getMetricasSalud`, `importarMetricas` (idempotente por idMetrica)
+- `src/routes/Salud.tsx` — modo "Básico" vs "Completo (+ métricas genéricas)"; preview antes de importar
+- Tests: 53 tests en samsungHealth.test.ts (22 nuevos)
+- `docs/SAMSUNG-HEALTH-MAPEO.md` — nueva sección §4 métricas genéricas
+- ADR #016: granularidad diaria
+
+---
+
 ### [2026-06-04] E6 — Salud (módulo)
 - `src/data/salud.ts` — CRUD /mediciones y /cardio; `importarMediciones`/`importarCardio` batch
 - `src/lib/parsearCSV.ts` — `parsearPesoCSV` y `parsearEjercicioCSV` para exports Samsung Health
@@ -259,9 +256,6 @@ src/
     entrenarState.ts          ✅  entrenarState.test.ts ✅
     elegibilidad.ts           ✅
     recomendaciones.ts        ⬜ (futuro)
-  import/
-    samsungHealth.ts          ✅  (parsearPeso/Ejercicio/Sueno; detectarTipoCsv; derivarZona)
-    samsungHealth.test.ts     ✅  (31 tests)
   components/
     MemberAvatar.tsx          ✅  (círculo iniciales + AvatarStack; var(--member-*))
     WeekStrip.tsx             ✅  (tira 7 días; hoy en --accent; puntos en días con sesión)
@@ -274,7 +268,7 @@ src/
     historial.ts              ✅  (finalizarSesion con runTransaction)
     visibilidad.ts            ✅
     perfiles.ts               ✅  (getPerfiles, caché en memoria)
-    salud.ts                  ✅  (MedicionCorporal + SesionCardio + RegistroSueno; imports idempotentes)
+    salud.ts                  ✅  (MedicionCorporal + SesionCardio)
   auth/
     AuthContext.ts            ✅
     AuthProvider.tsx          ✅
@@ -340,11 +334,14 @@ firestore.indexes.json        ✅  desplegados
 | lib/filtros.test.ts | 9 |
 | lib/metricas.test.ts | 11 |
 | lib/entrenarState.test.ts | 26 |
-| **Total unidad** | **50** |
-| `__tests__/firestore.rules.test.ts` | 34 (emulador) |
-| **Total global** | **158** |
+| (tests añadidos en E2.1 y E5.1, no itemizados) | 39 |
+| **Total unidad** | **89** |
+| `__tests__/firestore.rules.test.ts` (emulador) | 38 |
+| import/samsungHealth.test.ts | 53 |
+| **Total unitarios** | **142** |
+| **Total global** | **180** |
 
-Tests de reglas: `src/__tests__/firestore.rules.test.ts` (34 tests; `npm run test:rules`).
+Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run test:rules`).
 
 ---
 
@@ -386,6 +383,17 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (34 tests; `npm run tes
   Resultado: la app la guía linealmente; el usuario puede usar el modo scroll para
   hacer el circuito a mano. Mejora futura: soporte de grupoSet en el reducer para
   que el modo guiado recorra round-robin los bloques con el mismo grupoSet.
+
+#016 [2026-06-05] Métricas genéricas en granularidad diaria (no datos crudos)
+  Contexto: Samsung Health exporta métricas de alta frecuencia (FC continua,
+  acelerómetro, etc.) con miles de muestras por día. Volcarlo crudo reventaría
+  las cuotas del plan Spark de Firestore y no aporta: el motor de
+  recomendaciones usa tendencias (cómo evolucionó HRV/estrés por día/semana).
+  Decisión: el importador agrega a UN valor por día antes de escribir en Firestore
+  (mínimo para fc-reposo, máximo para fc-max-dia, promedio para estrés, etc.).
+  Las muestras crudas se descartan en memoria; nunca llegan a la base.
+  idMetrica = `${miembro}-${tipo}-${fecha}` → un doc por día, idempotente:
+  re-importar el mismo archivo no duplica datos.
 
 #015 [2026-06-04] Emails reales en historial de git — decisión pendiente
   Contexto: seed-config.ts tenía los emails reales hardcodeados. Se movieron

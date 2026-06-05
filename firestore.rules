@@ -46,8 +46,9 @@ service cloud.firestore {
     // Módulo de salud: composición, cardio/FC y recomendaciones.
     match /mediciones/{id}      { allow read, write: if isFamilyMember(); }
     match /cardio/{id}          { allow read, write: if isFamilyMember(); }
-    match /sueno/{id}           { allow read, write: if isFamilyMember(); }
-    match /recomendaciones/{id} { allow read, write: if isFamilyMember(); }
+    match /sueno/{id}              { allow read, write: if isFamilyMember(); }
+    match /metricas-salud/{id}    { allow read, write: if isFamilyMember(); }
+    match /recomendaciones/{id}   { allow read, write: if isFamilyMember(); }
 
     // Perfiles: cada miembro edita el suyo (equipo disponible, objetivos, zonas FC, color).
     match /config/perfiles { allow read, write: if isFamilyMember(); }
