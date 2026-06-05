@@ -65,10 +65,11 @@ export function estimarDuracionMin(rutina: Rutina): number {
 
 // ─── Series totales de la rutina ──────────────────────────────────────────────
 export function totalSeries(rutina: Rutina): number {
-  return rutina.bloques.reduce((acc, b) => acc + seriesDeBloque(b.prescripcion), 0);
+  return rutina.bloques.reduce((acc, b) => acc + seriesObjetivo(b.prescripcion), 0);
 }
 
-function seriesDeBloque(p: Prescripcion): number {
+/** Series / rondas objetivo de un bloque según su modalidad. Cardio continuo = 1. */
+export function seriesObjetivo(p: Prescripcion): number {
   switch (p.modalidad) {
     case "Fuerza":     return p.series;
     case "Isométrico": return p.series;
@@ -107,7 +108,7 @@ export function seriesPorRegion(
     const ej = catalogo.get(b.idEjercicio);
     if (!ej) continue;
     const region = regionDe(ej.grupoMuscularPrimario);
-    if (region) out[region] += seriesDeBloque(b.prescripcion);
+    if (region) out[region] += seriesObjetivo(b.prescripcion);
   }
   return out;
 }

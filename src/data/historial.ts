@@ -1,12 +1,16 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  data/historial.ts — Escritura y lectura de /historial.
-//  finalizarSesion: runTransaction que escribe el Historial y sube los
-//  contadores de Rutina (vecesEntrenada, ultimaVez) y Ejercicio (vecesUsado).
+//
+//  finalizarSesion (v2): la transacción escribe SOLO documentos del miembro
+//  (/historial y /sesiones). Los contadores de /ejercicios y /rutinas se sacan
+//  de la tx para que no-owners puedan cerrar sus sesiones (ejercicios es
+//  owner-only por las reglas de Firestore).
+//  Ver ADR #014 en MAPEO-IMPLEMENTACION.md.
 // ════════════════════════════════════════════════════════════════════════════
 import {
   collection, doc, getDocs, getDoc,
   runTransaction, serverTimestamp,
-  query, where, orderBy, increment,
+  query, where, orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { Historial, BloqueRegistro, MiembroId, FirestoreTimestamp } from "../types/models";
@@ -20,10 +24,9 @@ function hoy(): string {
   return new Date().toISOString().split("T")[0];
 }
 
-/** Lunes de la semana que contiene la fecha dada. */
 function lunesDe(fecha: string): string {
   const d = new Date(fecha);
-  const dow = d.getDay(); // 0=Dom … 6=Sáb
+  const dow = d.getDay();
   const diff = dow === 0 ? -6 : 1 - dow;
   d.setDate(d.getDate() + diff);
   return d.toISOString().split("T")[0];
@@ -38,43 +41,51 @@ export interface FinalizarSesionOpts {
   rpe:         number | null;
   duracionMin: number | null;
   notas?:      string;
+  /** idSesion real (de crearSesion). Si se provee, la sesión pasa a "Registrada" en la misma tx. */
+  idSesion?:   string;
+  programaId?: string;
 }
 
 /**
- * Cierra una sesión de entrenamiento:
- *   1. Escribe el documento Historial.
- *   2. Incrementa Rutina.vecesEntrenada + actualiza ultimaVez.
- *   3. Incrementa Ejercicio.vecesUsado + actualiza ultimaVez.
- * Todo en una sola transacción.
+ * Cierra una sesión de entrenamiento.
+ * La transacción escribe solo documentos del propio miembro:
+ *   1. Crea el documento Historial.
+ *   2. Si se pasa `idSesion`, marca esa SesionProgramada como "Registrada".
+ *
+ * Los contadores de /ejercicios y /rutinas (vecesUsado, vecesEntrenada) NO se
+ * actualizan aquí: /ejercicios es owner-only por las reglas de Firestore, y ambos
+ * son derivables del Historial. Ver ADR #014.
  */
 export async function finalizarSesion(
   opts: FinalizarSesionOpts,
 ): Promise<Result<string>> {
-  const { rutinaId, miembro, bloques, rpe, duracionMin, notas } = opts;
+  const { rutinaId, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId } = opts;
   const fecha   = hoy();
   const semana  = lunesDe(fecha);
   const idHist  = `H-${fecha.replace(/-/g, "")}-${Date.now()}`;
-  const idSesion = `SES-${fecha.replace(/-/g, "")}-${Date.now()}`;
+  // Si no se pasa idSesion, generamos uno "huérfano" (legado, sin doc en /sesiones).
+  const sesionId = idSesion ?? `SES-${fecha.replace(/-/g, "")}-${Date.now()}`;
 
   try {
     await runTransaction(db, async (tx) => {
-      // ── Leer rutina ───────────────────────────────────────────────────────
-      const rutinaRef  = doc(db, "rutinas", rutinaId);
-      const rutinaSnap = await tx.get(rutinaRef);
-      if (!rutinaSnap.exists()) throw new Error(`Rutina ${rutinaId} no encontrada`);
-      const nombreRutina = (rutinaSnap.data() as { nombre: string }).nombre;
+      // Leer rutina para obtener el nombre (solo lectura; la tx puede leer colecciones compartidas)
+      const rutinaSnap = await tx.get(doc(db, "rutinas", rutinaId));
+      const nombreRutina = rutinaSnap.exists()
+        ? (rutinaSnap.data() as { nombre: string }).nombre
+        : rutinaId;
 
-      const tonelaje   = tonelajeKg({ bloques });
+      const tonelaje    = tonelajeKg({ bloques });
       const seriesHechas = totalSeriesHechas({ bloques });
 
-      // ── Escribir Historial ────────────────────────────────────────────────
+      // Escribir Historial (colección del miembro: cualquier miembro puede escribir)
       const histData: Omit<Historial, "fechaRealizadaTimestamp"> & { fechaRealizadaTimestamp: unknown } = {
         idHist,
         fechaRealizada:          fecha,
         fechaRealizadaTimestamp: serverTimestamp(),
-        idSesion,
+        idSesion:                sesionId,
         idRutina:                rutinaId,
         nombreRutina,
+        idPrograma:              programaId,
         semanaInicio:            semana,
         miembro,
         duracionRealMin:         duracionMin,
@@ -86,20 +97,11 @@ export async function finalizarSesion(
       };
       tx.set(doc(db, "historial", idHist), histData);
 
-      // ── Actualizar Rutina ─────────────────────────────────────────────────
-      tx.update(rutinaRef, {
-        vecesEntrenada:    increment(1),
-        ultimaVez:         fecha,
-        ultimoRpe:         rpe,
-        ultimaModificacion: serverTimestamp(),
-      });
-
-      // ── Actualizar Ejercicios (únicos en la sesión) ───────────────────────
-      const ejIds = [...new Set(bloques.map((b) => b.idEjercicio))];
-      for (const ejId of ejIds) {
-        tx.update(doc(db, "ejercicios", ejId), {
-          vecesUsado: increment(1),
-          ultimaVez:  fecha,
+      // Marcar la sesión como Registrada (si existe en /sesiones)
+      if (idSesion) {
+        tx.update(doc(db, "sesiones", idSesion), {
+          estado:    "Registrada",
+          rpeSesion: rpe,
         });
       }
     });
@@ -112,7 +114,6 @@ export async function finalizarSesion(
 
 // ── Lecturas ──────────────────────────────────────────────────────────────────
 
-/** Devuelve el historial de un miembro, ordenado por fecha descendente. */
 export async function getHistorialMiembro(
   miembro: MiembroId,
 ): Promise<Result<Historial[]>> {
@@ -130,7 +131,6 @@ export async function getHistorialMiembro(
   }
 }
 
-/** Devuelve una entrada de historial por ID. */
 export async function getHistorialEntry(id: string): Promise<Result<Historial>> {
   try {
     const snap = await getDoc(doc(db, "historial", id));

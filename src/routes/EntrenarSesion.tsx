@@ -5,6 +5,7 @@ import type { Rutina, Ejercicio, SerieRegistro } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
 import { finalizarSesion } from "../data/historial";
+import { crearSesion, iniciarSesion } from "../data/sesiones";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, seriesObjetivo,
@@ -13,6 +14,14 @@ import { useEntrenarState } from "../hooks/useEntrenarState";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
 import { BloqueGuiado } from "../components/entrenar/BloqueGuiado";
 import { BloqueScroll } from "../components/entrenar/BloqueScroll";
+
+function lunesDeSemana(hoy: Date): string {
+  const dia = hoy.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
+  const d = new Date(hoy);
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
 
 /**
  * Pantalla de entrenamiento — fullscreen, fuera del AppShell.
@@ -29,6 +38,7 @@ export function EntrenarSesion() {
   const [rpe,      setRpe]      = useState<number | null>(null);
   const [saving,   setSaving]   = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [sesionId, setSesionId] = useState<string | null>(null);
   const startRef = useRef<number>(Date.now());
 
   // Log rápido para modo guiado
@@ -39,24 +49,41 @@ export function EntrenarSesion() {
   const session    = useEntrenarState(sessionKey, rutina);
   const state      = session.state;
 
-  // Cargar rutina y precalentar catálogo de ejercicios usados
+  // Cargar rutina, pre-fetch ejercicios y crear sesión en Firestore
   useEffect(() => {
-    if (!rutinaId) return;
+    if (!rutinaId || !memberId) return;
     getRutina(rutinaId).then(async (r) => {
       if (!r.ok) { setLoading(false); return; }
-      setRutina(r.value);
+      const rutina = r.value;
+      setRutina(rutina);
+
       // Pre-fetch ejercicios en paralelo (para instrucciones/puntos/errores)
       const map = new Map<string, Ejercicio>();
       await Promise.all(
-        r.value.bloques.map(async (b) => {
+        rutina.bloques.map(async (b) => {
           const ej = await getEjercicio(b.idEjercicio);
           if (ej.ok) map.set(b.idEjercicio, ej.value);
         }),
       );
       setCatalogo(map);
+
+      // Crear sesión real (Programada → En curso) para que finalizarSesion la cierre
+      const hoy    = new Date();
+      const lunes  = lunesDeSemana(hoy);
+      const domingo = new Date(hoy); domingo.setDate(hoy.getDate() + (7 - (hoy.getDay() || 7)));
+      const semanaFin = domingo.toISOString().slice(0, 10);
+      const sesRes = await crearSesion({
+        miembro: memberId, rutinaId, nombreRutina: rutina.nombre,
+        tipoSeleccion: "rutina", semanaInicio: lunes, semanaFin,
+      });
+      if (sesRes.ok) {
+        setSesionId(sesRes.value.idSesion);
+        iniciarSesion(sesRes.value.idSesion); // fire-and-forget: Programada → En curso
+      }
+
       setLoading(false);
     });
-  }, [rutinaId]);
+  }, [rutinaId, memberId]);
 
   if (loading) {
     return (
@@ -123,6 +150,7 @@ export function EntrenarSesion() {
                 bloques: session.bloquesRegistro(),
                 rpe,
                 duracionMin: durMin || null,
+                idSesion: sesionId ?? undefined,
               });
               if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
               session.reiniciar();

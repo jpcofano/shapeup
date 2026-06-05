@@ -126,6 +126,29 @@ describe("historial y sesiones", () => {
   it("miembro puede leer cardio",       () => assertSucceeds(getDoc(doc(as("juanpablo").firestore(), "cardio", "CAR-001"))));
 });
 
+// ── Cierre de sesión por no-owner (E5.1) ─────────────────────────────────────
+
+describe("finalizar sesion (miembro no-owner)", () => {
+  it("maria puede escribir su historial (cierre de sesión)", () =>
+    assertSucceeds(setDoc(doc(as("maria").firestore(), "historial", "H-maria-001"), {
+      miembro: "maria", idRutina: "RUT-0021", nombreRutina: "Glúteos A",
+    })));
+  it("sofia puede actualizar su sesion a Registrada", async () => {
+    const ctx = as("sofia");
+    await setDoc(doc(ctx.firestore(), "sesiones", "SES-sofia-001"), { miembro: "sofia", estado: "En curso" });
+    return assertSucceeds(setDoc(doc(ctx.firestore(), "sesiones", "SES-sofia-001"), {
+      miembro: "sofia", estado: "Registrada", rpeSesion: 7,
+    }));
+  });
+  it("federico puede crear historial y sesión en la misma operación (reglas OK)", async () => {
+    const ctx = as("federico");
+    await assertSucceeds(setDoc(doc(ctx.firestore(), "historial",  "H-fed-001"), { miembro: "federico" }));
+    await assertSucceeds(setDoc(doc(ctx.firestore(), "sesiones",   "SES-fed-001"), { miembro: "federico", estado: "Registrada" }));
+  });
+  it("no-miembro no puede escribir historial aunque tenga formato válido", () =>
+    assertFails(setDoc(doc(stranger().firestore(), "historial", "H-str-001"), { miembro: "sofia" })));
+});
+
 // ── Login (resolución memberId via get() interno) ─────────────────────────────
 
 describe("resolución de memberId (login)", () => {

@@ -31,6 +31,17 @@
 
 ---
 
+### [2026-06-04] E5.1 — Cierre de sesión correcto (multiusuario)
+- **Bug 1 (crítico):** `finalizarSesion` actualizaba contadores en `/ejercicios` (owner-only) → abortaba toda la tx para no-owners
+  - Solución: tx escribe SOLO documentos del miembro (`/historial` + transición `/sesiones`); contadores removidos (ver ADR #014)
+- **Bug 2:** sesión nunca cambiaba de estado; `idSesion` era huérfano (fabricado con `Date.now()`)
+  - Solución: `EntrenarSesion.tsx` llama `crearSesion` + `iniciarSesion` al montar; pasa el `idSesion` real a `finalizarSesion`; la tx marca la sesión como `Registrada`
+- **Cleanup:** `seriesObjetivo` unificada — la función vivía duplicada en `entrenarState.ts` y como `seriesDeBloque` en `metricas.ts`; ahora existe una sola versión exportada desde `metricas.ts` (re-exportada desde `entrenarState.ts` para compat)
+- Tests: 89 unitarios + 38 reglas (4 nuevos: no-owner puede cerrar su sesión)
+- Total: **127 tests verdes**
+
+---
+
 ### [2026-06-04] Calidad — Tests de reglas Firestore (emulador)
 - `src/__tests__/firestore.rules.test.ts` — 34 tests cubriendo: no-miembro, owner, miembro, anónimo, login via get(/config/familia), email alternativo de María
   - Suites: ejercicios, rutinas, programas, config, users, historial+sesiones, resolución memberId
@@ -303,7 +314,7 @@ firestore.indexes.json        ✅  desplegados
 | lib/entrenarState.test.ts | 26 |
 | **Total unidad** | **50** |
 | `__tests__/firestore.rules.test.ts` | 34 (emulador) |
-| **Total global** | **84** |
+| **Total global** | **127** |
 
 Tests de reglas: `src/__tests__/firestore.rules.test.ts` (34 tests; `npm run test:rules`).
 
@@ -347,6 +358,18 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (34 tests; `npm run tes
   Resultado: la app la guía linealmente; el usuario puede usar el modo scroll para
   hacer el circuito a mano. Mejora futura: soporte de grupoSet en el reducer para
   que el modo guiado recorra round-robin los bloques con el mismo grupoSet.
+
+#014 [2026-06-04] Contadores de ejercicios/rutinas separados de la tx de cierre
+  Contexto: /ejercicios es owner-only por las reglas de Firestore. Si incluimos
+  `tx.update(ejercicios/EJ-XXXX)` en la transacción de `finalizarSesion`, cualquier
+  sesión de un no-owner (maría, federico, sofía) aborta con PERMISSION_DENIED y
+  el Historial nunca se guarda.
+  Decisión: la transacción de cierre escribe SOLO documentos del miembro propio
+  (/historial y la transición de /sesiones a "Registrada"). Los contadores
+  (vecesEntrenada, vecesUsado) se eliminan del flujo online; son derivables del
+  Historial por agregación (analytics). Si en el futuro se necesitan "en vivo",
+  la opción correcta es una Cloud Function triggered por onDocumentCreated en
+  /historial (que corre con privilegios de admin, sin restricciones de reglas).
 
 #013 [2026-06-04] Acceso al Catálogo via tabs en /biblioteca
   Contexto: el catálogo salió del nav inferior en ADR #006 para meter Salud (6 ítems).

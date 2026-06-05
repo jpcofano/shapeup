@@ -19,6 +19,8 @@
 import type {
   Rutina, BloqueEjercicio, Prescripcion, SerieRegistro, Modalidad,
 } from "../types/models";
+import { seriesObjetivo } from "./metricas";
+export { seriesObjetivo } from "./metricas";
 
 // ─── Estado (serializable; espejo de ProgresoSesion) ──────────────────────────
 export interface DescansoActivo {
@@ -48,15 +50,6 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
 //  Encapsula la unión discriminada por modalidad.
 // ════════════════════════════════════════════════════════════════════════════
 
-/** Series objetivo de un bloque, según su modalidad. Cardio continuo = 1 "bloque". */
-export function seriesObjetivo(p: Prescripcion): number {
-  switch (p.modalidad) {
-    case "Fuerza":      return p.series;
-    case "Isométrico":  return p.series;
-    case "Movilidad":   return p.rondas;
-    case "Cardio":      return p.formato === "Intervalos" ? (p.rondas ?? 1) : 1;
-  }
-}
 
 /** Descanso (seg) tras completar una serie de este bloque. 0 = sin descanso. */
 export function descansoSeg(p: Prescripcion): number {
