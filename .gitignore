@@ -18,6 +18,8 @@ scripts/service-account.json
 service-account.json
 *serviceAccount*.json
 *service-account*.json
+# Emails reales de la familia — solo .example.json va al repo
+scripts/data/familia.local.json
 # TypeScript incremental build
 .tsc-out/
 # Editor / OS

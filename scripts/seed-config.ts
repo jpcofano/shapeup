@@ -26,6 +26,20 @@ const serviceAccount = JSON.parse(
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
+// ── Leer emails desde archivo local (gitignoreado) ────────────────────────────
+const familiaLocalPath = resolve(__dir, "data/familia.local.json");
+let miembrosLocal: unknown;
+try {
+  miembrosLocal = JSON.parse(readFileSync(familiaLocalPath, "utf8"));
+} catch {
+  console.error(
+    "\n❌  Error: no se encontró scripts/data/familia.local.json.\n" +
+    "   Copiá scripts/data/familia.example.json a scripts/data/familia.local.json\n" +
+    "   y reemplazá los emails placeholder con los reales.\n",
+  );
+  process.exit(1);
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  Documentos a sembrar
 // ════════════════════════════════════════════════════════════════════════════
@@ -34,12 +48,7 @@ const familia = {
   owner: "juanpablo",
   timezone: "America/Argentina/Buenos_Aires",
   semanaArrancaEn: "lunes",
-  miembros: {
-    juanpablo: { nombre: "Juan Pablo", rol: "padre", mails: ["jpcofano@gmail.com"] },
-    maria:     { nombre: "María",      rol: "madre", mails: ["marialascano@gmail.com", "maria.lascano@accenture.com"] },
-    sofia:     { nombre: "Sofía",      rol: "hija",  mails: ["sofiacofano@gmail.com"] },
-    federico:  { nombre: "Federico",   rol: "hijo",  mails: ["fedecofano1@gmail.com"] },
-  },
+  miembros: miembrosLocal,
 };
 
 const metodologia = {

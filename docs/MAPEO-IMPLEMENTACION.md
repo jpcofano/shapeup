@@ -31,6 +31,15 @@
 
 ---
 
+### [2026-06-04] Privacidad — Mails reales fuera del repo
+- `scripts/seed-config.ts` ya no tiene emails hardcodeados; lee de `scripts/data/familia.local.json`
+- `scripts/data/familia.local.json` — gitignoreado; contiene los emails reales (no se commitea)
+- `scripts/data/familia.example.json` — commiteado; placeholders `@example.com` para saber el formato
+- `.gitignore` — agrega `scripts/data/familia.local.json`
+- **⚠️ DECISIÓN PENDIENTE:** los emails ya estaban en el historial de git (commits anteriores de seed-config.ts). Sacarlos del repo HEAD no los borra de los commits pasados. Opciones: (a) purgar con `git filter-repo`/BFG Repo Cleaner (reescribe el historial, requiere force-push y avisar a colaboradores), (b) marcar el repo como privado en GitHub. **Confirmar con el owner antes de actuar.**
+
+---
+
 ### [2026-06-04] E5.1 — Cierre de sesión correcto (multiusuario)
 - **Bug 1 (crítico):** `finalizarSesion` actualizaba contadores en `/ejercicios` (owner-only) → abortaba toda la tx para no-owners
   - Solución: tx escribe SOLO documentos del miembro (`/historial` + transición `/sesiones`); contadores removidos (ver ADR #014)
@@ -358,6 +367,18 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (34 tests; `npm run tes
   Resultado: la app la guía linealmente; el usuario puede usar el modo scroll para
   hacer el circuito a mano. Mejora futura: soporte de grupoSet en el reducer para
   que el modo guiado recorra round-robin los bloques con el mismo grupoSet.
+
+#015 [2026-06-04] Emails reales en historial de git — decisión pendiente
+  Contexto: seed-config.ts tenía los emails reales hardcodeados. Se movieron
+  a familia.local.json (gitignoreado) pero los commits pasados todavía tienen
+  los emails en el historial público de GitHub.
+  Opciones evaluadas:
+    (a) git filter-repo / BFG: reescribe el historial, elimina los emails de
+        todos los commits; requiere force-push y coordinar con colaboradores.
+    (b) Hacer el repo privado en GitHub: más rápido; los datos siguen en el
+        historial pero solo visible para colaboradores autorizados.
+  Decisión: a confirmar por el owner (jpcofano). No se actuó aún para no
+  romper el historial sin autorización explícita.
 
 #014 [2026-06-04] Contadores de ejercicios/rutinas separados de la tx de cierre
   Contexto: /ejercicios es owner-only por las reglas de Firestore. Si incluimos

@@ -1,0 +1,6 @@
+{
+  "juanpablo": { "nombre": "Juan Pablo", "rol": "padre", "mails": ["juanpablo@example.com"] },
+  "maria":     { "nombre": "María",      "rol": "madre", "mails": ["maria@example.com", "maria.trabajo@example.com"] },
+  "sofia":     { "nombre": "Sofía",      "rol": "hija",  "mails": ["sofia@example.com"] },
+  "federico":  { "nombre": "Federico",   "rol": "hijo",  "mails": ["federico@example.com"] }
+}
