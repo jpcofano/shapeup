@@ -31,6 +31,18 @@
 
 ---
 
+### [2026-06-04] Calidad — Tests de reglas Firestore (emulador)
+- `src/__tests__/firestore.rules.test.ts` — 34 tests cubriendo: no-miembro, owner, miembro, anónimo, login via get(/config/familia), email alternativo de María
+  - Suites: ejercicios, rutinas, programas, config, users, historial+sesiones, resolución memberId
+- `vitest.rules.config.ts` — config separada (`environment: node`); `testTimeout: 15000`
+- `Firebase.json` — emulador Firestore en `127.0.0.1:8080`, UI en 4000
+- `npm run test:rules` → `firebase emulators:exec --only firestore -- vitest run --config vitest.rules.config.ts`
+- `npm run test:all` → unidad + reglas
+- `@firebase/rules-unit-testing@5.0.1` agregado a devDependencies
+- Resultado: 34 tests verdes ✅
+
+---
+
 ### [2026-06-04] UI — MemberAvatar, WeekStrip y color de perfiles
 - `src/components/MemberAvatar.tsx` — círculo de iniciales + `AvatarStack`; adaptado de Comidas-Familiares; colores desde `var(--member-*)` con override opcional desde `/config/perfiles`
 - `src/components/WeekStrip.tsx` — tira de 7 días; hoy marcado en verde (var(--accent)); puntos en días con entrenamiento; adaptado de Comidas-Familiares
@@ -289,9 +301,11 @@ firestore.indexes.json        ✅  desplegados
 | lib/filtros.test.ts | 9 |
 | lib/metricas.test.ts | 11 |
 | lib/entrenarState.test.ts | 26 |
-| **Total** | **50** |
+| **Total unidad** | **50** |
+| `__tests__/firestore.rules.test.ts` | 34 (emulador) |
+| **Total global** | **84** |
 
-Pendiente: tests de reglas Firestore con emulador (`@firebase/rules-unit-testing`).
+Tests de reglas: `src/__tests__/firestore.rules.test.ts` (34 tests; `npm run test:rules`).
 
 ---
 

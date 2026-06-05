@@ -11,16 +11,18 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "seed:config":     "npx tsx scripts/seed-config.ts",
+    "test:rules": "firebase emulators:exec --only firestore --project shapeup-41e74 -- npx vitest run --config vitest.rules.config.ts",
+    "test:all": "npm run test:run && npm run test:rules",
+    "seed:config": "npx tsx scripts/seed-config.ts",
     "seed:ejercicios": "npx tsx scripts/seed-ejercicios.ts",
-    "seed:vr":         "npx tsx scripts/seed-vr.ts",
-    "seed:plan":         "npx tsx scripts/seed-plan.ts",
-    "seed:planes-extra":    "npx tsx scripts/seed-planes-extra.ts",
-    "seed:rugby-juvenil":   "npx tsx scripts/seed-rugby-juvenil.ts",
-    "seed:futbol-juvenil":  "npx tsx scripts/seed-futbol-juvenil.ts",
-    "seed:maria":           "npx tsx scripts/seed-maria.ts",
-    "seed:visibilidad":     "npx tsx scripts/seed-visibilidad.ts",
-    "seed:perfiles":        "npx tsx scripts/seed-perfiles.ts"
+    "seed:vr": "npx tsx scripts/seed-vr.ts",
+    "seed:plan": "npx tsx scripts/seed-plan.ts",
+    "seed:planes-extra": "npx tsx scripts/seed-planes-extra.ts",
+    "seed:rugby-juvenil": "npx tsx scripts/seed-rugby-juvenil.ts",
+    "seed:futbol-juvenil": "npx tsx scripts/seed-futbol-juvenil.ts",
+    "seed:maria": "npx tsx scripts/seed-maria.ts",
+    "seed:visibilidad": "npx tsx scripts/seed-visibilidad.ts",
+    "seed:perfiles": "npx tsx scripts/seed-perfiles.ts"
   },
   "dependencies": {
     "firebase": "^11.0.0",
@@ -30,6 +32,7 @@
     "react-router-dom": "^7.16.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
