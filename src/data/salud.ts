@@ -7,7 +7,7 @@ import {
   query, where, orderBy, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { MedicionCorporal, SesionCardio, MiembroId, FuenteDato, FirestoreTimestamp } from "../types/models";
+import type { MedicionCorporal, SesionCardio, RegistroSueno, MiembroId, FuenteDato, FirestoreTimestamp } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 
@@ -103,6 +103,93 @@ export async function importarCardio(
 ): Promise<Result<number>> {
   try {
     await Promise.all(items.map((item) => guardarCardio(item)));
+    return ok(items.length);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+// ── RegistroSueno ─────────────────────────────────────────────────────────────
+
+export type SuenoInput = Omit<RegistroSueno, "idSueno">;
+
+export async function getRegistrosSueno(miembro: MiembroId): Promise<Result<RegistroSueno[]>> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "sueno"), where("miembro", "==", miembro), orderBy("fecha", "desc")),
+    );
+    return ok(snap.docs.map((d) => d.data() as RegistroSueno));
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+export async function guardarSueno(data: SuenoInput): Promise<Result<RegistroSueno>> {
+  try {
+    const id = `SUE-${Date.now()}`;
+    const reg: RegistroSueno = { ...data, idSueno: id };
+    await setDoc(doc(db, "sueno", id), reg);
+    return ok(reg);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/** Guarda múltiples registros de sueño (import CSV). Usa uuid como id si está disponible. */
+export async function importarSueno(
+  items: (SuenoInput & { _uuid?: string })[],
+): Promise<Result<number>> {
+  try {
+    await Promise.all(
+      items.map((item) => {
+        const { _uuid, ...data } = item;
+        const id = _uuid ? `SUE-${_uuid}` : `SUE-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        return setDoc(doc(db, "sueno", id), { ...data, idSueno: id }, { merge: false });
+      }),
+    );
+    return ok(items.length);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/** Import batch idempotente por uuid (setDoc con merge:false, ID = prefijo+uuid). */
+export async function importarMedicionesIdempotente(
+  items: (Omit<MedicionCorporal, "idMedicion" | "fechaCreacion"> & { _uuid?: string })[],
+): Promise<Result<number>> {
+  try {
+    await Promise.all(
+      items.map((item) => {
+        const { _uuid, ...data } = item;
+        const id = _uuid ? `MED-${_uuid}` : `MED-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        return setDoc(
+          doc(db, "mediciones", id),
+          { ...data, idMedicion: id, fechaCreacion: serverTimestamp() },
+          { merge: false },
+        );
+      }),
+    );
+    return ok(items.length);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+export async function importarCardioIdempotente(
+  items: (Omit<SesionCardio, "idCardio" | "fechaCreacion"> & { _uuid?: string })[],
+): Promise<Result<number>> {
+  try {
+    await Promise.all(
+      items.map((item) => {
+        const { _uuid, ...data } = item;
+        const id = _uuid ? `CAR-${_uuid}` : `CAR-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        return setDoc(
+          doc(db, "cardio", id),
+          { ...data, idCardio: id, fechaCreacion: serverTimestamp() },
+          { merge: false },
+        );
+      }),
+    );
     return ok(items.length);
   } catch (e) {
     return err(firebaseErrorMessage(e));

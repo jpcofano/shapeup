@@ -31,6 +31,22 @@
 
 ---
 
+### [2026-06-04] E6 (completo) — Importador Samsung Health + progreso
+- `src/import/samsungHealth.ts` — parsers puros: `parsearPeso`, `parsearEjercicio`, `parsearSueno`
+  - Formato real Samsung Health: salta línea 1 (metadata), encabezado en línea 2, columnas prefijadas `com.samsung.health.*` (matchea por sufijo)
+  - Timestamps: epoch ms + `time_offset` → fecha local; `duration` ms → min; `distance` m → km; `sleep_duration` min → h
+  - `imc` calculado (peso/altura²); `zonaPrincipal` derivada de FC vs zonas del perfil; idempotencia por `datauuid`
+  - `detectarTipoCsv` detecta weight/exercise/sleep por nombre de archivo
+  - 31 tests (6 suites): parseo de los 3 tipos, conversiones, derivarZona, tipo detection
+- `src/import/samsungHealth.test.ts` — 31 tests con CSV de muestra real
+- `src/data/salud.ts` — agrega `/sueno` (RegistroSueno): `getRegistrosSueno`, `guardarSueno`, `importarSueno`; imports idempotentes por uuid (`importarMedicionesIdempotente`, `importarCardioIdempotente`)
+- `src/routes/Salud.tsx` — rediseño completo: 4 tabs (Composición/Cardio/Sueño/Progreso); **preview antes de importar** (tabla de primeras 5 filas + contador + advertencias); MiniChart SVG de barras para peso y tonelaje; tendencia peso/grasa (último vs penúltimo)
+- `firestore.rules` — agrega `/sueno` (`allow read, write: if isFamilyMember()`)
+- `src/types/models.ts` — agrega `distanciaKm?` a `SesionCardio`
+- Total tests: 120 unitarios + 38 reglas = **158 tests verdes**
+
+---
+
 ### [2026-06-04] Privacidad — Mails reales fuera del repo
 - `scripts/seed-config.ts` ya no tiene emails hardcodeados; lee de `scripts/data/familia.local.json`
 - `scripts/data/familia.local.json` — gitignoreado; contiene los emails reales (no se commitea)
@@ -243,6 +259,9 @@ src/
     entrenarState.ts          ✅  entrenarState.test.ts ✅
     elegibilidad.ts           ✅
     recomendaciones.ts        ⬜ (futuro)
+  import/
+    samsungHealth.ts          ✅  (parsearPeso/Ejercicio/Sueno; detectarTipoCsv; derivarZona)
+    samsungHealth.test.ts     ✅  (31 tests)
   components/
     MemberAvatar.tsx          ✅  (círculo iniciales + AvatarStack; var(--member-*))
     WeekStrip.tsx             ✅  (tira 7 días; hoy en --accent; puntos en días con sesión)
@@ -255,7 +274,7 @@ src/
     historial.ts              ✅  (finalizarSesion con runTransaction)
     visibilidad.ts            ✅
     perfiles.ts               ✅  (getPerfiles, caché en memoria)
-    salud.ts                  ✅  (MedicionCorporal + SesionCardio)
+    salud.ts                  ✅  (MedicionCorporal + SesionCardio + RegistroSueno; imports idempotentes)
   auth/
     AuthContext.ts            ✅
     AuthProvider.tsx          ✅
@@ -323,7 +342,7 @@ firestore.indexes.json        ✅  desplegados
 | lib/entrenarState.test.ts | 26 |
 | **Total unidad** | **50** |
 | `__tests__/firestore.rules.test.ts` | 34 (emulador) |
-| **Total global** | **127** |
+| **Total global** | **158** |
 
 Tests de reglas: `src/__tests__/firestore.rules.test.ts` (34 tests; `npm run test:rules`).
 

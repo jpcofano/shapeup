@@ -473,6 +473,7 @@ export interface SesionCardio {
   actividad: string;               // "Body Combat", "Caminata", "Aeróbic"…
   esVR: boolean;
   duracionMin?: number;
+  distanciaKm?: number;
   kcal?: number;
   fcPromedio?: number;
   fcMaxima?: number;
