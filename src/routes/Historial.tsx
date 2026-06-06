@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Historial } from "../types/models";
 import { getHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
+import { Bicep } from "../components/Bicep";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
@@ -44,19 +45,33 @@ export function Historial() {
         <div
           key={h.idHist}
           className="rutina-card"
+          style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
           onClick={() => navigate(`/historial/${h.idHist}`)}
         >
-          <p className="rutina-card-title">{h.nombreRutina}</p>
-          <div className="rutina-card-meta">
-            <span>{formatFecha(h.fechaRealizada)}</span>
-            {h.duracionRealMin != null && <span>⏱ {h.duracionRealMin} min</span>}
-            {h.totalSeriesHechas != null && <span>· {h.totalSeriesHechas} series</span>}
-            {h.tonelajeKg != null && h.tonelajeKg > 0 && (
-              <span>· {h.tonelajeKg} kg</span>
-            )}
-            {h.rpe != null && (
-              <span className="badge badge-muted">RPE {h.rpe}</span>
-            )}
+          {/* Badge de bíceps — motivo de marca */}
+          <span style={{
+            width: 38, height: 38, borderRadius: 10,
+            background: "var(--accent-dim)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, color: "var(--accent)",
+          }}>
+            <Bicep size={20} />
+          </span>
+
+          {/* Contenido */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p className="rutina-card-title" style={{ marginBottom: 6 }}>{h.nombreRutina}</p>
+            <div className="rutina-card-meta">
+              <span>{formatFecha(h.fechaRealizada)}</span>
+              {h.duracionRealMin != null && <span>⏱ {h.duracionRealMin} min</span>}
+              {h.totalSeriesHechas != null && <span>· {h.totalSeriesHechas} series</span>}
+              {h.tonelajeKg != null && h.tonelajeKg > 0 && (
+                <span>· {h.tonelajeKg.toLocaleString("es")} kg</span>
+              )}
+              {h.rpe != null && (
+                <span className="badge badge-muted">RPE {h.rpe}</span>
+              )}
+            </div>
           </div>
         </div>
       ))}

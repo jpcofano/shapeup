@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { Historial } from "../types/models";
 import { getHistorialEntry } from "../data/historial";
-import { prescripcionLabel } from "../lib/prescripcionLabel";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
@@ -38,21 +37,23 @@ export function HistorialDetalle() {
         </button>
       </div>
 
-      {/* Título */}
+      {/* Título + fecha */}
       <div>
-        <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700 }}>{h.nombreRutina}</h1>
+        <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, letterSpacing: "-.01em" }}>
+          {h.nombreRutina}
+        </h1>
         <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
           {formatFecha(h.fechaRealizada)}
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats — valores tabulares */}
       <div className="card">
         <div className="stats-row" style={{ flexWrap: "wrap", gap: 20 }}>
           {h.duracionRealMin != null && (
             <div className="stat">
               <span className="stat-value">{h.duracionRealMin}</span>
-              <span className="stat-label">min</span>
+              <span className="stat-label">minutos</span>
             </div>
           )}
           {h.totalSeriesHechas != null && (
@@ -63,7 +64,7 @@ export function HistorialDetalle() {
           )}
           {h.tonelajeKg != null && h.tonelajeKg > 0 && (
             <div className="stat">
-              <span className="stat-value">{h.tonelajeKg}</span>
+              <span className="stat-value">{h.tonelajeKg.toLocaleString("es")}</span>
               <span className="stat-label">kg tonelaje</span>
             </div>
           )}
@@ -76,23 +77,29 @@ export function HistorialDetalle() {
         </div>
       </div>
 
-      {/* Bloques registrados */}
+      {/* Series registradas por bloque */}
       <div className="card">
-        <p className="section-title" style={{ marginBottom: 12 }}>Ejercicios</p>
-        {h.bloques.map((b, i) => (
-          <div key={i} className="bloque-row">
-            <span className="bloque-num">{i + 1}</span>
-            <div className="bloque-info">
-              <p className="bloque-nombre">{b.nombreEjercicio}</p>
-              <p className="bloque-prescripcion">
-                {b.series.filter((s) => s.completada).length} / {b.series.length} series
-                {b.series.some((s) => s.cargaKg != null) && (
-                  <> · {b.series.filter((s) => s.completada && s.cargaKg).map((s) => `${s.reps ?? "?"}×${s.cargaKg}kg`).join(", ")}</>
-                )}
-              </p>
+        <p className="section-title" style={{ marginBottom: 12 }}>Series registradas</p>
+        {h.bloques.map((b, i) => {
+          const completadas = b.series.filter((s) => s.completada);
+          const detalle = completadas
+            .filter((s) => s.cargaKg != null)
+            .map((s) => `${s.reps ?? "?"}×${s.cargaKg}kg`)
+            .join(", ");
+
+          return (
+            <div key={i} className="bloque-row">
+              <span className="bloque-num">{i + 1}</span>
+              <div className="bloque-info">
+                <p className="bloque-nombre">{b.nombreEjercicio}</p>
+                <p className="bloque-prescripcion">
+                  {completadas.length}/{b.series.length} series
+                  {detalle ? ` · ${detalle}` : ""}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {h.notas && (

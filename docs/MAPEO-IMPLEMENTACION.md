@@ -21,13 +21,21 @@
 | D2 | Home (header marca, WeekStrip con bíceps, card Tu semana) | ✅ | 2026-06-06 |
 | D3 | Entrenar / EntrenarSesion (BloqueGuiado, DescansoTimer, finalización) | ✅ | 2026-06-06 |
 | D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ✅ | 2026-06-06 |
-| D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ⬜ | — |
+| D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ✅ | 2026-06-06 |
 | D6 | Salud (tabs, zonas FC, preview import) | ⬜ | — |
 | D7 | Perfil + auth (selector de tema, login, no-autorizado) | ⬜ | — |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-06] D5 — Historial + Progreso
+- **`src/components/MiniChart.tsx`** (nuevo) — gráfico de barras SVG reutilizable: `data: MiniChartPoint[]`, `color` (default `var(--accent)`), `height`. Barras con rx=4, etiquetas en `--muted`. Usado en D6 (Salud) para tendencias de peso/tonelaje.
+- **`src/routes/Historial.tsx`** — cada fila tiene badge de bíceps a la izquierda (cuadrado 38px, `--accent-dim`, `<Bicep size={20} />` en `--accent`); layout flex row con contenido a la derecha; tonelaje con `.toLocaleString("es")`.
+- **`src/routes/HistorialDetalle.tsx`** — título con `fontWeight: 800`; sección de bloques renombrada a "Series registradas"; título del bloque en `.bloque-nombre` con `.bloque-num` en acento. Ya no importa `prescripcionLabel` (innecesario en el historial real).
+- **`src/index.css`** — `.stat-value` agrega `font-variant-numeric: tabular-nums; letter-spacing: -0.01em`.
+
+---
 
 ### [2026-06-06] D4 — Biblioteca + Catálogo
 - **`src/index.css`** — agregada clase `.banner-red` (danger) para la sección Seguridad del Catálogo.
