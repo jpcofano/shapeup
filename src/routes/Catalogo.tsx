@@ -15,6 +15,7 @@ import { useAuth } from "../auth/useAuth";
 
 function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
   const [abierto, setAbierto] = useState(false);
+
   return (
     <div className="card" style={{ padding: 0, overflow: "hidden" }}>
       {/* Cabecera */}
@@ -39,16 +40,19 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
             <span className="badge badge-muted">{ej.nivel}</span>
           </div>
         </div>
-        {abierto ? <ChevronUp size={16} color="var(--muted)" /> : <ChevronDown size={16} color="var(--muted)" />}
+        {abierto
+          ? <ChevronUp size={16} color="var(--muted)" />
+          : <ChevronDown size={16} color="var(--muted)" />
+        }
       </button>
 
       {/* Detalle expandible */}
       {abierto && (
-        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)" }}>
+        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 10 }}>
           {onEdit && (
             <button
               className="btn-secondary"
-              style={{ marginTop: 12, marginBottom: 8, width: "100%" }}
+              style={{ marginTop: 12, width: "100%" }}
               onClick={onEdit}
             >
               Editar ejercicio
@@ -56,10 +60,8 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
           )}
 
           {ej.instrucciones.length > 0 && (
-            <section style={{ marginTop: 12 }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Ejecución
-              </p>
+            <section style={{ marginTop: onEdit ? 0 : 12 }}>
+              <p className="section-title" style={{ marginBottom: 6 }}>Ejecución</p>
               <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
                 {ej.instrucciones.map((inst, i) => (
                   <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>{inst}</li>
@@ -69,46 +71,40 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
           )}
 
           {ej.puntosClave.length > 0 && (
-            <section style={{ marginTop: 12, background: "rgba(74,222,128,0.07)", borderRadius: 8, padding: "10px 12px" }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Puntos clave
-              </p>
-              <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div className="banner banner-green">
+              <p className="banner-title">Puntos clave</p>
+              <ul style={{ margin: "4px 0 0", paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
                 {ej.puntosClave.map((p, i) => (
-                  <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>{p}</li>
+                  <li key={i}>{p}</li>
                 ))}
               </ul>
-            </section>
+            </div>
           )}
 
           {ej.erroresComunes.length > 0 && (
-            <section style={{ marginTop: 10, background: "rgba(251,191,36,0.07)", borderRadius: 8, padding: "10px 12px" }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Errores comunes
-              </p>
-              <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div className="banner banner-amber">
+              <p className="banner-title">Errores comunes</p>
+              <ul style={{ margin: "4px 0 0", paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
                 {ej.erroresComunes.map((e, i) => (
-                  <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>{e}</li>
+                  <li key={i}>{e}</li>
                 ))}
               </ul>
-            </section>
+            </div>
           )}
 
           {ej.consejosSeguridad && ej.consejosSeguridad.length > 0 && (
-            <section style={{ marginTop: 10, background: "rgba(248,113,113,0.07)", borderRadius: 8, padding: "10px 12px" }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, color: "var(--danger)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Seguridad
-              </p>
-              <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div className="banner banner-red">
+              <p className="banner-title">Seguridad</p>
+              <ul style={{ margin: "4px 0 0", paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
                 {ej.consejosSeguridad.map((c, i) => (
-                  <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>{c}</li>
+                  <li key={i}>{c}</li>
                 ))}
               </ul>
-            </section>
+            </div>
           )}
 
           {ej.gruposSecundarios.length > 0 && (
-            <p style={{ margin: "12px 0 0", fontSize: 12, color: "var(--muted)" }}>
+            <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
               Secundarios: {ej.gruposSecundarios.join(", ")}
             </p>
           )}
@@ -120,8 +116,12 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
 
 // ── Pantalla completa ─────────────────────────────────────────────────────────
 
-/** Lista de ejercicios del catálogo con buscador y filtros. Alta/edición solo para el owner. */
-export function Catalogo() {
+interface CatalogoProps {
+  /** true cuando se renderiza dentro de Biblioteca (sin wrapper .page extra) */
+  embedded?: boolean;
+}
+
+export function Catalogo({ embedded = false }: CatalogoProps) {
   const navigate           = useNavigate();
   const { memberId }       = useAuth();
   const isOwner            = memberId === "juanpablo";
@@ -152,11 +152,14 @@ export function Catalogo() {
     nivel:     nivel     || undefined,
   });
 
-  return (
-    <div className="page">
+  const inner = (
+    <>
       {/* Buscador */}
-      <div style={{ position: "relative", marginBottom: 8 }}>
-        <Search size={16} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none" }} />
+      <div style={{ position: "relative" }}>
+        <Search
+          size={16}
+          style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none" }}
+        />
         <input
           className="form-input"
           style={{ paddingLeft: 32 }}
@@ -167,7 +170,7 @@ export function Catalogo() {
       </div>
 
       {/* Filtros */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 4 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <ChipRow label="Área"   all="" value={region}    options={GRUPOS_MUSCULARES_REGION_ORDEN} onChange={(v) => setRegion(v as RegionMuscular | "")} />
         <ChipRow label="Tipo"   all="" value={modalidad} options={MODALIDADES}                    onChange={(v) => setModalidad(v as Modalidad | "")} />
         <ChipRow label="Equipo" all="" value={equipo}    options={EQUIPOS}                        onChange={(v) => setEquipo(v as Equipo | "")} />
@@ -176,13 +179,12 @@ export function Catalogo() {
 
       {/* Contador */}
       {!loading && !error && (
-        <p style={{ margin: "4px 0 8px", fontSize: 12, color: "var(--muted)" }}>
+        <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
           {visibles.length} ejercicio{visibles.length !== 1 ? "s" : ""}
           {todos.length !== visibles.length ? ` de ${todos.length}` : ""}
         </p>
       )}
 
-      {/* Estados */}
       {loading && <div className="empty-state"><div className="spinner" /></div>}
       {error   && <p className="inline-error">{error}</p>}
       {!loading && !error && visibles.length === 0 && (
@@ -191,7 +193,6 @@ export function Catalogo() {
         </div>
       )}
 
-      {/* Lista */}
       {!loading && !error && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {visibles.map((ej) => (
@@ -204,12 +205,20 @@ export function Catalogo() {
         </div>
       )}
 
-      {/* FAB: solo owner */}
+      {/* FAB solo owner */}
       {isOwner && (
         <button className="fab" onClick={() => navigate("/catalogo/nueva")} title="Nuevo ejercicio">
           <Plus size={24} />
         </button>
       )}
+    </>
+  );
+
+  if (embedded) return <>{inner}</>;
+
+  return (
+    <div className="page">
+      {inner}
     </div>
   );
 }

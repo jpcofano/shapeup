@@ -569,6 +569,7 @@
 .banner li { margin-bottom: 2px; }
 .banner-green { background: rgba(74,222,128,0.1);  color: #86efac; border: 1px solid rgba(74,222,128,0.2); }
 .banner-amber { background: rgba(251,191,36,0.1);  color: var(--warning); border: 1px solid rgba(251,191,36,0.2); }
+.banner-red   { background: rgba(248,113,113,0.1); color: var(--danger);  border: 1px solid rgba(248,113,113,0.2); }
 .banner-title { font-weight: 700; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
 
 /* ── Instrucciones colapsables ───────────────────────────────────────────── */

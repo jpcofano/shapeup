@@ -20,7 +20,7 @@
 | D1 | Identidad + sistema de temas (tokens, 8 temas, ThemeProvider, Brand, Bicep) | ✅ | 2026-06-05 |
 | D2 | Home (header marca, WeekStrip con bíceps, card Tu semana) | ✅ | 2026-06-06 |
 | D3 | Entrenar / EntrenarSesion (BloqueGuiado, DescansoTimer, finalización) | ✅ | 2026-06-06 |
-| D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ⬜ | — |
+| D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ✅ | 2026-06-06 |
 | D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ⬜ | — |
 | D6 | Salud (tabs, zonas FC, preview import) | ⬜ | — |
 | D7 | Perfil + auth (selector de tema, login, no-autorizado) | ⬜ | — |
@@ -28,6 +28,14 @@
 ---
 
 ## 2. Bitácora
+
+### [2026-06-06] D4 — Biblioteca + Catálogo
+- **`src/index.css`** — agregada clase `.banner-red` (danger) para la sección Seguridad del Catálogo.
+- **`src/routes/Biblioteca.tsx`** — título fijo "Biblioteca" (no cambia por tab); FAB "Nueva rutina" restringido al owner (`juanpablo`); tarjetas de rutina muestran nº de ejercicios (`bloques.length`).
+- **`src/routes/Catalogo.tsx`** — secciones de detalle migradas a clases CSS `.banner`: `.banner-green` (Puntos clave), `.banner-amber` (Errores comunes), `.banner-red` (Seguridad). Prop `embedded` evita doble wrapper `.page` cuando se renderiza dentro de Biblioteca.
+- **`src/routes/RutinaDetalle.tsx`** — botón "Empezar sesión" (primario, ícono `Zap`) al pie de la pantalla.
+
+---
 
 ### [2026-06-06] D3 — Entrenar / EntrenarSesion
 - **`src/routes/EntrenarSesion.tsx`** — pantalla de finalización: reemplazó `🎉` por `<Bicep size={52} />` en `var(--accent)` (motivo de marca). El resto de la sesión (BloqueGuiado, DescansoTimer, BloqueScroll, log rápido, selector RPE) ya estaba implementado con los estilos correctos desde E4.

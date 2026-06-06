@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit2 } from "lucide-react";
+import { ArrowLeft, Edit2, Zap } from "lucide-react";
 import type { Rutina } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjerciciosMap } from "../data/ejercicios";
@@ -138,6 +138,14 @@ export function RutinaDetalle() {
           </p>
         </div>
       )}
+
+      {/* Empezar sesión */}
+      <button
+        className="btn-primary"
+        onClick={() => navigate(`/entrenar/${rutina.idRutina}`)}
+      >
+        <Zap size={18} /> Empezar sesión
+      </button>
     </div>
   );
 }
