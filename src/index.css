@@ -27,7 +27,7 @@
   justify-content: center;
   gap: 10px;
   background: var(--accent);
-  color: #0a1208;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--r-md);
   padding: 14px 28px;
@@ -434,13 +434,13 @@
   height: 52px;
   border-radius: 50%;
   background: var(--accent);
-  color: #0a1208;
+  color: var(--on-accent);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(74,222,128,0.3);
+  box-shadow: var(--shadow-fab);
   z-index: 90;
   transition: transform 0.15s;
 }
@@ -649,7 +649,7 @@
   width: 100%;
   padding: 16px;
   background: var(--accent);
-  color: #0a1208;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--r-lg);
   font-size: 16px;

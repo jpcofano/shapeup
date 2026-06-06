@@ -1,0 +1,10 @@
+<svg width="440" height="120" viewBox="0 0 440 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ShapeUp">
+  <rect x="4" y="14" width="92" height="92" rx="25" fill="#4ade80"></rect>
+  <g stroke="#0a1208" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M30 58 L50 40 L70 58"></path>
+    <path d="M30 78 L50 60 L70 78"></path>
+  </g>
+  <text x="116" y="76" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="800" letter-spacing="-1.5">
+    <tspan fill="#f5f7fa">Shape</tspan><tspan fill="#4ade80">Up</tspan>
+  </text>
+</svg>

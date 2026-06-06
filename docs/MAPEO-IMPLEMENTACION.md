@@ -16,10 +16,41 @@
 | E4 | Entrenar — hook + sesión guiada + descanso | ✅ | 2026-06-04 |
 | E5 | Programas + sesiones + historial + visibilidad | ✅ | 2026-06-04 |
 | E6 | Salud — CSV Samsung Health + progreso | ✅ | 2026-06-04 |
+| **D (Pulido visual)** | | | |
+| D1 | Identidad + sistema de temas (tokens, 8 temas, ThemeProvider, Brand, Bicep) | ✅ | 2026-06-05 |
+| D2 | Home (header marca, WeekStrip con bíceps, card Tu semana) | ⬜ | — |
+| D3 | Entrenar / EntrenarSesion (BloqueGuiado, DescansoTimer, finalización) | ⬜ | — |
+| D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ⬜ | — |
+| D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ⬜ | — |
+| D6 | Salud (tabs, zonas FC, preview import) | ⬜ | — |
+| D7 | Perfil + auth (selector de tema, login, no-autorizado) | ⬜ | — |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-05] D1 — Identidad + sistema de temas
+- **`src/styles/tokens.css`** — reemplazado por superset de `colors_and_type.css`: 8 temas tematizables (`[data-theme="…"]`), escala de zonas FC (`--zona-z1..z5` + `-dim`), estados de fitness (`--estado-activa/descanso/pausa/hecho`), `--on-accent`, `--shadow-fab` tematizable, escala de tipografía (`--fs-*`, `--fw-*`, `--lh-*`) y clases semánticas `.t-h1`, `.t-display`, `.t-num`, etc.
+- **`src/contexts/ThemeProvider.tsx`** (nuevo) — proveedor de tema por miembro. Lee `memberId` de `useAuth()`, resuelve el tema (default juanpablo→ion, maria→pulse, sofia→grape, federico→volt), setea `data-theme` en `document.documentElement`, persiste mapa por miembro en `localStorage` (`shapeup-themes`). Expone `useTheme() → { theme, setTheme }`.
+- **`src/components/Brand.tsx`** (nuevo) — `<ShapeUpMark size />` (doble chevron SVG en `currentColor` = acento) y `<ShapeUpWordmark size />` ("Shape" en `--fg`, "Up" en `--accent`).
+- **`src/components/Bicep.tsx`** (nuevo) — `<Bicep size className style />` envuelve `BicepsFlexed` de Lucide con `fill="currentColor"` para usarlo como motivo de marca en WeekStrip (D2) e Historial (D5).
+- **`src/main.tsx`** — `<ThemeProvider>` agregado dentro de `<AuthProvider>` (necesita acceso a `useAuth`).
+- **`src/index.css`** — `.btn-primary`, `.btn-serie-hecha`, `.fab` usan `var(--on-accent)` en lugar de `#0a1208`; `.fab` usa `var(--shadow-fab)` en lugar de sombra verde hardcodeada.
+- **`public/`** — SVGs de marca copiados (`shapeup-icon.svg`, `shapeup-mark.svg`, `shapeup-wordmark.svg`, `shapeup-wordmark-light.svg`) para uso en meta/manifest.
+
+#### ADR — Tema por miembro en localStorage (capa de presentación)
+- **Decisión:** el tema de cada miembro se persiste en `localStorage` (`shapeup-themes`, mapa por miembro), NO en Firestore.
+- **Razón:** la preferencia de tema es puramente local y de presentación; sincronizarla entre dispositivos requeriría una colección Firestore y listeners adicionales sin beneficio claro en la v1.
+- **Consecuencia:** si el usuario cambia de dispositivo, el tema vuelve al default del miembro. Queda anotado como posible mejora futura (ADR para sincronizar si se requiere).
+
+#### ADR — Zonas FC y colores de miembro fuera del tema
+- **Decisión:** `--zona-z1..z5`, `--zona-z*-dim` y `--member-*` son tokens **constantes** que no cambian con el tema.
+- **Razón:** las zonas son semánticas (rampa térmica fría→caliente); mezclarlas con la identidad del tema rompería su significado. Los colores de miembro son identidad personal, no preferencia estética.
+
+#### Pendiente — PWA
+- `vite-plugin-pwa` no está instalado. Los SVGs de ícono ya están en `public/`. Cuando se decida instalar la PWA: generar íconos 192/512/maskable desde `shapeup-icon.svg`, agregar `theme-color: #0f1115` y `background_color: #0f1115` al manifest.
+
+---
 
 ### [2026-06-04] E1.1 — Fix: tests de auth sin entorno Firebase
 - Causa: `resolveMemberId.test.ts` importaba `findMemberByEmail` desde `resolveMemberId.ts`, que importa `db` desde `firebase.ts`, que ejecuta `getAuth(app)` al cargarse → crash en CI sin `.env.local`

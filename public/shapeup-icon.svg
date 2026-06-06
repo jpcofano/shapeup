@@ -1,0 +1,7 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ShapeUp">
+  <rect x="4" y="4" width="112" height="112" rx="30" fill="#4ade80"></rect>
+  <g stroke="#0a1208" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M36 58 L60 36 L84 58"></path>
+    <path d="M36 82 L60 60 L84 82"></path>
+  </g>
+</svg>

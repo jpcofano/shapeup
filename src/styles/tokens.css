@@ -1,38 +1,199 @@
-/* Design tokens — ShapeUp. Claude Design los pule; Code los usa. */
+/* ============================================================================
+   ShapeUp — tokens.css
+   Fuente de verdad de estilos. Hereda la arquitectura de tokens de Comida
+   Familiar (hermanas, no gemelas) y agrega la capa de identidad de ShapeUp:
+   accent de marca, escala de zonas de FC (Z1→Z5) y estados de fitness.
+
+   Tema: OSCURO por defecto. Castellano (voseo) en la UI.
+   ============================================================================ */
+
 :root {
-  /* Colores */
+  /* ── Superficies ──────────────────────────────────────────────────────── */
   --bg:          #0f1115;
   --card:        #171a21;
   --card-hover:  #1e2130;
   --border:      #232733;
   --border-dim:  #1c2030;
+
+  /* ── Texto ────────────────────────────────────────────────────────────── */
   --fg:          #f5f7fa;
   --muted:       #9aa4b2;
-  --accent:      #4ade80;
-  --accent-dim:  rgba(74, 222, 128, 0.12);
-  --danger:      #f87171;
-  --warning:     #fbbf24;
-  --info:        #60a5fa;
 
-  /* Colores por miembro (sincronizados con /config/perfiles seed-perfiles.ts) */
+  /* ── Marca / accent · TEMATIZABLE ─────────────────────────────────────── *
+   * ShapeUp tiene TEMAS. La base oscura no cambia; lo que cambia es la familia
+   * del acento (botones, nav activo, chips, timer, dots, FAB, foco, banners) +
+   * un tinte sutil de superficie, para que se note sin rediseñar. Los valores
+   * de :root son el tema por defecto (Ion). Cada [data-theme] los pisa abajo.
+   * Las zonas de FC NO cambian con el tema (son semánticas).                 */
+  --accent:       #22d3ee;              /* Ion — cian eléctrico (default) */
+  --accent-dim:   rgba(34, 211, 238, 0.13);
+  --accent-strong:#0891b2;
+  --on-accent:    #04161a;             /* texto sobre el acento */
+
+  /* ── Semánticos ───────────────────────────────────────────────────────── */
+  --danger:      #f87171;
+  --danger-dim:  rgba(248, 113, 113, 0.10);
+  --warning:     #fbbf24;
+  --warning-dim: rgba(251, 191, 36, 0.10);
+  --info:        #60a5fa;
+  --info-dim:    rgba(96, 165, 250, 0.12);
+
+  /* ── Colores por miembro (sync con /config/perfiles · seed-perfiles.ts) ─── */
   --member-juanpablo: #60a5fa;
   --member-maria:     #f472b6;
   --member-sofia:     #a78bfa;
   --member-federico:  #34d399;
 
-  /* Radio */
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 18px;
+  /* ── Escala de ZONAS DE FC (Z1→Z5) · IDENTIDAD ShapeUp ────────────────── *
+   * Rampa térmica de frío a caliente. Constantes, NO cambian con el tema.    */
+  --zona-z1: #38bdf8;
+  --zona-z2: #2dd4bf;
+  --zona-z3: #a3e635;
+  --zona-z4: #fb923c;
+  --zona-z5: #ef4444;
+  --zona-z1-dim: rgba(56, 189, 248, 0.14);
+  --zona-z2-dim: rgba(45, 212, 191, 0.14);
+  --zona-z3-dim: rgba(163, 230, 53, 0.14);
+  --zona-z4-dim: rgba(251, 146, 60, 0.14);
+  --zona-z5-dim: rgba(239, 68, 68, 0.14);
 
-  /* Tipografía */
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  /* ── Estados de FITNESS · IDENTIDAD ShapeUp ───────────────────────────── */
+  --estado-activa:          var(--accent);
+  --estado-descanso:        var(--info);
+  --estado-descanso-urgent: var(--danger);
+  --estado-pausa:           var(--muted);
+  --estado-hecho:           var(--accent);
+
+  /* ── Radio ────────────────────────────────────────────────────────────── */
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   18px;
+  --r-full: 999px;
+
+  /* ── Espaciado (escala 4px) ───────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Sombras ──────────────────────────────────────────────────────────── */
+  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --shadow-fab:  0 4px 16px rgba(34, 211, 238, 0.30);
+  --shadow-menu: 0 4px 12px rgba(0, 0, 0, 0.40);
+
+  /* ── Transiciones ─────────────────────────────────────────────────────── */
+  --t-fast: 120ms ease;
+  --t-base: 150ms ease;
+
+  /* ── TIPOGRAFÍA ───────────────────────────────────────────────────────── */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num:  var(--font-sans);
+
+  --fs-xs:    11px;
+  --fs-sm:    13px;
+  --fs-base:  14px;
+  --fs-md:    15px;
+  --fs-lg:    16px;
+  --fs-xl:    22px;
+  --fs-2xl:   28px;
+  --fs-3xl:   36px;
+  --fs-timer: 52px;
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-heavy:    800;
+
+  --lh-tight:   1.15;
+  --lh-snug:    1.3;
+  --lh-base:    1.5;
+  --lh-relaxed: 1.6;
+
+  --tracking-tight: -0.02em;
+  --tracking-label:  0.05em;
+
+  color-scheme: dark;
 }
 
-/* Reset base */
+/* ════════════════════════════════════════════════════════════════════════ *
+   TEMAS — 8 temas. Default = Ion (sin data-theme o data-theme="ion").
+   Cada tema redefine acento + superficies teñidas + glow del FAB.
+   Las zonas de FC y los colores de miembro NO cambian con el tema.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="ion"] {
+  --bg: #081519; --card: #0f2128; --card-hover: #163039; --border: #1e3b45; --border-dim: #13272e;
+  --accent: #22d3ee; --accent-dim: rgba(34,211,238,0.16); --accent-strong: #0891b2; --on-accent: #04161a;
+  --shadow-fab: 0 4px 16px rgba(34,211,238,0.34);
+}
+
+[data-theme="volt"] {
+  --bg: #0b140e; --card: #122017; --card-hover: #1a2d20; --border: #21372a; --border-dim: #16241b;
+  --accent: #4ade80; --accent-dim: rgba(74,222,128,0.15); --accent-strong: #16a34a; --on-accent: #08130b;
+  --shadow-fab: 0 4px 16px rgba(74,222,128,0.32);
+}
+
+[data-theme="solar"] {
+  --bg: #161108; --card: #221a0d; --card-hover: #2f2614; --border: #3a3019; --border-dim: #271f10;
+  --accent: #f5b62b; --accent-dim: rgba(245,182,43,0.16); --accent-strong: #d99413; --on-accent: #1a1303;
+  --shadow-fab: 0 4px 16px rgba(245,182,43,0.34);
+}
+
+[data-theme="blaze"] {
+  --bg: #170f0a; --card: #241910; --card-hover: #312317; --border: #3d2d1d; --border-dim: #2a1d13;
+  --accent: #ff7a45; --accent-dim: rgba(255,122,69,0.16); --accent-strong: #ea580c; --on-accent: #1c0a02;
+  --shadow-fab: 0 4px 16px rgba(255,122,69,0.34);
+}
+
+[data-theme="crimson"] {
+  --bg: #170a0c; --card: #241317; --card-hover: #311c21; --border: #3e262b; --border-dim: #2b181c;
+  --accent: #fb3b53; --accent-dim: rgba(251,59,83,0.16); --accent-strong: #e11d3a; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(251,59,83,0.34);
+}
+
+[data-theme="pulse"] {
+  --bg: #160b12; --card: #23141d; --card-hover: #301d29; --border: #3d2734; --border-dim: #2a1a24;
+  --accent: #ff4d79; --accent-dim: rgba(255,77,121,0.16); --accent-strong: #e11d63; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(255,77,121,0.34);
+}
+
+[data-theme="grape"] {
+  --bg: #120c1a; --card: #1e1528; --card-hover: #2a1e38; --border: #352845; --border-dim: #241a31;
+  --accent: #b15cff; --accent-dim: rgba(177,92,255,0.17); --accent-strong: #9333ea; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(177,92,255,0.34);
+}
+
+[data-theme="indigo"] {
+  --bg: #0e0d1c; --card: #17162b; --card-hover: #20203c; --border: #2a2a4a; --border-dim: #1d1c33;
+  --accent: #7c83ff; --accent-dim: rgba(124,131,255,0.17); --accent-strong: #6366f1; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(124,131,255,0.34);
+}
+
+/* ── Clases semánticas de tipografía ──────────────────────────────────── */
+
+.t-h1         { font: var(--fw-heavy) var(--fs-3xl)/var(--lh-tight) var(--font-sans); letter-spacing: var(--tracking-tight); }
+.t-page-title { font: var(--fw-bold) var(--fs-xl)/var(--lh-snug) var(--font-sans); letter-spacing: -0.01em; }
+.t-display    { font: var(--fw-heavy) var(--fs-2xl)/var(--lh-tight) var(--font-sans); letter-spacing: var(--tracking-tight); }
+.t-card-title { font: var(--fw-semibold) var(--fs-lg)/var(--lh-snug) var(--font-sans); }
+.t-body       { font: var(--fw-regular) var(--fs-base)/var(--lh-base) var(--font-sans); }
+.t-secondary  { font: var(--fw-regular) var(--fs-sm)/var(--lh-base) var(--font-sans); color: var(--muted); }
+.t-label      { font: var(--fw-semibold) var(--fs-xs)/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--muted); }
+.t-num        { font: var(--fw-heavy) var(--fs-timer)/1 var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+
+/* ── Reset base ────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
-body { background: var(--bg); color: var(--fg); }
-a { color: inherit; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+a      { color: inherit; }
 button { font-family: inherit; }
