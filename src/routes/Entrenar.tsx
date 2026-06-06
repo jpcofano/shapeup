@@ -40,20 +40,29 @@ export function Entrenar() {
           className="rutina-card"
           onClick={() => navigate(`/entrenar/${r.idRutina}`)}
         >
-          <p className="rutina-card-title">{r.nombre}</p>
-          <div className="rutina-card-meta">
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+            <p className="rutina-card-title" style={{ margin: 0 }}>{r.nombre}</p>
+            <span style={{ color: "var(--accent)", flexShrink: 0, marginTop: 2 }}>
+              <Zap size={16} fill="currentColor" strokeWidth={0} />
+            </span>
+          </div>
+          <div className="rutina-card-meta" style={{ marginTop: 10 }}>
             <span className="badge badge-accent">{r.foco}</span>
             <span className="badge badge-muted">{r.nivel}</span>
             <span className="badge badge-muted">{r.lugar}</span>
-            {r.duracionEstimadaMin != null && <span>⏱ {r.duracionEstimadaMin} min</span>}
-            {r.totalSeries != null && <span>· {r.totalSeries} series</span>}
+            {r.duracionEstimadaMin != null && (
+              <span className="badge badge-muted">⏱ {r.duracionEstimadaMin} min</span>
+            )}
+            {r.totalSeries != null && (
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>{r.totalSeries} series</span>
+            )}
           </div>
         </div>
       ))}
 
       {rutinas.length > 0 && (
         <p style={{ fontSize: 12, color: "var(--muted)", textAlign: "center", marginTop: 4 }}>
-          <Zap size={12} style={{ verticalAlign: "middle" }} /> Tocá una rutina para empezar
+          Tocá una rutina para empezar
         </p>
       )}
     </div>

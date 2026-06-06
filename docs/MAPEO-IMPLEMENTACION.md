@@ -19,7 +19,7 @@
 | **D (Pulido visual)** | | | |
 | D1 | Identidad + sistema de temas (tokens, 8 temas, ThemeProvider, Brand, Bicep) | ✅ | 2026-06-05 |
 | D2 | Home (header marca, WeekStrip con bíceps, card Tu semana) | ✅ | 2026-06-06 |
-| D3 | Entrenar / EntrenarSesion (BloqueGuiado, DescansoTimer, finalización) | ⬜ | — |
+| D3 | Entrenar / EntrenarSesion (BloqueGuiado, DescansoTimer, finalización) | ✅ | 2026-06-06 |
 | D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ⬜ | — |
 | D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ⬜ | — |
 | D6 | Salud (tabs, zonas FC, preview import) | ⬜ | — |
@@ -28,6 +28,13 @@
 ---
 
 ## 2. Bitácora
+
+### [2026-06-06] D3 — Entrenar / EntrenarSesion
+- **`src/routes/EntrenarSesion.tsx`** — pantalla de finalización: reemplazó `🎉` por `<Bicep size={52} />` en `var(--accent)` (motivo de marca). El resto de la sesión (BloqueGuiado, DescansoTimer, BloqueScroll, log rápido, selector RPE) ya estaba implementado con los estilos correctos desde E4.
+- **`src/routes/Entrenar.tsx`** — picker: `Zap` relleno en acento como indicador de "toca para empezar"; badges de rutina conservados.
+- Los componentes `BloqueGuiado`, `DescansoTimer`, `BloqueScroll`, `ProgressDots` ya cumplían el target del UI kit; no requirieron cambios en D3.
+
+---
 
 ### [2026-06-06] D2 — Home
 - **`src/components/WeekStrip.tsx`** — reemplazado punto de entrenamiento por `<Bicep size={13} />` en `var(--accent)`: opacidad 1 si es hoy, 0.45 en otros días de sesión, 0 si no hay sesión. Fondo de hoy cambiado de `rgba(74,222,128,0.12)` hardcodeado a `var(--accent-dim)`.

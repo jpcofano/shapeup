@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { X, AlignJustify, Zap, RotateCcw } from "lucide-react";
+import { Bicep } from "../components/Bicep";
 import type { Rutina, Ejercicio, SerieRegistro } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
@@ -111,7 +112,9 @@ export function EntrenarSesion() {
           <p className="workout-title">{rutina.nombre}</p>
         </div>
         <div className="finish-screen">
-          <span className="finish-emoji">🎉</span>
+          <span style={{ color: "var(--accent)", lineHeight: 0, display: "block" }}>
+            <Bicep size={52} />
+          </span>
           <h2 className="finish-title">¡Sesión completada!</h2>
           <p style={{ color: "var(--muted)", fontSize: 14, margin: 0 }}>
             {rutina.bloques.reduce((acc, _, i) => acc + (state.seriesHechas[i] ?? 0), 0)} series totales
