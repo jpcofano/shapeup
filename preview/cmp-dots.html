@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css"><style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px}
+  .nm{font:var(--fw-semibold) 12px/1.2 var(--font-sans)}
+  .hex{font:400 11px/1.2 var(--font-sans);color:var(--muted)}
+
+  .progress-dots{display:flex;gap:9px;align-items:center}
+  .dot{width:13px;height:13px;border-radius:50%;background:var(--border)}
+  .dot.done{background:var(--accent)}
+  .dot.active{background:var(--accent);transform:scale(1.35);box-shadow:0 0 0 3px var(--accent-dim)}
+  .serie-btn{width:42px;height:42px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:transparent;color:var(--muted);font:600 13px/1 var(--font-sans);display:inline-flex;align-items:center;justify-content:center}
+  .serie-btn.done{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+</style></head><body><div class="wrap"><div style="display:flex;flex-direction:column;gap:20px">
+  <div><div class="hex" style="margin-bottom:10px">ProgressDots — modo guiado</div>
+  <div class="progress-dots"><span class="dot done"></span><span class="dot done"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div></div>
+  <div><div class="hex" style="margin-bottom:10px">Botones de serie — modo scroll</div>
+  <div style="display:flex;gap:8px"><span class="serie-btn done">1</span><span class="serie-btn done">2</span><span class="serie-btn">3</span><span class="serie-btn">4</span></div></div>
+</div></div></body></html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:0}
+  .bottom-nav{height:62px;background:var(--card);border-top:1px solid var(--border);display:flex;align-items:stretch}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font:500 10px/1 var(--font-sans);letter-spacing:.01em}
+  .nav-item.active{color:var(--accent)}
+  .nav-item svg{width:22px;height:22px}
+</style></head><body><div class="wrap">
+  <nav class="bottom-nav">
+    <a class="nav-item active"><i data-lucide="house"></i><span>Inicio</span></a>
+    <a class="nav-item"><i data-lucide="library"></i><span>Rutinas</span></a>
+    <a class="nav-item"><i data-lucide="zap"></i><span>Entrenar</span></a>
+    <a class="nav-item"><i data-lucide="history"></i><span>Historial</span></a>
+    <a class="nav-item"><i data-lucide="heart"></i><span>Salud</span></a>
+    <a class="nav-item"><i data-lucide="user"></i><span>Perfil</span></a>
+  </nav>
+</div>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons({attrs:{'stroke-width':1.8}});</script>
+</body></html>

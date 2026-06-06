@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:24px;display:flex;align-items:center;gap:44px}
+  .av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;user-select:none}
+  .hex{font:400 11px/1.4 var(--font-sans);color:var(--muted);margin-top:10px}
+  .stack span{border:2px solid var(--card);border-radius:50%;display:inline-flex}
+</style></head><body><div class="wrap">
+  <div style="text-align:center">
+    <div style="display:flex;gap:14px;align-items:flex-end">
+      <span class="av" style="width:52px;height:52px;background:var(--member-juanpablo);font-size:18px">JP</span>
+      <span class="av" style="width:36px;height:36px;background:var(--member-maria);font-size:14px">M</span>
+      <span class="av" style="width:28px;height:28px;background:var(--member-sofia);font-size:11px">S</span>
+      <span class="av" style="width:24px;height:24px;background:var(--member-federico);font-size:10px">F</span>
+    </div>
+    <div class="hex">MemberAvatar · iniciales + color por miembro</div>
+  </div>
+  <div style="text-align:center">
+    <div class="stack" style="display:inline-flex;align-items:center">
+      <span style="margin-left:0"><span class="av" style="width:36px;height:36px;background:var(--member-juanpablo);font-size:14px">JP</span></span>
+      <span style="margin-left:-10px"><span class="av" style="width:36px;height:36px;background:var(--member-maria);font-size:14px">M</span></span>
+      <span style="margin-left:-10px"><span class="av" style="width:36px;height:36px;background:var(--member-sofia);font-size:14px">S</span></span>
+      <span style="margin-left:-10px"><span class="av" style="width:36px;height:36px;background:var(--member-federico);font-size:14px">F</span></span>
+    </div>
+    <div class="hex">AvatarStack · familia</div>
+  </div>
+</div></body></html>

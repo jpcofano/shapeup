@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShapeUp — UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #07080b;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 24px; box-sizing: border-box;
+    font-family: var(--font-sans);
+    background-image: radial-gradient(circle at 50% 0%, #14161d 0%, #07080b 60%);
+  }
+  .phone {
+    position: relative;
+    width: 390px; height: 844px; max-height: calc(100vh - 48px);
+    background: var(--bg);
+    border-radius: 44px;
+    border: 1px solid #232733;
+    box-shadow: 0 40px 120px rgba(0,0,0,.6), inset 0 0 0 6px #0a0c10;
+    overflow: hidden;
+  }
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 44px; z-index: 300;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 26px; font-size: 13px; font-weight: 600; color: var(--fg);
+    pointer-events: none;
+  }
+  .statusbar .right { display: flex; gap: 6px; align-items: center; }
+  #screen {
+    position: absolute; top: 44px; left: 0; right: 0; bottom: 0;
+  }
+  #root { position: relative; width: 100%; height: 100%; }
+  /* notch */
+  .notch { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 120px; height: 26px; background: #07080b; border-radius: 14px; z-index: 310; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="right">
+        <span class="ic" style="width:16px;height:16px"><i data-lucide="signal"></i></span>
+        <span class="ic" style="width:16px;height:16px"><i data-lucide="wifi"></i></span>
+        <span class="ic" style="width:18px;height:16px"><i data-lucide="battery-full"></i></span>
+      </div>
+    </div>
+    <div class="notch"></div>
+    <div id="screen"><div id="root"></div></div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script>lucide.createIcons({ attrs: { "stroke-width": 1.8 } });</script>
+
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="primitives.jsx"></script>
+  <script type="text/babel" src="screens-home.jsx"></script>
+  <script type="text/babel" src="screens-entrenar.jsx"></script>
+  <script type="text/babel" src="screens-biblioteca.jsx"></script>
+  <script type="text/babel" src="screens-salud.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

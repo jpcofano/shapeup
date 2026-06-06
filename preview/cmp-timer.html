@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css"><style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px}
+  .nm{font:var(--fw-semibold) 12px/1.2 var(--font-sans)}
+  .hex{font:400 11px/1.2 var(--font-sans);color:var(--muted)}
+
+  .descanso-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 16px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:300px}
+  .descanso-label{font:400 11px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .timer-big{font:800 52px/1 var(--font-sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--accent)}
+  .descanso-actions{display:flex;gap:10px;width:100%}
+  .btn-secondary{flex:1;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:var(--r-md);padding:12px;font:400 14px/1 var(--font-sans)}
+  .btn-primary{flex:1;background:var(--accent);color:#0a1208;border:none;border-radius:var(--r-md);padding:12px;font:600 14px/1 var(--font-sans)}
+</style></head><body><div class="wrap"><div class="descanso-card">
+  <span class="descanso-label">Descanso</span>
+  <span class="timer-big">1:30</span>
+  <div class="descanso-actions"><button class="btn-secondary">+30 s</button><button class="btn-primary">Saltar</button></div>
+</div></div></body></html>

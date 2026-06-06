@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/20243359379/OneDrive/Documentos/AppsScript/ShapeUp/**)",
-      "Bash(Test-Path \"c:\\\\Users\\\\20243359679\\\\OneDrive\\\\Documentos\\\\AppsScript\\\\ShapeUp\\\\node_modules\")"
+      "Bash(Test-Path \"c:\\\\Users\\\\20243359679\\\\OneDrive\\\\Documentos\\\\AppsScript\\\\ShapeUp\\\\node_modules\")",
+      "Bash(dir \"c:\\\\Users\\\\20243359679\\\\OneDrive\\\\Documentos\\\\AppsScript\\\\ShapeUp\" /b)",
+      "Bash(node -e \"const f = require\\('fs'\\); let c = f.readFileSync\\('src/lib/canonical.ts','utf8'\\); c = c.replace\\(/\\\\.replace\\\\\\([^\\)]+\\\\\\)/m, '.replace\\(/[\\\\\\\\u0300-\\\\\\\\u036f]/g, \\\\\"\\\\\"\\)'\\); f.writeFileSync\\('src/lib/canonical.ts', c\\); console.log\\('done'\\);\")",
+      "Bash(node -e \"console.log\\(require\\('fs'\\).readFileSync\\('c:/Users/20243359679/OneDrive/Documentos/AppsScript/ShapeUp/src/lib/canonical.ts','utf8'\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.devDependencies, null, 2\\)\\)\")",
+      "Bash(node -e \"const p = require\\('c:/Users/20243359679/OneDrive/Documentos/AppsScript/ShapeUp/package.json'\\); console.log\\(JSON.stringify\\(p.scripts, null, 2\\)\\)\")",
+      "Bash(npx tsx *)",
+      "Bash(node -e \"const c = require\\('fs'\\).readFileSync\\('src/index.css','utf8'\\); console.log\\('Lines:', c.split\\('\\\\n'\\).length\\);\")",
+      "Bash(node -e \"const p = require\\('c:/Users/20243359679/OneDrive/Documentos/AppsScript/ShapeUp/scripts/seed-plan.ts'\\); \")"
     ]
   }
 }

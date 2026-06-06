@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px}
+  .ic{display:inline-flex}.ic svg{display:block}
+</style></head><body><div class="wrap">
+<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;max-width:360px">
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px" id="strip"></div>
+</div>
+<p style="margin:14px 0 0;color:var(--muted);font:400 12px/1.4 var(--font-sans)">Día de entrenamiento marcado con bíceps (no punto) — motivo propio de ShapeUp, en color del tema.</p>
+</div>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+const L=['L','M','M','J','V','S','D'],N=[10,11,12,13,14,15,16],SES=[0,2,4,5],TODAY=2;
+document.getElementById('strip').innerHTML=L.map((l,i)=>{
+  const today=i===TODAY,ses=SES.includes(i);
+  const mark=ses?`<span class="ic" style="width:15px;height:16px;color:var(--accent);opacity:${today?1:.5}"><i data-lucide="biceps-flexed"></i></span>`:'<span style="height:16px"></span>';
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:10px;background:${today?'var(--accent-dim)':'transparent'}">
+  <span style="font:500 10px/1 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:${today?'var(--accent)':'var(--muted)'}">${l}</span>
+  <span style="font:${today?700:500} 15px/1 var(--font-sans);color:${today?'var(--accent)':'var(--fg)'}">${N[i]}</span>${mark}</div>`;
+}).join('');
+lucide.createIcons({attrs:{'stroke-width':1.6,'fill':'currentColor'}});
+</script>
+</body></html>

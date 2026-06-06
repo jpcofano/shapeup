@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css"><style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px}
+  .nm{font:var(--fw-semibold) 12px/1.2 var(--font-sans)}
+  .hex{font:400 11px/1.2 var(--font-sans);color:var(--muted)}
+
+  .form-label{font:500 12px/1.4 var(--font-sans);color:var(--muted);display:block;margin-bottom:4px}
+  .form-input{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--fg);font:400 14px/1 var(--font-sans);padding:9px 12px;width:100%;outline:none}
+  .form-input.foc{border-color:var(--accent)}
+  .ql-input{background:var(--card);border:1px solid var(--accent);border-radius:var(--r-sm);color:var(--fg);font:700 20px/1 var(--font-sans);font-variant-numeric:tabular-nums;padding:8px 10px;text-align:center;width:100%;outline:none}
+</style></head><body><div class="wrap"><div style="display:flex;gap:14px">
+  <div style="flex:2">
+    <label class="form-label">Buscar ejercicio</label>
+    <input class="form-input" value="Press inclinado" readonly>
+  </div>
+  <div style="flex:1">
+    <label class="form-label" style="text-transform:uppercase;letter-spacing:.04em">Reps</label>
+    <input class="ql-input" value="10" readonly>
+  </div>
+  <div style="flex:1">
+    <label class="form-label" style="text-transform:uppercase;letter-spacing:.04em">Carga</label>
+    <input class="ql-input" value="22.5" readonly>
+  </div>
+</div></div></body></html>

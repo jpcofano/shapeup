@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css"><style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px}
+  .nm{font:var(--fw-semibold) 12px/1.2 var(--font-sans)}
+  .hex{font:400 11px/1.2 var(--font-sans);color:var(--muted)}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font:600 11px/1.5 var(--font-sans);white-space:nowrap}
+  .badge-accent{background:var(--accent-dim);color:var(--accent)}
+  .badge-muted{background:rgba(154,164,178,.12);color:var(--muted)}
+  .badge-warn{background:rgba(251,191,36,.12);color:var(--warning)}
+  .chip{flex-shrink:0;background:transparent;border:1px solid var(--border);border-radius:999px;padding:5px 12px;font:400 13px/1.2 var(--font-sans);color:var(--muted);cursor:pointer}
+  .chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+</style></head><body><div class="wrap"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+  <span class="badge badge-accent">Empuje</span>
+  <span class="badge badge-muted">Intermedio</span>
+  <span class="badge badge-muted">⏱ 45 min</span>
+  <span class="badge badge-warn">RPE 8</span>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+  <button class="chip active">Todos</button>
+  <button class="chip">Pecho</button>
+  <button class="chip">Espalda</button>
+  <button class="chip">Pierna</button>
+  <button class="chip">Core</button>
+</div></div></body></html>

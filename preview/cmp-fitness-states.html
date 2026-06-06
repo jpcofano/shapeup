@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px}
+  .state{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;font:600 13px/1 var(--font-sans)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .pulse{animation:p 1.2s ease-in-out infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+  .hex{font:400 11px/1.4 var(--font-sans);color:var(--muted);margin-top:14px}
+</style></head><body><div class="wrap">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <span class="state" style="background:var(--accent-dim);color:var(--accent)"><span class="dot pulse" style="background:var(--accent)"></span>Sesión activa</span>
+    <span class="state" style="background:var(--info-dim);color:var(--info)"><span class="dot pulse" style="background:var(--info)"></span>Descanso en curso</span>
+    <span class="state" style="background:rgba(154,164,178,.12);color:var(--muted)"><span class="dot" style="background:var(--muted)"></span>En pausa</span>
+    <span class="state" style="background:var(--accent-dim);color:var(--accent)">✓ Completado</span>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+    <span class="state" style="background:var(--zona-z2-dim);color:var(--zona-z2)">Z2 · suave</span>
+    <span class="state" style="background:var(--zona-z3-dim);color:var(--zona-z3)">Z3 · aeróbico</span>
+    <span class="state" style="background:var(--zona-z4-dim);color:var(--zona-z4)">Z4 · umbral</span>
+    <span class="state" style="background:var(--zona-z5-dim);color:var(--zona-z5)">Z5 · máximo</span>
+  </div>
+  <div class="hex">Estados de fitness e intensidad — lo que Comida no tiene.</div>
+</div></body></html>

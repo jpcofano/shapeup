@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px}
+  .swrow{display:flex;gap:10px}
+  .sw{flex:1;display:flex;flex-direction:column;gap:8px}
+  .chip{height:54px;border-radius:var(--r-md);border:1px solid var(--border)}
+  .nm{font:var(--fw-semibold) 12px/1.2 var(--font-sans)}
+  .hex{font:var(--fw-regular) 11px/1.2 var(--font-sans);color:var(--muted);font-variant-numeric:tabular-nums}
+  
+</style></head><body><div class="wrap"><div class="swrow">
+  <div class="sw">
+  <div class="chip" style="background:var(--accent);display:flex;align-items:center;justify-content:center;color:var(--on-accent);font:700 13px/1 var(--font-sans)">Aa</div>
+  <div class="nm">accent</div><div class="hex">tema activo</div></div>
+  <div class="sw">
+  <div class="chip" style="background:var(--accent-strong);display:flex;align-items:center;justify-content:center;color:#fff;font:700 13px/1 var(--font-sans)">Aa</div>
+  <div class="nm">accent-strong</div><div class="hex">sobre claro</div></div>
+  <div class="sw">
+  <div class="chip" style="background:var(--accent-dim)"></div>
+  <div class="nm">accent-dim</div><div class="hex">12% tint</div></div>
+  <div class="sw">
+  <div class="chip" style="background:var(--on-accent);display:flex;align-items:center;justify-content:center;color:var(--accent);font:700 13px/1 var(--font-sans)">Aa</div>
+  <div class="nm">on-accent</div><div class="hex">texto s/ acento</div></div>
+</div>
+<p style="margin:14px 0 0;color:var(--muted);font:400 12px/1.4 var(--font-sans)">El acento es <strong style="color:var(--fg)">tematizable</strong> (Ion por defecto). Estos 4 roles se mueven juntos con el tema. Ver “Temas”.</p></div></body></html>
