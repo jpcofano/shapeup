@@ -166,7 +166,7 @@ export function Home() {
                 color: "var(--accent)", fontSize: 12, fontWeight: 700,
               }}>
                 <Flame size={14} fill="currentColor" strokeWidth={0} />
-                {semana.rachaSemanas} {semana.rachaSemanas === 1 ? "sem de racha" : "sem de racha"}
+                {semana.rachaSemanas} {semana.rachaSemanas === 1 ? "sem de racha" : "sems de racha"}
               </span>
             )}
           </div>

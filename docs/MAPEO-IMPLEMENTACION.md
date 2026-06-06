@@ -22,12 +22,18 @@
 | D3 | Entrenar / EntrenarSesion (BloqueGuiado, DescansoTimer, finalización) | ✅ | 2026-06-06 |
 | D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ✅ | 2026-06-06 |
 | D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ✅ | 2026-06-06 |
-| D6 | Salud (tabs, zonas FC, preview import) | ⬜ | — |
+| D6 | Salud (tabs, zonas FC, preview import) | ✅ | 2026-06-06 |
 | D7 | Perfil + auth (selector de tema, login, no-autorizado) | ✅ | 2026-06-06 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-06] D6 — Salud (acotado)
+- **`src/routes/Salud.tsx`** — `CardioTab`: zona eliminada del texto muted y convertida a chip coloreado con tokens `--zona-z*` / `--zona-z*-dim` (semánticos, no siguen el tema). Leyenda de 5 zonas (Z1 recuperación → Z5 máximo) arriba de la lista de sesiones. Mensaje de import exitoso usa `rgba(74,222,128,0.12)` / `#4ade80` (verde semántico fijo, no --accent). `ImportPreview` muestra tipo en castellano ("Peso", "Ejercicio", "Sueño", "Métricas").
+- **`src/routes/Home.tsx`** — plural racha: `"sem de racha"` / `"sems de racha"`.
+
+---
 
 ### [2026-06-06] D7 — Perfil + auth
 - **`src/routes/Perfil.tsx`** — card de info con `MemberAvatar` 52px + nombre + email + badges de objetivos. Card "Tema" con 8 swatches (círculos de 40px): activo con doble anillo (`box-shadow`) + `<Check>`. Sección "Familia" muestra todos los miembros (opacidad 0.5 los que no son el usuario actual). `setTheme()` del `useTheme()` re-skinea la app al instante y persiste por miembro.

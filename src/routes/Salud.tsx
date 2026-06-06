@@ -206,8 +206,8 @@ export function Salud() {
       {importMsg && (
         <div style={{
           padding: "10px 14px", borderRadius: "var(--r-sm)", marginBottom: 8,
-          background: importMsg.startsWith("✅") ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
-          color: importMsg.startsWith("✅") ? "var(--accent)" : "var(--danger)", fontSize: 13,
+          background: importMsg.startsWith("✅") ? "rgba(74,222,128,0.12)" : "var(--danger-dim)",
+          color: importMsg.startsWith("✅") ? "#4ade80" : "var(--danger)", fontSize: 13,
         }}>
           {importMsg}
         </div>
@@ -284,6 +284,9 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
   onCancel: () => void;
 }) {
   const { tipo, file, parsedItems, parsedErrors, previewRows } = preview;
+  const TIPO_LABELS: Record<string, string> = {
+    weight: "Peso", exercise: "Ejercicio", sleep: "Sueño", metricas: "Métricas",
+  };
   const cols = previewRows.length > 0 ? Object.keys(previewRows[0]) : [];
 
   return (
@@ -295,7 +298,7 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
         </div>
         <div style={{ padding: "12px 16px" }}>
           <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 8px" }}>
-            Tipo: <strong style={{ color: "var(--fg)" }}>{tipo}</strong> · {parsedItems.length} registros
+            Tipo: <strong style={{ color: "var(--fg)" }}>{TIPO_LABELS[tipo] ?? tipo}</strong> · {parsedItems.length} registros
             {parsedErrors.length > 0 && ` · ${parsedErrors.length} advertencias`}
           </p>
 
@@ -390,6 +393,27 @@ function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] }) {
 
 // ── Tab Cardio ────────────────────────────────────────────────────────────────
 
+const ZONA_META: { key: string; label: string }[] = [
+  { key: "z1", label: "Z1 recuperación" },
+  { key: "z2", label: "Z2 suave"        },
+  { key: "z3", label: "Z3 aeróbico"     },
+  { key: "z4", label: "Z4 umbral"       },
+  { key: "z5", label: "Z5 máximo"       },
+];
+
+function ZonaChip({ zona }: { zona: string }) {
+  const key = zona.toLowerCase();
+  return (
+    <span style={{
+      padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600,
+      background: `var(--zona-${key}-dim)`,
+      color:      `var(--zona-${key})`,
+    }}>
+      {zona}
+    </span>
+  );
+}
+
 function CardioTab({ cardio }: { cardio: SesionCardio[] }) {
   if (cardio.length === 0) {
     return (
@@ -400,19 +424,37 @@ function CardioTab({ cardio }: { cardio: SesionCardio[] }) {
   }
   return (
     <div className="card">
+      {/* Leyenda de zonas */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+        {ZONA_META.map(({ key, label }) => (
+          <span key={key} style={{
+            fontSize: 10, fontWeight: 600,
+            padding: "2px 7px", borderRadius: 999,
+            background: `var(--zona-${key}-dim)`,
+            color: `var(--zona-${key})`,
+          }}>
+            {label}
+          </span>
+        ))}
+      </div>
+
       <p className="section-title" style={{ marginBottom: 10 }}>Sesiones ({cardio.length})</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {cardio.slice(0, 30).map((c) => (
           <div key={c.idCardio} style={{ fontSize: 13 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <strong>{c.actividad}</strong>
-              <span style={{ color: "var(--muted)" }}>{c.fecha}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+              <strong style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {c.actividad}
+              </strong>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                {c.zonaPrincipal && <ZonaChip zona={c.zonaPrincipal} />}
+                <span style={{ color: "var(--muted)", fontSize: 12 }}>{c.fecha}</span>
+              </div>
             </div>
-            <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
+            <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 3 }}>
               {c.duracionMin != null && `${c.duracionMin} min`}
               {c.kcal        != null && ` · ${c.kcal} kcal`}
               {c.fcPromedio  != null && ` · FC ~${c.fcPromedio}`}
-              {c.zonaPrincipal != null && ` · ${c.zonaPrincipal}`}
             </div>
           </div>
         ))}
