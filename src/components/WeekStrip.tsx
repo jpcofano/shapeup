@@ -1,12 +1,9 @@
-// src/components/WeekStrip.tsx — tira de 7 días para Home.
-// Adaptado de Comidas-Familiares; usa tokens ShapeUp (--accent en lugar de --primary).
+import { Bicep } from "./Bicep";
 
 const DAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"] as const;
 
 interface WeekStripProps {
-  /** Lunes de la semana actual, formato "YYYY-MM-DD". */
   semanaInicio: string;
-  /** Índices 0-6 (lunes=0) con sesión programada. */
   marcados?: number[];
 }
 
@@ -19,7 +16,6 @@ function todayStr(): string {
   ].join("-");
 }
 
-/** Tira semanal de 7 días con el día de hoy marcado y puntos en días con entrenamiento. */
 export function WeekStrip({ semanaInicio, marcados = [] }: WeekStripProps) {
   const lunes  = new Date(semanaInicio + "T12:00:00");
   const today  = todayStr();
@@ -35,15 +31,15 @@ export function WeekStrip({ semanaInicio, marcados = [] }: WeekStripProps) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
       {days.map((d, i) => {
-        const isToday    = d.dateStr === today;
-        const hasSesion  = marked.has(i);
+        const isToday   = d.dateStr === today;
+        const hasSesion = marked.has(i);
         return (
           <div
             key={i}
             style={{
               display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
               padding: "8px 0", borderRadius: 10,
-              background: isToday ? "rgba(74,222,128,0.12)" : "transparent",
+              background: isToday ? "var(--accent-dim)" : "transparent",
             }}
           >
             <span style={{
@@ -58,13 +54,14 @@ export function WeekStrip({ semanaInicio, marcados = [] }: WeekStripProps) {
             }}>
               {d.n}
             </span>
-            {/* Punto: verde si sesión hoy, muted si sesión otro día, invisible si no */}
+            {/* Bíceps: lleno hoy, semitransparente otros días de sesión */}
             <span style={{
-              width: 4, height: 4, borderRadius: "50%",
-              background: hasSesion
-                ? (isToday ? "var(--accent)" : "var(--muted)")
-                : "transparent",
-            }} />
+              color: "var(--accent)",
+              opacity: hasSesion ? (isToday ? 1 : 0.45) : 0,
+              lineHeight: 0,
+            }}>
+              <Bicep size={13} />
+            </span>
           </div>
         );
       })}

@@ -18,7 +18,7 @@
 | E6 | Salud — CSV Samsung Health + progreso | ✅ | 2026-06-04 |
 | **D (Pulido visual)** | | | |
 | D1 | Identidad + sistema de temas (tokens, 8 temas, ThemeProvider, Brand, Bicep) | ✅ | 2026-06-05 |
-| D2 | Home (header marca, WeekStrip con bíceps, card Tu semana) | ⬜ | — |
+| D2 | Home (header marca, WeekStrip con bíceps, card Tu semana) | ✅ | 2026-06-06 |
 | D3 | Entrenar / EntrenarSesion (BloqueGuiado, DescansoTimer, finalización) | ⬜ | — |
 | D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ⬜ | — |
 | D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ⬜ | — |
@@ -28,6 +28,12 @@
 ---
 
 ## 2. Bitácora
+
+### [2026-06-06] D2 — Home
+- **`src/components/WeekStrip.tsx`** — reemplazado punto de entrenamiento por `<Bicep size={13} />` en `var(--accent)`: opacidad 1 si es hoy, 0.45 en otros días de sesión, 0 si no hay sesión. Fondo de hoy cambiado de `rgba(74,222,128,0.12)` hardcodeado a `var(--accent-dim)`.
+- **`src/routes/Home.tsx`** — header de marca: `<ShapeUpMark>` + `<ShapeUpWordmark>` a la izquierda; `MemberAvatar` cliqueable (→ `/perfil`) a la derecha. Saludo "Dale, {primerNombre}." (punto en `var(--accent)`, 800, tracking apretado). Card "Tu semana" con chip de racha (`Flame` relleno), sesiones X/Y con barra de progreso en acento, volumen semanal. Labels usan clase `.t-label`. Racha calculada en presentación (semanas consecutivas con al menos 1 sesión). Copia de estados en voseo.
+
+---
 
 ### [2026-06-05] D1 — Identidad + sistema de temas
 - **`src/styles/tokens.css`** — reemplazado por superset de `colors_and_type.css`: 8 temas tematizables (`[data-theme="…"]`), escala de zonas FC (`--zona-z1..z5` + `-dim`), estados de fitness (`--estado-activa/descanso/pausa/hecho`), `--on-accent`, `--shadow-fab` tematizable, escala de tipografía (`--fs-*`, `--fw-*`, `--lh-*`) y clases semánticas `.t-h1`, `.t-display`, `.t-num`, etc.
