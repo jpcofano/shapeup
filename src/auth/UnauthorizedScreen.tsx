@@ -1,12 +1,17 @@
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { ShapeUpMark } from "../components/Brand";
 
-/** Se muestra cuando el usuario está autenticado pero su email no está en la whitelist. */
 export function UnauthorizedScreen() {
   return (
     <main className="auth-screen">
       <div className="auth-card">
-        <h1>Acceso no autorizado</h1>
+        <span style={{ color: "var(--accent)", display: "block", marginBottom: 16 }}>
+          <ShapeUpMark size={52} />
+        </span>
+        <h1 style={{ margin: "0 0 4px", fontSize: 26, fontWeight: 800, letterSpacing: "-.02em" }}>
+          Acceso no autorizado
+        </h1>
         <p className="auth-subtitle">
           Tu cuenta no está en la lista de miembros de ShapeUp.
           Contactá al administrador.

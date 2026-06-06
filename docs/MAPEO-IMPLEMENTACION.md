@@ -23,11 +23,19 @@
 | D4 | Biblioteca + Catálogo (tabs, tarjetas, filtros, detalle) | ✅ | 2026-06-06 |
 | D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ✅ | 2026-06-06 |
 | D6 | Salud (tabs, zonas FC, preview import) | ⬜ | — |
-| D7 | Perfil + auth (selector de tema, login, no-autorizado) | ⬜ | — |
+| D7 | Perfil + auth (selector de tema, login, no-autorizado) | ✅ | 2026-06-06 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-06] D7 — Perfil + auth
+- **`src/routes/Perfil.tsx`** — card de info con `MemberAvatar` 52px + nombre + email + badges de objetivos. Card "Tema" con 8 swatches (círculos de 40px): activo con doble anillo (`box-shadow`) + `<Check>`. Sección "Familia" muestra todos los miembros (opacidad 0.5 los que no son el usuario actual). `setTheme()` del `useTheme()` re-skinea la app al instante y persiste por miembro.
+- **`src/auth/LoginScreen.tsx`** — `<ShapeUpMark size={52} />` en acento; wordmark "ShapeUp" 28px; subtítulo "Tu plan para ponerte en forma"; botón primario "Entrar con Google" con ícono `LogIn`; nota "Acceso solo para miembros de la familia".
+- **`src/auth/UnauthorizedScreen.tsx`** — `<ShapeUpMark size={52} />` en acento; título "Acceso no autorizado"; copy en voseo; botón "Cerrar sesión" secundario.
+- D6 (Salud) omitida por ahora — el código ya tenía una versión funcional.
+
+---
 
 ### [2026-06-06] D5 — Historial + Progreso
 - **`src/components/MiniChart.tsx`** (nuevo) — gráfico de barras SVG reutilizable: `data: MiniChartPoint[]`, `color` (default `var(--accent)`), `height`. Barras con rx=4, etiquetas en `--muted`. Usado en D6 (Salud) para tendencias de peso/tonelaje.
