@@ -102,6 +102,47 @@ export function HistorialDetalle() {
         })}
       </div>
 
+      {/* Biometría de Samsung Health (si fue enriquecida) */}
+      {h.biometria && (
+        <div className="card">
+          <p className="section-title" style={{ marginBottom: 10 }}>FC Samsung Health</p>
+          <div className="stats-row" style={{ flexWrap: "wrap", gap: 16 }}>
+            {h.biometria.fcMedia != null && (
+              <div className="stat">
+                <span className="stat-value">{Math.round(h.biometria.fcMedia)}</span>
+                <span className="stat-label">FC media</span>
+              </div>
+            )}
+            {h.biometria.fcMax != null && (
+              <div className="stat">
+                <span className="stat-value">{h.biometria.fcMax}</span>
+                <span className="stat-label">FC máx</span>
+              </div>
+            )}
+            {h.biometria.kcal != null && (
+              <div className="stat">
+                <span className="stat-value">{h.biometria.kcal}</span>
+                <span className="stat-label">kcal</span>
+              </div>
+            )}
+          </div>
+          {h.biometria.zonaPrincipal && (
+            <div style={{ marginTop: 10 }}>
+              <span style={{
+                padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                background: `var(--zona-${h.biometria.zonaPrincipal.toLowerCase()}-dim)`,
+                color:      `var(--zona-${h.biometria.zonaPrincipal.toLowerCase()})`,
+              }}>
+                {h.biometria.zonaPrincipal}
+              </span>
+              <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: 8 }}>
+                Match por: {h.biometria.matchPor} · {h.biometria.granularidad}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {h.notas && (
         <div className="card">
           <p className="section-title" style={{ marginBottom: 6 }}>Notas</p>

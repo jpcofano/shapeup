@@ -29,6 +29,26 @@
 
 ## 2. Bitácora
 
+### [2026-06-07] E6.2 — Match biométrico (FC por serie)
+- **`src/types/models.ts`** — `SerieRegistro` suma `inicioMs?`, `finMs?` (timestamps habilitantes del match fino) y `fcPico?`, `fcFinSerie?`, `recuperacionBpm?` (enriquecimiento). Nueva interfaz `BiometriaSesion` (fuente, datauuid, fcMedia/Max/Min, zonaPrincipal, kcal, matchPor, granularidad). `Historial` suma `biometria?: BiometriaSesion`.
+- **`src/lib/entrenarState.ts`** — `EntrenarState` suma `serieInicioMs: Record<number, number>`. `completarSerie` sella `finMs = now` y consume `serieInicioMs[idx]` → `inicioMs`. `saltarDescanso(state, now)` sella `serieInicioMs[bloqueIdx] = now` (inicio de la próxima serie). `deshacerSerie` limpia `serieInicioMs`.
+- **`src/hooks/useEntrenarState.ts`** — `saltarDescanso()` captura `Date.now()` y lo pasa al reducer puro.
+- **`src/import/samsungLiveData.ts`** (nuevo) — `parsearLiveData(json)` → `LiveDataPoint[]` ordenado. Filtra `heart_rate = 0` e inputs inválidos. 4 tests verdes.
+- **`src/lib/matchBiometrico.ts`** (nuevo) — `elegirSesionSamsung`: match por `custom_id` con fallback por ventana (±5 min). `enriquecerSerie`: `fcPico/fcFinSerie/recuperacionBpm` de la curva live_data. `derivarZona`: FC media → ZonaFC usando `config/perfiles.zonasFC`. `construirBiometriaSesion`: nivel sesión, `granularidad: "sesion"`. 10 tests verdes.
+- **`src/routes/HistorialDetalle.tsx`** — sección "FC Samsung Health" si `h.biometria` existe: FC media, FC máx, kcal como stats; chip de zona con tokens `--zona-z*`.
+- **`docs/SAMSUNG-HEALTH-MAPEO.md`** — sección "Match biométrico": llave `custom_id`, formato `live_data.json`, regla de ventana + degradación.
+
+#### ADR — Match por custom_id con curva live_data.json y degradación elegante
+- **Decisión:** identificar sesiones ShapeUp por `custom_id` (resolviendo `custom_name="ShapeUp"`, no hardcodeado); curva fina solo desde el ZIP; CSVs sueltos dan nivel sesión.
+- **Razón:** el `title` viene vacío; el `custom_id` es la única llave confiable y el ZIP es la única fuente de la curva de 1 sample/seg.
+- **Degradación:** sin curva o sin `inicioMs/finMs` → solo `granularidad: "sesion"`; nunca error.
+
+#### ADR — `inicioMs/finMs` por serie como cambio habilitante
+- **Decisión:** sellar timestamps en el reducer puro al completar/saltar descanso; se persisten en `BloqueRegistro.series` dentro del `Historial`.
+- **Razón:** sin este sello no es posible acotar la ventana de la curva a nivel serie.
+
+---
+
 ### [2026-06-06] D6 — Salud (acotado)
 - **`src/routes/Salud.tsx`** — `CardioTab`: zona eliminada del texto muted y convertida a chip coloreado con tokens `--zona-z*` / `--zona-z*-dim` (semánticos, no siguen el tema). Leyenda de 5 zonas (Z1 recuperación → Z5 máximo) arriba de la lista de sesiones. Mensaje de import exitoso usa `rgba(74,222,128,0.12)` / `#4ade80` (verde semántico fijo, no --accent). `ImportPreview` muestra tipo en castellano ("Peso", "Ejercicio", "Sueño", "Métricas").
 - **`src/routes/Home.tsx`** — plural racha: `"sem de racha"` / `"sems de racha"`.

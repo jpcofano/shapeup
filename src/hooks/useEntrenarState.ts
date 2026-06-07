@@ -49,7 +49,8 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
       dispatch((s) => _deshacerSerie(s, idx));
     },
     saltarDescanso() {
-      dispatch(_saltarDescanso);
+      const now = Date.now();
+      dispatch((s) => _saltarDescanso(s, now));
     },
     ajustarDescanso(deltaSeg: number) {
       dispatch((s) => _ajustarDescanso(s, deltaSeg));

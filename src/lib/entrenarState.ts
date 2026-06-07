@@ -35,6 +35,8 @@ export interface EntrenarState {
   seriesHechas: Record<number, number>;       // bloqueIdx → series completadas
   registro: Record<number, SerieRegistro[]>;  // bloqueIdx → log real por serie (opcional)
   descanso: DescansoActivo | null;            // cronómetro de descanso en curso
+  /** Epoch ms cuando empieza la serie actual de cada bloque (set al saltarDescanso). */
+  serieInicioMs: Record<number, number>;
 }
 
 export const INITIAL_ENTRENAR_STATE: EntrenarState = {
@@ -43,6 +45,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   seriesHechas: {},
   registro: {},
   descanso: null,
+  serieInicioMs: {},
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -155,17 +158,28 @@ export function completarSerie(
   const hechas = hechasPrev + 1;
   const serieNum = hechas;
 
-  // Registro real (espejo para Historial)
+  // Registro real (espejo para Historial) — incluye timestamps de la serie
   const prevRegistro = state.registro[idx] ?? [];
   const nuevoRegistro: SerieRegistro[] = [
     ...prevRegistro,
-    { serie: serieNum, completada: true, ...reg },
+    {
+      serie: serieNum,
+      completada: true,
+      inicioMs: state.serieInicioMs[idx],
+      finMs: now,
+      ...reg,
+    },
   ];
+
+  // Limpiar serieInicioMs para este bloque (ya fue consumido)
+  const serieInicioMs = { ...state.serieInicioMs };
+  delete serieInicioMs[idx];
 
   const next: EntrenarState = {
     ...state,
     seriesHechas: { ...state.seriesHechas, [idx]: hechas },
     registro: { ...state.registro, [idx]: nuevoRegistro },
+    serieInicioMs,
   };
 
   if (hechas < objetivo) {
@@ -187,19 +201,27 @@ export function deshacerSerie(state: EntrenarState, idx: number): EntrenarState 
   const hechas = state.seriesHechas[idx] ?? 0;
   if (hechas <= 0) return state;
   const reg = (state.registro[idx] ?? []).slice(0, -1);
+  // Limpiar el inicio sellado (la serie deshecha ya no cuenta)
+  const serieInicioMs = { ...state.serieInicioMs };
+  delete serieInicioMs[idx];
   return {
     ...state,
     seriesHechas: { ...state.seriesHechas, [idx]: hechas - 1 },
     registro: { ...state.registro, [idx]: reg },
-    // si había descanso de este bloque, lo cancelamos
+    serieInicioMs,
     descanso: state.descanso?.bloqueIdx === idx ? null : state.descanso,
   };
 }
 
-/** Saltar el descanso en curso. */
-export function saltarDescanso(state: EntrenarState): EntrenarState {
+/** Saltar el descanso en curso. Sella el inicio de la próxima serie (now). */
+export function saltarDescanso(state: EntrenarState, now: number = Date.now()): EntrenarState {
   if (!state.descanso) return state;
-  return { ...state, descanso: null };
+  const { bloqueIdx } = state.descanso;
+  return {
+    ...state,
+    descanso: null,
+    serieInicioMs: { ...state.serieInicioMs, [bloqueIdx]: now },
+  };
 }
 
 /** Extender/recortar el descanso en curso (delta en segundos, +/-). */

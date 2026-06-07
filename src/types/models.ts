@@ -413,6 +413,14 @@ export interface SerieRegistro {
   duracionSeg?: number;
   rir?: number;
   completada: boolean;
+  /** Epoch ms cuando empieza la serie (sellado por el reducer al saltarDescanso). */
+  inicioMs?: number;
+  /** Epoch ms cuando se completa la serie (sellado por el reducer al completarSerie). */
+  finMs?: number;
+  /** Biometría fina — solo si hay curva live_data.json del ZIP de Samsung. */
+  fcPico?: number;
+  fcFinSerie?: number;
+  recuperacionBpm?: number;
 }
 export interface BloqueRegistro {
   orden: number;
@@ -421,6 +429,19 @@ export interface BloqueRegistro {
   modalidad: Modalidad;
   series: SerieRegistro[];
 }
+/** Enriquecimiento biométrico de una sesión ShapeUp cruzada con Samsung Health. */
+export interface BiometriaSesion {
+  fuente: FuenteDato;                  // "samsung-health-csv"
+  datauuidSamsung: string;
+  fcMedia?: number;
+  fcMax?: number;
+  fcMin?: number;
+  zonaPrincipal?: ZonaFC;             // derivada de fcMedia vs config/perfiles.zonasFC del miembro
+  kcal?: number;
+  matchPor: "custom-id" | "ventana"; // cómo se identificó la sesión Samsung
+  granularidad: "serie" | "sesion";  // qué tan fino llegó el enriquecimiento
+}
+
 export interface Historial {
   idHist: string;
   fechaRealizada: string;
@@ -435,10 +456,13 @@ export interface Historial {
 
   duracionRealMin: number | null;
   rpe: number | null;
-  tonelajeKg: number | null;       // Σ reps×carga (derivado)
+  tonelajeKg: number | null;
   totalSeriesHechas: number | null;
 
   bloques: BloqueRegistro[];
+
+  /** Enriquecimiento post-hoc con datos de Samsung Health (FC, zona, kcal). */
+  biometria?: BiometriaSesion;
 
   comoMeSenti?: string;
   queMejorar?: string;

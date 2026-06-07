@@ -102,6 +102,50 @@ presión arterial, `vitality_score`.
 El `hrv` es la única con costo de parseo extra; si molesta al principio, se puede diferir y
 arrancar el motor con las otras 7.
 
+## 6) Match biométrico — FC por sesión y por serie (E6.2)
+
+### Identificación de la sesión ShapeUp en Samsung
+
+Samsung Health identifica las sesiones de tipo personalizado con un `custom_id` por dispositivo. El flujo es:
+
+1. En `com.samsung.shealth.exercise.custom_exercise` encontrar la fila con `custom_name = "ShapeUp"` → guardar su `custom_id` (ej. `mq1mz4gd_gq`, **no hardcodear** — depende del dispositivo).
+2. En `com.samsung.shealth.exercise`, las filas con ese `custom_id` son las sesiones ShapeUp. El campo `title` viene vacío; **la llave es `custom_id`**, no el título.
+3. La fila trae `start_time`/`end_time` (string local + `time_offset`), `mean/max/min_heart_rate`, `duration` (ms), `datauuid`.
+
+### Curva fina (live_data.json)
+
+Solo disponible en el ZIP completo del export (no en CSVs sueltos).
+
+- Ruta dentro del ZIP: `jsons/com.samsung.shealth.exercise/<datauuid>.live_data.json`
+- Formato: array de `{ "heart_rate": 99.0, "start_time": 1780356821758 }` (~1 muestra/seg, epoch ms, mismo reloj que la fila exercise).
+- Parser: `src/import/samsungLiveData.ts` → `parsearLiveData(json)` → `{ ms, fc }[]` ordenado.
+
+### Algoritmo de match
+
+**Por custom_id (preferido):** filtrar candidatas con el `custom_id` de ShapeUp → elegir la de mayor solapamiento con la ventana de la sesión app (±5 min tolerancia). `matchPor: "custom-id"`.
+
+**Fallback por ventana:** si ninguna trae `custom_id`, buscar máximo solapamiento entre todas → `matchPor: "ventana"`.
+
+### Regla de degradación
+
+| Disponibilidad | Resultado |
+|---|---|
+| Curva + `inicioMs/finMs` por serie | `granularidad: "serie"` con `fcPico/fcFinSerie/recuperacionBpm` |
+| Sin curva, solo fila exercise | `granularidad: "sesion"` con `fcMedia/zona/kcal` |
+| Sin match Samsung | `biometria` ausente en `Historial` |
+
+Nunca se lanza error por falta de datos — degradación explícita.
+
+### Timestamps por serie (cambio habilitante)
+
+`SerieRegistro` ahora tiene `inicioMs` (sellado en `saltarDescanso`) y `finMs` (sellado en `completarSerie`). Sin estos campos el match fino no es posible, pero el cruce a nivel sesión sigue funcionando.
+
+### Zona FC
+
+`zonaPrincipal` se deriva de `fcMedia` contra `config/perfiles.{miembro}.zonasFC`, **no** de Samsung. Así la interpretación usa los umbrales personalizados del miembro.
+
+---
+
 ## Notas de implementación / privacidad
 - El export pesa ~150 MB y trae ~60 CSV. El importador debe dejar al usuario **elegir los CSV
   relevantes** (weight/exercise/sleep), no tragarse todo.
