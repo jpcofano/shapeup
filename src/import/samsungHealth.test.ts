@@ -32,6 +32,12 @@ describe("detectarTipoCsv", () => {
   it("retorna unknown",  () => expect(detectarTipoCsv("nutrition_goal.csv")).toBe("unknown"));
 });
 
+// CSV con campos opcionales vacíos (sin grasa, sin músculo)
+const PESO_CSV_INCOMPLETO = `com.samsung.health.body_weight,6320001,12
+com.samsung.health.body_weight.create_time,com.samsung.health.body_weight.update_time,datauuid,com.samsung.health.body_weight.start_time,com.samsung.health.body_weight.time_offset,com.samsung.health.body_weight.weight,com.samsung.health.body_weight.height,com.samsung.health.body_weight.body_fat,com.samsung.health.body_weight.muscle_mass
+2024-03-15 08:30:00.000,2024-03-15 08:30:01.000,uuid-completa,1710488400000,UTC-0300,78.5,178,18.5,35.2
+2024-03-22 08:15:00.000,2024-03-22 08:15:01.000,uuid-sin-grasa,1711093500000,UTC-0300,79.0,178,,`;
+
 // ── parsearPeso ───────────────────────────────────────────────────────────────
 
 describe("parsearPeso", () => {
@@ -56,6 +62,36 @@ describe("parsearPeso", () => {
 
   it("asigna fuente samsung-health-csv", () => expect(items[0].fuente).toBe("samsung-health-csv"));
   it("preserva datauuid como _uuid",     () => expect(items[0]._uuid).toBe("uuid-peso-001"));
+});
+
+// ── parsearPeso — resiliencia (campos opcionales vacíos) ──────────────────────
+
+describe("parsearPeso — campos opcionales vacíos", () => {
+  const { items, errors } = parsearPeso(PESO_CSV_INCOMPLETO, "juanpablo");
+
+  it("parsea ambas filas sin abortar", () => expect(items).toHaveLength(2));
+  it("sin errores de parseo",          () => expect(errors).toHaveLength(0));
+
+  it("fila completa mantiene grasaPct", () => {
+    const completa = items.find((i) => i._uuid === "uuid-completa");
+    expect(completa?.grasaPct).toBe(18.5);
+  });
+
+  it("fila sin grasa NO incluye clave grasaPct (stripUndef)", () => {
+    const sinGrasa = items.find((i) => i._uuid === "uuid-sin-grasa");
+    expect(sinGrasa).toBeDefined();
+    expect("grasaPct" in sinGrasa!).toBe(false);
+  });
+
+  it("fila sin grasa NO incluye clave masaMuscularKg (stripUndef)", () => {
+    const sinGrasa = items.find((i) => i._uuid === "uuid-sin-grasa");
+    expect("masaMuscularKg" in sinGrasa!).toBe(false);
+  });
+
+  it("fila sin grasa sí tiene peso", () => {
+    const sinGrasa = items.find((i) => i._uuid === "uuid-sin-grasa");
+    expect(sinGrasa?.pesoKg).toBe(79.0);
+  });
 });
 
 // ── parsearEjercicio ──────────────────────────────────────────────────────────

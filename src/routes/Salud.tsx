@@ -174,18 +174,26 @@ export function Salud() {
     if (!preview || !memberId) return;
     setPreview(null);
 
+    const EMPTY_OK = { ok: true as const, value: { importados: 0, omitidos: 0 } };
+
+    function fmtImportMsg(importados: number, omitidos: number, sufijo = ""): string {
+      const base = `✅ ${importados} importados${omitidos > 0 ? ` · ${omitidos} omitidos` : ""}`;
+      return sufijo ? `${base} ${sufijo}` : base;
+    }
+
     // Caso ZIP: importar todas las categorías de una
     if (preview.tipo === "zip" && preview.zipData) {
       const z = preview.zipData;
       const [r1, r2, r3, r4] = await Promise.all([
-        z.mediciones.length > 0 ? importarMedicionesIdempotente(z.mediciones as Parameters<typeof importarMedicionesIdempotente>[0]) : Promise.resolve({ ok: true as const, value: 0 }),
-        z.cardio.length     > 0 ? importarCardioIdempotente(z.cardio as Parameters<typeof importarCardioIdempotente>[0])             : Promise.resolve({ ok: true as const, value: 0 }),
-        z.sueno.length      > 0 ? importarSueno(z.sueno as Parameters<typeof importarSueno>[0])                                     : Promise.resolve({ ok: true as const, value: 0 }),
-        z.metricas.length   > 0 ? importarMetricas(z.metricas)                                                                       : Promise.resolve({ ok: true as const, value: 0 }),
+        z.mediciones.length > 0 ? importarMedicionesIdempotente(z.mediciones as Parameters<typeof importarMedicionesIdempotente>[0]) : EMPTY_OK,
+        z.cardio.length     > 0 ? importarCardioIdempotente(z.cardio as Parameters<typeof importarCardioIdempotente>[0])             : EMPTY_OK,
+        z.sueno.length      > 0 ? importarSueno(z.sueno as Parameters<typeof importarSueno>[0])                                     : EMPTY_OK,
+        z.metricas.length   > 0 ? importarMetricas(z.metricas)                                                                       : EMPTY_OK,
       ]);
-      const total = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? (r.value ?? 0) : 0), 0);
-      const firstErr = [r1, r2, r3, r4].find((r) => !r.ok) as { ok: false; error: string } | undefined;
-      setImportMsg(firstErr ? `Error: ${firstErr.error}` : `✅ ${total} registros importados desde ZIP`);
+      const importados = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.importados : 0), 0);
+      const omitidos   = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.omitidos   : 0), 0);
+      const firstErr   = [r1, r2, r3, r4].find((r) => !r.ok) as { ok: false; error: string } | undefined;
+      setImportMsg(importados === 0 && firstErr ? `Error: ${firstErr.error}` : fmtImportMsg(importados, omitidos, "desde ZIP"));
       const [fm, fc, fs] = await Promise.all([getMediciones(memberId), getSesionesCardio(memberId), getRegistrosSueno(memberId)]);
       if (fm.ok) setMediciones(fm.value);
       if (fc.ok) setCardio(fc.value);
@@ -193,26 +201,28 @@ export function Salud() {
       return;
     }
 
-    let result: { ok: boolean; value?: number; error?: string };
+    // Caso CSV suelto
+    let importados = 0, omitidos = 0, errorMsg: string | undefined;
 
     if (preview.tipo === "weight") {
       const r = await importarMedicionesIdempotente(preview.parsedItems as Parameters<typeof importarMedicionesIdempotente>[0]);
-      result = r;
-      if (r.ok) { const fresh = await getMediciones(memberId); if (fresh.ok) setMediciones(fresh.value); }
+      if (r.ok) { importados = r.value.importados; omitidos = r.value.omitidos; const fresh = await getMediciones(memberId); if (fresh.ok) setMediciones(fresh.value); }
+      else errorMsg = r.error;
     } else if (preview.tipo === "exercise") {
       const r = await importarCardioIdempotente(preview.parsedItems as Parameters<typeof importarCardioIdempotente>[0]);
-      result = r;
-      if (r.ok) { const fresh = await getSesionesCardio(memberId); if (fresh.ok) setCardio(fresh.value); }
+      if (r.ok) { importados = r.value.importados; omitidos = r.value.omitidos; const fresh = await getSesionesCardio(memberId); if (fresh.ok) setCardio(fresh.value); }
+      else errorMsg = r.error;
     } else if (preview.tipo === ("metricas" as SamsungCsvType)) {
       const r = await importarMetricas(preview.parsedItems as MetricaSalud[]);
-      result = r;
+      if (r.ok) { importados = r.value.importados; omitidos = r.value.omitidos; }
+      else errorMsg = r.error;
     } else {
       const r = await importarSueno(preview.parsedItems as Parameters<typeof importarSueno>[0]);
-      result = r;
-      if (r.ok) { const fresh = await getRegistrosSueno(memberId); if (fresh.ok) setSueno(fresh.value); }
+      if (r.ok) { importados = r.value.importados; omitidos = r.value.omitidos; const fresh = await getRegistrosSueno(memberId); if (fresh.ok) setSueno(fresh.value); }
+      else errorMsg = r.error;
     }
 
-    setImportMsg(result.ok ? `✅ ${result.value} registros importados` : `Error: ${result.error}`);
+    setImportMsg(errorMsg && importados === 0 ? `Error: ${errorMsg}` : fmtImportMsg(importados, omitidos));
   }
 
   const TABS: { key: Tab; label: string }[] = [

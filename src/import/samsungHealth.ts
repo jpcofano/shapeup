@@ -129,6 +129,18 @@ function numOpt(s: string): number | undefined {
   return isNaN(n) ? undefined : n;
 }
 
+/**
+ * Elimina claves con valor `undefined` del objeto antes de escribir a Firestore.
+ * Cinturón y tiradores junto con `ignoreUndefinedProperties` en firebase.ts.
+ */
+function stripUndef<T extends object>(obj: T): T {
+  const result = {} as T;
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) (result as Record<string, unknown>)[k] = v;
+  }
+  return result;
+}
+
 // ── Derivar zona de FC ────────────────────────────────────────────────────────
 
 /** Zona de FC principal para una FC media dada. */
@@ -190,7 +202,7 @@ export function parsearPeso(
       ? parseFloat((peso / ((altura / 100) ** 2)).toFixed(1))
       : undefined;
 
-    items.push({
+    items.push(stripUndef({
       _uuid:          uuid,
       miembro,
       fecha,
@@ -200,8 +212,8 @@ export function parsearPeso(
       masaGrasaKg:    numOpt(col(f, "body_fat_mass")),
       aguaPct:        numOpt(col(f, "total_body_water")),
       imc,
-      fuente:         "samsung-health-csv",
-    });
+      fuente:         "samsung-health-csv" as const,
+    }));
   }
   return { items, errors };
 }
@@ -235,7 +247,7 @@ export function parsearEjercicio(
     const fcMedia   = numOpt(col(f, "mean_heart_rate"));
     const actividad = resolverActividad(col(f, "exercise_type"), col(f, "title"));
 
-    items.push({
+    items.push(stripUndef({
       _uuid:        uuid,
       miembro,
       fecha,
@@ -249,8 +261,8 @@ export function parsearEjercicio(
       fcPromedio:   fcMedia,
       fcMaxima:     numOpt(col(f, "max_heart_rate")),
       zonaPrincipal: fcMedia != null ? derivarZona(fcMedia, zonasFC) : undefined,
-      fuente:       "samsung-health-csv",
-    });
+      fuente:       "samsung-health-csv" as const,
+    }));
   }
   return { items, errors };
 }
@@ -281,14 +293,14 @@ export function parsearSueno(
     const horas      = sleepMin != null ? parseFloat((sleepMin / 60).toFixed(2)) : undefined;
     const acostarse  = epochToTime(bedMs, offset) || undefined;
 
-    items.push({
+    items.push(stripUndef({
       _uuid:          uuid,
       miembro,
       fecha,
       horas,
       horaAcostarse:  acostarse,
-      fuente:         "samsung-health-csv",
-    });
+      fuente:         "samsung-health-csv" as const,
+    }));
   }
   return { items, errors };
 }

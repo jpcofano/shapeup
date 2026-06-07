@@ -3,6 +3,12 @@
 **Quién lo mantiene:** Claude Code. Al cerrar cada etapa agrega Bitácora + Estado + Mapa del código.
 **Regla:** si algo se construyó y no quedó acá, no está hecho.
 
+**Convención de numeración (3 pistas paralelas).** El mapeo "1 prompt = 1 etapa" ya no aplica; conviven:
+- **Prompts** (`docs/prompts/NN-…md`): secuencia numérica corrida (01–27), solo un ID. Cada uno mapea a una entrada de la Bitácora.
+- **Etapas (E1–E6, con sub-etapas E6.1/.2/.3, E6.4…):** hitos funcionales del producto.
+- **Diseño (D1–D8):** pista de Claude Design (pulido visual + PWA), independiente.
+La fuente de verdad del estado es esta tabla + la Bitácora, no el número de prompt.
+
 ---
 
 ## 1. Estado por etapa
@@ -16,6 +22,9 @@
 | E4 | Entrenar — hook + sesión guiada + descanso | ✅ | 2026-06-04 |
 | E5 | Programas + sesiones + historial + visibilidad | ✅ | 2026-06-04 |
 | E6 | Salud — CSV Samsung Health + progreso | ✅ | 2026-06-04 |
+| E6.1 | Métricas genéricas de salud (granularidad diaria) | ✅ | 2026-06-05 |
+| E6.2 | Match biométrico (FC por serie + `inicioMs/finMs`) | ✅ | 2026-06-07 |
+| E6.3 | Importador zip-first (extracción selectiva) | ✅ | 2026-06-07 |
 | **D (Pulido visual)** | | | |
 | D1 | Identidad + sistema de temas (tokens, 8 temas, ThemeProvider, Brand, Bicep) | ✅ | 2026-06-05 |
 | D2 | Home (header marca, WeekStrip con bíceps, card Tu semana) | ✅ | 2026-06-06 |
@@ -24,10 +33,28 @@
 | D5 | Historial + Progreso (lista con bíceps, detalle, MiniChart) | ✅ | 2026-06-06 |
 | D6 | Salud (tabs, zonas FC, preview import) | ✅ | 2026-06-06 |
 | D7 | Perfil + auth (selector de tema, login, no-autorizado) | ✅ | 2026-06-06 |
+| D8 | PWA instalable + botón "Instalar app" | ✅ | 2026-06-07 |
+| **Pendientes / proyectado** | | | |
+| P25 (E6.4) | Fix importador: `ignoreUndefinedProperties` + `allSettled` resiliente por fila | ⬜ | — |
+| P26 | Carga (`cargaKg`) + reps en todas las rutinas de casa (seed) | ⬜ | — |
+| P27 | Imágenes: render en Catálogo/guiado + poblar fotos FEDB (dominio público) + mapear los 34 propios a su equivalente FEDB | ⬜ | — |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-07] Fix P25 — Importador: undefined + resiliencia por fila
+- **`src/firebase.ts`** — `ignoreUndefinedProperties: true` en `initializeFirestore`. Firestore ya no rechaza documentos con campos opcionales en `undefined` ("Unsupported field value: undefined").
+- **`src/import/samsungHealth.ts`** — `stripUndef<T>(obj)`: elimina claves con valor `undefined` antes de hacer `items.push()`. Aplicado en `parsearPeso`, `parsearEjercicio` y `parsearSueno`. Cinturón y tiradores junto con la opción de Firestore.
+- **`src/data/salud.ts`** — todas las funciones `importar*` (incluidas las idempotentes + métricas) cambian `Promise.all` → `Promise.allSettled`. Nuevo tipo de retorno `ImportResult = { importados, omitidos }`. Una fila que falla ya no tumba el resto.
+- **`src/routes/Salud.tsx`** — mensaje de import muestra "✅ X importados · Y omitidos" cuando hay filas parciales. Solo muestra error rojo si `importados === 0` y hay error real (fallo total).
+- **`src/import/samsungHealth.test.ts`** — 6 nuevos tests: CSV con fila completa + fila sin grasa/músculo → ambas parsean, la incompleta no tiene claves `grasaPct`/`masaMuscularKg` (stripUndef verificado).
+
+#### ADR — `ignoreUndefinedProperties` + import resiliente por fila
+- **Decisión:** doble defensa: opción en el driver Firestore + `stripUndef` en los parsers.
+- **Razón:** los campos opcionales de Samsung Health (grasa, agua, FC, distancia) no vienen en todos los registros. Un solo `undefined` en Firestore sin esta opción abortaba todo el import.
+
+---
 
 ### [2026-06-07] D8 — PWA instalable + botón "Instalar app"
 - **`assets/pwa/` → `public/icons/`** — 8 íconos PNG (favicon 16/32/48, apple-touch-icon 180, icon 192/512, icon-maskable 192/512). Ícono: squircle fondo oscuro + doble chevron cian con glow. Fijo, no cambia con el tema.
@@ -454,7 +481,7 @@ firestore.indexes.json        ✅  desplegados
 
 ---
 
-## 4. Tests (2026-06-04)
+## 4. Tests (al 2026-06-07)
 
 | Archivo | Tests |
 |---|---|
@@ -466,8 +493,12 @@ firestore.indexes.json        ✅  desplegados
 | **Total unidad** | **89** |
 | `__tests__/firestore.rules.test.ts` (emulador) | 38 |
 | import/samsungHealth.test.ts | 53 |
-| **Total unitarios** | **142** |
-| **Total global** | **180** |
+| import/samsungLiveData + lib/matchBiometrico (E6.2) | 16 |
+| **Total unitarios** | **158** |
+| **Total global (unit + reglas)** | **196** |
+
+> Nota: reconciliar con Code en cada etapa. E6.3 (zip-first) y D8 (PWA) pueden haber sumado tests
+> no itemizados acá; P25–P27 sumarán los suyos.
 
 Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run test:rules`).
 

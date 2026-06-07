@@ -17,11 +17,14 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 
-/** Firestore con caché persistente multi-pestaña. */
+/** Firestore con caché persistente multi-pestaña.
+ *  ignoreUndefinedProperties: evita "Unsupported field value: undefined"
+ *  cuando los parsers dejan campos opcionales sin valor (ej. grasaPct). */
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager(),
   }),
+  ignoreUndefinedProperties: true,
 });
 
 export const auth = getAuth(app);

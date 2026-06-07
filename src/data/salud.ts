@@ -89,13 +89,17 @@ export async function guardarCardio(data: CardioInput): Promise<Result<SesionCar
 
 // ── Batch import ──────────────────────────────────────────────────────────────
 
+/** Resultado de un import batch resiliente. */
+export interface ImportResult { importados: number; omitidos: number; }
+
 /** Guarda múltiples mediciones de una vez (para import CSV). */
 export async function importarMediciones(
   items: MedicionInput[],
-): Promise<Result<number>> {
+): Promise<Result<ImportResult>> {
   try {
-    await Promise.all(items.map((item) => guardarMedicion(item)));
-    return ok(items.length);
+    const results = await Promise.allSettled(items.map((item) => guardarMedicion(item)));
+    const importados = results.filter((r) => r.status === "fulfilled").length;
+    return ok({ importados, omitidos: items.length - importados });
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -104,10 +108,11 @@ export async function importarMediciones(
 /** Guarda múltiples sesiones de cardio de una vez. */
 export async function importarCardio(
   items: CardioInput[],
-): Promise<Result<number>> {
+): Promise<Result<ImportResult>> {
   try {
-    await Promise.all(items.map((item) => guardarCardio(item)));
-    return ok(items.length);
+    const results = await Promise.allSettled(items.map((item) => guardarCardio(item)));
+    const importados = results.filter((r) => r.status === "fulfilled").length;
+    return ok({ importados, omitidos: items.length - importados });
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -142,16 +147,17 @@ export async function guardarSueno(data: SuenoInput): Promise<Result<RegistroSue
 /** Guarda múltiples registros de sueño (import CSV). Usa uuid como id si está disponible. */
 export async function importarSueno(
   items: (SuenoInput & { _uuid?: string })[],
-): Promise<Result<number>> {
+): Promise<Result<ImportResult>> {
   try {
-    await Promise.all(
+    const results = await Promise.allSettled(
       items.map((item) => {
         const { _uuid, ...data } = item;
         const id = _uuid ? `SUE-${_uuid}` : `SUE-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         return setDoc(doc(db, "sueno", id), { ...data, idSueno: id }, { merge: false });
       }),
     );
-    return ok(items.length);
+    const importados = results.filter((r) => r.status === "fulfilled").length;
+    return ok({ importados, omitidos: items.length - importados });
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -160,9 +166,9 @@ export async function importarSueno(
 /** Import batch idempotente por uuid (setDoc con merge:false, ID = prefijo+uuid). */
 export async function importarMedicionesIdempotente(
   items: (Omit<MedicionCorporal, "idMedicion" | "fechaCreacion"> & { _uuid?: string })[],
-): Promise<Result<number>> {
+): Promise<Result<ImportResult>> {
   try {
-    await Promise.all(
+    const results = await Promise.allSettled(
       items.map((item) => {
         const { _uuid, ...data } = item;
         const id = _uuid ? `MED-${_uuid}` : `MED-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -173,7 +179,8 @@ export async function importarMedicionesIdempotente(
         );
       }),
     );
-    return ok(items.length);
+    const importados = results.filter((r) => r.status === "fulfilled").length;
+    return ok({ importados, omitidos: items.length - importados });
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -181,9 +188,9 @@ export async function importarMedicionesIdempotente(
 
 export async function importarCardioIdempotente(
   items: (Omit<SesionCardio, "idCardio" | "fechaCreacion"> & { _uuid?: string })[],
-): Promise<Result<number>> {
+): Promise<Result<ImportResult>> {
   try {
-    await Promise.all(
+    const results = await Promise.allSettled(
       items.map((item) => {
         const { _uuid, ...data } = item;
         const id = _uuid ? `CAR-${_uuid}` : `CAR-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -194,7 +201,8 @@ export async function importarCardioIdempotente(
         );
       }),
     );
-    return ok(items.length);
+    const importados = results.filter((r) => r.status === "fulfilled").length;
+    return ok({ importados, omitidos: items.length - importados });
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -228,9 +236,9 @@ export async function getMetricasSalud(
  */
 export async function importarMetricas(
   items: MetricaSalud[],
-): Promise<Result<number>> {
+): Promise<Result<ImportResult>> {
   try {
-    await Promise.all(
+    const results = await Promise.allSettled(
       items.map((item) =>
         setDoc(
           doc(db, "metricas-salud", item.idMetrica),
@@ -239,7 +247,8 @@ export async function importarMetricas(
         ),
       ),
     );
-    return ok(items.length);
+    const importados = results.filter((r) => r.status === "fulfilled").length;
+    return ok({ importados, omitidos: items.length - importados });
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
