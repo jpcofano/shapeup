@@ -236,15 +236,16 @@ const CALENT = "Calentamiento 6–8 min: círculos de hombros y cadera, 10 senta
 
 // Bloque de fuerza
 const F = (orden: number, id: string, nombre: string, series: number, reps: string, desc: number,
-  extra: { grupoSet?: string; rir?: number; tempo?: string; notas?: string } = {}) => ({
+  extra: { grupoSet?: string; rir?: number; tempo?: string; notas?: string; cargaKg?: number } = {}) => ({
   orden, idEjercicio: id, nombreEjercicio: nombre, modalidad: "Fuerza",
   prescripcion: {
     modalidad: "Fuerza", series, repsObjetivo: rango(reps), descansoSeg: desc,
-    ...(extra.rir != null ? { rirObjetivo: extra.rir } : {}),
-    ...(extra.tempo ? { tempo: extra.tempo } : {}),
+    ...(extra.rir    != null ? { rirObjetivo: extra.rir }  : {}),
+    ...(extra.tempo         ? { tempo: extra.tempo }        : {}),
+    ...(extra.cargaKg != null ? { cargaKg: extra.cargaKg } : {}),
   },
   ...(extra.grupoSet ? { grupoSet: extra.grupoSet } : {}),
-  ...(extra.notas ? { notas: extra.notas } : {}),
+  ...(extra.notas    ? { notas:    extra.notas }    : {}),
 });
 // Bloque isométrico (plancha lateral)
 const ISO = (orden: number, id: string, nombre: string, series: number, holdSeg: number, porLado: boolean, desc: number) => ({
@@ -279,12 +280,12 @@ const RUTINAS: RutDef[] = [
     descripcion: "Día de fuerza con énfasis en empuje. " + CALENT,
     superseries: ["1+2", "3+5", "4+6"], durEstMin: 45,
     bloques: [
-      F(1, "EJ-8001", "Sentadilla goblet", 3, "10-12", 75, { grupoSet: "A", rir: 2, tempo: "3-0-1-0" }),
-      F(2, "EJ-8002", "Flexiones de brazos", 3, "8-15", 60, { grupoSet: "A", rir: 2 }),
-      F(3, "EJ-8003", "Dominadas asistidas / negativas", 3, "5-8", 90, { grupoSet: "B", rir: 2 }),
-      F(4, "EJ-8004", "Remo a una mano con mancuerna", 3, "12", 60, { grupoSet: "C", rir: 2 }),
-      F(5, "EJ-8005", "Press de pecho con banda", 3, "12-15", 60, { grupoSet: "B", rir: 2 }),
-      F(6, "EJ-8006", "Curl de bíceps", 2, "12", 45, { grupoSet: "C" }),
+      F(1, "EJ-8001", "Sentadilla goblet",             3, "10-12", 75, { grupoSet: "A", rir: 2, tempo: "3-0-1-0", cargaKg: 12 }),
+      F(2, "EJ-8002", "Flexiones de brazos",            3, "8-15",  60, { grupoSet: "A", rir: 2 }),
+      F(3, "EJ-8003", "Dominadas asistidas / negativas",3, "5-8",   90, { grupoSet: "B", rir: 2 }),
+      F(4, "EJ-8004", "Remo a una mano con mancuerna", 3, "12",    60, { grupoSet: "C", rir: 2, cargaKg: 10 }),
+      F(5, "EJ-8005", "Press de pecho con banda",       3, "12-15", 60, { grupoSet: "B", rir: 2 }),
+      F(6, "EJ-8006", "Curl de bíceps",                 2, "12",    45, { grupoSet: "C", cargaKg: 8 }),
       ISO(7, "EJ-8016", "Plancha lateral", 3, 25, true, 30),
       MOV(8, "EJ-8017", "Bird dog", 3, "10", true, 30),
     ] },
@@ -295,10 +296,10 @@ const RUTINAS: RutDef[] = [
     descripcion: "Día de fuerza con énfasis en tracción y piernas. " + CALENT,
     superseries: ["1+4", "2+5", "3+6"], durEstMin: 45,
     bloques: [
-      F(1, "EJ-8008", "Zancada hacia atrás", 3, "10", 75, { grupoSet: "A", rir: 2, notas: "10 por pierna" }),
-      F(2, "EJ-8009", "Dominadas / chin-ups", 3, "5-8", 90, { grupoSet: "B", rir: 2 }),
-      F(3, "EJ-8010", "Peso muerto rumano (RDL)", 3, "10-12", 75, { grupoSet: "C", rir: 2, tempo: "3-0-1-0" }),
-      F(4, "EJ-8011", "Remo invertido / con banda", 3, "12", 60, { grupoSet: "A", rir: 2 }),
+      F(1, "EJ-8008", "Zancada hacia atrás",       3, "10",    75, { grupoSet: "A", rir: 2, notas: "10 por pierna", cargaKg: 8 }),
+      F(2, "EJ-8009", "Dominadas / chin-ups",       3, "5-8",   90, { grupoSet: "B", rir: 2 }),
+      F(3, "EJ-8010", "Peso muerto rumano (RDL)",   3, "10-12", 75, { grupoSet: "C", rir: 2, tempo: "3-0-1-0", cargaKg: 14 }),
+      F(4, "EJ-8011", "Remo invertido / con banda", 3, "12",    60, { grupoSet: "A", rir: 2 }),
       F(5, "EJ-8005", "Press de pecho con banda", 3, "12-15", 60, { grupoSet: "B", rir: 2 }),
       F(6, "EJ-8007", "Extensión de tríceps (fondos en silla)", 2, "12", 45, { grupoSet: "C" }),
       ISO(7, "EJ-8016", "Plancha lateral", 3, 25, true, 30),
@@ -313,8 +314,8 @@ const RUTINAS: RutDef[] = [
       "podés usar el modo scroll y hacer una ronda de cada uno, repitiendo 3–4 veces.",
     durEstMin: 30,
     bloques: [
-      F(1, "EJ-8012", "Swings con pesa", 3, "15", 20, { grupoSet: "A" }),
-      F(2, "EJ-8001", "Sentadilla goblet", 3, "12", 20, { grupoSet: "A" }),
+      F(1, "EJ-8012", "Swings con pesa",  3, "15", 20, { grupoSet: "A", cargaKg: 10 }),
+      F(2, "EJ-8001", "Sentadilla goblet", 3, "12", 20, { grupoSet: "A", cargaKg: 12 }),
       F(3, "EJ-8002", "Flexiones de brazos", 3, "máx", 20, { grupoSet: "A", notas: "máximo cómodo" }),
       F(4, "EJ-8011", "Remo invertido / con banda", 3, "15", 20, { grupoSet: "A" }),
       CINT(5, "EJ-8013", "Mountain climbers", 30, 3, 90),

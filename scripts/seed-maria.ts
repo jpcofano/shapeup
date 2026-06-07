@@ -75,10 +75,11 @@ const CALENT = "Calentamiento 8 min: círculos de cadera, gato–camello, 10 sen
   "caminata lateral con banda suave, puente de glúteos lento. Cerrá con 5 min de movilidad.";
 
 const F = (orden: number, id: string, nombre: string, series: number, reps: string, desc: number,
-  extra: { rir?: number; notas?: string } = {}) => ({
+  extra: { rir?: number; notas?: string; cargaKg?: number } = {}) => ({
   orden, idEjercicio: id, nombreEjercicio: nombre, modalidad: "Fuerza",
   prescripcion: { modalidad: "Fuerza", series, repsObjetivo: rango(reps), descansoSeg: desc,
-    ...(extra.rir != null ? { rirObjetivo: extra.rir } : {}) },
+    ...(extra.rir     != null ? { rirObjetivo: extra.rir }  : {}),
+    ...(extra.cargaKg != null ? { cargaKg: extra.cargaKg } : {}) },
   ...(extra.notas ? { notas: extra.notas } : {}),
 });
 const ISO = (orden: number, id: string, nombre: string, series: number, hold: number, porLado: boolean, desc: number) => ({
@@ -100,11 +101,11 @@ const RUTINAS: RutDef[] = [
     notas: "Técnica primero, RIR 2–3. Apretá bien el glúteo arriba en cada repetición.",
     durEstMin: 45,
     bloques: [
-      F(1, "EJ-8033", "Empuje de cadera (hip thrust)", 3, "12-15", 75, { rir: 2 }),
-      F(2, "EJ-8001", "Sentadilla goblet", 3, "12", 75, { rir: 2 }),
-      F(3, "EJ-8010", "Peso muerto rumano (RDL)", 3, "12", 75, { rir: 2 }),
-      F(4, "EJ-8030", "Caminata lateral con banda", 3, "15", 45, { notas: "15 pasos por lado" }),
-      F(5, "EJ-8034", "Patada de glúteo (cuadrupedia)", 3, "15", 45, { notas: "por lado" }),
+      F(1, "EJ-8033", "Empuje de cadera (hip thrust)",   3, "12-15", 75, { rir: 2, cargaKg: 8 }),
+      F(2, "EJ-8001", "Sentadilla goblet",              3, "12",    75, { rir: 2, cargaKg: 8 }),
+      F(3, "EJ-8010", "Peso muerto rumano (RDL)",       3, "12",    75, { rir: 2, cargaKg: 8 }),
+      F(4, "EJ-8030", "Caminata lateral con banda",     3, "15",    45, { notas: "15 pasos por lado" }),
+      F(5, "EJ-8034", "Patada de glúteo (cuadrupedia)", 3, "15",    45, { notas: "por lado" }),
       ISO(6, "EJ-8016", "Plancha lateral", 3, 25, true, 30),
     ] },
 
@@ -114,11 +115,11 @@ const RUTINAS: RutDef[] = [
     notas: "Técnica primero, RIR 2–3.",
     durEstMin: 45,
     bloques: [
-      F(1, "EJ-8014", "Puente de glúteos", 3, "15", 60, { rir: 2 }),
-      F(2, "EJ-8008", "Zancada hacia atrás", 3, "10", 60, { rir: 2, notas: "por pierna" }),
-      F(3, "EJ-8004", "Remo a una mano con mancuerna", 3, "12", 60, { rir: 2 }),
-      F(4, "EJ-8005", "Press de pecho con banda", 3, "12-15", 60, { rir: 2 }),
-      F(5, "EJ-8034", "Patada de glúteo (cuadrupedia)", 3, "15", 45, { notas: "por lado" }),
+      F(1, "EJ-8014", "Puente de glúteos",              3, "15",    60, { rir: 2, cargaKg: 8 }),
+      F(2, "EJ-8008", "Zancada hacia atrás",            3, "10",    60, { rir: 2, notas: "por pierna", cargaKg: 6 }),
+      F(3, "EJ-8004", "Remo a una mano con mancuerna", 3, "12",    60, { rir: 2, cargaKg: 6 }),
+      F(4, "EJ-8005", "Press de pecho con banda",       3, "12-15", 60, { rir: 2 }),
+      F(5, "EJ-8034", "Patada de glúteo (cuadrupedia)", 3, "15",    45, { notas: "por lado" }),
       MOV(6, "EJ-8017", "Bird dog", 3, "10", true),
     ] },
 ];

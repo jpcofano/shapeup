@@ -43,6 +43,15 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 ## 2. Bitácora
 
+### [2026-06-07] P26 — Carga + reps en rutinas de casa
+- **`scripts/seed-plan.ts`** — helper `F` acepta `cargaKg?: number` en `extra` y lo propaga a `PrescripcionFuerza.cargaKg`. Cargas iniciales en RUT-0001 (goblet 12 kg, remo 10 kg, curl 8 kg), RUT-0002 (zancada 8 kg, RDL 14 kg), RUT-0003 (swings 10 kg, goblet 12 kg). Sin `cargaKg` para peso corporal, banda y cardio.
+- **`scripts/seed-maria.ts`** — mismo cambio en el helper `F`. Cargas para María: hip thrust 8 kg, goblet 8 kg, RDL 8 kg (RUT-0021); puente 8 kg, zancada 6 kg, remo 6 kg (RUT-0022). Banda/PC sin `cargaKg`.
+- **`src/lib/prescripcionLabel.ts`** — parámetro opcional `equipoHint?: string[]`: si no hay `cargaKg` y el equipo es "Peso corporal" → muestra "· peso corporal"; si es "Banda elástica" → "· banda". Sin `equipoHint` el comportamiento es idéntico al anterior.
+- **`src/routes/RutinaDetalle.tsx`** — almacena el catálogo de ejercicios (`Map<string, Ejercicio>`) en estado y lo pasa a `prescripcionLabel(b.prescripcion, catalogo.get(b.idEjercicio)?.equipo)`.
+- Seeds sembrados con `--force` en Firestore (RUT-0001..0003, RUT-0021..0022, ejercicios y programas asociados). Valores de arranque ajustables: la app registra el peso real de cada serie.
+
+---
+
 ### [2026-06-07] Fix P25 — Importador: undefined + resiliencia por fila
 - **`src/firebase.ts`** — `ignoreUndefinedProperties: true` en `initializeFirestore`. Firestore ya no rechaza documentos con campos opcionales en `undefined` ("Unsupported field value: undefined").
 - **`src/import/samsungHealth.ts`** — `stripUndef<T>(obj)`: elimina claves con valor `undefined` antes de hacer `items.push()`. Aplicado en `parsearPeso`, `parsearEjercicio` y `parsearSueno`. Cinturón y tiradores junto con la opción de Firestore.

@@ -1,11 +1,19 @@
 import type { Prescripcion } from "../types/models";
 
-/** Genera un resumen de texto legible para mostrar en listas/cards. */
-export function prescripcionLabel(p: Prescripcion): string {
+/**
+ * Genera un resumen de texto legible para mostrar en listas/cards.
+ * `equipoHint`: equipo del ejercicio (de Ejercicio.equipo) para mostrar
+ *   "peso corporal" o "banda" cuando la prescripción no tiene cargaKg.
+ */
+export function prescripcionLabel(p: Prescripcion, equipoHint?: string[]): string {
   switch (p.modalidad) {
     case "Fuerza": {
       const reps  = p.alFallo ? "al fallo" : p.repsObjetivo.raw;
-      const carga = p.cargaKg != null ? ` · ${p.cargaKg} kg` : "";
+      const carga = p.cargaKg != null
+        ? ` · ${p.cargaKg} kg`
+        : equipoHint?.includes("Peso corporal")  ? " · peso corporal"
+        : equipoHint?.includes("Banda elástica")  ? " · banda"
+        : "";
       const rir   = p.rirObjetivo != null ? ` · RIR ${p.rirObjetivo}` : "";
       return `${p.series}×${reps}${carga} · ${p.descansoSeg}s${rir}`;
     }

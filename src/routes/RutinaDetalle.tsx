@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit2, Zap } from "lucide-react";
-import type { Rutina } from "../types/models";
+import type { Rutina, Ejercicio } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjerciciosMap } from "../data/ejercicios";
 import { avisoBalanceEmpujeTraccion } from "../lib/metricas";
@@ -10,17 +10,19 @@ import { prescripcionLabel } from "../lib/prescripcionLabel";
 export function RutinaDetalle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [rutina, setRutina] = useState<Rutina | null>(null);
-  const [aviso, setAviso]   = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [rutina,   setRutina]   = useState<Rutina | null>(null);
+  const [catalogo, setCatalogo] = useState<Map<string, Ejercicio>>(new Map());
+  const [aviso,    setAviso]    = useState<string | null>(null);
+  const [loading,  setLoading]  = useState(true);
   const [error,   setError]   = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([getRutina(id), getEjerciciosMap()]).then(([rRes, catalogo]) => {
+    Promise.all([getRutina(id), getEjerciciosMap()]).then(([rRes, cat]) => {
       if (!rRes.ok) { setError(rRes.error); setLoading(false); return; }
       setRutina(rRes.value);
-      setAviso(avisoBalanceEmpujeTraccion(rRes.value, catalogo));
+      setCatalogo(cat);
+      setAviso(avisoBalanceEmpujeTraccion(rRes.value, cat));
       setLoading(false);
     });
   }, [id]);
@@ -118,7 +120,9 @@ export function RutinaDetalle() {
                 </span>
               )}
               <p className="bloque-nombre">{b.nombreEjercicio}</p>
-              <p className="bloque-prescripcion">{prescripcionLabel(b.prescripcion)}</p>
+              <p className="bloque-prescripcion">
+                {prescripcionLabel(b.prescripcion, catalogo.get(b.idEjercicio)?.equipo)}
+              </p>
               {b.notas && (
                 <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
                   {b.notas}
