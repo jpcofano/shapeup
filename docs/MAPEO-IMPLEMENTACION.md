@@ -29,6 +29,24 @@
 
 ## 2. Bitácora
 
+### [2026-06-07] D8 — PWA instalable + botón "Instalar app"
+- **`assets/pwa/` → `public/icons/`** — 8 íconos PNG (favicon 16/32/48, apple-touch-icon 180, icon 192/512, icon-maskable 192/512). Ícono: squircle fondo oscuro + doble chevron cian con glow. Fijo, no cambia con el tema.
+- **`public/manifest.json`** — nombre "ShapeUp", display standalone, background_color/theme_color `#0f1115`, 8 íconos (any + maskable).
+- **`index.html`** — `<link rel="manifest">`, `<meta name="theme-color" content="#0f1115">`, favicons, `<link rel="apple-touch-icon">`, metas Apple PWA.
+- **`vite-plugin-pwa@1.3.0`** (devDependency) — `VitePWA({ manifest: false, registerType: "autoUpdate", workbox: { globPatterns, navigateFallback, navigateFallbackDenylist } })`. Manifest estático desde `public/` (patrón heredado de Comida Familiar).
+- **`src/hooks/useInstallPrompt.ts`** (nuevo) — `useInstallPrompt()` → `{ canInstall, isInstalled, isIOS, promptInstall }`. Escucha `beforeinstallprompt` (Chrome/Android/Desktop) y `appinstalled`. Detecta standalone via `matchMedia` + `navigator.standalone` (iOS).
+- **`src/routes/Perfil.tsx`** — card "Instalar app" con `<Download>` en `--accent-dim` + botón "Instalar" (solo si `canInstall && !isInstalled`). Hint iOS ("Compartir → Agregar a inicio") con `<Share>` si `isIOS && !canInstall && !isInstalled`.
+
+#### ADR — PWA con manifest estático en public/, patrón heredado de Comida
+- **Decisión:** `manifest: false` en VitePWA → el manifest viene de `public/manifest.json`, no generado por el plugin.
+- **Razón:** más predecible, fácil de editar directamente, mismo patrón que Comida Familiar.
+
+#### ADR — Ícono de PWA fijo, no-temático
+- **Decisión:** el ícono de la PWA es el squircle Ion (cian `#22d3ee`) fijo. No cambia con el tema del miembro.
+- **Razón:** el ícono de la app es identidad de marca global, no preferencia personal. El `theme_color` del manifest es el fondo base, no el acento del miembro.
+
+---
+
 ### [2026-06-07] E6.3 — Importador zip-first
 - **`jszip@3.10.1`** — nueva dependencia (extracción selectiva de ZIPs en el cliente).
 - **`src/import/samsungZip.ts`** (nuevo) — orquestador zip-first. `extraerDesdeZip(file, miembro, nivel, zonasFC, onProgress)` → `ZipExtraccion`. Niveles: "basico" (peso/cardio/sueño), "completo" (+ métricas), "biometrico" (+ custom_exercise para custom_id + live_data.json). Extracción selectiva: `JSZip.loadAsync` lee el índice; `.async("text")` solo para los archivos necesarios. Validación del ZIP (markers de Samsung). Parser de custom_exercise inline para extraer `shapeUpCustomId`. Índice de live_data por datauuid (evita buscar en todos los ~2300 archivos).

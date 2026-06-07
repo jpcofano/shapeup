@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
-import { Check } from "lucide-react";
+import { Check, Download, Share } from "lucide-react";
 import { auth } from "../firebase";
 import { useAuth } from "../auth/useAuth";
 import { getPerfiles } from "../data/perfiles";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { useTheme, type ThemeName } from "../contexts/ThemeProvider";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { MIEMBRO_IDS, type MiembroId } from "../types/models";
 
 const NOMBRES: Record<MiembroId, string> = {
@@ -24,8 +25,9 @@ const TEMAS: { name: ThemeName; color: string; label: string }[] = [
 ];
 
 export function Perfil() {
-  const { user, memberId }        = useAuth();
-  const { theme, setTheme }       = useTheme();
+  const { user, memberId }              = useAuth();
+  const { theme, setTheme }             = useTheme();
+  const { canInstall, isInstalled, isIOS, promptInstall } = useInstallPrompt();
   const [color,    setColor]      = useState<string | undefined>(undefined);
   const [objetivos, setObjetivos] = useState<string[]>([]);
 
@@ -133,6 +135,41 @@ export function Perfil() {
           ))}
         </div>
       </div>
+
+      {/* ── Instalar app ─────────────────────────────────────────────────── */}
+      {!isInstalled && canInstall && (
+        <div className="card" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <span style={{
+            width: 42, height: 42, borderRadius: 12,
+            background: "var(--accent-dim)", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "var(--accent)",
+          }}>
+            <Download size={20} />
+          </span>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>Instalar app</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
+              Agregá ShapeUp a tu pantalla de inicio
+            </p>
+          </div>
+          <button className="btn-primary" style={{ width: "auto", padding: "10px 16px" }} onClick={promptInstall}>
+            Instalar
+          </button>
+        </div>
+      )}
+
+      {/* Hint para iOS (Safari no dispara beforeinstallprompt) */}
+      {!isInstalled && isIOS && !canInstall && (
+        <div className="card" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ color: "var(--accent)", flexShrink: 0 }}>
+            <Share size={20} />
+          </span>
+          <p style={{ margin: 0, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
+            En iPhone: tocá <strong style={{ color: "var(--fg)" }}>Compartir</strong> → <strong style={{ color: "var(--fg)" }}>Agregar a inicio</strong>
+          </p>
+        </div>
+      )}
 
       {/* ── Cerrar sesión ────────────────────────────────────────────────── */}
       <button className="btn-secondary" onClick={() => signOut(auth)}>
