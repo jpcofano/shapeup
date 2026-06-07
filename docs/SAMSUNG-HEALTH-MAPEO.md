@@ -102,6 +102,50 @@ presión arterial, `vitality_score`.
 El `hrv` es la única con costo de parseo extra; si molesta al principio, se puede diferir y
 arrancar el motor con las otras 7.
 
+## 7) Importación zip-first (E6.3)
+
+### Por qué ZIP y no carpeta
+
+Los navegadores móviles (Chrome/Firefox Android) **no implementan** `showDirectoryPicker`. Abrir una carpeta con >2300 archivos cuelga el navegador. El ZIP del export de Samsung es la única opción viable para un import one-shot en PWA. No se usa File System Access API en móvil.
+
+### Estructura del ZIP verificada
+
+```
+samsunghealth_<user>_<timestamp>/
+  com.samsung.health.weight.<date>.csv
+  com.samsung.shealth.exercise.<date>.csv
+  com.samsung.shealth.exercise.custom_exercise.<date>.csv   ← custom_id de ShapeUp
+  com.samsung.shealth.sleep.<date>.csv
+  tracker.heart_rate.<date>.csv
+  health.hrv.<date>.csv
+  stress.<date>.csv
+  step_daily_trend.<date>.csv
+  … (~60 CSV en raíz)
+  files/
+  jsons/
+    com.samsung.shealth.exercise/
+      <letra>/
+        <datauuid>.com.samsung.health.exercise.live_data.json
+```
+
+### Extracción selectiva
+
+`JSZip.loadAsync(file)` lee el índice del zip sin descomprimir todo. Se leen solo los archivos necesarios según el nivel:
+
+| Nivel | Qué se extrae |
+|---|---|
+| Básico | weight + exercise + sleep CSV |
+| Completo | + métricas genéricas (~8 CSV) |
+| Con biometría | + custom_exercise CSV (custom_id) + live_data.json de sesiones ShapeUp |
+
+Los `live_data.json` solo se leen para sesiones que coincidan (por `datauuid` presente en el CSV exercise), no todos los ~2300 archivos.
+
+### Validación del ZIP
+
+Se verifica la presencia de al menos un CSV de Samsung (`com.samsung.health.weight`, `com.samsung.shealth.exercise` o `com.samsung.shealth.sleep`) antes de proceder. Si el ZIP no es un export de Samsung, se muestra un mensaje claro.
+
+---
+
 ## 6) Match biométrico — FC por sesión y por serie (E6.2)
 
 ### Identificación de la sesión ShapeUp en Samsung

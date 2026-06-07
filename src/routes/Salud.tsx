@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Upload, X } from "lucide-react";
+import { Plus, Upload, X, FileText } from "lucide-react";
 import type { MedicionCorporal, SesionCardio, RegistroSueno, MetricaSalud, MiembroId } from "../types/models";
 import {
   getMediciones, guardarMedicion,
@@ -15,6 +15,10 @@ import {
   detectarTiposMetrica, parsearMetricas,
   type SamsungCsvType,
 } from "../import/samsungHealth";
+import {
+  extraerDesdeZip,
+  type ZipImportNivel, type ZipExtraccion,
+} from "../import/samsungZip";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
@@ -32,11 +36,15 @@ export function Salud() {
   const [sueno,      setSueno]     = useState<RegistroSueno[]>([]);
   const [loading,    setLoading]   = useState(true);
   const [error,      setError]     = useState<string | null>(null);
-  const [showManual, setShowManual]= useState(false);
-  const [importMsg,   setImportMsg]  = useState<string | null>(null);
-  const [preview,     setPreview]    = useState<PreviewState | null>(null);
-  const [importMode,  setImportMode] = useState<ImportMode>("basico");
+  const [showManual,   setShowManual]   = useState(false);
+  const [importMsg,    setImportMsg]    = useState<string | null>(null);
+  const [preview,      setPreview]      = useState<PreviewState | null>(null);
+  const [importMode,   setImportMode]   = useState<ImportMode>("basico");
+  const [zipNivel,     setZipNivel]     = useState<ZipImportNivel>("basico");
+  const [zipProgress,  setZipProgress]  = useState<number | null>(null);
+  const [zipMsg,       setZipMsg]       = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const zipRef  = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!memberId) return;
@@ -53,7 +61,48 @@ export function Salud() {
     });
   }, [memberId]);
 
-  // ── Selección de archivo → preview ─────────────────────────────────────────
+  // ── ZIP → extracción selectiva → preview ───────────────────────────────────
+  async function handleZip(file: File) {
+    if (!memberId) return;
+    setZipProgress(0);
+    setZipMsg("Abriendo ZIP…");
+
+    const perfRes = await getPerfiles();
+    const zonasFC = perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined;
+
+    const result = await extraerDesdeZip(
+      file, memberId as MiembroId, zipNivel, zonasFC,
+      (pct, msg) => { setZipProgress(pct); setZipMsg(msg); },
+    );
+    setZipProgress(null);
+
+    if (result.errors.length > 0 &&
+        result.mediciones.length + result.cardio.length + result.sueno.length + result.metricas.length === 0) {
+      setImportMsg(result.errors[0]);
+      return;
+    }
+
+    const total = result.mediciones.length + result.cardio.length + result.sueno.length + result.metricas.length;
+    const previewRows = [
+      ...result.mediciones.slice(0, 2).map((m) => ({ Tipo: "Peso",   Fecha: m.fecha, Dato: `${m.pesoKg ?? "—"} kg` })),
+      ...result.cardio.slice(0, 2).map(   (c) => ({ Tipo: "Cardio", Fecha: c.fecha, Dato: c.actividad })),
+      ...result.sueno.slice(0,  2).map(   (s) => ({ Tipo: "Sueño",  Fecha: s.fecha, Dato: `${s.horas ?? "—"} h` })),
+    ].slice(0, 5);
+
+    setPreview({
+      tipo: "zip" as SamsungCsvType,
+      file,
+      parsedItems: [
+        ...result.mediciones, ...result.cardio, ...result.sueno, ...result.metricas,
+      ] as unknown[],
+      parsedErrors: result.errors.slice(0, 5),
+      previewRows,
+      zipData: result,
+      zipTotal: total,
+    });
+  }
+
+  // ── CSV suelto → preview ────────────────────────────────────────────────────
   async function handleFile(file: File) {
     if (!memberId) return;
     const tipo = detectarTipoCsv(file.name);
@@ -124,6 +173,26 @@ export function Salud() {
   async function confirmarImport() {
     if (!preview || !memberId) return;
     setPreview(null);
+
+    // Caso ZIP: importar todas las categorías de una
+    if (preview.tipo === "zip" && preview.zipData) {
+      const z = preview.zipData;
+      const [r1, r2, r3, r4] = await Promise.all([
+        z.mediciones.length > 0 ? importarMedicionesIdempotente(z.mediciones as Parameters<typeof importarMedicionesIdempotente>[0]) : Promise.resolve({ ok: true as const, value: 0 }),
+        z.cardio.length     > 0 ? importarCardioIdempotente(z.cardio as Parameters<typeof importarCardioIdempotente>[0])             : Promise.resolve({ ok: true as const, value: 0 }),
+        z.sueno.length      > 0 ? importarSueno(z.sueno as Parameters<typeof importarSueno>[0])                                     : Promise.resolve({ ok: true as const, value: 0 }),
+        z.metricas.length   > 0 ? importarMetricas(z.metricas)                                                                       : Promise.resolve({ ok: true as const, value: 0 }),
+      ]);
+      const total = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? (r.value ?? 0) : 0), 0);
+      const firstErr = [r1, r2, r3, r4].find((r) => !r.ok) as { ok: false; error: string } | undefined;
+      setImportMsg(firstErr ? `Error: ${firstErr.error}` : `✅ ${total} registros importados desde ZIP`);
+      const [fm, fc, fs] = await Promise.all([getMediciones(memberId), getSesionesCardio(memberId), getRegistrosSueno(memberId)]);
+      if (fm.ok) setMediciones(fm.value);
+      if (fc.ok) setCardio(fc.value);
+      if (fs.ok) setSueno(fs.value);
+      return;
+    }
+
     let result: { ok: boolean; value?: number; error?: string };
 
     if (preview.tipo === "weight") {
@@ -157,24 +226,48 @@ export function Salud() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">Salud</h1>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {/* Selector de modo */}
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {/* Nivel de importación (aplica al ZIP) */}
           <select
-            value={importMode}
-            onChange={(e) => setImportMode(e.target.value as ImportMode)}
+            value={zipNivel}
+            onChange={(e) => setZipNivel(e.target.value as ZipImportNivel)}
             style={{ fontSize: 11, background: "var(--card)", color: "var(--muted)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "2px 6px", cursor: "pointer" }}
-            title="Modo de importación"
+            title="Nivel de importación"
           >
-            <option value="basico">Básico (peso/cardio/sueño)</option>
-            <option value="completo">Completo (+ métricas genéricas)</option>
+            <option value="basico">Básico</option>
+            <option value="completo">Completo</option>
+            <option value="biometrico">Con biometría</option>
           </select>
-          <button className="btn-icon-sm" title="Importar CSV Samsung Health" onClick={() => fileRef.current?.click()}>
+
+          {/* ZIP (camino principal) */}
+          <button className="btn-icon-sm" title="Importar ZIP de Samsung Health (recomendado)" onClick={() => zipRef.current?.click()}>
             <Upload size={18} />
           </button>
+
+          {/* CSV sueltos (fallback) */}
+          <button
+            className="btn-icon-sm"
+            title="CSV suelto (alternativa al ZIP)"
+            onClick={() => fileRef.current?.click()}
+            style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)" }}
+          >
+            <FileText size={15} />
+          </button>
+
           <button className="btn-icon-sm" title="Carga manual" onClick={() => setShowManual(true)}>
             <Plus size={18} />
           </button>
         </div>
+
+        {/* Input ZIP */}
+        <input
+          ref={zipRef}
+          type="file"
+          accept=".zip"
+          style={{ display: "none" }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleZip(f); e.target.value = ""; }}
+        />
+        {/* Input CSV suelto */}
         <input
           ref={fileRef}
           type="file"
@@ -202,6 +295,20 @@ export function Salud() {
           </button>
         ))}
       </div>
+
+      {/* Progreso de extracción ZIP */}
+      {zipProgress !== null && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ height: 6, borderRadius: 999, background: "var(--card-hover)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", width: `${zipProgress}%`,
+              background: "var(--accent)", borderRadius: 999,
+              transition: "width .25s ease",
+            }} />
+          </div>
+          <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>{zipMsg}</p>
+        </div>
+      )}
 
       {importMsg && (
         <div style={{
@@ -269,11 +376,14 @@ export function Salud() {
 // ── Preview state ─────────────────────────────────────────────────────────────
 
 interface PreviewState {
-  tipo:        SamsungCsvType;
+  tipo:        SamsungCsvType | "zip";
   file:        File;
   parsedItems: unknown[];
   parsedErrors: string[];
   previewRows: Record<string, string>[];
+  /** Solo para tipo "zip" — datos ya parseados listos para importar. */
+  zipData?:  ZipExtraccion;
+  zipTotal?: number;
 }
 
 // ── ImportPreview ─────────────────────────────────────────────────────────────
@@ -286,7 +396,9 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
   const { tipo, file, parsedItems, parsedErrors, previewRows } = preview;
   const TIPO_LABELS: Record<string, string> = {
     weight: "Peso", exercise: "Ejercicio", sleep: "Sueño", metricas: "Métricas",
+    zip: "ZIP Samsung Health",
   };
+  const totalItems = (preview as PreviewState & { zipTotal?: number }).zipTotal ?? parsedItems.length;
   const cols = previewRows.length > 0 ? Object.keys(previewRows[0]) : [];
 
   return (
@@ -298,7 +410,7 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
         </div>
         <div style={{ padding: "12px 16px" }}>
           <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 8px" }}>
-            Tipo: <strong style={{ color: "var(--fg)" }}>{TIPO_LABELS[tipo] ?? tipo}</strong> · {parsedItems.length} registros
+            Tipo: <strong style={{ color: "var(--fg)" }}>{TIPO_LABELS[tipo] ?? tipo}</strong> · {totalItems} registros
             {parsedErrors.length > 0 && ` · ${parsedErrors.length} advertencias`}
           </p>
 
@@ -340,7 +452,7 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
 
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <button className="btn-primary" style={{ flex: 1 }} onClick={onConfirm}>
-              Importar {parsedItems.length} registros
+              Importar {totalItems} registros
             </button>
             <button className="btn-secondary" onClick={onCancel}>Cancelar</button>
           </div>

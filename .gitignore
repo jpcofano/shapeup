@@ -28,3 +28,6 @@ scripts/data/familia.local.json
 !.vscode/extensions.json
 .idea
 Thumbs.db
+*.zip
+service-account*.json
+**/service-account*.json

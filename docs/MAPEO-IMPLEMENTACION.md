@@ -29,6 +29,22 @@
 
 ## 2. Bitácora
 
+### [2026-06-07] E6.3 — Importador zip-first
+- **`jszip@3.10.1`** — nueva dependencia (extracción selectiva de ZIPs en el cliente).
+- **`src/import/samsungZip.ts`** (nuevo) — orquestador zip-first. `extraerDesdeZip(file, miembro, nivel, zonasFC, onProgress)` → `ZipExtraccion`. Niveles: "basico" (peso/cardio/sueño), "completo" (+ métricas), "biometrico" (+ custom_exercise para custom_id + live_data.json). Extracción selectiva: `JSZip.loadAsync` lee el índice; `.async("text")` solo para los archivos necesarios. Validación del ZIP (markers de Samsung). Parser de custom_exercise inline para extraer `shapeUpCustomId`. Índice de live_data por datauuid (evita buscar en todos los ~2300 archivos).
+- **`src/routes/Salud.tsx`** — ZIP como camino principal: selector de nivel (Básico/Completo/Con biometría), botón Upload → ZIP, botón FileText → CSV suelto (fallback). Barra de progreso animada (0–100%) durante la extracción. `PreviewState` extendido con `zipData?: ZipExtraccion` + `zipTotal`. `confirmarImport` maneja `tipo === "zip"` importando todas las categorías en paralelo.
+- **`docs/SAMSUNG-HEALTH-MAPEO.md`** — sección "Importación zip-first": estructura del ZIP, extracción selectiva, validación, niveles.
+
+#### ADR — zip-first por restricción de PWA móvil
+- **Decisión:** zip como único camino de import one-shot; `showDirectoryPicker` no se usa.
+- **Razón:** no existe en Chrome/Firefox Android; abrir carpeta con 2300+ archivos cuelga el browser.
+
+#### ADR — Extracción selectiva para no agotar memoria
+- **Decisión:** solo se descomprimen los archivos necesarios según el nivel (`JSZip.async("text")` por entrada).
+- **Razón:** el ZIP pesa ~150 MB; descomprimir todo en memoria causaría OOM en móviles de gama media.
+
+---
+
 ### [2026-06-07] E6.2 — Match biométrico (FC por serie)
 - **`src/types/models.ts`** — `SerieRegistro` suma `inicioMs?`, `finMs?` (timestamps habilitantes del match fino) y `fcPico?`, `fcFinSerie?`, `recuperacionBpm?` (enriquecimiento). Nueva interfaz `BiometriaSesion` (fuente, datauuid, fcMedia/Max/Min, zonaPrincipal, kcal, matchPor, granularidad). `Historial` suma `biometria?: BiometriaSesion`.
 - **`src/lib/entrenarState.ts`** — `EntrenarState` suma `serieInicioMs: Record<number, number>`. `completarSerie` sella `finMs = now` y consume `serieInicioMs[idx]` → `inicioMs`. `saltarDescanso(state, now)` sella `serieInicioMs[bloqueIdx] = now` (inicio de la próxima serie). `deshacerSerie` limpia `serieInicioMs`.
