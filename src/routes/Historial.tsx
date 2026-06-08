@@ -71,6 +71,9 @@ export function Historial() {
               {h.rpe != null && (
                 <span className="badge badge-muted">RPE {h.rpe}</span>
               )}
+              {h.tipo === "libre" && (
+                <span className="badge badge-muted">Libre</span>
+              )}
             </div>
           </div>
         </div>

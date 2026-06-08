@@ -8,6 +8,7 @@ import { Biblioteca } from "./routes/Biblioteca";
 import { Catalogo } from "./routes/Catalogo";
 import { Entrenar } from "./routes/Entrenar";
 import { EntrenarSesion } from "./routes/EntrenarSesion";
+import { EntrenarSesionLibre } from "./routes/EntrenarSesionLibre";
 import { Historial } from "./routes/Historial";
 import { HistorialDetalle } from "./routes/HistorialDetalle";
 import { Perfil } from "./routes/Perfil";
@@ -18,6 +19,7 @@ import { EjercicioForm } from "./routes/EjercicioForm";
 
 const router = createBrowserRouter([
   // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
+  { path: "/entrenar/libre",     element: <EntrenarSesionLibre /> },
   { path: "/entrenar/:rutinaId", element: <EntrenarSesion /> },
 
   // ── App con AppShell ───────────────────────────────────────────────────────

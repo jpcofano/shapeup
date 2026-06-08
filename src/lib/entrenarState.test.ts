@@ -5,8 +5,9 @@ import {
   bloqueCompleto, bloquesCompletados, rutinaCompleta,
   proximoBloqueIncompleto, descansoRestanteMs,
   INITIAL_ENTRENAR_STATE,
+  buildBloqueLibre, buildVirtualRutina, construirBloquesRegistro,
 } from "./entrenarState";
-import type { Rutina } from "../types/models";
+import type { Ejercicio, Rutina } from "../types/models";
 
 // ── Rutina de prueba ──────────────────────────────────────────────────────────
 const rutina: Rutina = {
@@ -211,5 +212,92 @@ describe("toggleModoVista", () => {
   it("scroll → guiada (salta al primer incompleto)", () => {
     const s = { ...s0, modoVista: "scroll" as const };
     expect(toggleModoVista(s, rutina).modoVista).toBe("guiada");
+  });
+});
+
+// ── Sesión libre: buildBloqueLibre + buildVirtualRutina ───────────────────────
+
+const ejFuerza: Ejercicio = {
+  idEjercicio: "EJ-TEST-F",
+  nombre: "Sentadilla",
+  nombreCanonico: "sentadilla",
+  modalidad: "Fuerza",
+  patron: "Dominante de rodilla",
+  grupoMuscularPrimario: "Cuádriceps",
+  gruposSecundarios: [],
+  equipo: ["Peso corporal"],
+  unilateral: false,
+  nivel: "Principiante",
+  instrucciones: [],
+  puntosClave: [],
+  erroresComunes: [],
+  descansoSugeridoSeg: 90,
+  sinonimos: [],
+  vecesUsado: 0,
+  origen: "manual",
+};
+
+const ejMovilidad: Ejercicio = {
+  ...ejFuerza,
+  idEjercicio: "EJ-TEST-M",
+  nombre: "Estiramiento cadera",
+  nombreCanonico: "estiramiento cadera",
+  modalidad: "Movilidad",
+  patron: "Locomoción / cardio",
+  descansoSugeridoSeg: 30,
+};
+
+describe("buildBloqueLibre", () => {
+  it("Fuerza: 3 series, 10 reps, usa descansoSugeridoSeg", () => {
+    const b = buildBloqueLibre(ejFuerza, 1);
+    expect(b.orden).toBe(1);
+    expect(b.idEjercicio).toBe("EJ-TEST-F");
+    expect(b.modalidad).toBe("Fuerza");
+    expect(b.prescripcion.modalidad).toBe("Fuerza");
+    if (b.prescripcion.modalidad === "Fuerza") {
+      expect(b.prescripcion.series).toBe(3);
+      expect(b.prescripcion.repsObjetivo.value).toBe(10);
+      expect(b.prescripcion.descansoSeg).toBe(90);
+    }
+  });
+
+  it("Movilidad: 3 rondas, usa descansoSugeridoSeg", () => {
+    const b = buildBloqueLibre(ejMovilidad, 2);
+    expect(b.prescripcion.modalidad).toBe("Movilidad");
+    if (b.prescripcion.modalidad === "Movilidad") {
+      expect(b.prescripcion.rondas).toBe(3);
+      expect(b.prescripcion.descansoSeg).toBe(30);
+    }
+  });
+});
+
+describe("buildVirtualRutina", () => {
+  it("conserva los bloques pasados", () => {
+    const bloques = [buildBloqueLibre(ejFuerza, 1), buildBloqueLibre(ejMovilidad, 2)];
+    const vr = buildVirtualRutina(bloques);
+    expect(vr.bloques).toHaveLength(2);
+    expect(vr.bloques[0].idEjercicio).toBe("EJ-TEST-F");
+    expect(vr.bloques[1].idEjercicio).toBe("EJ-TEST-M");
+  });
+
+  it("el reducer funciona con la rutina virtual", () => {
+    const bloques = [buildBloqueLibre(ejFuerza, 1)];
+    const vr = buildVirtualRutina(bloques);
+    let s = s0;
+    for (let i = 0; i < 3; i++) s = completarSerie(s, vr, 0);
+    expect(rutinaCompleta(s, vr)).toBe(true);
+  });
+});
+
+describe("construirBloquesRegistro con rutina virtual", () => {
+  it("arma BloqueRegistro a partir del estado", () => {
+    const bloques = [buildBloqueLibre(ejFuerza, 1)];
+    const vr = buildVirtualRutina(bloques);
+    let s = s0;
+    s = completarSerie(s, vr, 0, { reps: 8, cargaKg: 40 });
+    const reg = construirBloquesRegistro(s, vr);
+    expect(reg).toHaveLength(1);
+    expect(reg[0].idEjercicio).toBe("EJ-TEST-F");
+    expect(reg[0].series[0]).toMatchObject({ serie: 1, completada: true, reps: 8, cargaKg: 40 });
   });
 });

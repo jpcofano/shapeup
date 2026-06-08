@@ -38,10 +38,33 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P25 (E6.4) | Fix importador: `ignoreUndefinedProperties` + `allSettled` resiliente por fila | ✅ | 2026-06-07 |
 | P26 | Carga (`cargaKg`) + reps en todas las rutinas de casa (seed) | ✅ | 2026-06-07 |
 | P27 | Imágenes: render en Catálogo/guiado + fotos FEDB + mapeo 34 propios | ✅ | 2026-06-07 |
+| P28 (A1) | "Empezar" claro — próxima sesión + 3 puertas | ✅ | 2026-06-08 |
+| P31 (D9) | Home Aurora+ — anillo SVG, glass card, bento tiles | ✅ | 2026-06-08 |
+| P32 (A2) | Sesión libre — selector de ejercicios, reducer virtual, historial tipo libre | ✅ | 2026-06-08 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-08] A2 — Sesión libre (funcional)
+- **`src/types/models.ts`** — `Historial.idRutina` pasa a opcional (`idRutina?: string`); nuevo campo `tipo?: "rutina" | "libre"` (retrocompatible: ausente = "rutina").
+- **`src/lib/entrenarState.ts`** — dos nuevas funciones exportadas:
+  - `buildBloqueLibre(ej, orden)`: crea un `BloqueEjercicio` con prescripción por defecto según modalidad (Fuerza → 3×10 con `descansoSugeridoSeg`; Cardio → continuo 20 min; Movilidad/Isométrico con rondas/series por defecto).
+  - `buildVirtualRutina(bloques)`: crea una `Rutina` en memoria para que el reducer y `useEntrenarState` funcionen sin cambios.
+- **`src/data/historial.ts`** — `FinalizarSesionOpts.rutinaId` pasa a opcional; agrega `tipo` y `nombreLibre`. En modo libre, omite la lectura de `/rutinas` y no intenta actualizar `vecesEntrenada` (ya no lo hacíamos por ADR #014). El doc en Firestore solo tiene `tipo: "libre"` y sin campo `idRutina`.
+- **`src/routes/EntrenarSesionLibre.tsx`** (nuevo) — ruta fullscreen `/entrenar/libre` con dos fases:
+  - Fase 1 (selector): lista de ejercicios seleccionados + botón "Agregar ejercicio" (reusa `ExercisePicker`) + "Empezar sesión".
+  - Fase 2 (workout): misma UI que `EntrenarSesion` (BloqueGuiado/BloqueScroll, DescansoTimer, log rápido, RPE, finalización). Usa `useEntrenarState("libre:temp", virtualRutina)`.
+- **`src/App.tsx`** — ruta `/entrenar/libre` agregada antes de `/entrenar/:rutinaId` (React Router necesita la específica primero).
+- **`src/routes/Entrenar.tsx`** — Puerta 3 activada: clickeable → `/entrenar/libre`.
+- **`src/routes/Historial.tsx`** — badge `badge-muted` "Libre" para entradas con `tipo === "libre"`.
+- **`src/lib/entrenarState.test.ts`** — 5 tests nuevos: `buildBloqueLibre` (Fuerza y Movilidad), `buildVirtualRutina` (conserva bloques y reduce correctamente), `construirBloquesRegistro` con rutina virtual.
+
+#### ADR — `Historial.idRutina` opcional + `tipo` sin retrocompatibilidad disruptiva
+- **Decisión:** `idRutina` se vuelve opcional en el tipo TypeScript (ya era `string` requerido). Los documentos existentes no se tocan; en la lectura, `h.idRutina` puede ser `undefined` para sesiones libres. El campo `tipo` solo se escribe para sesiones libres para no inflar los documentos existentes.
+- **Razón:** Firestore no valida esquemas; no hay migrations. Cambiar el tipo en TS a opcional sin tocar docs existentes es la forma más segura de extender el modelo.
+
+---
 
 ### [2026-06-08] D9 — Home "Aurora+" (rediseño premium)
 - **`src/styles/tokens.css`** — `--ring-from: var(--accent)` y `--ring-to: color-mix(in oklch, var(--accent), #ffffff 32%)`: gradiente del anillo que sigue al tema sin hardcodear 8 pares.

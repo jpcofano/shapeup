@@ -35,15 +35,17 @@ function lunesDe(fecha: string): string {
 // ── Escritura con transacción ─────────────────────────────────────────────────
 
 export interface FinalizarSesionOpts {
-  rutinaId:    string;
-  miembro:     MiembroId;
-  bloques:     BloqueRegistro[];
-  rpe:         number | null;
-  duracionMin: number | null;
-  notas?:      string;
+  rutinaId?:    string;          // ausente en sesiones libres
+  tipo?:        "rutina" | "libre";
+  nombreLibre?: string;          // título de la sesión libre
+  miembro:      MiembroId;
+  bloques:      BloqueRegistro[];
+  rpe:          number | null;
+  duracionMin:  number | null;
+  notas?:       string;
   /** idSesion real (de crearSesion). Si se provee, la sesión pasa a "Registrada" en la misma tx. */
-  idSesion?:   string;
-  programaId?: string;
+  idSesion?:    string;
+  programaId?:  string;
 }
 
 /**
@@ -59,7 +61,7 @@ export interface FinalizarSesionOpts {
 export async function finalizarSesion(
   opts: FinalizarSesionOpts,
 ): Promise<Result<string>> {
-  const { rutinaId, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId } = opts;
+  const { rutinaId, tipo, nombreLibre, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId } = opts;
   const fecha   = hoy();
   const semana  = lunesDe(fecha);
   const idHist  = `H-${fecha.replace(/-/g, "")}-${Date.now()}`;
@@ -68,11 +70,17 @@ export async function finalizarSesion(
 
   try {
     await runTransaction(db, async (tx) => {
-      // Leer rutina para obtener el nombre (solo lectura; la tx puede leer colecciones compartidas)
-      const rutinaSnap = await tx.get(doc(db, "rutinas", rutinaId));
-      const nombreRutina = rutinaSnap.exists()
-        ? (rutinaSnap.data() as { nombre: string }).nombre
-        : rutinaId;
+      // Para sesiones de rutina, leer el nombre desde Firestore.
+      // Para sesiones libres, usar nombreLibre (no hay Rutina en /rutinas).
+      let nombreRutina: string;
+      if (rutinaId) {
+        const rutinaSnap = await tx.get(doc(db, "rutinas", rutinaId));
+        nombreRutina = rutinaSnap.exists()
+          ? (rutinaSnap.data() as { nombre: string }).nombre
+          : rutinaId;
+      } else {
+        nombreRutina = nombreLibre ?? "Sesión libre";
+      }
 
       const tonelaje    = tonelajeKg({ bloques });
       const seriesHechas = totalSeriesHechas({ bloques });
@@ -83,8 +91,9 @@ export async function finalizarSesion(
         fechaRealizada:          fecha,
         fechaRealizadaTimestamp: serverTimestamp(),
         idSesion:                sesionId,
-        idRutina:                rutinaId,
+        ...(rutinaId ? { idRutina: rutinaId } : {}),
         nombreRutina,
+        ...(tipo === "libre" ? { tipo: "libre" as const } : {}),
         idPrograma:              programaId,
         semanaInicio:            semana,
         miembro,

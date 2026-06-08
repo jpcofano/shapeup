@@ -17,7 +17,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import type {
-  Rutina, BloqueEjercicio, Prescripcion, SerieRegistro, Modalidad,
+  Rutina, BloqueEjercicio, Prescripcion, SerieRegistro, Modalidad, Ejercicio,
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
 export { seriesObjetivo } from "./metricas";
@@ -305,6 +305,68 @@ export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina) {
         serie: i + 1, completada: true,
       })),
   }));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Sesión libre — construcción de bloques y rutina virtual
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Prescripción por defecto para un ejercicio ad-hoc en sesión libre. */
+export function buildBloqueLibre(ej: Ejercicio, orden: number): BloqueEjercicio {
+  let prescripcion: Prescripcion;
+  switch (ej.modalidad) {
+    case "Cardio":
+      prescripcion = { modalidad: "Cardio", formato: "Continuo", duracionMin: 20 };
+      break;
+    case "Movilidad":
+      prescripcion = {
+        modalidad: "Movilidad", rondas: 3, porLado: false,
+        descansoSeg: ej.descansoSugeridoSeg || 30,
+      };
+      break;
+    case "Isométrico":
+      prescripcion = {
+        modalidad: "Isométrico", series: 3, duracionHoldSeg: 30, porLado: false,
+        descansoSeg: ej.descansoSugeridoSeg || 60,
+      };
+      break;
+    default: // Fuerza
+      prescripcion = {
+        modalidad: "Fuerza", series: 3,
+        repsObjetivo: { value: 10, raw: "10" },
+        descansoSeg: ej.descansoSugeridoSeg || 90,
+      };
+  }
+  return {
+    orden,
+    idEjercicio:     ej.idEjercicio,
+    nombreEjercicio: ej.nombre,
+    modalidad:       ej.modalidad,
+    prescripcion,
+  };
+}
+
+/**
+ * Crea una Rutina virtual (solo en memoria, sin Firestore) a partir de
+ * BloqueEjercicio[] ad-hoc. Permite reusar el reducer y useEntrenarState
+ * sin modificación para la sesión libre.
+ */
+export function buildVirtualRutina(bloques: BloqueEjercicio[]): Rutina {
+  return {
+    idRutina: "libre",
+    nombre: "Sesión libre",
+    nombreCanonico: "sesion libre",
+    foco: "Cuerpo completo",
+    objetivo: "General / salud",
+    nivel: "Principiante",
+    nivelOrden: 1,
+    lugar: "Casa",
+    equipoNecesario: [],
+    duracionEstimadaMin: null,
+    totalSeries: null,
+    bloques,
+    vecesEntrenada: 0,
+  };
 }
 
 // Re-export para que el componente no tenga que conocer la forma del bloque.

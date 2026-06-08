@@ -163,7 +163,8 @@ export function Entrenar() {
           </div>
           <div
             className="card"
-            style={{ display: "flex", alignItems: "center", gap: 14, opacity: 0.5, cursor: "not-allowed" }}
+            style={{ display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
+            onClick={() => navigate("/entrenar/libre")}
           >
             <span style={{
               width: 38, height: 38, borderRadius: "50%", background: "var(--card-hover)",
@@ -173,7 +174,7 @@ export function Entrenar() {
             </span>
             <div>
               <p style={{ margin: 0, fontWeight: 600 }}>Elegir ejercicios sueltos</p>
-              <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>Próximamente (A2)</p>
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>Armá tu sesión desde el catálogo</p>
             </div>
           </div>
         </section>

@@ -448,8 +448,9 @@ export interface Historial {
   fechaRealizadaTimestamp: FirestoreTimestamp;
 
   idSesion: string;
-  idRutina: string;
+  idRutina?: string;            // ausente en sesiones libres
   nombreRutina: string;
+  tipo?: "rutina" | "libre";   // "rutina" por defecto (retrocompat)
   idPrograma?: string;
   semanaInicio: string;
   miembro: MiembroId;
