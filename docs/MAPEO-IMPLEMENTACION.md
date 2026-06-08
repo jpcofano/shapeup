@@ -41,10 +41,30 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P28 (A1) | "Empezar" claro — próxima sesión + 3 puertas | ✅ | 2026-06-08 |
 | P31 (D9) | Home Aurora+ — anillo SVG, glass card, bento tiles | ✅ | 2026-06-08 |
 | P32 (A2) | Sesión libre — selector de ejercicios, reducer virtual, historial tipo libre | ✅ | 2026-06-08 |
+| P33 (B1) | Explicaciones ricas — FichaTecnica (chips) en Catálogo + contexto compacto en BloqueGuiado | ✅ | 2026-06-08 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-08] B1 — Explicaciones ricas de ejercicio
+
+**MAPEO de campos FEDB surfaceados:**
+| Campo modelo | Tipo | Traducción | Surfaceado |
+|---|---|---|---|
+| `grupoMuscularPrimario` | `GrupoMuscular` | Ya en castellano (via `FEDB_MUSCULO` en importador) | ✅ chip `badge-accent` en FichaTecnica |
+| `gruposSecundarios` | `GrupoMuscular[]` | Ya en castellano (via `FEDB_MUSCULO`) | ✅ chips `badge-muted` en FichaTecnica |
+| `nivel` | `Nivel` | Ya en castellano (via `FEDB_NIVEL`: beginner→Principiante…) | ✅ chip en FichaTecnica |
+| `mecanica` | `Mecanica?` | Ya en castellano ("Compuesto"/"Aislamiento") | ✅ chip en FichaTecnica (solo si existe) |
+| `patron` | `PatronMovimiento` | Propio del modelo (en castellano) | ✅ chip en FichaTecnica |
+| `equipo` | `Equipo[]` | Ya en castellano (via `FEDB_EQUIPO`) | ✅ chips en FichaTecnica |
+| `modalidad` | `Modalidad` | En castellano | En cabecera de la card (ya estaba) |
+| `fuerzaFEDB` | `FuerzaFEDB?` | No surfaceada (metadato de interop) | — |
+
+**Nota de traducción:** Los campos FEDB ya están traducidos al castellano durante la importación (`scripts/importar-fedb.ts` via `FEDB_MUSCULO`, `FEDB_NIVEL`, `FEDB_EQUIPO`). `scripts/data/traducciones-fedb.es.json` cubre los textos de técnica (instrucciones, puntos clave), no los chips. No se necesitó sistema de i18n nuevo.
+
+- **`src/routes/Catalogo.tsx`** — nuevo componente interno `FichaTecnica({ ej })`: filas etiquetadas (Primario / Secundarios / Nivel / Mecánica / Patrón / Equipo) con chips `badge-accent`/`badge-muted`. Filas con campo vacío se omiten elegantemente. Reemplaza el texto plano de `gruposSecundarios` que había al pie del detalle. Orden del detalle: imagen → FichaTecnica → botón Editar → Ejecución → banners (Puntos clave / Errores / Seguridad).
+- **`src/components/entrenar/BloqueGuiado.tsx`** — línea compacta muted bajo el nombre grande: `"Pecho · Mancuernas"` (músculo primario + primer ítem de equipo). Solo si `ejercicio` está disponible. Discreta, sin recargar la pantalla de entreno.
 
 ### [2026-06-08] A2 — Sesión libre (funcional)
 - **`src/types/models.ts`** — `Historial.idRutina` pasa a opcional (`idRutina?: string`); nuevo campo `tipo?: "rutina" | "libre"` (retrocompatible: ausente = "rutina").

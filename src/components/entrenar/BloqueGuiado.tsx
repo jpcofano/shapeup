@@ -38,6 +38,13 @@ export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio
       {/* Nombre */}
       <h2 className="bloque-nombre-grande">{bloque.nombreEjercicio}</h2>
 
+      {/* Contexto compacto: músculo primario + primer equipo */}
+      {ejercicio && (
+        <p style={{ margin: 0, fontSize: 12, color: "var(--muted)", lineHeight: 1.4 }}>
+          {[ejercicio.grupoMuscularPrimario, ejercicio.equipo[0]].filter(Boolean).join(" · ")}
+        </p>
+      )}
+
       {/* Foto del ejercicio (si existe) */}
       {ejercicio?.imagenes && ejercicio.imagenes.length > 0 && (
         <img

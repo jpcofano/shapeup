@@ -11,6 +11,38 @@ import { getEjercicios } from "../data/ejercicios";
 import { filtrarEjercicios } from "../lib/filtros";
 import { useAuth } from "../auth/useAuth";
 
+// ── Ficha técnica (chips) ────────────────────────────────────────────────────
+
+function FichaTecnica({ ej }: { ej: Ejercicio }) {
+  type FichaRow = { label: string; chips: string[]; accent?: boolean };
+  const rows: FichaRow[] = [
+    { label: "Primario",    chips: [ej.grupoMuscularPrimario], accent: true },
+    ...(ej.gruposSecundarios.length > 0 ? [{ label: "Secundarios", chips: ej.gruposSecundarios }] : []),
+    { label: "Nivel",       chips: [ej.nivel] },
+    ...(ej.mecanica         ? [{ label: "Mecánica",    chips: [ej.mecanica] }]   : []),
+    { label: "Patrón",      chips: [ej.patron] },
+    ...(ej.equipo.length > 0 ? [{ label: "Equipo",    chips: ej.equipo }]        : []),
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 10 }}>
+      <p className="section-title" style={{ marginBottom: 2 }}>Ficha técnica</p>
+      {rows.map(({ label, chips, accent }) => (
+        <div key={label} style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+          <span style={{ fontSize: 11, color: "var(--muted)", width: 78, flexShrink: 0, paddingTop: 2 }}>
+            {label}
+          </span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {chips.map((chip) => (
+              <span key={chip} className={`badge ${accent ? "badge-accent" : "badge-muted"}`}>{chip}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Detalle inline de un ejercicio ───────────────────────────────────────────
 
 function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
@@ -49,7 +81,7 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
       {/* Detalle expandible */}
       {abierto && (
         <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 10 }}>
-          {/* Foto del ejercicio */}
+          {/* Imagen */}
           {ej.imagenes && ej.imagenes.length > 0 && (
             <img
               src={ej.imagenes[0]}
@@ -59,10 +91,14 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           )}
+
+          {/* Ficha técnica */}
+          <FichaTecnica ej={ej} />
+
           {onEdit && (
             <button
               className="btn-secondary"
-              style={{ marginTop: 12, width: "100%" }}
+              style={{ marginTop: 4, width: "100%" }}
               onClick={onEdit}
             >
               Editar ejercicio
@@ -70,7 +106,7 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
           )}
 
           {ej.instrucciones.length > 0 && (
-            <section style={{ marginTop: onEdit ? 0 : 12 }}>
+            <section>
               <p className="section-title" style={{ marginBottom: 6 }}>Ejecución</p>
               <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
                 {ej.instrucciones.map((inst, i) => (
@@ -111,12 +147,6 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
                 ))}
               </ul>
             </div>
-          )}
-
-          {ej.gruposSecundarios.length > 0 && (
-            <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
-              Secundarios: {ej.gruposSecundarios.join(", ")}
-            </p>
           )}
         </div>
       )}
