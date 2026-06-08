@@ -43,6 +43,26 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 ## 2. Bitácora
 
+### [2026-06-07] P27 — Imágenes de ejercicios
+- **`src/routes/Catalogo.tsx`** — EjercicioCard muestra `ej.imagenes[0]` arriba del detalle expandido (`loading="lazy"`, `onError` oculta la imagen si falla, `objectFit: cover`, max 180px).
+- **`src/components/entrenar/BloqueGuiado.tsx`** — foto del ejercicio actual debajo del nombre grande (`ejercicio?.imagenes[0]`, mismo tratamiento).
+- **`scripts/seed-plan.ts`** — `EjDef.imagenes?: string[]` + helper `imgs(fedbId?)`. Mapeo EJ-8001..8018 → FEDB (sin foto para EJ-8005 Press banda, EJ-8017 Bird dog, EJ-8018 Pallof — sin equivalente).
+- **`scripts/seed-planes-extra.ts`** — misma infraestructura; EJ-8019 → `One-Arm_Side_Laterals`, EJ-8021 → `Face_Pull`, resto sin foto (movilidad sin equivalente en FEDB).
+- **`scripts/seed-rugby-juvenil.ts`** — infraestructura imagenes; EJ-8028/8029 sin foto (Nordic/Copenhagen no en FEDB).
+- **`scripts/seed-futbol-juvenil.ts`** — EJ-8031 → `Freehand_Jump_Squat`, EJ-8032 → `Romanian_Deadlift`. EJ-8030 sin foto.
+- **`scripts/seed-maria.ts`** — EJ-8033 → `Barbell_Hip_Thrust`, EJ-8034 → `Glute_Kickback`.
+- Seeds sembrados `--force` en Firestore (todos los EJ-80xx actualizados con `imagenes`).
+
+#### ADR — Imágenes FEDB dominio público vía URL raw de GitHub
+- **Decisión:** las imágenes se sirven como URLs absolutas de `raw.githubusercontent.com` en runtime, sin espejo local.
+- **Razón:** FEDB es Unlicense (dominio público); el volumen (~800 ejercicios × 2 fotos) es manejable sin CDN; espejar a Firebase Storage queda como opción futura si la latencia o disponibilidad se convierte en problema.
+
+#### ADR — Mapeo propio→FEDB por nombre/patrón, sin foto si no hay match bueno
+- **Decisión:** sin equivalente claro → `imagenes: []`; la UI degrada elegante (no muestra `<img>` roto).
+- **Razón:** una foto incorrecta confunde más que ninguna foto.
+
+---
+
 ### [2026-06-07] P26 — Carga + reps en rutinas de casa
 - **`scripts/seed-plan.ts`** — helper `F` acepta `cargaKg?: number` en `extra` y lo propaga a `PrescripcionFuerza.cargaKg`. Cargas iniciales en RUT-0001 (goblet 12 kg, remo 10 kg, curl 8 kg), RUT-0002 (zancada 8 kg, RDL 14 kg), RUT-0003 (swings 10 kg, goblet 12 kg). Sin `cargaKg` para peso corporal, banda y cardio.
 - **`scripts/seed-maria.ts`** — mismo cambio en el helper `F`. Cargas para María: hip thrust 8 kg, goblet 8 kg, RDL 8 kg (RUT-0021); puente 8 kg, zancada 6 kg, remo 6 kg (RUT-0022). Banda/PC sin `cargaKg`.

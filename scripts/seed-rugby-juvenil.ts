@@ -34,9 +34,13 @@ function rango(raw: string) {
 }
 
 // ── Ejercicios nuevos de prevención ───────────────────────────────────────────
+const IMG_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+const imgs = (id?: string): string[] => id ? [`${IMG_BASE}${id}/0.jpg`, `${IMG_BASE}${id}/1.jpg`] : [];
+
 type EjDef = { id: string; nombre: string; modalidad: string; patron: string; primario: string;
   secundarios: string[]; equipo: string[]; nivel: string; unilateral?: boolean; descanso: number;
-  instrucciones: string[]; puntosClave: string[]; erroresComunes: string[]; consejosSeguridad?: string[] };
+  instrucciones: string[]; puntosClave: string[]; erroresComunes: string[]; consejosSeguridad?: string[];
+  imagenes?: string[] };
 
 const EJ: EjDef[] = [
   { id: "EJ-8028", nombre: "Curl nórdico (asistido)", modalidad: "Fuerza", patron: "Dominante de cadera",
@@ -66,7 +70,8 @@ function ejercicioDoc(e: EjDef): Record<string, unknown> {
     grupoMuscularPrimario: e.primario, gruposSecundarios: e.secundarios, equipo: e.equipo,
     unilateral: e.unilateral ?? false, nivel: e.nivel, instrucciones: e.instrucciones, puntosClave: e.puntosClave,
     erroresComunes: e.erroresComunes, ...(e.consejosSeguridad ? { consejosSeguridad: e.consejosSeguridad } : {}),
-    descansoSugeridoSeg: e.descanso, sinonimos: [], fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
+    descansoSugeridoSeg: e.descanso, sinonimos: [], imagenes: e.imagenes ?? [],
+    fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
 }

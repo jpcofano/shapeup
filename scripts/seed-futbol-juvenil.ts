@@ -36,9 +36,13 @@ function rango(raw: string) {
 }
 
 // ── Ejercicios nuevos ─────────────────────────────────────────────────────────
+const IMG_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+const imgs = (id?: string): string[] => id ? [`${IMG_BASE}${id}/0.jpg`, `${IMG_BASE}${id}/1.jpg`] : [];
+
 type EjDef = { id: string; nombre: string; modalidad: string; patron: string; primario: string;
   secundarios: string[]; equipo: string[]; nivel: string; unilateral?: boolean; descanso: number;
-  instrucciones: string[]; puntosClave: string[]; erroresComunes: string[]; consejosSeguridad?: string[] };
+  instrucciones: string[]; puntosClave: string[]; erroresComunes: string[]; consejosSeguridad?: string[];
+  imagenes?: string[] };
 
 const EJ: EjDef[] = [
   { id: "EJ-8030", nombre: "Caminata lateral con banda", modalidad: "Fuerza", patron: "Aislamiento",
@@ -50,7 +54,7 @@ const EJ: EjDef[] = [
       "Las rodillas SIEMPRE apuntando hacia las puntas de los pies."],
     erroresComunes: ["Dejar que las rodillas se vayan hacia adentro.", "Pararte derecho y perder la tensión."] },
 
-  { id: "EJ-8031", nombre: "Salto con aterrizaje controlado", modalidad: "Fuerza", patron: "Dominante de rodilla",
+  { id: "EJ-8031", nombre: "Salto con aterrizaje controlado", modalidad: "Fuerza", imagenes: imgs("Freehand_Jump_Squat"), patron: "Dominante de rodilla",
     primario: "Cuádriceps", secundarios: ["Glúteos", "Isquios"], equipo: ["Peso corporal"], nivel: "Intermedio", descanso: 60,
     instrucciones: ["Saltá hacia arriba y, sobre todo, ATERRIZÁ suave.",
       "Amortiguá flexionando cadera y rodillas, rodillas alineadas con las puntas de los pies.",
@@ -60,7 +64,7 @@ const EJ: EjDef[] = [
     erroresComunes: ["Aterrizar con las rodillas hacia adentro (valgo).", "Caer rígido y duro."],
     consejosSeguridad: ["Pocas reps y sin fatiga (3×5).", "Pará si duele la rodilla; no es un ejercicio de cansarse."] },
 
-  { id: "EJ-8032", nombre: "Peso muerto rumano a una pierna", modalidad: "Fuerza", patron: "Dominante de cadera",
+  { id: "EJ-8032", nombre: "Peso muerto rumano a una pierna", modalidad: "Fuerza", imagenes: imgs("Romanian_Deadlift"), patron: "Dominante de cadera",
     primario: "Isquios", secundarios: ["Glúteos", "Core"], equipo: ["Mancuernas", "Peso corporal"], nivel: "Intermedio", unilateral: true, descanso: 60,
     instrucciones: ["Parada en una pierna, bajá el torso llevando la cadera atrás y la otra pierna hacia atrás.",
       "Espalda recta; sentí el estiramiento atrás del muslo.", "Volvé apretando el glúteo. Apoyate en algo al inicio para el equilibrio."],
@@ -74,7 +78,8 @@ function ejercicioDoc(e: EjDef): Record<string, unknown> {
     grupoMuscularPrimario: e.primario, gruposSecundarios: e.secundarios, equipo: e.equipo,
     unilateral: e.unilateral ?? false, nivel: e.nivel, instrucciones: e.instrucciones, puntosClave: e.puntosClave,
     erroresComunes: e.erroresComunes, ...(e.consejosSeguridad ? { consejosSeguridad: e.consejosSeguridad } : {}),
-    descansoSugeridoSeg: e.descanso, sinonimos: [], fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
+    descansoSugeridoSeg: e.descanso, sinonimos: [], imagenes: e.imagenes ?? [],
+    fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
 }

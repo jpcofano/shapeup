@@ -29,6 +29,10 @@ const db = getFirestore();
 
 const canon = (s: string): string =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+
+const IMG_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+const imgs = (id?: string): string[] =>
+  id ? [`${IMG_BASE}${id}/0.jpg`, `${IMG_BASE}${id}/1.jpg`] : [];
 function rango(raw: string) {
   const m = raw.match(/^(\d+)\s*[-–]\s*(\d+)$/);
   if (m) return { value: +m[1], min: +m[1], max: +m[2], raw };
@@ -43,10 +47,11 @@ type EjDef = {
   patron: string; primario: string; secundarios: string[]; equipo: string[];
   nivel: "Principiante" | "Intermedio" | "Avanzado"; unilateral?: boolean; descanso: number;
   instrucciones: string[]; puntosClave: string[]; erroresComunes: string[];
+  imagenes?: string[];
 };
 
 const EJ: EjDef[] = [
-  { id: "EJ-8019", nombre: "Elevaciones laterales", modalidad: "Fuerza", patron: "Aislamiento",
+  { id: "EJ-8019", nombre: "Elevaciones laterales", modalidad: "Fuerza", imagenes: imgs("One-Arm_Side_Laterals"), patron: "Aislamiento",
     primario: "Hombros", secundarios: [], equipo: ["Mancuernas", "Banda elástica"], nivel: "Principiante", descanso: 45,
     instrucciones: ["Brazos a los costados, codos apenas flexionados.", "Subí hasta la altura de los hombros y bajá lento."],
     puntosClave: ["Liderá con los codos, no con las manos."], erroresComunes: ["Usar impulso y subir por encima del hombro."] },
@@ -55,7 +60,7 @@ const EJ: EjDef[] = [
     nivel: "Intermedio", unilateral: true, descanso: 75,
     instrucciones: ["Pie de atrás apoyado en un banco/silla.", "Bajá la rodilla de atrás hacia el piso, torso erguido.", "Subí empujando con la pierna de adelante."],
     puntosClave: ["El peso en el talón de adelante."], erroresComunes: ["Inclinarte demasiado al frente."] },
-  { id: "EJ-8021", nombre: "Face pull con banda", modalidad: "Fuerza", patron: "Tracción horizontal",
+  { id: "EJ-8021", nombre: "Face pull con banda", modalidad: "Fuerza", imagenes: imgs("Face_Pull"), patron: "Tracción horizontal",
     primario: "Espalda media", secundarios: ["Hombros", "Trapecios"], equipo: ["Banda elástica"], nivel: "Principiante", descanso: 45,
     instrucciones: ["Banda anclada al frente a la altura de la cara.", "Tirá hacia la frente separando las manos, codos altos.", "Apretá la espalda alta."],
     puntosClave: ["Salud de hombros: ideal para contrarrestar tanto empuje."], erroresComunes: ["Bajar los codos y convertirlo en remo."] },
@@ -91,7 +96,8 @@ function ejercicioDoc(e: EjDef): Record<string, unknown> {
     modalidad: e.modalidad, patron: e.patron, grupoMuscularPrimario: e.primario,
     gruposSecundarios: e.secundarios, equipo: e.equipo, unilateral: e.unilateral ?? false, nivel: e.nivel,
     instrucciones: e.instrucciones, puntosClave: e.puntosClave, erroresComunes: e.erroresComunes,
-    descansoSugeridoSeg: e.descanso, sinonimos: [], fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
+    descansoSugeridoSeg: e.descanso, sinonimos: [], imagenes: e.imagenes ?? [],
+    fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
 }

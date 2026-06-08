@@ -38,6 +38,17 @@ export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio
       {/* Nombre */}
       <h2 className="bloque-nombre-grande">{bloque.nombreEjercicio}</h2>
 
+      {/* Foto del ejercicio (si existe) */}
+      {ejercicio?.imagenes && ejercicio.imagenes.length > 0 && (
+        <img
+          src={ejercicio.imagenes[0]}
+          alt={bloque.nombreEjercicio}
+          loading="lazy"
+          style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 10, display: "block" }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+        />
+      )}
+
       {/* Dots y serie actual */}
       <ProgressDots
         total={totalSeries}

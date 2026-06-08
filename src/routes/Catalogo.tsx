@@ -49,6 +49,16 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
       {/* Detalle expandible */}
       {abierto && (
         <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 10 }}>
+          {/* Foto del ejercicio */}
+          {ej.imagenes && ej.imagenes.length > 0 && (
+            <img
+              src={ej.imagenes[0]}
+              alt={ej.nombre}
+              loading="lazy"
+              style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 8, marginTop: 10, display: "block" }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          )}
           {onEdit && (
             <button
               className="btn-secondary"

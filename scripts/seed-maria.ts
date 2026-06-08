@@ -38,12 +38,15 @@ function rango(raw: string) {
 }
 
 // ── Ejercicios nuevos (glúteo) ────────────────────────────────────────────────
+const IMG_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+const imgs = (id?: string): string[] => id ? [`${IMG_BASE}${id}/0.jpg`, `${IMG_BASE}${id}/1.jpg`] : [];
+
 type EjDef = { id: string; nombre: string; modalidad: string; patron: string; primario: string;
   secundarios: string[]; equipo: string[]; nivel: string; unilateral?: boolean; descanso: number;
-  instrucciones: string[]; puntosClave: string[]; erroresComunes: string[] };
+  instrucciones: string[]; puntosClave: string[]; erroresComunes: string[]; imagenes?: string[] };
 
 const EJ: EjDef[] = [
-  { id: "EJ-8033", nombre: "Empuje de cadera (hip thrust)", modalidad: "Fuerza", patron: "Dominante de cadera",
+  { id: "EJ-8033", nombre: "Empuje de cadera (hip thrust)", modalidad: "Fuerza", imagenes: imgs("Barbell_Hip_Thrust"), patron: "Dominante de cadera",
     primario: "Glúteos", secundarios: ["Isquios", "Core"], equipo: ["Banco", "Mancuernas", "Peso corporal"], nivel: "Principiante", descanso: 75,
     instrucciones: ["Apoyá la espalda alta en el borde de un banco/sofá firme, pies bien plantados.",
       "Subí la cadera hasta alinear tronco y muslos, apretando fuerte los glúteos arriba.",
@@ -51,7 +54,7 @@ const EJ: EjDef[] = [
     puntosClave: ["El mejor ejercicio para construir y 'levantar' el glúteo.", "Buscá la pausa y el apretón arriba, no la altura."],
     erroresComunes: ["Arquear la espalda baja en vez de empujar con glúteos.", "No llegar a la extensión completa de cadera."] },
 
-  { id: "EJ-8034", nombre: "Patada de glúteo (cuadrupedia)", modalidad: "Fuerza", patron: "Dominante de cadera",
+  { id: "EJ-8034", nombre: "Patada de glúteo (cuadrupedia)", modalidad: "Fuerza", imagenes: imgs("Glute_Kickback"), patron: "Dominante de cadera",
     primario: "Glúteos", secundarios: ["Isquios"], equipo: ["Banda elástica", "Peso corporal"], nivel: "Principiante", unilateral: true, descanso: 45,
     instrucciones: ["En cuatro patas (sumá una banda para más tensión).",
       "Llevá un talón hacia el techo manteniendo la rodilla a 90°, apretando el glúteo arriba.",
@@ -65,7 +68,8 @@ function ejercicioDoc(e: EjDef): Record<string, unknown> {
     idEjercicio: e.id, nombre: e.nombre, nombreCanonico: canon(e.nombre), modalidad: e.modalidad, patron: e.patron,
     grupoMuscularPrimario: e.primario, gruposSecundarios: e.secundarios, equipo: e.equipo,
     unilateral: e.unilateral ?? false, nivel: e.nivel, instrucciones: e.instrucciones, puntosClave: e.puntosClave,
-    erroresComunes: e.erroresComunes, descansoSugeridoSeg: e.descanso, sinonimos: [], fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
+    erroresComunes: e.erroresComunes, descansoSugeridoSeg: e.descanso, sinonimos: [],
+    imagenes: e.imagenes ?? [], fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
 }

@@ -40,6 +40,11 @@ const db = getFirestore();
 const canon = (s: string): string =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
 
+const IMG_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+/** Genera las 2 URLs de imagen de un ejercicio FEDB. Sin arg \u2192 sin foto. */
+const imgs = (id?: string): string[] =>
+  id ? [`${IMG_BASE}${id}/0.jpg`, `${IMG_BASE}${id}/1.jpg`] : [];
+
 // Construye un RangoNumerico desde un "raw" tipo "10-12", "12", "5-8", "máx".
 function rango(raw: string): { value: number; min?: number; max?: number; raw: string } {
   const m = raw.match(/^(\d+)\s*[-–]\s*(\d+)$/);
@@ -59,10 +64,11 @@ type EjDef = {
   equipo: string[]; nivel: "Principiante" | "Intermedio" | "Avanzado";
   unilateral?: boolean; descanso: number;
   instrucciones: string[]; puntosClave: string[]; erroresComunes: string[];
+  imagenes?: string[];
 };
 
 const EJ: EjDef[] = [
-  { id: "EJ-8001", nombre: "Sentadilla goblet", modalidad: "Fuerza",
+  { id: "EJ-8001", nombre: "Sentadilla goblet", modalidad: "Fuerza", imagenes: imgs("Goblet_Squat"),
     patron: "Dominante de rodilla", primario: "Cuádriceps", secundarios: ["Glúteos", "Core"],
     equipo: ["Mancuernas", "Kettlebell"], nivel: "Principiante", descanso: 75,
     instrucciones: ["Sostené la pesa pegada al pecho con ambas manos, como una copa.",
@@ -72,7 +78,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Bajada controlada de 2–3 s.", "Apoyá todo el pie, talones en el piso."],
     erroresComunes: ["Rodillas que se van hacia adentro.", "Levantar los talones."] },
 
-  { id: "EJ-8002", nombre: "Flexiones de brazos", modalidad: "Fuerza",
+  { id: "EJ-8002", nombre: "Flexiones de brazos", modalidad: "Fuerza", imagenes: imgs("Pushups"),
     patron: "Empuje horizontal", primario: "Pecho", secundarios: ["Hombros", "Tríceps", "Core"],
     equipo: ["Peso corporal"], nivel: "Principiante", descanso: 60,
     instrucciones: ["Manos un poco más anchas que los hombros.",
@@ -82,7 +88,7 @@ const EJ: EjDef[] = [
       "Empezá donde hagas 8–12 con buena técnica."],
     erroresComunes: ["Cadera caída o en pico.", "Codos abiertos en T."] },
 
-  { id: "EJ-8003", nombre: "Dominadas asistidas / negativas", modalidad: "Fuerza",
+  { id: "EJ-8003", nombre: "Dominadas asistidas / negativas", modalidad: "Fuerza", imagenes: imgs("Band_Assisted_Pull-Up"),
     patron: "Tracción vertical", primario: "Dorsales", secundarios: ["Bíceps", "Espalda media"],
     equipo: ["Barra de dominadas", "Banda elástica"], nivel: "Intermedio", descanso: 90,
     instrucciones: ["Asistida: con banda en la barra y el pie apoyado, ayudate a subir.",
@@ -91,7 +97,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Las negativas lentas construyen la fuerza para la dominada completa."],
     erroresComunes: ["Subir con tirón y soltar de golpe en la bajada."] },
 
-  { id: "EJ-8004", nombre: "Remo a una mano con mancuerna", modalidad: "Fuerza",
+  { id: "EJ-8004", nombre: "Remo a una mano con mancuerna", modalidad: "Fuerza", imagenes: imgs("One-Arm_Dumbbell_Row"),
     patron: "Tracción horizontal", primario: "Espalda media", secundarios: ["Dorsales", "Bíceps"],
     equipo: ["Mancuernas", "Banco"], nivel: "Principiante", unilateral: true, descanso: 60,
     instrucciones: ["Apoyá una mano y rodilla en un banco/silla, espalda paralela al piso.",
@@ -109,14 +115,14 @@ const EJ: EjDef[] = [
     puntosClave: ["Si preferís, reemplazá por otra serie de flexiones."],
     erroresComunes: ["Soltar la banda de golpe en la vuelta."] },
 
-  { id: "EJ-8006", nombre: "Curl de bíceps", modalidad: "Fuerza",
+  { id: "EJ-8006", nombre: "Curl de bíceps", modalidad: "Fuerza", imagenes: imgs("Dumbbell_Bicep_Curl"),
     patron: "Aislamiento", primario: "Bíceps", secundarios: ["Antebrazos"],
     equipo: ["Mancuernas", "Banda elástica"], nivel: "Principiante", descanso: 45,
     instrucciones: ["Codos pegados al cuerpo.", "Subí controlando, sin balancear.", "Bajá lento."],
     puntosClave: ["Controlá la bajada tanto como la subida."],
     erroresComunes: ["Balancear el cuerpo para subir.", "Despegar los codos."] },
 
-  { id: "EJ-8007", nombre: "Extensión de tríceps (fondos en silla)", modalidad: "Fuerza",
+  { id: "EJ-8007", nombre: "Extensión de tríceps (fondos en silla)", modalidad: "Fuerza", imagenes: imgs("Bench_Dips"),
     patron: "Empuje vertical", primario: "Tríceps", secundarios: ["Hombros"],
     equipo: ["Peso corporal", "Banco"], nivel: "Principiante", descanso: 45,
     instrucciones: ["Sentate al borde de una silla firme, manos a los lados.",
@@ -124,7 +130,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Codos hacia atrás, no hacia los costados."],
     erroresComunes: ["Bajar demasiado y forzar el hombro."] },
 
-  { id: "EJ-8008", nombre: "Zancada hacia atrás", modalidad: "Fuerza",
+  { id: "EJ-8008", nombre: "Zancada hacia atrás", modalidad: "Fuerza", imagenes: imgs("Dumbbell_Lunges"),
     patron: "Zancada / unilateral", primario: "Cuádriceps", secundarios: ["Glúteos", "Isquios"],
     equipo: ["Peso corporal", "Mancuernas"], nivel: "Principiante", unilateral: true, descanso: 75,
     instrucciones: ["Dá un paso largo hacia atrás y bajá la rodilla de atrás hacia el piso.",
@@ -132,7 +138,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Hacé todas las reps de una pierna o alterná, como prefieras."],
     erroresComunes: ["Que la rodilla de adelante se vaya muy por delante del pie."] },
 
-  { id: "EJ-8009", nombre: "Dominadas / chin-ups", modalidad: "Fuerza",
+  { id: "EJ-8009", nombre: "Dominadas / chin-ups", modalidad: "Fuerza", imagenes: imgs("Chin-Up"),
     patron: "Tracción vertical", primario: "Dorsales", secundarios: ["Bíceps"],
     equipo: ["Barra de dominadas"], nivel: "Intermedio", descanso: 90,
     instrucciones: ["Chin-up: agarre supino (palmas hacia vos), más fácil y con más bíceps.",
@@ -140,7 +146,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Si no salen completas, usá la versión asistida (EJ-8003)."],
     erroresComunes: ["Balanceo (kipping) sin control."] },
 
-  { id: "EJ-8010", nombre: "Peso muerto rumano (RDL)", modalidad: "Fuerza",
+  { id: "EJ-8010", nombre: "Peso muerto rumano (RDL)", modalidad: "Fuerza", imagenes: imgs("Romanian_Deadlift"),
     patron: "Dominante de cadera", primario: "Isquios", secundarios: ["Glúteos", "Lumbares"],
     equipo: ["Mancuernas"], nivel: "Intermedio", descanso: 75,
     instrucciones: ["Pesas adelante de los muslos, rodillas apenas flexionadas.",
@@ -149,7 +155,7 @@ const EJ: EjDef[] = [
     puntosClave: ["La espalda recta SIEMPRE; el movimiento es de cadera, no de espalda."],
     erroresComunes: ["Redondear la espalda baja.", "Convertirlo en sentadilla."] },
 
-  { id: "EJ-8011", nombre: "Remo invertido / con banda", modalidad: "Fuerza",
+  { id: "EJ-8011", nombre: "Remo invertido / con banda", modalidad: "Fuerza", imagenes: imgs("Inverted_Row"),
     patron: "Tracción horizontal", primario: "Espalda media", secundarios: ["Dorsales", "Bíceps"],
     equipo: ["Banda elástica", "Barra de dominadas"], nivel: "Principiante", descanso: 60,
     instrucciones: ["Con banda: anclala al frente, tirá de las puntas hacia el abdomen apretando escápulas.",
@@ -158,7 +164,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Codos pegados al cuerpo, apretá la espalda al final."],
     erroresComunes: ["Tirar solo con los brazos sin juntar las escápulas."] },
 
-  { id: "EJ-8012", nombre: "Swings con pesa", modalidad: "Fuerza",
+  { id: "EJ-8012", nombre: "Swings con pesa", modalidad: "Fuerza", imagenes: imgs("One-Arm_Kettlebell_Swings"),
     patron: "Dominante de cadera", primario: "Glúteos", secundarios: ["Isquios", "Core", "Hombros"],
     equipo: ["Kettlebell", "Mancuernas"], nivel: "Intermedio", descanso: 30,
     instrucciones: ["Impulso explosivo de cadera: la pesa sube hasta la altura del pecho.",
@@ -166,7 +172,7 @@ const EJ: EjDef[] = [
     puntosClave: ["El movimiento es un 'snap' de cadera, no un levantamiento de hombros."],
     erroresComunes: ["Querer subir la pesa con los brazos.", "Redondear la espalda."] },
 
-  { id: "EJ-8013", nombre: "Mountain climbers", modalidad: "Cardio",
+  { id: "EJ-8013", nombre: "Mountain climbers", modalidad: "Cardio", imagenes: imgs("Mountain_Climbers"),
     patron: "Locomoción / cardio", primario: "Core", secundarios: ["Cardiovascular", "Hombros"],
     equipo: ["Peso corporal"], nivel: "Principiante", descanso: 20,
     instrucciones: ["En plancha alta, llevá una rodilla al pecho y alterná rápido.",
@@ -174,7 +180,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Ritmo rápido pero sin levantar la cola."],
     erroresComunes: ["Subir la cadera y perder la plancha."] },
 
-  { id: "EJ-8014", nombre: "Puente de glúteos", modalidad: "Fuerza",
+  { id: "EJ-8014", nombre: "Puente de glúteos", modalidad: "Fuerza", imagenes: imgs("Barbell_Glute_Bridge"),
     patron: "Dominante de cadera", primario: "Glúteos", secundarios: ["Isquios", "Core"],
     equipo: ["Peso corporal"], nivel: "Principiante", descanso: 45,
     instrucciones: ["Boca arriba, rodillas flexionadas, pies apoyados.",
@@ -182,7 +188,7 @@ const EJ: EjDef[] = [
     puntosClave: ["Apretá glúteos arriba; no arquees la espalda baja."],
     erroresComunes: ["Empujar con la espalda en vez de los glúteos."] },
 
-  { id: "EJ-8015", nombre: "Press de hombros", modalidad: "Fuerza",
+  { id: "EJ-8015", nombre: "Press de hombros", modalidad: "Fuerza", imagenes: imgs("Dumbbell_Shoulder_Press"),
     patron: "Empuje vertical", primario: "Hombros", secundarios: ["Tríceps"],
     equipo: ["Mancuernas"], nivel: "Principiante", descanso: 75,
     instrucciones: ["Pesas a la altura de los hombros.", "Empujá arriba hasta estirar sin trabar codos.",
@@ -190,7 +196,7 @@ const EJ: EjDef[] = [
     puntosClave: ["No arquees la espalda baja; apretá el abdomen."],
     erroresComunes: ["Empujar hacia adelante en vez de arriba."] },
 
-  { id: "EJ-8016", nombre: "Plancha lateral", modalidad: "Isométrico",
+  { id: "EJ-8016", nombre: "Plancha lateral", modalidad: "Isométrico", imagenes: imgs("Side_Bridge"),
     patron: "Core anti-rotación", primario: "Core", secundarios: ["Hombros"],
     equipo: ["Peso corporal"], nivel: "Principiante", unilateral: true, descanso: 30,
     instrucciones: ["De costado, apoyá el antebrazo bajo el hombro.",
@@ -223,6 +229,7 @@ function ejercicioDoc(e: EjDef): Record<string, unknown> {
     equipo: e.equipo, unilateral: e.unilateral ?? false, nivel: e.nivel,
     instrucciones: e.instrucciones, puntosClave: e.puntosClave, erroresComunes: e.erroresComunes,
     descansoSugeridoSeg: e.descanso, sinonimos: [],
+    imagenes: e.imagenes ?? [],
     fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
