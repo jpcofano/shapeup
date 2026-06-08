@@ -1,14 +1,13 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, AlignJustify, Zap, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { X, AlignJustify, Zap, RotateCcw, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Bicep } from "../components/Bicep";
-import type { Ejercicio, SerieRegistro } from "../types/models";
+import type { Ejercicio, SerieRegistro, PrescripcionFuerza } from "../types/models";
 import { finalizarSesion } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, seriesObjetivo,
   buildBloqueLibre, buildVirtualRutina,
-  clearEntrenarState,
 } from "../lib/entrenarState";
 import { useEntrenarState } from "../hooks/useEntrenarState";
 import { ExercisePicker } from "../components/rutina/ExercisePicker";
@@ -17,6 +16,12 @@ import { BloqueGuiado } from "../components/entrenar/BloqueGuiado";
 import { BloqueScroll } from "../components/entrenar/BloqueScroll";
 
 const SESSION_KEY = "libre:temp";
+
+type EjDefaults = { series: number; reps: number };
+
+function defaultsParaEj(ej: Ejercicio): EjDefaults {
+  return { series: 3, reps: ej.modalidad === "Fuerza" ? 10 : 10 };
+}
 
 /**
  * Sesión libre (ad-hoc): el usuario elige ejercicios del catálogo y los
@@ -29,11 +34,27 @@ export function EntrenarSesionLibre() {
 
   // ── Fase 1 — selector ─────────────────────────────────────────────────────
   const [ejercicios,     setEjercicios]     = useState<Ejercicio[]>([]);
+  const [ejDefaults,     setEjDefaults]     = useState<EjDefaults[]>([]);
   const [pickerAbierto,  setPickerAbierto]  = useState(false);
   const [sesionIniciada, setSesionIniciada] = useState(false);
 
   // ── Fase 2 — workout ──────────────────────────────────────────────────────
-  const bloques       = ejercicios.map((ej, i) => buildBloqueLibre(ej, i + 1));
+  const bloques = ejercicios.map((ej, i) => {
+    const bl = buildBloqueLibre(ej, i + 1);
+    const defs = ejDefaults[i];
+    if (bl.modalidad === "Fuerza" && defs) {
+      const p = bl.prescripcion as PrescripcionFuerza;
+      return {
+        ...bl,
+        prescripcion: {
+          ...p,
+          series: defs.series,
+          repsObjetivo: { value: defs.reps, raw: String(defs.reps) },
+        } as PrescripcionFuerza,
+      };
+    }
+    return bl;
+  });
   const virtualRutina = sesionIniciada ? buildVirtualRutina(bloques) : null;
 
   const session    = useEntrenarState(SESSION_KEY, virtualRutina);
@@ -50,15 +71,37 @@ export function EntrenarSesionLibre() {
 
   function agregarEjercicio(ej: Ejercicio) {
     setEjercicios((prev) => [...prev, ej]);
+    setEjDefaults((prev) => [...prev, defaultsParaEj(ej)]);
     setPickerAbierto(false);
   }
 
   function quitarEjercicio(idx: number) {
     setEjercicios((prev) => prev.filter((_, i) => i !== idx));
+    setEjDefaults((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function moverEjercicio(idx: number, dir: -1 | 1) {
+    const next = idx + dir;
+    if (next < 0 || next >= ejercicios.length) return;
+    setEjercicios((prev) => {
+      const arr = [...prev];
+      [arr[idx], arr[next]] = [arr[next], arr[idx]];
+      return arr;
+    });
+    setEjDefaults((prev) => {
+      const arr = [...prev];
+      [arr[idx], arr[next]] = [arr[next], arr[idx]];
+      return arr;
+    });
+  }
+
+  function updateDefault(idx: number, field: keyof EjDefaults, raw: string) {
+    const value = Math.max(1, parseInt(raw) || 1);
+    setEjDefaults((prev) => prev.map((d, i) => i === idx ? { ...d, [field]: value } : d));
   }
 
   function empezarSesion() {
-    session.reiniciar();          // limpia localStorage + reset state
+    session.reiniciar();
     startRef.current = Date.now();
     setSesionIniciada(true);
   }
@@ -89,39 +132,88 @@ export function EntrenarSesionLibre() {
           <button className="btn-icon-sm" onClick={() => navigate("/entrenar")} title="Volver">
             <X size={18} />
           </button>
-          <p className="workout-title">Sesión libre</p>
+          <p className="workout-title">Armá tu sesión</p>
           <div style={{ width: 32 }} />
         </div>
 
         <div className="workout-content" style={{ padding: "16px 16px 0" }}>
           {ejercicios.length === 0 ? (
             <div className="empty-state" style={{ minHeight: 120 }}>
-              <p>Agregá ejercicios para armar tu sesión.</p>
+              <p>Sumá ejercicios del catálogo para empezar.</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
               {ejercicios.map((ej, i) => (
-                <div key={`${ej.idEjercicio}-${i}`} className="card"
-                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px" }}>
+                <div key={`${ej.idEjercicio}-${i}`} className="card libre-item"
+                  style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px" }}>
+
+                  {/* Número de orden */}
                   <span style={{
                     width: 28, height: 28, borderRadius: 8,
                     background: "var(--accent-dim)", color: "var(--accent)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 12, fontWeight: 700, flexShrink: 0,
+                    fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 2,
                   }}>
                     {i + 1}
                   </span>
+
+                  {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <p style={{ margin: "0 0 5px", fontWeight: 600, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {ej.nombre}
                     </p>
-                    <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
-                      {ej.modalidad} · 3×10
-                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
+                      <span className="badge badge-accent">{ej.grupoMuscularPrimario}</span>
+                      <span className="badge badge-muted">{ej.modalidad}</span>
+                      {ej.equipo.slice(0, 1).map((eq) => (
+                        <span key={eq} className="badge badge-muted">{eq}</span>
+                      ))}
+                    </div>
+                    {ej.modalidad === "Fuerza" && ejDefaults[i] && (
+                      <div className="libre-defaults">
+                        <label className="libre-defaults-label">
+                          <span className="t-label">Series</span>
+                          <input
+                            type="number" min={1} max={10}
+                            className="libre-defaults-input"
+                            value={ejDefaults[i].series}
+                            onChange={(e) => updateDefault(i, "series", e.target.value)}
+                          />
+                        </label>
+                        <label className="libre-defaults-label">
+                          <span className="t-label">Reps</span>
+                          <input
+                            type="number" min={1} max={50}
+                            className="libre-defaults-input"
+                            value={ejDefaults[i].reps}
+                            onChange={(e) => updateDefault(i, "reps", e.target.value)}
+                          />
+                        </label>
+                      </div>
+                    )}
+                    {ej.modalidad !== "Fuerza" && (
+                      <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
+                        {ej.modalidad === "Cardio" ? "20 min continuo" :
+                         ej.modalidad === "Movilidad" ? "3 rondas" :
+                         "3 series · 30 s"}
+                      </p>
+                    )}
                   </div>
-                  <button className="btn-icon-sm" onClick={() => quitarEjercicio(i)} title="Quitar">
-                    <Trash2 size={15} />
-                  </button>
+
+                  {/* Acciones: reordenar + quitar */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2, flexShrink: 0 }}>
+                    <button className="btn-icon-sm" onClick={() => moverEjercicio(i, -1)}
+                      disabled={i === 0} title="Mover arriba">
+                      <ChevronUp size={14} />
+                    </button>
+                    <button className="btn-icon-sm" onClick={() => moverEjercicio(i, 1)}
+                      disabled={i === ejercicios.length - 1} title="Mover abajo">
+                      <ChevronDown size={14} />
+                    </button>
+                    <button className="btn-icon-sm" onClick={() => quitarEjercicio(i)} title="Quitar">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -129,7 +221,7 @@ export function EntrenarSesionLibre() {
 
           <button className="btn-secondary" style={{ width: "100%" }}
             onClick={() => setPickerAbierto(true)}>
-            <Plus size={16} /> Agregar ejercicio
+            <Plus size={16} /> Sumá ejercicio
           </button>
         </div>
 
@@ -140,7 +232,7 @@ export function EntrenarSesionLibre() {
             disabled={ejercicios.length === 0}
             onClick={empezarSesion}
           >
-            <Zap size={18} /> Empezar sesión
+            <Zap size={18} /> Empezar
           </button>
         </div>
 

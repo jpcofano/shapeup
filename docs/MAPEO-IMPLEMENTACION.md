@@ -42,10 +42,29 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P31 (D9) | Home Aurora+ — anillo SVG, glass card, bento tiles | ✅ | 2026-06-08 |
 | P32 (A2) | Sesión libre — selector de ejercicios, reducer virtual, historial tipo libre | ✅ | 2026-06-08 |
 | P33 (B1) | Explicaciones ricas — FichaTecnica (chips) en Catálogo + contexto compacto en BloqueGuiado | ✅ | 2026-06-08 |
+| P34 (D10) | Pulido visual — selector libre premium, FichaTecnica 2×2, badge Libre en detalle, micro-animaciones | ✅ | 2026-06-08 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-08] D10 — Pulido visual: sesión libre + ficha técnica
+
+- **`src/routes/EntrenarSesionLibre.tsx`** — selector rediseñado:
+  - Encabezado "Armá tu sesión" (selector) vs "Sesión libre" (workout en curso).
+  - Empty state en voseo: "Sumá ejercicios del catálogo para empezar."
+  - Tarjetas de ejercicio enriquecidas: badge-accent (músculo primario), badge-muted (modalidad + primer equipo).
+  - Controls editables por ejercicio de tipo Fuerza: inputs inline de Series y Reps. Los valores alimentan `buildBloqueLibre` vía patch local de `PrescripcionFuerza` antes de `empezarSesion`.
+  - Reordenamiento con botones ChevronUp/ChevronDown (swaps paralelos en `ejercicios[]` + `ejDefaults[]`).
+  - Botón de agregar renombrado "Sumá ejercicio". Botón "Empezar" fijo abajo.
+  - Micro-animación `.libre-item` (fade-up 200ms) al agregar ejercicios, gateada por `prefers-reduced-motion`.
+- **`src/routes/Catalogo.tsx`** — `FichaTecnica` rediseñada:
+  - Fila de músculos: primario en `badge-accent` + secundarios en `badge-muted` (flex wrap).
+  - Grilla 2×2 con `.t-label` arriba de cada valor: Nivel · Mecánica · Patrón · Equipo. Fondo `--bg`, bordes redondeados.
+  - Separadores `<hr className="ficha-sep">` entre ficha / ejecución / banners.
+  - Detalle expandible recibe clase `.card-detail-expand` (fade-up 180ms, gateado por `prefers-reduced-motion`).
+- **`src/routes/HistorialDetalle.tsx`** — badge `badge-muted` "Libre" inline junto al título (h.tipo === "libre"). Título ya era fw 800.
+- **`src/index.css`** — nuevas clases: `.libre-defaults`, `.libre-defaults-label`, `.libre-defaults-input`; `.ficha-tecnica`, `.ficha-musculos`, `.ficha-sep`, `.ficha-meta-grid`, `.ficha-meta-cell`, `.ficha-meta-value`; `.btn-icon-sm:disabled` (opacity 0.25); `.libre-item` y `.card-detail-expand` con `animation: fade-up` gateados por `prefers-reduced-motion`.
 
 ### [2026-06-08] B1 — Explicaciones ricas de ejercicio
 

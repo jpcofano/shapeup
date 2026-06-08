@@ -39,9 +39,14 @@ export function HistorialDetalle() {
 
       {/* Título + fecha */}
       <div>
-        <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, letterSpacing: "-.01em" }}>
-          {h.nombreRutina}
-        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-.01em" }}>
+            {h.nombreRutina}
+          </h1>
+          {h.tipo === "libre" && (
+            <span className="badge badge-muted">Libre</span>
+          )}
+        </div>
         <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
           {formatFecha(h.fechaRealizada)}
         </p>
