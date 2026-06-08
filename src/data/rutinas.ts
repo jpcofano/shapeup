@@ -8,9 +8,10 @@ import {
   query, orderBy, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { Rutina, FirestoreTimestamp } from "../types/models";
+import type { Rutina, FirestoreTimestamp, MiembroId } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
+import { getVisibilidad, rutinaVisible } from "./visibilidad";
 import { normalizeText } from "../lib/canonical";
 import { calcularCacheRutina } from "../lib/metricas";
 import { getEjerciciosMap } from "./ejercicios";
@@ -131,4 +132,18 @@ export async function eliminarRutina(id: string): Promise<Result<void>> {
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
+}
+
+
+/**
+ * Devuelve las rutinas visibles para el miembro (owner ve todo;
+ * no-owner solo las que figuran en config/visibilidad.rutinas).
+ */
+export async function getRutinasDelMiembro(
+  miembro: MiembroId,
+): Promise<Result<Rutina[]>> {
+  const [rutinasR, visR] = await Promise.all([getRutinas(), getVisibilidad(miembro)]);
+  if (!rutinasR.ok) return rutinasR;
+  const vis = visR.ok ? visR.value : null; // fail-open: si falla visibilidad, owner no pierde acceso
+  return ok(rutinasR.value.filter((r) => rutinaVisible(r.idRutina, vis)));
 }

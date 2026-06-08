@@ -34,14 +34,26 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | D6 | Salud (tabs, zonas FC, preview import) | ✅ | 2026-06-06 |
 | D7 | Perfil + auth (selector de tema, login, no-autorizado) | ✅ | 2026-06-06 |
 | D8 | PWA instalable + botón "Instalar app" | ✅ | 2026-06-07 |
-| **Pendientes / proyectado** | | | |
-| P25 (E6.4) | Fix importador: `ignoreUndefinedProperties` + `allSettled` resiliente por fila | ⬜ | — |
-| P26 | Carga (`cargaKg`) + reps en todas las rutinas de casa (seed) | ⬜ | — |
-| P27 | Imágenes: render en Catálogo/guiado + poblar fotos FEDB (dominio público) + mapear los 34 propios a su equivalente FEDB | ⬜ | — |
+| **Aplicados (post-E6.3)** | | | |
+| P25 (E6.4) | Fix importador: `ignoreUndefinedProperties` + `allSettled` resiliente por fila | ✅ | 2026-06-07 |
+| P26 | Carga (`cargaKg`) + reps en todas las rutinas de casa (seed) | ✅ | 2026-06-07 |
+| P27 | Imágenes: render en Catálogo/guiado + fotos FEDB + mapeo 34 propios | ✅ | 2026-06-07 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-08] A1 — "Empezar" claro (próxima sesión + 3 puertas)
+- **`src/lib/proximaSesion.ts`** (nuevo) — `proximaSesion(programa, historialSemana)` → `ProximaSesionResult | null`. Recorre días activos por `orden` (salteando descansos), asigna sesiones del historial a días de forma greedy contemplando rutinas repetidas. Devuelve `null` si semana completa. Pura, sin Firestore. 10 tests.
+- **`src/data/rutinas.ts`** — `getRutinasDelMiembro(memberId)`: cruza `getRutinas()` con `getVisibilidad()`. Owner ve todas; no-owner solo las asignadas en `config/visibilidad`. Fail-open si visibilidad falla.
+- **`src/routes/Home.tsx`** — hero "Próxima sesión · Día N de M" arriba (con botón Empezar primario). Si semana completa: estado positivo "🎉 Semana completa" + botón "Elegir otra rutina". WeekStrip + progreso debajo. Ya no calcula "hoy toca" por día de semana.
+- **`src/routes/Entrenar.tsx`** — 3 puertas: (1) "Tu próxima sesión" destacada con botón Empezar; (2) "Elegir una rutina" lista filtrada con `getRutinasDelMiembro`; (3) "Sesión libre" placeholder deshabilitado ("próximamente A2").
+
+#### ADR — Próxima sesión por secuencia, no por día de la semana
+- **Decisión:** `proximaSesion` usa `orden` del programa, no `diaSemana`. El `diaSemana` solo se muestra como info ("planificado: lunes").
+- **Razón:** quienes entrenan cuando pueden (no días fijos) necesitan saber cuál es la siguiente sesión, no si "hoy toca el lunes". El modelo ya soporta esto sin cambios.
+
+---
 
 ### [2026-06-07] P27 — Imágenes de ejercicios
 - **`src/routes/Catalogo.tsx`** — EjercicioCard muestra `ej.imagenes[0]` arriba del detalle expandido (`loading="lazy"`, `onError` oculta la imagen si falla, `objectFit: cover`, max 180px).
@@ -631,3 +643,90 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   Decisión: saltar al rango 9001+ para VR garantiza que nunca colisionan,
   corra seed-vr.ts antes o después de seed-ejercicios.ts.
 ```
+
+---
+
+## Backlog / roadmap (ideas — NO implementadas)
+
+> No es estado: nada de acá está hecho hasta que tenga su entrada en la Bitácora. Orden ≈ prioridad.
+
+### A. Flujo de entrenar (del análisis de UX)
+- **A1. "Próxima sesión" + Home hero "Empezar" + Entrenar como 3 puertas**, con rutinas filtradas por miembro. Lógica pura `lib/proximaSesion.ts` (programa × historial). Resuelve "cómo empiezo / dónde elijo".
+- **A2. Modo libre / un ejercicio:** sesión ad-hoc desde el catálogo; Historial con `tipo:"libre"` (sin `idRutina`). Resuelve "cómo hago 1 ejercicio".
+- **A3. Mi programa / Mi semana:** ver el plan (N días, qué toca cada uno), empezar cualquier día, cambiar de programa.
+- **A4. Dentro del entreno:** cronómetro de trabajo (isométricos/cardio) + pausar + terminar/abandonar.
+- **A5. Reemplazar un ejercicio** sobre la marcha.
+- **A6. Notas y RPE** por sesión.
+
+### B. Riqueza de ejercicios (prioridad del owner)
+- **B1. Explicaciones más ricas:** surfacear músculos primarios/secundarios, nivel, mecánica, patrón y equipo en el detalle. *Datos FEDB ya importados → solo mostrarlos.*
+- **B2. Video de YouTube por ejercicio:** embeber el player oficial (legal) vía `videoUrl`; curar a mano los más usados (34 de casa + top FEDB). **No** hostear/descargar video.
+- **B3. Mini-mapa corporal** de músculos trabajados (resalta grupos con primary/secondary de FEDB).
+- **B4. Variantes / progresión-regresión** (más fácil ↔ más difícil) por ejercicio.
+- **B5. Equipo alternativo** ("sin mancuerna: banda / mochila cargada").
+
+### C. Progreso y motivación
+- **C1. Récords personales (PR)** por ejercicio + 1RM estimado.
+- **C2. Gráfico de progresión** por ejercicio (carga / volumen / tonelaje en el tiempo).
+- **C3. Resumen semanal** ("tu semana en números").
+- **C4. Hitos/logros** con mesura (sin gamificación malsana).
+
+### D. Inteligencia / salud (Samsung) — futuro
+- **D1. Motor de recomendaciones:** ajustar el entreno según sueño/HRV/recuperación (señales confirmadas en P22). Idealmente Cloud Function.
+- **D2. Auto-progresión sugerida** (subir peso/reps la próxima vez).
+- **D3. Correlación entreno ↔ FC/recuperación** (habilitada por el match biométrico P23).
+
+### E. Catálogo / calidad de vida
+- **E1. Buscador + filtros** (músculo, equipo, "solo lo que puedo en casa con mi equipo").
+- **E2. Favoritos.**
+- **E3. Crear/editar/reordenar rutinas desde la app** (hoy solo por seed).
+- **E4. Recordatorios / notificaciones** (PWA push: OK Android, limitado en iOS).
+- **E5. Traducciones FEDB** al castellano (al final, contra el catálogo definitivo).
+
+### F. Familia
+- **F1. El owner asigna/edita programas** a los miembros desde la app (hoy por seed).
+- **F2. Vista familiar suave** (sesiones de la semana por miembro, respetando visibilidad).
+
+### G. Planificación / periodización
+- **G1. Calendario de adherencia** (heatmap mensual tipo "contribuciones").
+- **G2. Deload sugerido** automáticamente cada N semanas (ya hay plantilla de deload, PRG-0009).
+- **G3. Fases / mesociclos** (volumen → intensidad) en el programa.
+- **G4. Planificar la semana** (elegir/arrastrar qué rutina va cada día).
+
+### H. Onboarding / arranque
+- **H1. Wizard inicial:** objetivo + equipo disponible + días/semana → sugiere y asigna el programa. *Resuelve de raíz "cuál es mi programa".*
+- **H2. Test de calibración** (cuántas flexiones/dominadas) → calibra cargas/regresiones iniciales.
+- **H3. Editor de FCmáx / zonas FC** en el perfil.
+
+### I. Seguridad y técnica
+- **I1. Calentamiento y enfriamiento guiados** (la rutina ya tiene toggles calentar/enfriar).
+- **I2. Banderas de dolor/molestia:** marcar "me duele X" → sugiere regresión o evitar el ejercicio.
+- **I3. Reglas de recuperación:** aviso suave si se repite el mismo grupo muscular en días seguidos.
+- **I4. Menores (16/17, en crecimiento):** foco en técnica, topes de carga conservadores y alerta si suben rápido.
+
+### J. Ecosistema familiar
+- **J1. Integración con Comida Familiar** (app hermana del mismo dueño): cruzar entreno del día con la comida — recordatorio de proteína post-entreno, calorías quemadas vs ingeridas. *Distintivo del ecosistema.*
+- **J2. Check-in familiar:** quién entrenó hoy (respetando visibilidad).
+- **J3. Reto familiar suave** (X sesiones entre todos esta semana).
+- **J4. (Sensible) Adherencia de los hijos visible para el padre** — solo con consentimiento y de forma apropiada a la edad.
+
+### K. Experiencia durante el entreno
+- **K1. Modo manos libres:** voz que anuncia "siguiente serie / descanso" + cuenta regresiva hablada (Web Speech API).
+- **K2. Pantalla siempre encendida** durante la sesión (Wake Lock API).
+- **K3. Modo horizontal** para ver el video del ejercicio.
+- **K4. Texto grande / alto contraste** (adultos 50+).
+
+### L. Equipo / gimnasio en casa
+- **L1. Inventario de equipo** (mancuernas/discos/banda) → solo sugiere ejercicios posibles y calcula cargas alcanzables.
+- **L2. Calculadora de discos:** "para 14 kg en la mancuerna, poné estos discos" (según el kit DeporAr).
+- **L3. Seguimiento de VR:** qué juego jugaste, FC/calorías por juego, "tu más quemador" (PSVR2).
+
+### M. Datos / respaldo
+- **M1. Exportar el historial** (CSV/JSON) — backup propio.
+- **M2. Compartir** una sesión o un PR (imagen/resumen).
+
+### Restricciones a respetar (transversales)
+- **Plan Spark (gratis):** cuidar lecturas/escrituras; agregados diarios; nada de alta frecuencia.
+- **Imágenes y videos por URL/embed externo** (FEDB dominio público, YouTube embed oficial), **no hosteados** (Storage mínimo).
+- **Copyright:** solo embed oficial de YouTube; nunca descargar/hostear video.
+- **PWA:** push limitado en iOS.

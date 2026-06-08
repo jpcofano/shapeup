@@ -1,18 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Zap, Flame } from "lucide-react";
-import type { Programa, DiaPrograma, Rutina, Historial } from "../types/models";
+import type { Programa, Historial } from "../types/models";
 import type { MiembroId } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
-import { getRutina } from "../data/rutinas";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { WeekStrip } from "../components/WeekStrip";
 import { ShapeUpMark, ShapeUpWordmark } from "../components/Brand";
+import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
 
-const DIAS_ES = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"] as const;
 const DIA_SEMANA_IDX: Partial<Record<string, number>> = {
   lunes: 0, martes: 1, "miércoles": 2, jueves: 3, viernes: 4, sábado: 5, domingo: 6,
 };
@@ -20,13 +19,6 @@ const PRIMER_NOMBRE: Record<MiembroId, string> = {
   juanpablo: "Juan Pablo", maria: "María", sofia: "Sofía", federico: "Federico",
 };
 
-function diaHoy(): string {
-  return DIAS_ES[new Date().getDay()];
-}
-function diaDeHoy(programa: Programa): DiaPrograma | null {
-  const hoy = diaHoy();
-  return programa.dias.find((d) => d.diaSemana === hoy) ?? null;
-}
 function lunesDeSemana(): string {
   const hoy = new Date();
   const dia = hoy.getDay();
@@ -34,6 +26,7 @@ function lunesDeSemana(): string {
   hoy.setDate(hoy.getDate() + diff);
   return hoy.toISOString().slice(0, 10);
 }
+
 function diasEntrenamiento(programa: Programa): number[] {
   return programa.dias
     .filter((d) => d.tipo !== "descanso" && d.diaSemana)
@@ -67,8 +60,7 @@ export function Home() {
   const navigate             = useNavigate();
   const { memberId }         = useAuth();
   const [programa, setPrograma] = useState<Programa | null>(null);
-  const [dia,      setDia]      = useState<DiaPrograma | null>(null);
-  const [rutina,   setRutina]   = useState<Rutina | null>(null);
+  const [proxima,  setProxima]  = useState<ProximaSesionResult | null | undefined>(undefined); // undefined = loading
   const [loading,  setLoading]  = useState(true);
   const [color,    setColor]    = useState<string | undefined>(undefined);
   const [semana,   setSemana]   = useState<SemanaStats | null>(null);
@@ -76,7 +68,7 @@ export function Home() {
   useEffect(() => {
     if (!memberId) return;
     getPerfiles().then((r) => {
-      if (r.ok) setColor(r.value[memberId]?.color);
+      if (r.ok) setColor(r.value[memberId as MiembroId]?.color);
     });
 
     const semanaInicio = lunesDeSemana();
@@ -84,7 +76,7 @@ export function Home() {
     Promise.all([
       getProgramaActivo(),
       getHistorialMiembro(memberId as MiembroId),
-    ]).then(async ([progR, histR]) => {
+    ]).then(([progR, histR]) => {
       if (histR.ok) {
         const hist = histR.value;
         const estaSemana = hist.filter((h) => h.semanaInicio === semanaInicio);
@@ -98,16 +90,17 @@ export function Home() {
           volumenKg:        estaSemana.reduce((s, h) => s + (h.tonelajeKg ?? 0), 0),
           rachaSemanas:     calcRacha(hist, semanaInicio),
         });
-      }
 
-      if (!progR.ok || !progR.value) { setLoading(false); return; }
-      const prog = progR.value;
-      setPrograma(prog);
-      const d = diaDeHoy(prog);
-      setDia(d);
-      if (d?.tipo === "rutina" && d.idRutina) {
-        const rr = await getRutina(d.idRutina);
-        if (rr.ok) setRutina(rr.value);
+        if (progR.ok && progR.value) {
+          const prog = progR.value;
+          setPrograma(prog);
+          setProxima(proximaSesion(prog, estaSemana));
+        } else {
+          setProxima(null);
+        }
+      } else if (progR.ok && progR.value) {
+        setPrograma(progR.value);
+        setProxima(proximaSesion(progR.value, []));
       }
       setLoading(false);
     });
@@ -145,6 +138,66 @@ export function Home() {
         </div>
       )}
 
+      {/* ── Hero: Próxima sesión ─────────────────────────────────────────── */}
+      {!loading && programa && proxima !== undefined && (
+        proxima !== null ? (
+          <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <p className="t-label" style={{ margin: 0 }}>
+              Próxima sesión · Día {proxima.indice} de {proxima.total}
+            </p>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 22, letterSpacing: "-.01em" }}>
+              {proxima.dia.idRutina
+                ? proxima.dia.etiqueta.replace(/^[^—–]*[—–]\s*/, "")
+                : proxima.dia.etiqueta}
+            </p>
+            {proxima.dia.diaSemana && (
+              <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+                Planificado: {proxima.dia.diaSemana}
+              </p>
+            )}
+            <button
+              className="btn-primary"
+              onClick={() => proxima.dia.idRutina && navigate(`/entrenar/${proxima.dia.idRutina}`)}
+              disabled={!proxima.dia.idRutina}
+            >
+              <Zap size={18} /> Empezar
+            </button>
+          </div>
+        ) : (
+          /* Semana completa */
+          <div className="card" style={{ textAlign: "center", padding: "20px 16px" }}>
+            <p style={{ margin: 0, fontSize: 22 }}>🎉</p>
+            <p style={{ margin: "8px 0 4px", fontWeight: 700 }}>¡Semana completa!</p>
+            <p style={{ margin: "0 0 14px", color: "var(--muted)", fontSize: 13 }}>
+              Ya hiciste todas las sesiones de la semana. Descansá o elegí otra rutina.
+            </p>
+            <button
+              className="btn-secondary"
+              style={{ maxWidth: 200, margin: "0 auto" }}
+              onClick={() => navigate("/entrenar")}
+            >
+              Elegir otra rutina
+            </button>
+          </div>
+        )
+      )}
+
+      {/* ── Sin programa ─────────────────────────────────────────────────── */}
+      {!loading && !programa && (
+        <div className="card" style={{ textAlign: "center", padding: "32px 20px" }}>
+          <p style={{ color: "var(--muted)", fontSize: 14, margin: "0 0 16px" }}>
+            No hay un programa activo. Creá uno en Biblioteca para ver qué toca cada día.
+          </p>
+          <button
+            className="btn-secondary"
+            style={{ maxWidth: 200, margin: "0 auto" }}
+            onClick={() => navigate("/biblioteca")}
+          >
+            Ver rutinas
+          </button>
+        </div>
+      )}
+
       {/* ── WeekStrip ───────────────────────────────────────────────────── */}
       {!loading && programa && (
         <div className="card" style={{ padding: "14px 16px" }}>
@@ -172,9 +225,7 @@ export function Home() {
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{
-                fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "-.02em",
-              }}>
+              <span style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "-.02em" }}>
                 {semana.sesionesHechas}
               </span>
               <span style={{ fontSize: 14, color: "var(--muted)" }}>/ {semana.sesionesObjetivo} sesiones</span>
@@ -188,105 +239,25 @@ export function Home() {
               </div>
             )}
           </div>
-          {semana.sesionesObjetivo > 0 && (
-            <div style={{ height: 7, borderRadius: 999, background: "var(--card-hover)", overflow: "hidden" }}>
-              <div style={{
-                height: "100%",
-                width: `${Math.min(100, Math.round((semana.sesionesHechas / semana.sesionesObjetivo) * 100))}%`,
-                background: "var(--accent)",
-                borderRadius: 999,
-                transition: "width .4s ease",
-              }} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── Sin programa activo ─────────────────────────────────────────── */}
-      {!loading && !programa && (
-        <div className="card" style={{ textAlign: "center", padding: "32px 20px" }}>
-          <p style={{ color: "var(--muted)", fontSize: 14, margin: "0 0 16px" }}>
-            No hay un programa activo. Creá uno en Biblioteca para ver qué toca cada día.
-          </p>
-          <button
-            className="btn-secondary"
-            style={{ maxWidth: 200, margin: "0 auto" }}
-            onClick={() => navigate("/biblioteca")}
-          >
-            Ver rutinas
-          </button>
-        </div>
-      )}
-
-      {/* ── Programa activo + Hoy toca ──────────────────────────────────── */}
-      {!loading && programa && (
-        <>
-          <div className="card" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <p className="t-label" style={{ margin: 0 }}>Programa activo</p>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>{programa.nombre}</p>
-            <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
-              {programa.diasPorSemana} días / semana · {programa.objetivo}
-            </p>
+          <div style={{ height: 7, borderRadius: 999, background: "var(--card-hover)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${Math.min(100, Math.round((semana.sesionesHechas / semana.sesionesObjetivo) * 100))}%`,
+              background: "var(--accent)", borderRadius: 999, transition: "width .4s ease",
+            }} />
           </div>
+        </div>
+      )}
 
-          {!dia && (
-            <div className="card" style={{ textAlign: "center", padding: "24px 16px" }}>
-              <p style={{ margin: 0, color: "var(--muted)", fontSize: 14 }}>
-                Hoy ({diaHoy()}) no hay sesión programada.
-              </p>
-            </div>
-          )}
-
-          {dia?.tipo === "descanso" && (
-            <div className="card" style={{ textAlign: "center", padding: "24px 16px" }}>
-              <p style={{ margin: 0, fontSize: 22 }}>😴</p>
-              <p style={{ margin: "8px 0 0", fontWeight: 700 }}>Día de descanso</p>
-              <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>
-                Descansá bien. La recuperación es parte del entrenamiento.
-              </p>
-            </div>
-          )}
-
-          {dia?.tipo === "vr" && (
-            <div className="card" style={{ textAlign: "center", padding: "24px 16px" }}>
-              <p style={{ margin: 0, fontSize: 22 }}>🥽</p>
-              <p style={{ margin: "8px 0 0", fontWeight: 700 }}>Día VR</p>
-              {dia.vrSugerido && (
-                <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>
-                  Sugerido: {dia.vrSugerido}
-                </p>
-              )}
-            </div>
-          )}
-
-          {dia?.tipo === "rutina" && (
-            <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div>
-                <p className="t-label" style={{ margin: "0 0 4px" }}>Hoy toca</p>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: 22, letterSpacing: "-.01em" }}>
-                  {rutina?.nombre ?? dia.etiqueta}
-                </p>
-                {rutina && (
-                  <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-                    <span className="badge badge-accent">{rutina.foco}</span>
-                    <span className="badge badge-muted">{rutina.nivel}</span>
-                    {rutina.duracionEstimadaMin != null && (
-                      <span className="badge badge-muted">⏱ {rutina.duracionEstimadaMin} min</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              {rutina && (
-                <button
-                  className="btn-primary"
-                  onClick={() => navigate(`/entrenar/${rutina.idRutina}`)}
-                >
-                  <Zap size={18} /> Empezar sesión
-                </button>
-              )}
-            </div>
-          )}
-        </>
+      {/* ── Info programa activo ─────────────────────────────────────────── */}
+      {!loading && programa && (
+        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <p className="t-label" style={{ margin: 0 }}>Programa activo</p>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>{programa.nombre}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+            {programa.diasPorSemana} días / semana · {programa.objetivo}
+          </p>
+        </div>
       )}
     </div>
   );
