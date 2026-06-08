@@ -81,6 +81,10 @@
   --space-10: 40px;
   --space-12: 48px;
 
+  /* ── D9 Aurora — gradiente del anillo (sigue al acento por tema) ─────── */
+  --ring-from: var(--accent);
+  --ring-to:   color-mix(in oklch, var(--accent), #ffffff 32%);
+
   /* ── Sombras ──────────────────────────────────────────────────────────── */
   --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.35);
   --shadow-fab:  0 4px 16px rgba(34, 211, 238, 0.30);

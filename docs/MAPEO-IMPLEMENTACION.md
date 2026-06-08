@@ -43,6 +43,23 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 ## 2. Bitácora
 
+### [2026-06-08] D9 — Home "Aurora+" (rediseño premium)
+- **`src/styles/tokens.css`** — `--ring-from: var(--accent)` y `--ring-to: color-mix(in oklch, var(--accent), #ffffff 32%)`: gradiente del anillo que sigue al tema sin hardcodear 8 pares.
+- **`src/index.css`** — nuevas clases: `.glass-card` (color-mix + backdrop-filter blur), `.bento-tile`, `.bento-row-2/3`, `.bento-value`, `.bento-delta`; transición `.ring-progress` (600ms ease-out, gateada por `prefers-reduced-motion`); `@keyframes fade-up` + `.aurora-anim-1/2/3/4` con stagger 40ms.
+- **`src/routes/Home.tsx`** — rediseño Aurora+:
+  - `ProgressRing` (SVG inline, ~150px): anillo con gradiente `url(#rg)`, glow `drop-shadow`, animación de llenado vía `strokeDashoffset` con `useEffect + setTimeout(60ms)`. Centro: "2/4 sesiones" o `<Check>` si completa.
+  - Glow ambiental: `radial-gradient` con `--accent` baja opacidad + blur detrás del anillo.
+  - Glass card con `proximaSesion` result: etiqueta "Día N de M", nombre, botón Empezar. Estado "Semana completa 🎉" con botón "Elegir otra rutina".
+  - Bento row 3 tiles (Volumen / Peso / Racha) o 2 tiles (Volumen / Racha) si no hay medición de peso. Δ de peso en `--accent` si baja, `--danger` si sube.
+  - Carga `getMediciones` para el tile de peso.
+  - WeekStrip sin cambios, abajo.
+
+#### ADR — Gradiente de anillo por tema con color-mix
+- **Decisión:** `--ring-to: color-mix(in oklch, var(--accent), #ffffff 32%)` se calcula en cascada, sin 8 variables extra.
+- **Razón:** mantener 8 pares de colores hardcodeados para cada tema sería frágil. `color-mix` es estándar desde 2023 y está disponible en todos los targets de la app.
+
+---
+
 ### [2026-06-08] A1 — "Empezar" claro (próxima sesión + 3 puertas)
 - **`src/lib/proximaSesion.ts`** (nuevo) — `proximaSesion(programa, historialSemana)` → `ProximaSesionResult | null`. Recorre días activos por `orden` (salteando descansos), asigna sesiones del historial a días de forma greedy contemplando rutinas repetidas. Devuelve `null` si semana completa. Pura, sin Firestore. 10 tests.
 - **`src/data/rutinas.ts`** — `getRutinasDelMiembro(memberId)`: cruza `getRutinas()` con `getVisibilidad()`. Owner ve todas; no-owner solo las asignadas en `config/visibilidad`. Fail-open si visibilidad falla.
