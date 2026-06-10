@@ -57,13 +57,41 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | **Fix** | | | |
 | FIX-SALUD | Importador de salud: 3 bugs del formato Samsung Health 2025+ — corregido | ✅ | 2026-06-09 |
 | **Auditoría jun-2026 (ver Bitácora)** | | | |
-| D14 | Datos: re-traducción fiel (115 ejercicios) + catálogo completo badge EN + patrones + descansos (hallazgos A1–A4) | ⬜ | — |
+| D14 | Datos: validador + patrones + descansos + badge EN + re-pase muestra (A1–A4) | ✅ | 2026-06-10 |
+| D14b | Lotes de traducción (prompt 40b, repetible — se intercala cuando el owner quiera) | ⬜ | — |
 | D15 | Micro-interacciones: stagger cards, anillo animado, feedback de serie, tabs (hallazgo C9) | ⬜ | — |
 | D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ⬜ | — |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-10] D14 — Datos: patrones + descansos + traducciones + badge EN (A1–A4)
+
+#### A3 — `resolverPatron()` (keyword-based)
+- **`src/lib/patronMovimiento.ts`** (nuevo, puro) — `resolverPatron(name, category, mechanic, force): PatronMovimiento | undefined`. Orden de resolución: cardio/plyometrics → core (plank/rollout/crunch…) → rodilla (squat/lunge…) → cadera (deadlift/hip thrust…) → empuje vertical (overhead/military…) → tracción vertical (pull-up/chin-up/pulldown) → tracción horizontal (row/face pull) → empuje horizontal (bench/push-up/dip…) → acarreo → isolation mechanic → force fallback → undefined. Chin-up resuelve "Tracción vertical" correctamente (no "Tracción horizontal").
+- **`src/lib/patronMovimiento.test.ts`** — 20 tests verdes. Cubre todos los patrones + edge cases (Bicep Curl isolation, Farmer Carry, Pallof Press).
+- **`scripts/importar-fedb.ts`** — usa `resolverPatron` (A3) en lugar de `patronAprox`.
+
+#### A4 — `calcularDescanso()` por mecánica/categoría
+- En `scripts/importar-fedb.ts`: stretching=25 s, cardio/plyometrics=45 s, compound=105 s, isolation=70 s, fallback=75 s. El diccionario puede overridear con `descansoSugeridoSeg` explícito.
+
+#### A1 — Validador de ratio en el importador
+- `validarTraduccion(id, t, f, warnings)` — alerta si `lenES/lenEN < 0.7` o `pasosES < pasosEN`. Resultados: 873 ejercicios, 115 traducidos, 102 por debajo del umbral (vs 109 antes del re-pase).
+- Reglas de traducción fiel: 1 paso EN = 1 paso ES; "Tip:" → `puntosClave`; "Caution:" → `erroresComunes`; voseo; respiración explícita.
+
+#### A1 — Re-pase de las 15 entradas de peor ratio (0.14–0.19 → 0.61–0.70)
+- **`scripts/fix-traducciones-ratio.ts`** (script auxiliar) — aplica parches a `scripts/data/traducciones-fedb.es.json`. Todas las 15 entradas ahora tienen pasos completos (ej. Concentration_Curls: 3→5 pasos, ratio 0.14→0.62; Air_Bike: 3→6 pasos, 0.18→pasa 0.7; Handstand_Push-Ups pasa 0.7).
+
+#### A2 — Catálogo bilingüe con badge y filtro
+- **`src/types/models.ts`** — campo `traduccion?: "ok" | "pendiente"` en `Ejercicio`.
+- **`scripts/importar-fedb.ts`** — ya emitía el campo; ahora tipado correctamente.
+- **`src/routes/Catalogo.tsx`** — badge `EN` (warning ámbar) en la cabecera de cards pendientes; nota "Instrucciones en inglés — traducción pendiente" en el detalle expandido; fila de filtro "Idioma" con chips "Todos" / "Solo en español".
+
+#### Tests y build
+226 tests verdes, `tsc -b` limpio.
+
+---
 
 ### [2026-06-10] Auditoría kit+datos — decisiones y cola D14/D15/D16
 
@@ -90,7 +118,7 @@ Auditoría rápida del UI kit + foundations + datos contrastada con el repo. 10 
 - **B5 — anillo como métrica única:** el anillo SVG es la sola métrica de progreso semanal en Home; la línea del saludo es contexto, no métrica paralela.
 
 #### Cola de prompts
-Después de los cerrados (36→39): **40 (D14) → 41 (D15) → 42 (D16)**. Uno por vez; al cerrar cada uno se verifica repo vs kit.
+Después de los cerrados (36→39): **40 (D14) → 41 (D15) → 42 (D16)**, con **40b** (lote de traducciones, repetible) intercalado entre etapas cuando el owner quiera — un lote por vez.
 
 #### Lo que la auditoría marcó como sólido (no tocar)
 Foundations/temas, flujo de programa (Home→Entrenar→Detalle), sesión guiada (MediaTabs, steppers), estructura del importador.

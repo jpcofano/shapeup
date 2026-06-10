@@ -74,6 +74,9 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
               <span key={e} className="badge badge-muted">{e}</span>
             ))}
             <span className="badge badge-muted">{ej.nivel}</span>
+            {ej.traduccion === "pendiente" && (
+              <span className="badge" style={{ background: "var(--warning, #f59e0b)", color: "#fff", fontWeight: 700, fontSize: 10 }}>EN</span>
+            )}
           </div>
         </div>
         {abierto
@@ -122,6 +125,11 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
               <hr className="ficha-sep" />
               <section>
                 <p className="section-title" style={{ marginBottom: 6 }}>Ejecución</p>
+                {ej.traduccion === "pendiente" && (
+                  <p style={{ margin: "0 0 8px", fontSize: 11, color: "var(--muted)", fontStyle: "italic" }}>
+                    Instrucciones en inglés — traducción pendiente
+                  </p>
+                )}
                 <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
                   {ej.instrucciones.map((inst, i) => (
                     <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>{inst}</li>
@@ -194,6 +202,7 @@ export function Catalogo({ embedded = false }: CatalogoProps) {
   const [region,    setRegion]    = useState<RegionMuscular | "">("");
   const [equipo,    setEquipo]    = useState<Equipo | "">("");
   const [nivel,     setNivel]     = useState<Nivel | "">("");
+  const [soloEs,    setSoloEs]    = useState(false);
 
   useEffect(() => {
     getEjercicios().then((r) => {
@@ -203,13 +212,14 @@ export function Catalogo({ embedded = false }: CatalogoProps) {
     });
   }, []);
 
-  const visibles = filtrarEjercicios(todos, {
+  const filtrados = filtrarEjercicios(todos, {
     busqueda:  busqueda  || undefined,
     modalidad: modalidad || undefined,
     region:    region    || undefined,
     equipo:    equipo    || undefined,
     nivel:     nivel     || undefined,
   });
+  const visibles = soloEs ? filtrados.filter((e) => e.traduccion !== "pendiente") : filtrados;
 
   const inner = (
     <>
@@ -234,6 +244,20 @@ export function Catalogo({ embedded = false }: CatalogoProps) {
         <ChipRow label="Tipo"   all="" value={modalidad} options={MODALIDADES}                    onChange={(v) => setModalidad(v as Modalidad | "")} />
         <ChipRow label="Equipo" all="" value={equipo}    options={EQUIPOS}                        onChange={(v) => setEquipo(v as Equipo | "")} />
         <ChipRow label="Nivel"  all="" value={nivel}     options={NIVELES}                        onChange={(v) => setNivel(v as Nivel | "")} />
+        {/* Toggle idioma */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0, width: 40 }}>
+            Idioma
+          </span>
+          <div className="filter-scroll">
+            <button className={`filter-chip ${!soloEs ? "active" : ""}`} onClick={() => setSoloEs(false)}>
+              Todos
+            </button>
+            <button className={`filter-chip ${soloEs ? "active" : ""}`} onClick={() => setSoloEs(true)}>
+              Solo en español
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Contador */}

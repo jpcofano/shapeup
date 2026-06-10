@@ -221,6 +221,7 @@ export interface Ejercicio {
   vecesUsado: number;              // ++ cuando entra en una sesión registrada
   ultimaVez?: string;              // "YYYY-MM-DD"
   origen: "seed" | "import" | "manual";
+  traduccion?: "ok" | "pendiente";
   fechaCreacion?: FirestoreTimestamp;
   ultimaModificacion?: FirestoreTimestamp;
 }

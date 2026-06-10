@@ -21,6 +21,7 @@ import {
   type Ejercicio, type Modalidad, type PatronMovimiento, type Equipo,
   type GrupoMuscular, type Mecanica,
 } from "../src/types/models";
+import { resolverPatron } from "../src/lib/patronMovimiento";
 
 type FEDB = {
   id: string; name: string; force: string | null; level: string;
@@ -33,6 +34,7 @@ type Traduccion = {
   puntosClave?: string[]; erroresComunes?: string[];
   patron?: PatronMovimiento; modalidad?: Modalidad;
   unilateral?: boolean; sinonimos?: string[];
+  descansoSugeridoSeg?: number;
 };
 
 const DATA_URL  = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json";
@@ -47,12 +49,17 @@ const MODALIDAD_POR_CATEGORIA: Record<string, Modalidad> = {
 };
 const MECANICA: Record<string, Mecanica> = { compound: "Compuesto", isolation: "Aislamiento" };
 
-function patronAprox(f: FEDB): PatronMovimiento {
-  if (f.category === "cardio" || f.category === "plyometrics") return "Locomoción / cardio";
-  if (f.force === "push") return "Empuje horizontal";
-  if (f.force === "pull") return "Tracción horizontal";
-  return "Aislamiento";
+// ── A4: descansoSugeridoSeg por mecánica/categoría ────────────────────────────
+// La traducción puede overridear con `descansoSugeridoSeg` explícito (toma precedencia).
+function calcularDescanso(f: FEDB): number {
+  if (f.category === "stretching" || f.category === "cardio" || f.category === "plyometrics") {
+    return f.category === "stretching" ? 25 : 45;
+  }
+  if (f.mechanic === "compound")  return 105;
+  if (f.mechanic === "isolation") return 70;
+  return 75; // fallback para ejercicios sin mecánica definida
 }
+
 function equipos(f: FEDB): Equipo[] {
   const e = f.equipment ? FEDB_EQUIPO[f.equipment] : undefined;
   return [e ?? "Otro"];
@@ -61,6 +68,28 @@ function grupos(muscles: string[]): GrupoMuscular[] {
   const out: GrupoMuscular[] = [];
   for (const m of muscles) { const g = FEDB_MUSCULO[m]; if (g && !out.includes(g)) out.push(g); }
   return out;
+}
+
+// ── A1: validador de ratio de traducción ──────────────────────────────────────
+function validarTraduccion(
+  id: string,
+  t:  Traduccion,
+  f:  FEDB,
+  warnings: string[],
+): void {
+  const lenEN = f.instructions.join(" ").length;
+  const lenES = t.instrucciones.join(" ").length;
+  const pasosEN = f.instructions.length;
+  const pasosES = t.instrucciones.length;
+
+  if (lenEN === 0) return;
+  const ratio = lenES / lenEN;
+
+  if (ratio < 0.7 || pasosES < pasosEN) {
+    warnings.push(
+      `[ratio bajo] ${id}: ${pasosES}/${pasosEN} pasos, ${ratio.toFixed(2)} (${Math.round(ratio * 100)}% del EN)`,
+    );
+  }
 }
 
 // Baja el dataset si no está (en vez de crashear). Requiere Node 18+ (fetch global).
@@ -100,17 +129,28 @@ async function main() {
 
   let n = 0;
   const catalogo: (Partial<Ejercicio> & { traduccion: "ok" | "pendiente" })[] = [];
+  const warnings: string[] = [];
 
   for (const f of fedb) {
     const t = trad[f.id];
     if (soloTrad && !t) continue;
     n += 1;
     const primario = grupos(f.primaryMuscles)[0] ?? "Cuerpo completo";
+
+    // A1: validar ratio de traducción
+    if (t) validarTraduccion(f.id, t, f, warnings);
+
+    // A3: patrón mejorado (keyword-based, override desde diccionario)
+    const patronCalculado = resolverPatron(f.name, f.category, f.mechanic, f.force);
+
+    // A4: descanso por mecánica, override desde diccionario
+    const descanso = t?.descansoSugeridoSeg ?? calcularDescanso(f);
+
     catalogo.push({
       idEjercicio: `EJ-${String(n).padStart(4, "0")}`,
       nombre: t?.nombre ?? f.name,
       modalidad: t?.modalidad ?? MODALIDAD_POR_CATEGORIA[f.category] ?? "Fuerza",
-      patron: t?.patron ?? patronAprox(f),
+      patron: t?.patron ?? patronCalculado,
       mecanica: f.mechanic ? MECANICA[f.mechanic] : undefined,
       fuerzaFEDB: f.force ? FEDB_FUERZA[f.force] : undefined,
       grupoMuscularPrimario: primario,
@@ -121,7 +161,7 @@ async function main() {
       instrucciones: t?.instrucciones ?? f.instructions,
       puntosClave: t?.puntosClave ?? [],
       erroresComunes: t?.erroresComunes ?? [],
-      descansoSugeridoSeg: 75,
+      descansoSugeridoSeg: descanso,
       imagenes: (f.images ?? []).map((p) => IMG_BASE + p),
       sinonimos: t?.sinonimos ?? [],
       fuente: "Free Exercise DB",
@@ -132,10 +172,20 @@ async function main() {
     });
   }
 
-  const traducidos = catalogo.filter((c) => c.traduccion === "ok").length;
+  const traducidos  = catalogo.filter((c) => c.traduccion === "ok").length;
+  const pendientes  = catalogo.length - traducidos;
+
   writeFileSync(OUT_PATH, JSON.stringify(catalogo, null, 2));
-  console.log(`Catálogo → ${OUT_PATH}`);
-  console.log(`  ${catalogo.length} ejercicios | traducidos: ${traducidos} | pendientes: ${catalogo.length - traducidos}`);
+  console.log(`\nCatálogo → ${OUT_PATH}`);
+  console.log(`  ${catalogo.length} ejercicios | traducidos: ${traducidos} | pendientes: ${pendientes}`);
+
+  // Resumen del validador
+  if (warnings.length > 0) {
+    console.log(`\n⚠  ${warnings.length} traducciones por debajo del umbral 0.7 (ratio de texto o pasos faltantes):`);
+    warnings.forEach((w) => console.log("  " + w));
+  } else {
+    console.log(`\n✅ Todas las traducciones superan el umbral 0.7.`);
+  }
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
