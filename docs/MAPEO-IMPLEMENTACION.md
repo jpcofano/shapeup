@@ -56,10 +56,46 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | D13 | Home: 3 layouts seleccionables + Historial/Salud enriquecidos (sparklines, records, zonas) en el repo | ✅ | 2026-06-10 |
 | **Fix** | | | |
 | FIX-SALUD | Importador de salud: 3 bugs del formato Samsung Health 2025+ — corregido | ✅ | 2026-06-09 |
+| **Auditoría jun-2026 (ver Bitácora)** | | | |
+| D14 | Datos: re-traducción fiel (115 ejercicios) + catálogo completo badge EN + patrones + descansos (hallazgos A1–A4) | ⬜ | — |
+| D15 | Micro-interacciones: stagger cards, anillo animado, feedback de serie, tabs (hallazgo C9) | ⬜ | — |
+| D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ⬜ | — |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-10] Auditoría kit+datos — decisiones y cola D14/D15/D16
+
+Auditoría rápida del UI kit + foundations + datos contrastada con el repo. 10 hallazgos incorporados al mapeo.
+
+#### Hallazgos y prompts asignados
+
+| Hallazgo | Sev | Resumen | Prompt |
+|---|---|---|---|
+| A1 | 🔴 | Traducciones ES pierden ~80% del detalle (107/115 con <60% del EN; se pierden tips, respiración, advertencias) | 40 (D14) |
+| A2 | 🔴 | 758/873 ejercicios sin traducir → catálogo bilingüe, fichas pendientes vacías | 40 (D14) |
+| A3 | 🟠 | `patronAprox()` etiqueta mal patrones (chin-up = "tracción horizontal", default "Aislamiento") | 40 (D14) |
+| A4 | 🟡 | `descansoSugeridoSeg` fijo 75 s para todo | 40 (D14) |
+| C9 | 🟠 | Sin micro-interacciones: tabs/anillo/serie sin feedback | 41 (D15) |
+| B5 | 🟠 | Home: "Día 3 de 4" vs anillo "2/4 sesiones" se contradicen | 42 (D16) |
+| B6 | 🟡 | Historial: chip RPE inconsistente, jerarquía plana | 42 (D16) |
+| B7 | 🟡 | Salud · Composición: media pantalla vacía, gráfico sin puntos | 42 (D16) |
+| B8 | 🟡 | Sesión guiada: dock tapa instrucciones sin señal de scroll | 42 (D16) |
+| C10 | 🟡 | FAB "+" sin acción (kit) → divergencia con repo | 42 (D16) |
+
+#### Decisiones del owner (2026-06-10)
+- **A2 — política de catálogo:** se importa TODO (873). Pendientes con badge "EN" + filtro "Solo en español". Cobertura se amplía por lotes priorizando beginner+strength hogareño.
+- **A1 — reglas de traducción fiel:** 1 paso EN = 1 paso ES; "Tip:" → `puntosClave`; "Caution:" → `erroresComunes`; mantener respiración. Validador de ratio ≥ 0.7 en el importador.
+- **B5 — anillo como métrica única:** el anillo SVG es la sola métrica de progreso semanal en Home; la línea del saludo es contexto, no métrica paralela.
+
+#### Cola de prompts
+Después de los cerrados (36→39): **40 (D14) → 41 (D15) → 42 (D16)**. Uno por vez; al cerrar cada uno se verifica repo vs kit.
+
+#### Lo que la auditoría marcó como sólido (no tocar)
+Foundations/temas, flujo de programa (Home→Entrenar→Detalle), sesión guiada (MediaTabs, steppers), estructura del importador.
+
+---
 
 ### [2026-06-10] D13 — Home 3 layouts + Historial Progreso + Salud enriquecido
 
