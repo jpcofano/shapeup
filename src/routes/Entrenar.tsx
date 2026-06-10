@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Zap, List, Dumbbell } from "lucide-react";
+import { Zap, List, Dumbbell, Moon } from "lucide-react";
 import type { Rutina, Programa } from "../types/models";
 import type { MiembroId } from "../types/models";
 import { getRutinasDelMiembro } from "../data/rutinas";
@@ -8,6 +8,7 @@ import { getProgramaActivo } from "../data/programas";
 import { getHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
+import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
 
 function lunesDeSemana(): string {
   const hoy = new Date();
@@ -24,6 +25,7 @@ export function Entrenar() {
 
   const [rutinas,  setRutinas]  = useState<Rutina[]>([]);
   const [proxima,  setProxima]  = useState<ProximaSesionResult | null | undefined>(undefined);
+  const [hoy,      setHoy]      = useState<SesionDeHoyResult | null>(null);
   const [programa, setPrograma] = useState<Programa | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function Entrenar() {
 
     Promise.all([
       getRutinasDelMiembro(memberId as MiembroId),
-      getProgramaActivo(),
+      getProgramaActivo(memberId as MiembroId),
       getHistorialMiembro(memberId as MiembroId),
     ]).then(([rutinasR, progR, histR]) => {
       if (rutinasR.ok) setRutinas(rutinasR.value);
@@ -47,8 +49,11 @@ export function Entrenar() {
           ? histR.value.filter((h) => h.semanaInicio === semanaInicio)
           : [];
         setProxima(proximaSesion(prog, estaSemana));
+        const hoyNum = jsDayToNum(new Date().getDay());
+        setHoy(sesionDeHoy(prog, hoyNum, estaSemana));
       } else {
         setProxima(null);
+        setHoy(null);
       }
 
       setLoading(false);
@@ -64,15 +69,61 @@ export function Entrenar() {
       {loading && <div className="empty-state"><div className="spinner" /></div>}
       {error   && <p className="inline-error">{error}</p>}
 
-      {/* ── Puerta 1 — Tu próxima sesión ──────────────────────────────── */}
-      {!loading && proxima !== undefined && (
+      {/* ── Puerta 1 — Hoy toca / próxima sesión ─────────────────────── */}
+      {!loading && (hoy !== null || proxima !== undefined) && (
         <section>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <Zap size={15} color="var(--accent)" fill="var(--accent)" strokeWidth={0} />
-            <span className="t-label">Tu próxima sesión</span>
+            {hoy?.tipo === "descanso"
+              ? <Moon size={15} color="var(--muted)" strokeWidth={1.5} />
+              : <Zap  size={15} color="var(--accent)" fill="var(--accent)" strokeWidth={0} />
+            }
+            <span className="t-label">
+              {hoy?.tipo === "descanso" ? "Hoy — descanso" : "Hoy toca"}
+            </span>
           </div>
 
-          {proxima !== null ? (
+          {hoy?.tipo === "descanso" ? (
+            <div className="card" style={{ textAlign: "center", padding: "14px 16px" }}>
+              <Moon size={24} color="var(--muted)" strokeWidth={1.5} style={{ marginBottom: 6 }} />
+              <p style={{ margin: 0, fontWeight: 700 }}>Día de descanso</p>
+              <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>
+                Recuperá. La recuperación es parte del entrenamiento.
+              </p>
+            </div>
+          ) : hoy?.tipo === "rutina" ? (
+            <div
+              className="card"
+              style={{ borderColor: "var(--accent)", borderWidth: 1.5, cursor: hoy.yaHecha ? "default" : "pointer" }}
+              onClick={() => !hoy.yaHecha && navigate(`/entrenar/${hoy.idRutina}`)}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 4px", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em" }}>
+                    {hoy.etiqueta.replace(/^[^—–]*[—–]\s*/, "")}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+                    {hoy.yaHecha ? "Ya entrenaste hoy ✓" : "Programado para hoy"}
+                  </p>
+                </div>
+                <span style={{
+                  width: 38, height: 38, borderRadius: "50%",
+                  background: hoy.yaHecha ? "var(--card-hover)" : "var(--accent)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <Zap size={18} color={hoy.yaHecha ? "var(--muted)" : "var(--on-accent)"} />
+                </span>
+              </div>
+              {!hoy.yaHecha && (
+                <button
+                  className="btn-primary"
+                  style={{ marginTop: 12 }}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${hoy.idRutina}`); }}
+                >
+                  Empezar
+                </button>
+              )}
+            </div>
+          ) : proxima !== null && proxima !== undefined ? (
             <div
               className="card"
               style={{ borderColor: "var(--accent)", borderWidth: 1.5, cursor: "pointer" }}

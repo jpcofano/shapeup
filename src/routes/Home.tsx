@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Zap, Flame, Check } from "lucide-react";
+import { Zap, Flame, Check, Moon } from "lucide-react";
 import type { Programa, Historial, MedicionCorporal } from "../types/models";
 import type { MiembroId } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
@@ -12,6 +12,7 @@ import { MemberAvatar } from "../components/MemberAvatar";
 import { WeekStrip } from "../components/WeekStrip";
 import { ShapeUpMark, ShapeUpWordmark } from "../components/Brand";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
+import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -146,6 +147,7 @@ export function Home() {
 
   const [programa,  setPrograma]  = useState<Programa | null>(null);
   const [proxima,   setProxima]   = useState<ProximaSesionResult | null | undefined>(undefined);
+  const [hoy,       setHoy]       = useState<SesionDeHoyResult | null>(null);
   const [loading,   setLoading]   = useState(true);
   const [color,     setColor]     = useState<string | undefined>(undefined);
 
@@ -164,7 +166,7 @@ export function Home() {
 
     const semanaInicio = semanaRef.current;
     Promise.all([
-      getProgramaActivo(),
+      getProgramaActivo(memberId as MiembroId),
       getHistorialMiembro(memberId as MiembroId),
       getMediciones(memberId as MiembroId),
     ]).then(([progR, histR, medR]) => {
@@ -183,8 +185,12 @@ export function Home() {
         if (prog) {
           setPrograma(prog);
           setProxima(proximaSesion(prog, esta));
+          const hoyNum = jsDayToNum(new Date().getDay());
+          const sesHoy = sesionDeHoy(prog, hoyNum, esta);
+          setHoy(sesHoy);
         } else {
           setProxima(null);
+          setHoy(null);
         }
       }
 
@@ -258,9 +264,12 @@ export function Home() {
           {/* Anillo */}
           <ProgressRing done={sesHechas} total={sesObj > 0 ? sesObj : 1} />
 
-          {/* Glass card — próxima sesión */}
-          <div className={`glass-card aurora-anim aurora-anim-1`}
-            style={{ width: "100%", maxWidth: 360 }}>
+          {/* Glass card — hoy toca / próxima sesión */}
+          <div
+            className={`glass-card aurora-anim aurora-anim-1`}
+            style={{ width: "100%", maxWidth: 360, cursor: programa ? "pointer" : "default" }}
+            onClick={() => programa && navigate(`/programa/${programa.idPrograma}`)}
+          >
             {semanaCompleta ? (
               <div style={{ textAlign: "center" }}>
                 <p style={{ margin: 0, fontSize: 20 }}>🎉</p>
@@ -268,10 +277,41 @@ export function Home() {
                 <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 13 }}>
                   Descansá o elegí otra rutina para seguir.
                 </p>
-                <button className="btn-secondary" onClick={() => navigate("/entrenar")}>
+                <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); navigate("/entrenar"); }}>
                   Elegir otra rutina
                 </button>
               </div>
+            ) : hoy?.tipo === "descanso" ? (
+              <div style={{ textAlign: "center" }}>
+                <Moon size={28} color="var(--muted)" strokeWidth={1.5} style={{ marginBottom: 8 }} />
+                <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 16 }}>Día de descanso</p>
+                <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 13 }}>
+                  Recuperá. La recuperación es parte del entrenamiento.
+                </p>
+                <button
+                  className="btn-secondary"
+                  onClick={(e) => { e.stopPropagation(); navigate("/entrenar"); }}
+                >
+                  Entrenar igual
+                </button>
+              </div>
+            ) : hoy?.tipo === "rutina" ? (
+              <>
+                <p className="t-label" style={{ margin: "0 0 6px" }}>
+                  {hoy.yaHecha ? "Ya entrenaste hoy" : "Hoy toca"}
+                </p>
+                <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em" }}>
+                  {hoy.etiqueta.replace(/^[^—–]*[—–]\s*/, "")}
+                </p>
+                {!hoy.yaHecha && (
+                  <button
+                    className="btn-primary"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${hoy.idRutina}`); }}
+                  >
+                    <Zap size={18} /> Empezar
+                  </button>
+                )}
+              </>
             ) : proxima ? (
               <>
                 <p className="t-label" style={{ margin: "0 0 6px" }}>
@@ -289,20 +329,19 @@ export function Home() {
                 )}
                 <button
                   className="btn-primary"
-                  onClick={() => proxima.dia.idRutina && navigate(`/entrenar/${proxima.dia.idRutina}`)}
+                  onClick={(e) => { e.stopPropagation(); proxima.dia.idRutina && navigate(`/entrenar/${proxima.dia.idRutina}`); }}
                   disabled={!proxima.dia.idRutina}
                 >
                   <Zap size={18} /> Empezar
                 </button>
               </>
             ) : (
-              /* Sin programa */
               <div style={{ textAlign: "center" }}>
                 <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 14 }}>
-                  No hay un programa activo. Creá uno en Biblioteca.
+                  No hay un programa activo. Elegí uno en Biblioteca.
                 </p>
-                <button className="btn-secondary" onClick={() => navigate("/biblioteca")}>
-                  Ver rutinas
+                <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); navigate("/biblioteca"); }}>
+                  Ver programas
                 </button>
               </div>
             )}

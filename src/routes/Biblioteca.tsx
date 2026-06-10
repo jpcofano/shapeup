@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus } from "lucide-react";
-import type { Rutina, FocoRutina, Nivel, Lugar } from "../types/models";
+import type { Rutina, Programa, FocoRutina, Nivel, Lugar, MiembroId } from "../types/models";
 import { FOCOS_RUTINA, NIVELES, LUGARES } from "../types/models";
 import { getRutinas } from "../data/rutinas";
+import { getProgramas, getProgramaActivo } from "../data/programas";
+import { getVisibilidad, programaVisible } from "../data/visibilidad";
 import { useAuth } from "../auth/useAuth";
 import { Catalogo } from "./Catalogo";
+import { VistaSemanal } from "../components/VistaSemanal";
 
 function filtrar(
   rutinas: Rutina[],
@@ -21,7 +24,83 @@ function filtrar(
   });
 }
 
-// ── Pestaña Rutinas ───────────────────────────────────────────────────────────
+// ── Tab Programas ─────────────────────────────────────────────────────────────
+
+function ProgramasList() {
+  const navigate     = useNavigate();
+  const { memberId } = useAuth();
+
+  const [programas, setProgramas] = useState<Programa[]>([]);
+  const [activoId,  setActivoId]  = useState<string | null>(null);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!memberId) return;
+    Promise.all([
+      getProgramas(),
+      getProgramaActivo(memberId as MiembroId),
+      getVisibilidad(memberId as MiembroId),
+    ]).then(([progR, activoR, visR]) => {
+      if (!progR.ok) { setError(progR.error); setLoading(false); return; }
+      const vis = visR.ok ? visR.value : null;
+      const visibles = progR.value.filter((p) => programaVisible(p.idPrograma, vis));
+      setProgramas(visibles);
+      if (activoR.ok && activoR.value) setActivoId(activoR.value.idPrograma);
+      setLoading(false);
+    });
+  }, [memberId]);
+
+  if (loading) return <div className="empty-state"><div className="spinner" /></div>;
+  if (error)   return <p className="inline-error">{error}</p>;
+  if (programas.length === 0) return (
+    <div className="empty-state"><p>No tenés programas asignados todavía.</p></div>
+  );
+
+  return (
+    <>
+      {programas.map((p) => {
+        const activos   = p.dias.filter((d) => d.tipo !== "descanso");
+        const descansos = p.dias.filter((d) => d.tipo === "descanso");
+        const esActivo  = p.idPrograma === activoId;
+        return (
+          <div
+            key={p.idPrograma}
+            className="card"
+            style={{
+              cursor: "pointer",
+              borderColor: esActivo ? "var(--accent)" : undefined,
+              borderWidth: esActivo ? 1.5 : undefined,
+            }}
+            onClick={() => navigate(`/programa/${p.idPrograma}`)}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+              <div>
+                <p style={{ margin: "0 0 4px", fontWeight: 800, fontSize: 16, letterSpacing: "-.01em" }}>
+                  {p.nombre}
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                  <span className="badge badge-muted">{p.objetivo}</span>
+                  <span className="badge badge-muted">{p.nivel}</span>
+                  <span className="badge badge-muted">{activos.length} días/sem</span>
+                  {descansos.length > 0 && (
+                    <span className="badge badge-muted">{descansos.length} desc.</span>
+                  )}
+                </div>
+              </div>
+              {esActivo && (
+                <span className="badge badge-accent" style={{ flexShrink: 0, fontSize: 11 }}>Activo</span>
+              )}
+            </div>
+            <VistaSemanal dias={p.dias} size="sm" />
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// ── Tab Rutinas ───────────────────────────────────────────────────────────────
 
 function RutinasList() {
   const navigate    = useNavigate();
@@ -47,7 +126,6 @@ function RutinasList() {
 
   return (
     <>
-      {/* Filtros */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <FilterRow label="Foco"  all="" value={foco}  options={FOCOS_RUTINA} onChange={(v) => setFoco(v as FocoRutina | "")} />
         <FilterRow label="Nivel" all="" value={nivel} options={NIVELES}      onChange={(v) => setNivel(v as Nivel | "")} />
@@ -79,7 +157,6 @@ function RutinasList() {
         </div>
       ))}
 
-      {/* FAB solo para el owner */}
       {isOwner && (
         <button className="fab" onClick={() => navigate("/biblioteca/nueva")} title="Nueva rutina">
           <Plus size={24} />
@@ -89,15 +166,24 @@ function RutinasList() {
   );
 }
 
-// ── Pantalla con tabs Rutinas | Ejercicios ────────────────────────────────────
+// ── Pantalla con tabs Programas | Rutinas | Ejercicios ────────────────────────
+
+type LibTab = "programas" | "rutinas" | "ejercicios";
 
 export function Biblioteca() {
   const [params, setParams] = useSearchParams();
-  const tab = params.get("tab") === "ejercicios" ? "ejercicios" : "rutinas";
+  const raw = params.get("tab");
+  const tab: LibTab = raw === "ejercicios" ? "ejercicios" : raw === "rutinas" ? "rutinas" : "programas";
 
-  function switchTab(t: "rutinas" | "ejercicios") {
-    setParams(t === "rutinas" ? {} : { tab: "ejercicios" });
+  function switchTab(t: LibTab) {
+    setParams(t === "programas" ? {} : { tab: t });
   }
+
+  const TABS: { key: LibTab; label: string }[] = [
+    { key: "programas",  label: "Programas" },
+    { key: "rutinas",    label: "Rutinas" },
+    { key: "ejercicios", label: "Ejercicios" },
+  ];
 
   return (
     <div className="page">
@@ -105,27 +191,27 @@ export function Biblioteca() {
         <h1 className="page-title">Biblioteca</h1>
       </div>
 
-      {/* Pestañas */}
       <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)", marginBottom: 4 }}>
-        {(["rutinas", "ejercicios"] as const).map((t) => (
+        {TABS.map(({ key, label }) => (
           <button
-            key={t}
-            onClick={() => switchTab(t)}
+            key={key}
+            onClick={() => switchTab(key)}
             style={{
               flex: 1, padding: "10px 0", background: "none", border: "none",
-              borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
-              color: tab === t ? "var(--accent)" : "var(--muted)",
-              fontWeight: tab === t ? 700 : 400, fontSize: 14, cursor: "pointer",
-              textTransform: "capitalize", transition: "color 0.15s",
+              borderBottom: tab === key ? "2px solid var(--accent)" : "2px solid transparent",
+              color: tab === key ? "var(--accent)" : "var(--muted)",
+              fontWeight: tab === key ? 700 : 400, fontSize: 13, cursor: "pointer",
               marginBottom: -1,
             }}
           >
-            {t === "rutinas" ? "Rutinas" : "Ejercicios"}
+            {label}
           </button>
         ))}
       </div>
 
-      {tab === "rutinas" ? <RutinasList /> : <Catalogo embedded />}
+      {tab === "programas"  && <ProgramasList />}
+      {tab === "rutinas"    && <RutinasList />}
+      {tab === "ejercicios" && <Catalogo embedded />}
     </div>
   );
 }

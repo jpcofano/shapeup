@@ -42,6 +42,10 @@ export interface ZipExtraccion {
   shapeUpCustomId: string | undefined;
   errors:     string[];
   csvsLeidos: string[];
+  /** Diagnóstico: qué archivos CSV se encontraron en el ZIP por tipo conocido. */
+  csvsPorTipo: Record<string, string>;
+  /** CSVs en el ZIP que no se reconocieron (para detectar nuevos formatos). */
+  otrosCSVs: string[];
 }
 
 // ── Constantes ────────────────────────────────────────────────────────────────
@@ -50,7 +54,12 @@ const CUSTOM_EXERCISE_KEY  = "custom_exercise";
 const LIVE_DATA_DIR        = "jsons/com.samsung.shealth.exercise/";
 const LIVE_DATA_SUFFIX     = "live_data.json";
 
-/** Nombres de CSV que indican un export válido de Samsung Health. */
+/**
+ * Nombres que indican un export válido de Samsung Health.
+ * Los formatos más nuevos (2025+) solo tienen el CSV de peso como CSV tradicional;
+ * ejercicio y sueño se exportan en otros formatos. Por eso el ZIP del nombre del
+ * archivo (samsunghealth_*) es suficiente como marker alternativo.
+ */
 const SAMSUNG_MARKERS = [
   "com.samsung.health.weight",
   "com.samsung.shealth.exercise",
@@ -59,8 +68,9 @@ const SAMSUNG_MARKERS = [
 
 // ── Helpers internos ──────────────────────────────────────────────────────────
 
-/** true si el zip tiene al menos un CSV que confirme que es de Samsung Health. */
-function esSamsungExport(paths: string[]): boolean {
+/** true si el zip tiene algún marker de Samsung Health (CSV o nombre del zip). */
+function esSamsungExport(paths: string[], zipFilename?: string): boolean {
+  if (zipFilename && zipFilename.toLowerCase().includes("samsunghealth")) return true;
   return SAMSUNG_MARKERS.some((m) => paths.some((p) => p.toLowerCase().includes(m)));
 }
 
@@ -114,7 +124,7 @@ export async function extraerDesdeZip(
   const result: ZipExtraccion = {
     mediciones: [], cardio: [], sueno: [], metricas: [],
     liveData: {}, shapeUpCustomId: undefined,
-    errors: [], csvsLeidos: [],
+    errors: [], csvsLeidos: [], csvsPorTipo: {}, otrosCSVs: [],
   };
 
   const progress = (pct: number, msg: string) => onProgress?.(pct, msg);
@@ -132,7 +142,7 @@ export async function extraerDesdeZip(
   const allPaths = Object.keys(zip.files).filter((p) => !zip.files[p].dir);
   progress(10, "Verificando formato…");
 
-  if (!esSamsungExport(allPaths)) {
+  if (!esSamsungExport(allPaths, file.name)) {
     result.errors.push(
       "No reconocí el ZIP como un export de Samsung Health. " +
       "Esperaba CSVs de peso, ejercicio o sueño."
@@ -155,18 +165,21 @@ export async function extraerDesdeZip(
       continue;
     }
 
-    // CSV de Samsung por tipo
-    const tipo = detectarTipoCsv(filename);
-    if (tipo !== "unknown") {
-      csvPorTipo[tipo] = path; // el último si hay varios (no debería)
-      continue;
-    }
-
-    // Métricas genéricas
-    const tipoMeta = detectarTiposMetrica(filename);
-    if (tipoMeta) {
-      csvPorTipo[`meta:${filename}`] = path;
-      continue;
+    // Solo archivos .csv para los parsers de Samsung (los .json son blobs internos)
+    if (lower.endsWith(".csv")) {
+      const tipo = detectarTipoCsv(filename);
+      if (tipo !== "unknown") {
+        csvPorTipo[tipo] = path;
+        continue;
+      }
+      // Métricas genéricas (también CSV)
+      const tipoMeta = detectarTiposMetrica(filename);
+      if (tipoMeta) {
+        csvPorTipo[`meta:${filename}`] = path;
+        continue;
+      }
+      // CSV no reconocido — guardarlo para diagnóstico
+      result.otrosCSVs.push(filename);
     }
 
     // live_data.json (nivel biometrico)
@@ -175,6 +188,11 @@ export async function extraerDesdeZip(
       if (uuid) liveDataIndex[uuid] = path;
     }
   }
+
+  // Guardar diagnóstico: qué archivos encontramos para cada tipo conocido
+  result.csvsPorTipo = Object.fromEntries(
+    Object.entries(csvPorTipo).map(([k, v]) => [k, v.split("/").pop() ?? v]),
+  );
 
   progress(15, "Leyendo CSVs…");
 

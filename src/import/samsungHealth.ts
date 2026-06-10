@@ -28,12 +28,23 @@ export interface ParseResult<T> {
 
 export type SamsungCsvType = "weight" | "exercise" | "sleep" | "unknown";
 
-/** Detecta qué tipo de CSV de Samsung Health es según el nombre del archivo. */
+/**
+ * Detecta qué tipo de CSV de Samsung Health es según el nombre del archivo.
+ *
+ * Usa patrones exactos primero para distinguir el CSV principal de sub-tipos
+ * (exercise.recovery_heart_rate, sleep_stage, sleep_combined, etc.).
+ * El ZIP de Samsung Health 2024+ tiene ~90 CSVs; sin esto se toma el último match.
+ */
 export function detectarTipoCsv(filename: string): SamsungCsvType {
   const f = filename.toLowerCase();
-  if (f.includes("body_weight") || f.includes("weight")) return "weight";
-  if (f.includes("exercise"))                             return "exercise";
-  if (f.includes("sleep"))                               return "sleep";
+  // Patrones exactos: nombre + timestamp numérico (sin sub-tipo en el medio)
+  if (/^com\.samsung\.health\.(body_)?weight\.\d+\.csv$/.test(f))  return "weight";
+  if (/^com\.samsung\.shealth\.exercise\.\d+\.csv$/.test(f))       return "exercise";
+  if (/^com\.samsung\.shealth\.sleep\.\d+\.csv$/.test(f))          return "sleep";
+  // Fallback para exports sin timestamp (CSV sueltos / tests)
+  if (f === "weight.csv" || f === "body_weight.csv")               return "weight";
+  if (f === "exercise.csv")                                         return "exercise";
+  if (f === "sleep.csv")                                            return "sleep";
   return "unknown";
 }
 
@@ -96,17 +107,28 @@ function col(row: Record<string, string>, suffix: string): string {
 /**
  * Convierte epoch en ms + time_offset a "YYYY-MM-DD" local.
  * time_offset: "UTC-0300", "UTC+0530", "+0300", "-0300"
+ *
+ * Samsung Health (2024+) exporta start_time como datetime string
+ * "YYYY-MM-DD HH:MM:SS.mmm" (hora local) en lugar de epoch ms.
+ * En ese caso devolvemos directamente los primeros 10 caracteres.
  */
 function epochToDate(epochMs: string, offset?: string): string {
+  if (!epochMs) return "";
+  // Formato nuevo: datetime string "YYYY-MM-DD …" → ya es hora local
+  if (/^\d{4}-\d{2}-\d{2}/.test(epochMs)) return epochMs.slice(0, 10);
   const ms = parseInt(epochMs, 10);
-  if (!epochMs || isNaN(ms)) return "";
+  if (isNaN(ms)) return "";
   const d = offsetDate(ms, offset);
   return d ? d.toISOString().slice(0, 10) : new Date(ms).toISOString().slice(0, 10);
 }
 
 function epochToTime(epochMs: string, offset?: string): string {
+  if (!epochMs) return "";
+  // Formato nuevo: "YYYY-MM-DD HH:MM:SS.mmm" → extraer HH:MM directamente
+  const dtMatch = epochMs.match(/^\d{4}-\d{2}-\d{2} (\d{2}:\d{2})/);
+  if (dtMatch) return dtMatch[1];
   const ms = parseInt(epochMs, 10);
-  if (!epochMs || isNaN(ms)) return "";
+  if (isNaN(ms)) return "";
   const d = offsetDate(ms, offset);
   if (!d) return "";
   const hh = String(d.getUTCHours()).padStart(2, "0");
@@ -290,7 +312,12 @@ export function parsearSueno(
     if (!fecha) { errors.push(`Fila sin fecha (uuid=${uuid || "?"})`); continue; }
 
     const sleepMin   = numOpt(col(f, "sleep_duration")); // en minutos
-    const horas      = sleepMin != null ? parseFloat((sleepMin / 60).toFixed(2)) : undefined;
+    // Saltar sub-registros de etapas (REM, profundo, ligero, wake) que no tienen duración total
+    if (sleepMin == null || sleepMin <= 0) {
+      errors.push(`Fila sin duración omitida (uuid=${uuid || "?"})`);
+      continue;
+    }
+    const horas      = parseFloat((sleepMin / 60).toFixed(2));
     const acostarse  = epochToTime(bedMs, offset) || undefined;
 
     items.push(stripUndef({

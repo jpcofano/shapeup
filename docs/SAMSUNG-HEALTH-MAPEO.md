@@ -9,9 +9,22 @@ todos: solo `weight`, `exercise` y `sleep` para los tipos del modelo; el resto a
   **Saltearla.** El **encabezado real es la línea 2**; los datos arrancan en la línea 3.
 - Algunas columnas vienen **prefijadas**: `com.samsung.health.exercise.*`,
   `com.samsung.health.heart_rate.*`. Hay que matchear por el sufijo.
-- **Timestamps** (`start_time`, `end_time`, `create_time`): epoch en **milisegundos**. Hay un
-  `time_offset` (ej. `UTC-0300`) para reconstruir la fecha/hora local.
+- **Timestamps** (`start_time`, `end_time`, `create_time`):
+  - **Formato antiguo** (pre-2024): epoch en **milisegundos** (ej. `1710488400000`).
+  - **Formato nuevo** (2024+): datetime string local `"YYYY-MM-DD HH:MM:SS.mmm"` (ej. `"2024-03-15 08:30:00.000"`). El parser detecta el formato automáticamente.
+  - `time_offset` (ej. `UTC-0300`, `+09:00`) solo aplica al formato epoch ms; en datetime string la hora ya es local.
 - **Unidades:** `duration` en **ms**, `distance` en **metros**, `sleep_duration` en **minutos**.
+
+## Detección de archivos en el ZIP (2025+)
+Samsung Health exporta ~90 CSVs por export. Hay sub-tipos con nombres similares al principal:
+
+| Archivo principal | Sub-tipos a ignorar |
+|---|---|
+| `com.samsung.shealth.exercise.TIMESTAMP.csv` | `exercise.recovery_heart_rate`, `exercise.custom_exercise`, `exercise.route`, `exercise.weather`, etc. |
+| `com.samsung.shealth.sleep.TIMESTAMP.csv` | `sleep_stage`, `sleep_combined`, `sleep_data`, `sleep_raw_data`, `sleep_snoring`, etc. |
+| `com.samsung.health.weight.TIMESTAMP.csv` | (sin sub-tipos ambiguos) |
+
+El importador usa **regex exactos** para detectar el archivo principal (sin sub-tipo entre el nombre y el timestamp). Los JSON internos (ej. `*blob.value.json`) se ignoran: solo se indexan `.csv`.
 
 ## 1) `com.samsung.health.weight` → `MedicionCorporal`
 Una fila por medición (báscula/manual).

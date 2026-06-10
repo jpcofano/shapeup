@@ -418,7 +418,7 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
           <span>Previsualización — {file.name}</span>
           <button className="modal-close" onClick={onCancel}><X size={16} /></button>
         </div>
-        <div style={{ padding: "12px 16px" }}>
+        <div style={{ padding: "12px 16px", maxHeight: "65vh", overflowY: "auto" }}>
           <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 8px" }}>
             Tipo: <strong style={{ color: "var(--fg)" }}>{TIPO_LABELS[tipo] ?? tipo}</strong> · {totalItems} registros
             {parsedErrors.length > 0 && ` · ${parsedErrors.length} advertencias`}
@@ -456,6 +456,36 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
             </div>
           )}
 
+          {/* Diagnóstico ZIP: qué archivos se encontraron */}
+          {preview.zipData && Object.keys(preview.zipData.csvsPorTipo).length > 0 && (
+            <div style={{ marginBottom: 8 }}>
+              <p style={{ fontSize: 11, color: "var(--muted)", margin: "0 0 4px", fontWeight: 600 }}>
+                Archivos detectados en el ZIP:
+              </p>
+              {(["weight", "exercise", "sleep"] as const).map((tipo) => {
+                const found = preview.zipData!.csvsPorTipo[tipo];
+                return (
+                  <p key={tipo} style={{ fontSize: 11, margin: "2px 0",
+                    color: found ? "var(--fg)" : "var(--danger)" }}>
+                    {found ? "✓" : "✗"} {tipo}: {found ?? "no encontrado"}
+                  </p>
+                );
+              })}
+              {preview.zipData.csvsLeidos.length > 0 && (
+                <p style={{ fontSize: 11, color: "var(--muted)", margin: "4px 0 0" }}>
+                  Leídos ({preview.zipData.csvsLeidos.length}): {preview.zipData.csvsLeidos.slice(0, 3).join(", ")}
+                  {preview.zipData.csvsLeidos.length > 3 && ` … +${preview.zipData.csvsLeidos.length - 3} más`}
+                </p>
+              )}
+              {preview.zipData.otrosCSVs.length > 0 && (
+                <p style={{ fontSize: 11, color: "var(--muted)", margin: "4px 0 0" }}>
+                  Otros CSVs en el ZIP: {preview.zipData.otrosCSVs.slice(0, 5).join(", ")}
+                  {preview.zipData.otrosCSVs.length > 5 && ` … +${preview.zipData.otrosCSVs.length - 5}`}
+                </p>
+              )}
+            </div>
+          )}
+
           {parsedErrors.slice(0, 3).map((e, i) => (
             <p key={i} style={{ fontSize: 11, color: "var(--warning)", margin: 0 }}>⚠ {e}</p>
           ))}
@@ -488,10 +518,10 @@ function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] }) {
       <div className="card">
         <p className="section-title" style={{ marginBottom: 10 }}>Último — {last.fecha}</p>
         <div className="stats-row" style={{ flexWrap: "wrap", gap: 16 }}>
-          {last.pesoKg       != null && <Stat value={`${last.pesoKg} kg`} label="peso" />}
-          {last.grasaPct     != null && <Stat value={`${last.grasaPct}%`} label="grasa" />}
-          {last.masaMuscularKg != null && <Stat value={`${last.masaMuscularKg} kg`} label="músculo" />}
-          {last.imc          != null && <Stat value={String(last.imc)} label="IMC" />}
+          {last.pesoKg         != null && <Stat value={`${last.pesoKg} kg`} label="peso" />}
+          {last.grasaPct       != null && <Stat value={`${last.grasaPct.toFixed(1)}%`} label="grasa" />}
+          {last.masaMuscularKg != null && <Stat value={`${last.masaMuscularKg.toFixed(1)} kg`} label="músculo" />}
+          {last.imc            != null && <Stat value={last.imc.toFixed(1)} label="IMC" />}
         </div>
       </div>
       <div className="card">
@@ -501,9 +531,9 @@ function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] }) {
             <div key={m.idMedicion} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
               <span style={{ color: "var(--muted)" }}>{m.fecha}</span>
               <span>
-                {m.pesoKg != null && `${m.pesoKg} kg`}
-                {m.grasaPct != null && ` · ${m.grasaPct}%`}
-                {m.masaMuscularKg != null && ` · ${m.masaMuscularKg} kg M`}
+                {m.pesoKg        != null && `${m.pesoKg} kg`}
+                {m.grasaPct      != null && ` · ${m.grasaPct.toFixed(1)}%`}
+                {m.masaMuscularKg != null && ` · ${m.masaMuscularKg.toFixed(1)} kg M`}
               </span>
             </div>
           ))}
@@ -588,31 +618,54 @@ function CardioTab({ cardio }: { cardio: SesionCardio[] }) {
 // ── Tab Sueño ─────────────────────────────────────────────────────────────────
 
 function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
-  if (sueno.length === 0) {
+  // Solo registros con duración real (filtra sub-registros de etapas sin horas que hayan quedado de imports anteriores)
+  const conHoras = sueno.filter((r) => r.horas != null && r.horas > 0);
+
+  if (conHoras.length === 0) {
     return (
       <div className="empty-state">
-        <p>Sin datos de sueño. Importá un CSV de sleep de Samsung Health.</p>
+        <p>Sin datos de sueño. Importá un ZIP de Samsung Health.</p>
       </div>
     );
   }
-  const avg = sueno.slice(0, 7).reduce((s, r) => s + (r.horas ?? 0), 0) / Math.min(sueno.length, 7);
+
+  // Promedio últimas 7 noches (solo registros con horas)
+  const ultimas7 = conHoras.slice(0, 7);
+  const avg = ultimas7.reduce((s, r) => s + r.horas!, 0) / ultimas7.length;
+
+  // Gráfico: máximo de horas por día (las últimas 14 fechas con datos)
+  const byDay = new Map<string, number>();
+  for (const r of conHoras) {
+    byDay.set(r.fecha, Math.max(byDay.get(r.fecha) ?? 0, r.horas!));
+  }
+  const chartData = Array.from(byDay.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-14)
+    .map(([fecha, horas]) => ({ label: fecha.slice(5), value: horas }));
+
   return (
     <>
       <div className="card">
-        <p className="section-title" style={{ marginBottom: 10 }}>Última semana</p>
+        <p className="section-title" style={{ marginBottom: 10 }}>Resumen</p>
         <div className="stats-row">
-          <Stat value={`${avg.toFixed(1)} h`} label="promedio" />
-          <Stat value={sueno.length > 0 ? `${sueno[0].horas ?? "-"} h` : "-"} label="última noche" />
+          <Stat value={`${avg.toFixed(1)} h`} label="promedio 7 noches" />
+          <Stat value={`${conHoras[0].horas!.toFixed(1)} h`} label="última noche" />
+          <Stat value={String(conHoras.length)} label="registros" />
         </div>
+        {chartData.length > 2 && (
+          <div style={{ marginTop: 12 }}>
+            <MiniChart data={chartData} color="var(--info)" />
+          </div>
+        )}
       </div>
       <div className="card">
-        <p className="section-title" style={{ marginBottom: 10 }}>Historial ({sueno.length})</p>
+        <p className="section-title" style={{ marginBottom: 10 }}>Historial ({conHoras.length})</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {sueno.slice(0, 14).map((s) => (
+          {conHoras.slice(0, 20).map((s) => (
             <div key={s.idSueno} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
               <span style={{ color: "var(--muted)" }}>{s.fecha}</span>
               <span>
-                {s.horas != null && `${s.horas} h`}
+                {s.horas != null && `${s.horas.toFixed(1)} h`}
                 {s.horaAcostarse && ` · acostó ${s.horaAcostarse}`}
               </span>
             </div>

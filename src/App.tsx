@@ -16,6 +16,7 @@ import { Salud } from "./routes/Salud";
 import { RutinaDetalle } from "./routes/RutinaDetalle";
 import { RutinaForm } from "./routes/RutinaForm";
 import { EjercicioForm } from "./routes/EjercicioForm";
+import { ProgramaDetalle } from "./routes/ProgramaDetalle";
 
 const router = createBrowserRouter([
   // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { path: "catalogo/nueva",         element: <EjercicioForm /> },
       { path: "catalogo/:id/editar",    element: <EjercicioForm /> },
       { path: "entrenar",               element: <Entrenar /> },
+      { path: "programa/:id",            element: <ProgramaDetalle /> },
       { path: "historial",              element: <Historial /> },
       { path: "historial/:id",          element: <HistorialDetalle /> },
       { path: "salud",                  element: <Salud /> },

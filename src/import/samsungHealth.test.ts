@@ -26,10 +26,22 @@ uuid-sleep-002,1710536400000,UTC-0300,1710534000000,390`;
 // ── detectarTipoCsv ───────────────────────────────────────────────────────────
 
 describe("detectarTipoCsv", () => {
-  it("detecta weight",   () => expect(detectarTipoCsv("com.samsung.health.body_weight.20240315.csv")).toBe("weight"));
-  it("detecta exercise", () => expect(detectarTipoCsv("com.samsung.shealth.exercise.20240315.csv")).toBe("exercise"));
-  it("detecta sleep",    () => expect(detectarTipoCsv("com.samsung.shealth.sleep.20240315.csv")).toBe("sleep"));
-  it("retorna unknown",  () => expect(detectarTipoCsv("nutrition_goal.csv")).toBe("unknown"));
+  // Formato antiguo (con "body_weight")
+  it("detecta weight (body_weight)",   () => expect(detectarTipoCsv("com.samsung.health.body_weight.20240315.csv")).toBe("weight"));
+  it("detecta exercise",               () => expect(detectarTipoCsv("com.samsung.shealth.exercise.20240315.csv")).toBe("exercise"));
+  it("detecta sleep",                  () => expect(detectarTipoCsv("com.samsung.shealth.sleep.20240315.csv")).toBe("sleep"));
+  // Formato 2025+ (sin "body_" en weight)
+  it("detecta weight (sin body_)",     () => expect(detectarTipoCsv("com.samsung.health.weight.20260607183598.csv")).toBe("weight"));
+  it("detecta exercise 2025+",         () => expect(detectarTipoCsv("com.samsung.shealth.exercise.20260607183598.csv")).toBe("exercise"));
+  it("detecta sleep 2025+",            () => expect(detectarTipoCsv("com.samsung.shealth.sleep.20260607183598.csv")).toBe("sleep"));
+  // Sub-tipos NO deben ser detectados como el tipo principal
+  it("sub-tipo exercise.recovery NO es exercise", () =>
+    expect(detectarTipoCsv("com.samsung.shealth.exercise.recovery_heart_rate.20260607183598.csv")).toBe("unknown"));
+  it("sleep_stage NO es sleep", () =>
+    expect(detectarTipoCsv("com.samsung.health.sleep_stage.20260607183598.csv")).toBe("unknown"));
+  it("sleep_combined NO es sleep", () =>
+    expect(detectarTipoCsv("com.samsung.shealth.sleep_combined.20260607183598.csv")).toBe("unknown"));
+  it("retorna unknown para otros",  () => expect(detectarTipoCsv("nutrition_goal.csv")).toBe("unknown"));
 });
 
 // CSV con campos opcionales vacíos (sin grasa, sin músculo)
@@ -212,6 +224,83 @@ describe("parsearMetricas — pasos", () => {
   const { items } = parsearMetricas("step_daily_trend.csv", STEPS_CSV, "sofia");
   it("genera pasos sumados (8500)",     () => expect(items[0].valor).toBe(8500));
   it("unidad = pasos",                  () => expect(items[0].unidad).toBe("pasos"));
+});
+
+// ── Formato nuevo (2024+): start_time como datetime string ───────────────────
+// Samsung Health actualizó el export: start_time ahora es "YYYY-MM-DD HH:MM:SS.mmm"
+// (hora local) en lugar de epoch ms. El parser antiguo hacía parseInt("2024-...") = 2024
+// (el año como número) → new Date(2024) ≈ "1970-01-01", fecha completamente errónea.
+
+const PESO_CSV_DATETIME = `com.samsung.health.body_weight,6320001,12
+com.samsung.health.body_weight.create_time,com.samsung.health.body_weight.update_time,datauuid,com.samsung.health.body_weight.start_time,com.samsung.health.body_weight.time_offset,com.samsung.health.body_weight.weight,com.samsung.health.body_weight.height,com.samsung.health.body_weight.body_fat,com.samsung.health.body_weight.muscle_mass
+2024-03-15 08:30:00.000,2024-03-15 08:30:01.000,uuid-dt-001,2024-03-15 08:30:00.000,UTC-0300,78.5,178,18.5,35.2
+2024-03-22 08:15:00.000,2024-03-22 08:15:01.000,uuid-dt-002,2024-03-22 08:15:00.000,UTC-0300,79.0,178,,`;
+
+const EXERCISE_CSV_DATETIME = `com.samsung.shealth.exercise,6000007,15
+datauuid,com.samsung.shealth.exercise.start_time,com.samsung.shealth.exercise.time_offset,com.samsung.shealth.exercise.exercise_type,title,com.samsung.shealth.exercise.duration,com.samsung.shealth.exercise.calorie,com.samsung.shealth.exercise.mean_heart_rate,com.samsung.shealth.exercise.max_heart_rate,com.samsung.shealth.exercise.distance
+uuid-ej-dt-001,2024-03-15 07:30:00.000,UTC-0300,11,Caminata matutina,1800000,180,115,145,3200
+uuid-ej-dt-002,2024-03-16 08:00:00.000,UTC-0300,1001,,2700000,320,142,168,0`;
+
+const SLEEP_CSV_DATETIME = `com.samsung.shealth.sleep,6000003,8
+datauuid,com.samsung.shealth.sleep.start_time,com.samsung.shealth.sleep.time_offset,com.samsung.shealth.sleep.original_bed_time,com.samsung.shealth.sleep.sleep_duration
+uuid-sleep-dt-001,2024-03-15 06:30:00.000,UTC-0300,2024-03-15 23:00:00.000,452
+uuid-sleep-dt-002,2024-03-16 06:45:00.000,UTC-0300,2024-03-16 22:30:00.000,390`;
+
+describe("parsearPeso — formato datetime string (Samsung Health 2024+)", () => {
+  const { items, errors } = parsearPeso(PESO_CSV_DATETIME, "juanpablo");
+
+  it("parsea 2 filas sin errores", () => {
+    expect(items).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+  it("fecha correcta desde datetime string (no '1970-01-01')", () => {
+    expect(items[0].fecha).toBe("2024-03-15");
+    expect(items[1].fecha).toBe("2024-03-22");
+  });
+  it("peso correcto", () => expect(items[0].pesoKg).toBe(78.5));
+  it("fila sin grasa no tiene clave grasaPct", () => {
+    expect("grasaPct" in items[1]).toBe(false);
+  });
+});
+
+describe("parsearEjercicio — formato datetime string (Samsung Health 2024+)", () => {
+  const zonas = {
+    Z1: { min: 84, max: 101 }, Z2: { min: 101, max: 118 },
+    Z3: { min: 118, max: 135 }, Z4: { min: 135, max: 152 }, Z5: { min: 152, max: 169 },
+  };
+  const { items, errors } = parsearEjercicio(EXERCISE_CSV_DATETIME, "juanpablo", zonas);
+
+  it("parsea 2 filas sin errores", () => {
+    expect(items).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+  it("fecha correcta desde datetime string", () => {
+    expect(items[0].fecha).toBe("2024-03-15");
+    expect(items[1].fecha).toBe("2024-03-16");
+  });
+  it("actividad resuelta correctamente", () => {
+    expect(items[0].actividad).toBe("Caminata matutina");
+    expect(items[1].actividad).toBe("HIIT");
+  });
+});
+
+describe("parsearSueno — formato datetime string (Samsung Health 2024+)", () => {
+  const { items, errors } = parsearSueno(SLEEP_CSV_DATETIME, "juanpablo");
+
+  it("parsea 2 filas sin errores", () => {
+    expect(items).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+  it("fecha correcta desde datetime string", () => {
+    expect(items[0].fecha).toBe("2024-03-15");
+    expect(items[1].fecha).toBe("2024-03-16");
+  });
+  it("horas de sueño correctas (452 min → ~7.53 h)", () => {
+    expect(items[0].horas).toBeCloseTo(7.53, 1);
+  });
+  it("horaAcostarse extraída del datetime string", () => {
+    expect(items[0].horaAcostarse).toMatch(/^\d{2}:\d{2}$/);
+  });
 });
 
 // ── derivarZona ───────────────────────────────────────────────────────────────

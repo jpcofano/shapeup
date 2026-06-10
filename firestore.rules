@@ -52,6 +52,8 @@ service cloud.firestore {
 
     // Perfiles: cada miembro edita el suyo (equipo disponible, objetivos, zonas FC, color).
     match /config/perfiles { allow read, write: if isFamilyMember(); }
+    // Programa activo por miembro: cada miembro puede activar su propio programa.
+    match /config/programaActivo { allow read, write: if isFamilyMember(); }
     // Visibilidad: la controla el owner (qué programa/rutina ve cada miembro).
     match /config/visibilidad {
       allow read: if isFamilyMember();

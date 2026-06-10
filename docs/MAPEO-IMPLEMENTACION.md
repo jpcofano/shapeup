@@ -43,10 +43,121 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P32 (A2) | Sesión libre — selector de ejercicios, reducer virtual, historial tipo libre | ✅ | 2026-06-08 |
 | P33 (B1) | Explicaciones ricas — FichaTecnica (chips) en Catálogo + contexto compacto en BloqueGuiado | ✅ | 2026-06-08 |
 | P34 (D10) | Pulido visual — selector libre premium, FichaTecnica 2×2, badge Libre en detalle, micro-animaciones | ✅ | 2026-06-08 |
+| **Kit (Design completado — pendiente de repo)** | | | |
+| K-MEDIA | Sesión guiada: pestañas Foto/Demo/Músculo (MediaTabs) en el UI kit | ✅ kit | 2026-06-09 |
+| K-HOME3 | Home con 3 layouts seleccionables (Aurora/Stadium/Clásico) en el kit | ✅ kit | 2026-06-08 |
+| K-PROG | Mapa muscular, sparklines, records, sesión libre, instrucciones legibles en el kit | ✅ kit | 2026-06-09 |
+| **Funcional + Diseño (a ejecutar)** | | | |
+| F1 (PROG-MIEMBRO) | Programa activo **por miembro** (no global) — `config/programaActivo` + `getProgramaActivo(miembroId)` | ✅ | 2026-06-09 |
+| F2 (PROG-SEMANA) | Días del programa **por día de semana** (L–D) + descansos — `sesionDeHoy()` | ✅ | 2026-06-09 |
+| F3 (PROG-FLUJO) | Flujo elegir/cambiar programa: lista → detalle con vista semanal → "Activar para mí" | ✅ | 2026-06-09 |
+| D11 | Pulido visual del flujo de programa (VistaSemanal, Home descanso, Entrenar consistente) | ✅ | 2026-06-09 |
+| D12 | MediaTabs (Foto/Demo/Músculo) en BloqueGuiado del repo | ⬜ | — |
+| D13 | Home: 3 layouts seleccionables + Historial/Salud enriquecidos (sparklines, records, zonas) en el repo | ⬜ | — |
+| **Fix** | | | |
+| FIX-SALUD | Importador de salud: 3 bugs del formato Samsung Health 2025+ — corregido | ✅ | 2026-06-09 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-09] F1/F2/F3/D11 — Flujo de programa semanal
+
+#### F1 — Programa activo por miembro
+- **`src/data/programas.ts`** — `getProgramaActivo(miembroId?)`: lee `config/programaActivo` (mapa `{ memberId: programaId }`); fallback al primer programa con `estado:"Activo"` si no hay entrada. Nuevo `setProgramaActivo(miembroId, programaId)`: `setDoc` con `merge: true`. Los callers (`Home.tsx`, `Entrenar.tsx`) ahora pasan `memberId`.
+- **`firestore.rules`** — regla específica `config/programaActivo`: `isFamilyMember` read/write (antes del `config/{docId}` genérico que solo permite write al owner).
+
+#### F2 — Sesión de hoy por día de semana
+- **`src/lib/sesionDeHoy.ts`** (nuevo, puro) — `sesionDeHoy(programa, diaSemanaHoy, historialSemana)` → `"descanso" | "rutina" | "dia-libre" | "sin-programa"`. `jsDayToNum(jsDay)` convierte `getDay()` (0=dom) a `DiaSemanaNum` (0=lun). `proximaSesion` sigue como fallback para días salteados.
+- **`src/lib/sesionDeHoy.test.ts`** — 10 tests verdes.
+
+#### F3 — Flujo elegir/ver/cambiar programa
+- **`src/routes/Biblioteca.tsx`** — tab "Programas" como primera pestaña (Programas · Rutinas · Ejercicios). `ProgramasList`: lista filtrada por visibilidad, cada card con `VistaSemanal` + badges + badge "Activo" + borde acento si es el activo. Clickeable → `/programa/:id`.
+- **`src/routes/ProgramaDetalle.tsx`** (nuevo) — cabecera + badges; `VistaSemanal` con hoy resaltado; lista L→D con icono entrenamiento/descanso; `comoUsar`/`reglasProgresion`; botón "Activar para mí" → `setProgramaActivo` → navega a Home. Si ya es activo: botón deshabilitado "Activo para {nombre}".
+- **`src/App.tsx`** — ruta `/programa/:id` → `ProgramaDetalle`.
+
+#### D11 — Pulido visual
+- **`src/components/VistaSemanal.tsx`** (nuevo) — fila L–M–X–J–V–S–D. Entrenado: `<Bicep>` lleno acento. Planificado: `<Bicep>` outline 45% opacidad. Descanso: `<Moon>` muted. Sin asignar: puntito. Hoy: borde acento.
+- **`src/routes/Home.tsx`** — glass card usa `sesionDeHoy` primero: "Hoy toca" con rutina y botón Empezar; "Día de descanso" con icono luna + botón "Entrenar igual"; fallback a `proximaSesion` para programas sin `diaSemana`. Card clickeable → `/programa/:idActivo`.
+- **`src/routes/Entrenar.tsx`** — puerta 1 sincronizada con Home: usa `sesionDeHoy`; estado descanso con card informativa; "Ya entrenaste hoy ✓" cuando `yaHecha`.
+
+#### ADRs (ya en §5)
+- ADR #017: `config/programaActivo` (F1).
+- ADR #018: `sesionDeHoy` + fallback `proximaSesion` (F2).
+
+#### Tests
+96 tests verdes (10 nuevos: `sesionDeHoy` + `jsDayToNum`). `tsc -b` limpio.
+
+---
+
+### [2026-06-09] Flujo de programa semanal — análisis, decisiones y ADRs
+
+#### Estado hoy (lo que hay)
+- `Programa.dias: DiaPrograma[]` — cada día con `orden`, `tipo` (`"descanso"` | activo) e `idRutina`. La estructura semanal con descansos ya existe en el dato.
+- `proximaSesion(programa, historialSemana)` — secuencial por `orden`, salta descansos, da `{ indice, total }` ("Día N de M"). Pura. 10 tests.
+- `getProgramaActivo()` — devuelve el **primer** programa con `estado: "Activo"` (GLOBAL).
+- `visibilidad` — owner ve todo; otros ven programas/rutinas asignados en `/config/visibilidad`.
+
+#### Huecos identificados
+1. **No hay UI para elegir/activar el programa de un miembro.** `getProgramaActivo()` agarra el primero Activo; nadie "elige el suyo".
+2. 🔴 **"Activo" es global, no por miembro.** Si JP y María activan su programa, `getProgramaActivo()` devuelve el primero de la lista → colisión en app familiar.
+3. **La estructura semanal no se muestra.** El dato (4 días + 3 descansos, qué toca cada día) existe pero la Home solo dice "Día N de M". No hay vista "tu semana: L Empuje · M descanso…".
+4. **No hay flujo de cambio** de programa, ni qué pasa con la semana en curso.
+5. **Descansos invisibles** en la WeekStrip (no distingue entrenado / planificado / descanso).
+
+#### Decisiones tomadas (2026-06-09)
+- **F1:** el programa activo es **por miembro**. Se elige y se cambia desde la app.
+- **F2:** los días del programa son **por día de semana** (Lunes=Empuje, Martes=descanso…), no secuenciales. Nueva función `sesionDeHoy(programa, hoyDiaSemana, historialSemana)` para "qué toca HOY"; `proximaSesion` queda como fallback de "siguiente sin hacer" para días salteados.
+
+#### Camino de ejecución (orden)
+1. **F1** — `config/programaActivo` (mapa miembro→programaId, análogo a `config/visibilidad`). `getProgramaActivo(miembroId)` + `setProgramaActivo(miembroId, programaId)`. Fallback a `estado:"Activo"` si no hay entrada.
+2. **F2** — `DiaPrograma` recibe `diaSemana` (0–6). Nueva `sesionDeHoy(programa, hoyDiaSemana, historialSemana)`. `proximaSesion` se mantiene como fallback.
+3. **F3** — Biblioteca tab "Programas": lista → detalle con vista semanal (L–D, rutina o descanso) → botón "Activar para mí" → `setProgramaActivo`. Cambiar programa pide confirmación si hay semana en curso.
+4. **D11** — WeekStrip distingue entrenado (bíceps lleno) / planificado (bíceps outline) / descanso (ícono tenue). Detalle de programa premium: cabecera, vista semanal, días expandibles.
+
+#### Restricciones
+- No tocar `lib`/`types`/`auth` salvo lo que F1/F2 requieran explícitamente (y con tests).
+- Nav de 6 ítems intacto (Programas entra por tab en Biblioteca).
+- Tokens siempre, voseo, re-skinea por tema.
+
+> ADRs propuestos: ver §5 ADR #017 y #018.
+
+---
+
+### [2026-06-09] FIX-SALUD — Importador de salud: fechas mal + ejercicio/sueño vacíos
+
+**Síntoma reproducido (2026-06-09):** ZIP importa solo datos de peso; fechas incorrectas ("1969-12-31"); ejercicio y sueño aparecen vacíos en el preview.
+
+#### Causa raíz — Bug 1: `epochToDate` no manejaba datetime strings (CORREGIDO)
+
+Samsung Health (2024+) exporta `start_time` como datetime string `"YYYY-MM-DD HH:MM:SS.mmm"` (hora local) en lugar de epoch en ms. El parser hacía `parseInt("2024-03-15 ...", 10)` = `2024` (solo el año), lo que daba `new Date(2024 + offset_ms)` ≈ `"1969-12-31"`. La condición `isNaN(ms)` no lo capturaba porque `2024` no es NaN.
+
+- **`src/import/samsungHealth.ts`** — `epochToDate` y `epochToTime`: detectan si el string empieza con `\d{4}-\d{2}-\d{2}` y en ese caso retornan el slice directamente (ya es hora local, no necesita conversión). El path epoch ms sigue intacto como fallback.
+- **`src/import/samsungHealth.test.ts`** — 11 tests nuevos: `parsearPeso`, `parsearEjercicio`, `parsearSueno` con `start_time` en formato datetime string. Verifican fecha correcta + campos opcionales.
+
+#### Causa raíz — Bugs 2 y 3: ejercicio/sueño vacíos (CORREGIDOS)
+
+Con el ZIP real (`samsunghealth_jpcofano_20260607183598.zip`) se identificaron dos bugs adicionales:
+
+**Bug 2 — JSONs internos sobreescriben el CSV correcto en el índice.**  
+El ZIP 2025+ contiene archivos JSON con "exercise" o "sleep" en el nombre (ej. `34-exercise_multi_sports_list_order.blob.value.json`, `sleep.watch_summary.blob.value.json`). El loop de indexado los procesaba y el último match sobreescribía la ruta del CSV real. El parser intentaba parsear como CSV un archivo JSON → 0 items.  
+- Fix: `samsungZip.ts` solo indexa archivos `.csv` para los parsers de tipo principal.
+
+**Bug 3 — Múltiples CSVs con el mismo tipo, el último (incorrecto) ganaba.**  
+Samsung Health exporta ~90 CSVs. Varios contienen "exercise" (`exercise.recovery_heart_rate`, `exercise.custom_exercise`, etc.) y "sleep" (`sleep_stage`, `sleep_combined`, `sleep_data`, etc.). La función `detectarTipoCsv` con `f.includes("exercise")` tomaba el último en el orden de iteración del ZIP → archivo equivocado.  
+- Fix: `detectarTipoCsv` usa regex exactos: `/^com\.samsung\.shealth\.exercise\.\d+\.csv$/`, `/^com\.samsung\.shealth\.sleep\.\d+\.csv$/`, `/^com\.samsung\.health\.(body_)?weight\.\d+\.csv$/`. Sub-tipos no matchean.
+
+**Datos confirmados con el ZIP real**: 249 filas peso · 2478 filas ejercicio · 1998 filas sueño — todas con fechas correctas del parser.
+
+#### Diagnóstico agregado al preview (permanente)
+
+- **`src/import/samsungZip.ts`** — `ZipExtraccion` suma `csvsPorTipo` (qué CSV por tipo) y `otrosCSVs` (CSVs no reconocidos) para diagnóstico de futuros cambios de formato.
+- **`src/routes/Salud.tsx`** — `ImportPreview` muestra "Archivos detectados en el ZIP" con ✓/✗ por tipo y lista de "Otros CSVs".
+
+#### Tests
+- **`src/import/samsungHealth.test.ts`** — 76 tests (era 53). Nuevos: 11 para formato datetime string (Bug 1), 9 para `detectarTipoCsv` con patrones exactos y sub-tipos rechazados (Bug 3).
+
+---
 
 ### [2026-06-08] D10 — Pulido visual: sesión libre + ficha técnica
 
@@ -697,6 +808,25 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   Historial por agregación (analytics). Si en el futuro se necesitan "en vivo",
   la opción correcta es una Cloud Function triggered por onDocumentCreated en
   /historial (que corre con privilegios de admin, sin restricciones de reglas).
+
+#017 [2026-06-09] Programa activo por miembro vía doc config/programaActivo
+  Contexto: getProgramaActivo() devuelve el primer programa con estado:"Activo" (global).
+  En app familiar con varios miembros, si JP y María tienen programas activos, la función
+  devuelve el primero de la lista → colisión.
+  Decisión: doc config/programaActivo (mapa miembro→programaId), análogo a config/visibilidad.
+  getProgramaActivo(miembroId) lo lee; fallback a estado:"Activo" si no hay entrada para el miembro.
+  setProgramaActivo(miembroId, programaId) nuevo.
+  Razón: evita migrar los docs de /programas; un solo doc, fácil de leer/escribir; mismo
+  patrón que visibilidad. Permite que cada miembro tenga su programa sin colisión.
+
+#018 [2026-06-09] Sesión del día por día de semana, con fallback secuencial
+  Contexto: proximaSesion() usa orden secuencial del programa. La familia entrena en días
+  fijos (quieren ver "hoy toca / hoy descansás"), pero no hay que castigar a quien se saltea.
+  Decisión: nueva sesionDeHoy(programa, hoyDiaSemana, historialSemana) resuelve la rutina
+  del día actual por diaSemana; devuelve estado "descanso" si hoy es descanso, "ya entrenaste"
+  si ya hay sesión hoy. proximaSesion() se mantiene como fallback para días salteados / "qué sigue".
+  Razón: separa "qué toca hoy" de "qué sigue sin hacer"; cada función tiene responsabilidad clara.
+  No se rompe retrocompat: proximaSesion sigue funcionando igual.
 
 #013 [2026-06-04] Acceso al Catálogo via tabs en /biblioteca
   Contexto: el catálogo salió del nav inferior en ADR #006 para meter Salud (6 ítems).

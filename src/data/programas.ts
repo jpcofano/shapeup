@@ -6,7 +6,7 @@ import {
   query, orderBy, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { Programa, FirestoreTimestamp } from "../types/models";
+import type { Programa, FirestoreTimestamp, MiembroId } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 import { normalizeText } from "../lib/canonical";
@@ -38,11 +38,51 @@ export async function getPrograma(id: string): Promise<Result<Programa>> {
   }
 }
 
-/** Devuelve el primer programa Activo, o null si no hay ninguno. */
-export async function getProgramaActivo(): Promise<Result<Programa | null>> {
-  const r = await getProgramas();
-  if (!r.ok) return err(r.error);
-  return ok(r.value.find((p) => p.estado === "Activo") ?? null);
+/**
+ * Devuelve el programa activo del miembro.
+ * Lee `config/programaActivo` (mapa miembro→programaId); si no hay entrada
+ * para el miembro, cae al primer programa con `estado: "Activo"` (retrocompat).
+ */
+export async function getProgramaActivo(
+  miembroId?: MiembroId,
+): Promise<Result<Programa | null>> {
+  try {
+    if (miembroId) {
+      const snap = await getDoc(doc(db, "config", "programaActivo"));
+      if (snap.exists()) {
+        const mapa = snap.data() as Record<string, string>;
+        const programaId = mapa[miembroId];
+        if (programaId) {
+          const r = await getPrograma(programaId);
+          if (r.ok) return r;
+          // Si el programa no existe, cae al fallback
+        }
+      }
+    }
+    // Fallback: primer programa con estado "Activo"
+    const r = await getProgramas();
+    if (!r.ok) return err(r.error);
+    return ok(r.value.find((p) => p.estado === "Activo") ?? null);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/** Guarda el programa activo de un miembro en `config/programaActivo`. */
+export async function setProgramaActivo(
+  miembroId: MiembroId,
+  programaId: string,
+): Promise<Result<void>> {
+  try {
+    await setDoc(
+      doc(db, "config", "programaActivo"),
+      { [miembroId]: programaId },
+      { merge: true },
+    );
+    return ok(undefined);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
 }
 
 export type ProgramaInput = Omit<
