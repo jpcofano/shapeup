@@ -11,8 +11,10 @@ import { useAuth } from "../auth/useAuth";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { WeekStrip } from "../components/WeekStrip";
 import { ShapeUpMark, ShapeUpWordmark } from "../components/Brand";
+import { VistaSemanal } from "../components/VistaSemanal";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
+import { getHomeLayout, type HomeLayout } from "../lib/homeLayout";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -150,6 +152,7 @@ export function Home() {
   const [hoy,       setHoy]       = useState<SesionDeHoyResult | null>(null);
   const [loading,   setLoading]   = useState(true);
   const [color,     setColor]     = useState<string | undefined>(undefined);
+  const [layout,    setLayout]    = useState<HomeLayout>("aurora");
 
   const [sesHechas, setSesHechas]   = useState(0);
   const [sesObj,    setSesObj]      = useState(0);
@@ -162,6 +165,7 @@ export function Home() {
 
   useEffect(() => {
     if (!memberId) return;
+    setLayout(getHomeLayout(memberId));
     getPerfiles().then((r) => { if (r.ok) setColor(r.value[memberId as MiembroId]?.color); });
 
     const semanaInicio = semanaRef.current;
@@ -219,6 +223,192 @@ export function Home() {
     : null;
   const hasPeso   = lastMed?.pesoKg != null;
 
+  // ── Helpers de sesión resueltos ──────────────────────────────────────────────
+  const sesionNombre = hoy?.tipo === "rutina"
+    ? hoy.etiqueta.replace(/^[^—–]*[—–]\s*/, "")
+    : proxima?.dia
+    ? (proxima.dia.etiqueta.replace(/^[^—–]*[—–]\s*/, ""))
+    : null;
+
+  const sesionRutinaId = hoy?.tipo === "rutina"
+    ? hoy.idRutina
+    : proxima?.dia.idRutina ?? null;
+
+  const canStart = hoy?.tipo === "rutina" ? !hoy.yaHecha : !!proxima?.dia.idRutina;
+
+  // ── Stadium layout ────────────────────────────────────────────────────────
+  if (!loading && layout === "stadium") {
+    return (
+      <div className="page">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, color: "var(--accent)" }}>
+            <ShapeUpMark size={24} /><ShapeUpWordmark size={16} />
+          </div>
+          {memberId && (
+            <button onClick={() => navigate("/perfil")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+              <MemberAvatar memberId={memberId as MiembroId} color={color} size={32} />
+            </button>
+          )}
+        </div>
+
+        {/* Hero Stadium */}
+        <div className="stadium-hero">
+          <div className="stadium-glow" />
+          {semanaCompleta ? (
+            <div style={{ textAlign: "center", position: "relative" }}>
+              <p style={{ fontSize: 22, margin: "0 0 6px" }}>🎉</p>
+              <h1 className="stadium-title">¡Semana completa!</h1>
+              <button className="btn-secondary" style={{ marginTop: 12 }} onClick={() => navigate("/entrenar")}>
+                Elegir otra rutina
+              </button>
+            </div>
+          ) : hoy?.tipo === "descanso" ? (
+            <div style={{ textAlign: "center", position: "relative" }}>
+              <Moon size={32} color="var(--muted)" strokeWidth={1.5} style={{ marginBottom: 8 }} />
+              <h1 className="stadium-title" style={{ fontSize: 24 }}>Día de descanso</h1>
+              <p style={{ color: "var(--muted)", fontSize: 13, margin: "4px 0 12px" }}>
+                Recuperá. Es parte del entrenamiento.
+              </p>
+              <button className="btn-secondary" onClick={() => navigate("/entrenar")}>Entrenar igual</button>
+            </div>
+          ) : sesionNombre ? (
+            <div style={{ position: "relative", width: "100%" }}>
+              <p className="t-label" style={{ margin: "0 0 8px" }}>
+                {hoy?.tipo === "rutina" ? "Hoy toca" : `Día ${proxima?.indice} de ${proxima?.total}`}
+              </p>
+              <h1 className="stadium-title">{sesionNombre}</h1>
+              {canStart && (
+                <button
+                  className="btn-primary"
+                  style={{ width: "100%", marginTop: 16 }}
+                  onClick={() => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`)}
+                >
+                  <Zap size={18} /> Empezar ahora
+                </button>
+              )}
+            </div>
+          ) : (
+            <p style={{ color: "var(--muted)", textAlign: "center" }}>Sin programa activo</p>
+          )}
+        </div>
+
+        {/* Stats strip horizontal */}
+        <div className="stadium-stats">
+          <div className="stadium-stat">
+            <Flame size={14} fill="var(--accent)" strokeWidth={0} color="var(--accent)" />
+            <span className="stadium-stat-value">{racha > 0 ? racha : "—"}</span>
+            <span className="stadium-stat-label">racha</span>
+          </div>
+          <div className="stadium-stat">
+            <span className="stadium-stat-value">{volumen > 0 ? fmtKg(volumen) : "—"}</span>
+            <span className="stadium-stat-label">kg vol.</span>
+          </div>
+          <div className="stadium-stat">
+            <span className="stadium-stat-value">{sesHechas}/{sesObj > 0 ? sesObj : "—"}</span>
+            <span className="stadium-stat-label">sesiones</span>
+          </div>
+          {hasPeso && (
+            <div className="stadium-stat">
+              <span className="stadium-stat-value">{lastMed!.pesoKg}</span>
+              <span className="stadium-stat-label">kg peso</span>
+            </div>
+          )}
+        </div>
+
+        {programa && (
+          <div className="card" style={{ padding: "14px 16px" }}>
+            <WeekStrip semanaInicio={semanaRef.current} marcados={diasEntrenamiento(programa)} />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Clásico layout ────────────────────────────────────────────────────────
+  if (!loading && layout === "clasico") {
+    const pct = sesObj > 0 ? Math.round((sesHechas / sesObj) * 100) : 0;
+    return (
+      <div className="page">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, color: "var(--accent)" }}>
+            <ShapeUpMark size={24} /><ShapeUpWordmark size={16} />
+          </div>
+          {memberId && (
+            <button onClick={() => navigate("/perfil")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+              <MemberAvatar memberId={memberId as MiembroId} color={color} size={32} />
+            </button>
+          )}
+        </div>
+
+        <h1 style={{ margin: "4px 0 0", fontSize: 26, fontWeight: 800, letterSpacing: "-.02em" }}>
+          Dale, {primerNombre}<span style={{ color: "var(--accent)" }}>.</span>
+        </h1>
+
+        {programa && (
+          <div className="card" style={{ padding: "14px 16px" }}>
+            <WeekStrip semanaInicio={semanaRef.current} marcados={diasEntrenamiento(programa)} />
+          </div>
+        )}
+
+        {/* Tu semana */}
+        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span className="section-title">Tu semana</span>
+            {racha > 0 && (
+              <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--accent)", fontSize: 12, fontWeight: 700 }}>
+                <Flame size={13} fill="currentColor" strokeWidth={0} /> {racha} {racha === 1 ? "sem" : "sems"} de racha
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "-.02em" }}>{sesHechas}</span>
+              <span style={{ fontSize: 14, color: "var(--muted)" }}>/ {sesObj} sesiones</span>
+            </div>
+            {volumen > 0 && (
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 18, fontWeight: 800 }}>{fmtKg(volumen)}</div>
+                <div className="t-label">kg vol.</div>
+              </div>
+            )}
+          </div>
+          <div style={{ height: 6, borderRadius: 999, background: "var(--card-hover)", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 999, transition: "width .4s ease" }} />
+          </div>
+        </div>
+
+        {/* Hoy toca */}
+        {(sesionNombre || semanaCompleta) && (
+          <div className="card">
+            {semanaCompleta ? (
+              <div style={{ textAlign: "center" }}>
+                <p style={{ margin: 0, fontWeight: 700 }}>🎉 ¡Semana completa!</p>
+                <button className="btn-secondary" style={{ marginTop: 10 }} onClick={() => navigate("/entrenar")}>Elegir otra rutina</button>
+              </div>
+            ) : hoy?.tipo === "descanso" ? (
+              <div style={{ textAlign: "center" }}>
+                <Moon size={22} color="var(--muted)" strokeWidth={1.5} style={{ marginBottom: 6 }} />
+                <p style={{ margin: 0, fontWeight: 700 }}>Día de descanso</p>
+              </div>
+            ) : sesionNombre ? (
+              <>
+                <p className="t-label" style={{ margin: "0 0 4px" }}>Hoy toca</p>
+                <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em" }}>{sesionNombre}</p>
+                {canStart && (
+                  <button className="btn-primary" style={{ width: "100%" }}
+                    onClick={() => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`)}>
+                    <Zap size={18} /> Empezar
+                  </button>
+                )}
+              </>
+            ) : null}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Aurora layout (default) ───────────────────────────────────────────────
   return (
     <div className="page">
 
@@ -386,12 +576,19 @@ export function Home() {
         </div>
       )}
 
-      {/* ── WeekStrip ───────────────────────────────────────────────────── */}
+      {/* ── Vista semanal del programa activo (Aurora) ──────────────────── */}
       {!loading && programa && (
-        <div className="card" style={{ padding: "14px 16px" }}>
-          <WeekStrip
-            semanaInicio={semanaRef.current}
-            marcados={diasEntrenamiento(programa)}
+        <div
+          className="card"
+          style={{ padding: "14px 16px", cursor: "pointer" }}
+          onClick={() => navigate(`/programa/${programa.idPrograma}`)}
+        >
+          <p className="t-label" style={{ marginBottom: 10 }}>
+            {programa.nombre} · {programa.dias.filter((d) => d.tipo !== "descanso").length} días/sem
+          </p>
+          <VistaSemanal
+            dias={programa.dias}
+            hoy={jsDayToNum(new Date().getDay())}
           />
         </div>
       )}

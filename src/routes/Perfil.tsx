@@ -8,6 +8,7 @@ import { MemberAvatar } from "../components/MemberAvatar";
 import { useTheme, type ThemeName } from "../contexts/ThemeProvider";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { MIEMBRO_IDS, type MiembroId } from "../types/models";
+import { getHomeLayout, setHomeLayout, type HomeLayout } from "../lib/homeLayout";
 
 const NOMBRES: Record<MiembroId, string> = {
   juanpablo: "Juan Pablo", maria: "María", sofia: "Sofía", federico: "Federico",
@@ -30,9 +31,11 @@ export function Perfil() {
   const { canInstall, isInstalled, isIOS, promptInstall } = useInstallPrompt();
   const [color,    setColor]      = useState<string | undefined>(undefined);
   const [objetivos, setObjetivos] = useState<string[]>([]);
+  const [homeLayout, setHomeLayoutState] = useState<HomeLayout>("aurora");
 
   useEffect(() => {
     if (!memberId) return;
+    setHomeLayoutState(getHomeLayout(memberId));
     getPerfiles().then((r) => {
       if (!r.ok) return;
       const perfil = r.value[memberId];
@@ -40,6 +43,12 @@ export function Perfil() {
       setObjetivos(perfil?.objetivos ?? []);
     });
   }, [memberId]);
+
+  function handleLayout(l: HomeLayout) {
+    if (!memberId) return;
+    setHomeLayoutState(l);
+    setHomeLayout(memberId, l);
+  }
 
   const nombre = memberId ? NOMBRES[memberId as MiembroId] : (user?.displayName ?? "");
 
@@ -109,6 +118,52 @@ export function Perfil() {
                   }}>
                     {t.label}
                   </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Estilo de inicio ─────────────────────────────────────────────── */}
+      {memberId && (
+        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <p className="section-title" style={{ margin: "0 0 2px" }}>Estilo de inicio</p>
+            <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+              Solo para {NOMBRES[memberId as MiembroId]}
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {([
+              { id: "aurora",  label: "Aurora",   desc: "Anillo de progreso + glass card" },
+              { id: "stadium", label: "Stadium",  desc: "Marquesina grande + tira de stats" },
+              { id: "clasico", label: "Clásico",  desc: "Tarjetas simples y limpias" },
+            ] as { id: HomeLayout; label: string; desc: string }[]).map((opt) => {
+              const active = homeLayout === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => handleLayout(opt.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12, padding: "10px 12px",
+                    background: active ? "var(--accent-dim)" : "var(--card-hover)",
+                    border: active ? "1.5px solid var(--accent)" : "1.5px solid transparent",
+                    borderRadius: "var(--r-sm)", cursor: "pointer",
+                    transition: "border-color 0.15s, background 0.15s",
+                  }}
+                >
+                  <span style={{
+                    width: 22, height: 22, borderRadius: "50%",
+                    background: active ? "var(--accent)" : "var(--border)",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}>
+                    {active && <Check size={13} color="var(--on-accent)" strokeWidth={2.5} />}
+                  </span>
+                  <div style={{ textAlign: "left" }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: active ? "var(--accent)" : "var(--fg)" }}>{opt.label}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>{opt.desc}</p>
+                  </div>
                 </button>
               );
             })}

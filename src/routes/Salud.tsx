@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Upload, X, FileText } from "lucide-react";
+import { Sparkline } from "../components/Sparkline";
 import type { MedicionCorporal, SesionCardio, RegistroSueno, MetricaSalud, MiembroId } from "../types/models";
 import {
   getMediciones, guardarMedicion,
@@ -502,28 +503,89 @@ function ImportPreview({ preview, onConfirm, onCancel }: {
   );
 }
 
-// ── Tab Composición ───────────────────────────────────────────────────────────
+// ── Tab Composición — hero peso + sparkline + Δ tiles ────────────────────────
+
+function DeltaLine({ current, prev, label, invert = false }: {
+  current: number; prev: number; label: string; invert?: boolean;
+}) {
+  const delta = current - prev;
+  const mejora = invert ? delta > 0 : delta < 0;
+  if (delta === 0) return null;
+  return (
+    <p style={{ margin: "1px 0 0", fontSize: 12,
+      color: mejora ? "var(--accent)" : "var(--danger)" }}>
+      {delta > 0 ? "+" : ""}{delta.toFixed(1)} {label} vs anterior
+    </p>
+  );
+}
 
 function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] }) {
   if (mediciones.length === 0) {
     return (
       <div className="empty-state">
-        <p>Sin datos de composición. Importá un CSV de Samsung Health o cargá manualmente.</p>
+        <p>Sin datos de composición. Importá un ZIP de Samsung Health o cargá manualmente.</p>
       </div>
     );
   }
   const last = mediciones[0];
+  const prev = mediciones[1] ?? null;
+  const sparkPeso = mediciones.slice(0, 16).reverse()
+    .filter((m) => m.pesoKg != null).map((m) => m.pesoKg!);
+
   return (
     <>
+      {/* Hero peso + sparkline */}
       <div className="card">
-        <p className="section-title" style={{ marginBottom: 10 }}>Último — {last.fecha}</p>
-        <div className="stats-row" style={{ flexWrap: "wrap", gap: 16 }}>
-          {last.pesoKg         != null && <Stat value={`${last.pesoKg} kg`} label="peso" />}
-          {last.grasaPct       != null && <Stat value={`${last.grasaPct.toFixed(1)}%`} label="grasa" />}
-          {last.masaMuscularKg != null && <Stat value={`${last.masaMuscularKg.toFixed(1)} kg`} label="músculo" />}
-          {last.imc            != null && <Stat value={last.imc.toFixed(1)} label="IMC" />}
+        <p className="t-label" style={{ marginBottom: 4 }}>Último peso — {last.fecha}</p>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
+          <div>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 32, letterSpacing: "-.03em", lineHeight: 1 }}>
+              {last.pesoKg ?? "—"} <span style={{ fontSize: 16, fontWeight: 600, color: "var(--muted)" }}>kg</span>
+            </p>
+            {prev?.pesoKg != null && last.pesoKg != null && (
+              <DeltaLine current={last.pesoKg} prev={prev.pesoKg} label="kg" />
+            )}
+          </div>
+          {sparkPeso.length >= 2 && (
+            <div style={{ flex: 1, maxWidth: 120 }}>
+              <Sparkline data={sparkPeso} color="var(--accent)" height={36} />
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Tiles grasa / músculo / IMC con Δ */}
+      <div className="card">
+        <p className="section-title" style={{ marginBottom: 10 }}>Composición corporal</p>
+        <div className="stats-row" style={{ flexWrap: "wrap", gap: 20, alignItems: "flex-start" }}>
+          {last.grasaPct != null && (
+            <div>
+              <p style={{ margin: 0, fontWeight: 800, fontSize: 20 }}>{last.grasaPct.toFixed(1)}%</p>
+              {prev?.grasaPct != null && (
+                <DeltaLine current={last.grasaPct} prev={prev.grasaPct} label="%" />
+              )}
+              <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>grasa</p>
+            </div>
+          )}
+          {last.masaMuscularKg != null && (
+            <div>
+              <p style={{ margin: 0, fontWeight: 800, fontSize: 20 }}>{last.masaMuscularKg.toFixed(1)} kg</p>
+              {prev?.masaMuscularKg != null && (
+                <DeltaLine current={last.masaMuscularKg} prev={prev.masaMuscularKg} label="kg" invert />
+              )}
+              <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>músculo</p>
+            </div>
+          )}
+          {last.imc != null && (
+            <div>
+              <p style={{ margin: 0, fontWeight: 800, fontSize: 20 }}>{last.imc.toFixed(1)}</p>
+              <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>IMC</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Historial */}
       <div className="card">
         <p className="section-title" style={{ marginBottom: 10 }}>Historial ({mediciones.length})</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -531,8 +593,8 @@ function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] }) {
             <div key={m.idMedicion} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
               <span style={{ color: "var(--muted)" }}>{m.fecha}</span>
               <span>
-                {m.pesoKg        != null && `${m.pesoKg} kg`}
-                {m.grasaPct      != null && ` · ${m.grasaPct.toFixed(1)}%`}
+                {m.pesoKg         != null && `${m.pesoKg} kg`}
+                {m.grasaPct       != null && ` · ${m.grasaPct.toFixed(1)}%`}
                 {m.masaMuscularKg != null && ` · ${m.masaMuscularKg.toFixed(1)} kg M`}
               </span>
             </div>
@@ -570,25 +632,70 @@ function CardioTab({ cardio }: { cardio: SesionCardio[] }) {
   if (cardio.length === 0) {
     return (
       <div className="empty-state">
-        <p>Sin sesiones de cardio. Importá un CSV de ejercicio de Samsung Health.</p>
+        <p>Sin sesiones de cardio. Importá un ZIP de Samsung Health.</p>
       </div>
     );
   }
+
+  // Distribución de tiempo por zona FC
+  const minPorZona: Record<string, number> = {};
+  let totalMin = 0;
+  for (const c of cardio) {
+    if (!c.zonaPrincipal || !c.duracionMin) continue;
+    const k = c.zonaPrincipal.toLowerCase();
+    minPorZona[k] = (minPorZona[k] ?? 0) + c.duracionMin;
+    totalMin += c.duracionMin;
+  }
+
   return (
+    <>
+      {/* Distribución por zona */}
+      {totalMin > 0 && (
+        <div className="card" style={{ marginBottom: 0 }}>
+          <p className="section-title" style={{ marginBottom: 8 }}>Distribución por zona</p>
+          {/* Barra apilada */}
+          <div style={{ display: "flex", height: 10, borderRadius: 999, overflow: "hidden", gap: 1, marginBottom: 10 }}>
+            {ZONA_META.map(({ key }) => {
+              const pct = totalMin > 0 ? ((minPorZona[key] ?? 0) / totalMin) * 100 : 0;
+              if (pct < 1) return null;
+              return (
+                <div key={key} style={{
+                  width: `${pct}%`, height: "100%",
+                  background: `var(--zona-${key})`,
+                  minWidth: 3,
+                }} />
+              );
+            })}
+          </div>
+          {/* Leyenda con tiempo */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {ZONA_META.map(({ key, label }) => {
+              const min = minPorZona[key] ?? 0;
+              if (min === 0) return null;
+              return (
+                <span key={key} style={{
+                  fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 999,
+                  background: `var(--zona-${key}-dim)`, color: `var(--zona-${key})`,
+                }}>
+                  {label} · {Math.round(min / 60)}h
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
     <div className="card">
-      {/* Leyenda de zonas */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-        {ZONA_META.map(({ key, label }) => (
-          <span key={key} style={{
-            fontSize: 10, fontWeight: 600,
-            padding: "2px 7px", borderRadius: 999,
-            background: `var(--zona-${key}-dim)`,
-            color: `var(--zona-${key})`,
-          }}>
-            {label}
-          </span>
-        ))}
-      </div>
+      {!totalMin && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+          {ZONA_META.map(({ key, label }) => (
+            <span key={key} style={{
+              fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 999,
+              background: `var(--zona-${key}-dim)`, color: `var(--zona-${key})`,
+            }}>{label}</span>
+          ))}
+        </div>
+      )}
 
       <p className="section-title" style={{ marginBottom: 10 }}>Sesiones ({cardio.length})</p>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -612,6 +719,7 @@ function CardioTab({ cardio }: { cardio: SesionCardio[] }) {
         ))}
       </div>
     </div>
+    </>
   );
 }
 
@@ -643,13 +751,30 @@ function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
     .slice(-14)
     .map(([fecha, horas]) => ({ label: fecha.slice(5), value: horas }));
 
+  // Sparkline hero (últimas 14 noches en orden cronológico)
+  const sparkData = Array.from(byDay.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-14)
+    .map(([, h]) => h);
+
   return (
     <>
       <div className="card">
-        <p className="section-title" style={{ marginBottom: 10 }}>Resumen</p>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+          <div>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 32, letterSpacing: "-.03em", lineHeight: 1 }}>
+              {conHoras[0].horas!.toFixed(1)} <span style={{ fontSize: 16, fontWeight: 600, color: "var(--muted)" }}>h</span>
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>última noche</p>
+          </div>
+          {sparkData.length >= 2 && (
+            <div style={{ flex: 1, maxWidth: 120 }}>
+              <Sparkline data={sparkData} color="var(--info)" height={36} />
+            </div>
+          )}
+        </div>
         <div className="stats-row">
           <Stat value={`${avg.toFixed(1)} h`} label="promedio 7 noches" />
-          <Stat value={`${conHoras[0].horas!.toFixed(1)} h`} label="última noche" />
           <Stat value={String(conHoras.length)} label="registros" />
         </div>
         {chartData.length > 2 && (

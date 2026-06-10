@@ -53,13 +53,36 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | F3 (PROG-FLUJO) | Flujo elegir/cambiar programa: lista → detalle con vista semanal → "Activar para mí" | ✅ | 2026-06-09 |
 | D11 | Pulido visual del flujo de programa (VistaSemanal, Home descanso, Entrenar consistente) | ✅ | 2026-06-09 |
 | D12 | MediaTabs (Foto/Demo/Músculo) en BloqueGuiado del repo | ✅ | 2026-06-10 |
-| D13 | Home: 3 layouts seleccionables + Historial/Salud enriquecidos (sparklines, records, zonas) en el repo | ⬜ | — |
+| D13 | Home: 3 layouts seleccionables + Historial/Salud enriquecidos (sparklines, records, zonas) en el repo | ✅ | 2026-06-10 |
 | **Fix** | | | |
 | FIX-SALUD | Importador de salud: 3 bugs del formato Samsung Health 2025+ — corregido | ✅ | 2026-06-09 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-10] D13 — Home 3 layouts + Historial Progreso + Salud enriquecido
+
+#### (1) Sparkline + homeLayout
+- **`src/components/Sparkline.tsx`** (nuevo) — SVG área (línea + degradado + punto final). Props: `data: number[]`, `color`, `height`. Usa `useId()` para el gradientId por instancia.
+- **`src/lib/homeLayout.ts`** (nuevo) — `getHomeLayout/setHomeLayout` por miembro en `localStorage("su-home-by-member")`. Mismo patrón que `shapeup-themes`.
+
+#### (2) Home — 3 layouts seleccionables
+- **Aurora** (default): agrega `VistaSemanal` del programa activo al final (L-D con entreno/descanso/hoy), clickeable → `/programa/:id`.
+- **Stadium**: hero marquesina — glow ambiental + nombre de sesión grande (28px/900) + "Empezar ahora"; tira horizontal scrolleable de stats (Racha / Volumen / Sesiones / Peso). Estado descanso con Luna.
+- **Clásico**: tarjetas (estilo D2) — WeekStrip + barra progreso semanal + card "Hoy toca".
+- **`src/routes/Perfil.tsx`** — nueva sección "Estilo de inicio" con 3 opciones radio-style (Aurora/Stadium/Clásico), persistida en localStorage por miembro. Layout se aplica en el próximo montado de Home.
+- **`src/index.css`** — `.stadium-hero`, `.stadium-glow`, `.stadium-title`, `.stadium-stats`, `.stadium-stat*`.
+
+#### (3) Historial — tabs Sesiones | Progreso
+- **`src/routes/Historial.tsx`** — segmented tabs. **Progreso**: Sparkline de volumen semanal (en `--info`) + Δ vs sem. ant.; tiles totales (sesiones + horas); records personales (PR) con `<Trophy>` — max tonelaje por rutina, top 5.
+
+#### (4) Salud — enriquecido
+- **ComposicionTab**: hero peso grande + Sparkline de tendencia (últimas 16 mediciones); tiles grasa/músculo/IMC con `DeltaLine` (verde si mejora, rojo si empeora, `invert` para músculo).
+- **CardioTab**: barra apilada de distribución de tiempo por zona FC (Z1→Z5, tokens `--zona-z*`) + leyenda con horas; degrada si no hay datos de zona.
+- **SuenoTab**: hero última noche con Sparkline (en `--info`) junto al número grande.
+
+---
 
 ### [2026-06-10] D12/B3 — MediaTabs + BodyMap (mapa muscular)
 
