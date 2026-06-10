@@ -52,7 +52,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | F2 (PROG-SEMANA) | Días del programa **por día de semana** (L–D) + descansos — `sesionDeHoy()` | ✅ | 2026-06-09 |
 | F3 (PROG-FLUJO) | Flujo elegir/cambiar programa: lista → detalle con vista semanal → "Activar para mí" | ✅ | 2026-06-09 |
 | D11 | Pulido visual del flujo de programa (VistaSemanal, Home descanso, Entrenar consistente) | ✅ | 2026-06-09 |
-| D12 | MediaTabs (Foto/Demo/Músculo) en BloqueGuiado del repo | ⬜ | — |
+| D12 | MediaTabs (Foto/Demo/Músculo) en BloqueGuiado del repo | ✅ | 2026-06-10 |
 | D13 | Home: 3 layouts seleccionables + Historial/Salud enriquecidos (sparklines, records, zonas) en el repo | ⬜ | — |
 | **Fix** | | | |
 | FIX-SALUD | Importador de salud: 3 bugs del formato Samsung Health 2025+ — corregido | ✅ | 2026-06-09 |
@@ -60,6 +60,24 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 ---
 
 ## 2. Bitácora
+
+### [2026-06-10] D12/B3 — MediaTabs + BodyMap (mapa muscular)
+
+#### B3 — BodyMap
+- **`src/components/BodyMap.tsx`** (nuevo) — dos siluetas SVG (frente + espalda, viewBox 0 0 80 172) con 14/19 regiones geométricas cada una. Props: `{ primario, secundarios? }`. Colores por token: primario = `--accent`, secundarios = `color-mix(in srgb, --accent 40%, transparent)`, inactivo = `--card-hover`/`--border`. Re-skinea con el tema. Mapa `GrupoMuscular → RegionId[]` cubre los 18 grupos del modelo (Pecho, Dorsales, Cuádriceps, Glúteos, etc.); Cardiovascular/Cuerpo completo mapeados explícitamente. Sin imagen ni ícono: solo SVG funcional.
+- **`src/routes/Catalogo.tsx`** — sección "Músculos trabajados" con `<BodyMap>` agregada entre imagen y FichaTecnica (orden: imagen → mapa → `<hr>` → ficha técnica → ejecución → banners).
+
+#### D12 — MediaTabs
+- **`src/components/entrenar/MediaTabs.tsx`** (nuevo) — segmented control Foto / Demo / Músculo + frame `aspect-ratio: 16/11` (`.media-frame`). **Foto**: `ej.imagenes[0]` object-fit cover + fallback `<Dumbbell>`. **Demo**: foto atenuada (opacity 0.35) + botón play accent + badge "Demo" — placeholder B2 listo para enchufar video. **Músculo**: `<BodyMap>` centrado en el frame. Reset a "Foto" por `useEffect` sobre `ej.idEjercicio`.
+- **`src/components/entrenar/BloqueGuiado.tsx`** — reemplaza la `<img>` estática por `<MediaTabs ej={ejercicio} />`.
+- **`src/index.css`** — clases `.media-tabs`, `.media-seg`, `.media-seg-btn(.active)`, `.media-frame`, `.media-placeholder`, `.media-play-overlay`, `.media-play-btn`, `.media-badge`, `.media-playing`, `.media-musc`; `.body-map`, `.body-map-view`, `.body-map-label`.
+
+#### Degradación
+- Sin imagen: Foto → placeholder Dumbbell, Demo → solo play sobre fondo vacío.
+- Grupo sin región SVG (ej. "Cuerpo completo" → todas activas, "Cardiovascular" → todas inactivas): no rompe.
+- Sin ejercicio (`ej = undefined`): todas las pestañas muestran placeholder.
+
+---
 
 ### [2026-06-09] F1/F2/F3/D11 — Flujo de programa semanal
 

@@ -853,3 +853,146 @@
     animation: fade-up 180ms ease-out both;
   }
 }
+
+/* ── MediaTabs (D12) ─────────────────────────────────────────────────────── */
+
+.media-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.media-seg {
+  display: flex;
+  gap: 2px;
+  background: var(--card-hover);
+  border-radius: var(--r-sm);
+  padding: 2px;
+}
+
+.media-seg-btn {
+  flex: 1;
+  padding: 5px 0;
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--r-sm) - 2px);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.media-seg-btn.active {
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,.18);
+}
+
+.media-frame {
+  position: relative;
+  aspect-ratio: 16 / 11;
+  background: var(--card-hover);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.media-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.media-play-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-fab);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.1s;
+}
+.media-play-btn:active { transform: scale(0.93); }
+
+.media-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: .04em;
+  z-index: 1;
+}
+
+.media-playing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.media-musc {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+/* ── BodyMap (B3) ────────────────────────────────────────────────────────── */
+
+.body-map {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.body-map-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  max-width: 80px;
+}
+
+.body-map-view svg {
+  width: 100%;
+  height: auto;
+}
+
+.body-map-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  color: var(--muted);
+  text-transform: uppercase;
+}

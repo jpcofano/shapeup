@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import type { BloqueEjercicio, Ejercicio } from "../../types/models";
 import { seriesObjetivo, objetivoSerieLabel } from "../../lib/entrenarState";
 import { ProgressDots } from "./ProgressDots";
+import { MediaTabs } from "./MediaTabs";
 
 interface Props {
   bloque:       BloqueEjercicio;
@@ -45,16 +46,8 @@ export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio
         </p>
       )}
 
-      {/* Foto del ejercicio (si existe) */}
-      {ejercicio?.imagenes && ejercicio.imagenes.length > 0 && (
-        <img
-          src={ejercicio.imagenes[0]}
-          alt={bloque.nombreEjercicio}
-          loading="lazy"
-          style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 10, display: "block" }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
-      )}
+      {/* MediaTabs: Foto / Demo / Músculo */}
+      <MediaTabs ej={ejercicio} />
 
       {/* Dots y serie actual */}
       <ProgressDots

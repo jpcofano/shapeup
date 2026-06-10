@@ -10,6 +10,7 @@ import {
 import { getEjercicios } from "../data/ejercicios";
 import { filtrarEjercicios } from "../lib/filtros";
 import { useAuth } from "../auth/useAuth";
+import { BodyMap } from "../components/BodyMap";
 
 // ── Ficha técnica (premium) ──────────────────────────────────────────────────
 
@@ -94,6 +95,14 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           )}
+
+          {/* Mapa muscular (B3) */}
+          <div>
+            <p className="section-title" style={{ marginBottom: 8, fontSize: 11 }}>Músculos trabajados</p>
+            <BodyMap primario={ej.grupoMuscularPrimario} secundarios={ej.gruposSecundarios} />
+          </div>
+
+          <hr className="ficha-sep" />
 
           {/* Ficha técnica */}
           <FichaTecnica ej={ej} />
