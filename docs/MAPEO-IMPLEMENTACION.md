@@ -91,6 +91,9 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 #### Tests y build
 226 tests verdes, `tsc -b` limpio.
 
+#### Avance de lotes (D14b)
+- **Lote 1 (2026-06-10):** 30 re-pases · 21 entradas ahora pasan umbral 0.7 · warnings: 102 → 81
+
 ---
 
 ### [2026-06-10] Auditoría kit+datos — decisiones y cola D14/D15/D16
