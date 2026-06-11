@@ -179,12 +179,13 @@ export function Home() {
   const [color,     setColor]     = useState<string | undefined>(undefined);
   const [layout,    setLayout]    = useState<HomeLayout>("aurora");
 
-  const [sesHechas, setSesHechas]   = useState(0);
-  const [sesObj,    setSesObj]      = useState(0);
-  const [volumen,   setVolumen]     = useState(0);
-  const [racha,     setRacha]       = useState(0);
-  const [lastMed,   setLastMed]     = useState<MedicionCorporal | null>(null);
-  const [prevMed,   setPrevMed]     = useState<MedicionCorporal | null>(null);
+  const [sesHechas,  setSesHechas]  = useState(0);
+  const [sesObj,     setSesObj]     = useState(0);
+  const [volumen,    setVolumen]    = useState(0);
+  const [racha,      setRacha]      = useState(0);
+  const [numSemana,  setNumSemana]  = useState<number | null>(null);
+  const [lastMed,    setLastMed]    = useState<MedicionCorporal | null>(null);
+  const [prevMed,    setPrevMed]    = useState<MedicionCorporal | null>(null);
 
   const semanaRef = useRef(lunesDeSemana());
 
@@ -210,6 +211,12 @@ export function Home() {
         setSesObj(obj);
         setVolumen(esta.reduce((s, h) => s + (h.tonelajeKg ?? 0), 0));
         setRacha(calcRacha(hist, semanaInicio));
+
+        const semanas = [...new Set(hist.map((h) => h.semanaInicio).filter((s): s is string => !!s))].sort();
+        if (semanas.length > 0) {
+          const diff = new Date(semanaInicio + "T12:00:00").getTime() - new Date(semanas[0] + "T12:00:00").getTime();
+          setNumSemana(Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1);
+        }
 
         if (prog) {
           setPrograma(prog);
@@ -237,10 +244,10 @@ export function Home() {
 
   const subtitulo = semanaCompleta
     ? "¡Semana completa!"
-    : proxima
-    ? `Día ${proxima.indice} de ${proxima.total}`
     : sesObj > 0
-    ? `${sesHechas} de ${sesObj} sesiones`
+    ? numSemana != null
+      ? `Semana ${numSemana} · ${sesHechas} de ${sesObj} sesiones`
+      : `${sesHechas} de ${sesObj} sesiones esta semana`
     : null;
 
   const pesoDelta = lastMed?.pesoKg != null && prevMed?.pesoKg != null
@@ -299,7 +306,7 @@ export function Home() {
           ) : sesionNombre ? (
             <div style={{ position: "relative", width: "100%" }}>
               <p className="t-label" style={{ margin: "0 0 8px" }}>
-                {hoy?.tipo === "rutina" ? "Hoy toca" : `Día ${proxima?.indice} de ${proxima?.total}`}
+                {hoy?.tipo === "rutina" ? "Hoy toca" : "Próxima sesión"}
               </p>
               <h1 className="stadium-title">{sesionNombre}</h1>
               {canStart && (

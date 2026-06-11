@@ -60,11 +60,38 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | D14 | Datos: validador + patrones + descansos + badge EN + re-pase muestra (A1–A4) | ✅ | 2026-06-10 |
 | D14b | Lotes de traducción (prompt 40b, repetible — se intercala cuando el owner quiera) | ⬜ | — |
 | D15 | Micro-interacciones: stagger cards, anillo animado, feedback de serie, tabs (hallazgo C9) | ✅ | 2026-06-10 |
-| D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ⬜ | — |
+| D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ✅ | 2026-06-11 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-11] D16 — Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión (B5–B8 + C10)
+
+#### B5 — Home: anillo como métrica única (numSemana + subtítulo coherente)
+- **`src/routes/Home.tsx`** — eliminada la contradicción "Día 3 de 4" vs. anillo "2/4 sesiones". Estado `numSemana` calculado desde el `semanaInicio` más temprano del historial del miembro. Subtítulo del anillo: `"Semana N · X de Y sesiones"` cuando hay programa activo, o `"X de Y sesiones esta semana"` si aún no hay historial suficiente para calcular el número. Label del botón Stadium cambiado de `"Día N de M"` → `"Próxima sesión"`.
+
+#### B6 — Historial card: RPE fijo a la derecha, tonelaje seminegrita
+- **`src/routes/Historial.tsx`** — `SesionesList` reestructurada en dos filas: fila 1 = título + chip RPE (`flexShrink:0`, siempre a la derecha), fila 2 = fecha · duración · series · kg (tonelaje en `fontWeight:600, color:var(--fg)`) + badge "Libre". Jerarquía visual clara; RPE deja de desplazarse con el texto.
+
+#### B7 — Salud · Composición: gráfico 30 días + fechas relativas + última medición
+- **`src/routes/Salud.tsx`** — `ComposicionTab` reescrita:
+  - Función `hace()`: convierte una fecha `YYYY-MM-DD` a etiqueta relativa ("hoy", "ayer", "hace N días").
+  - Gráfico de peso: filtra las últimas 30 días (`mediciones` → `med30`, `.reverse()` para orden cronológico), `<Sparkline height:52>` ancho completo con labels extremo izquierdo/derecho mostrando `fecha.slice(5) · valor kg`.
+  - Tiles KPI (grasa, músculo, agua, IMC): fecha relativa en gris debajo del label.
+  - Card "Última medición": detalla todos los campos disponibles (peso, grasa %, músculo %, agua %) con su valor exacto.
+
+#### B8 — Sesión guiada: scrim de scroll al pie del contenido
+- **`src/routes/EntrenarSesion.tsx`** — `contentRef` + estado `showScrim`; `useEffect` con listener `scroll` pasivo + `ResizeObserver` (re-evalúa al cambiar `state.descanso` / `state.bloqueActual`); condición: `scrollHeight > clientHeight + 4 && scrollHeight − scrollTop − clientHeight > 8`. El modo guiado envuelve `.workout-content` en `.workout-content-wrap` (posición relativa, flex:1, overflow hidden); `{showScrim && <div className="workout-scrim" />}` se superpone al fondo.
+- **`src/index.css`** — `.workout-content-wrap` (position:relative, flex:1, min-height:0, overflow:hidden); `.workout-content-wrap > .workout-content` (flex:none, height:100%, padding-bottom:140px, sobreescribe `flex:1` base); `.workout-scrim` (position:absolute, bottom:0, height:32px, `linear-gradient(to top, var(--bg), transparent)`, pointer-events:none).
+
+#### C10 — FAB audit: sin cambios necesarios
+- Verificado en `src/App.tsx`: ambos FABs ya estaban conectados — `/catalogo/nueva` → `EjercicioForm`, `/biblioteca/nueva` → `RutinaForm`. La divergencia era solo en el kit de diseño (placeholder). No se requirió ocultarlos ni agregar lógica.
+
+#### Tests y build
+226 tests verdes, `tsc -b` limpio.
+
+---
 
 ### [2026-06-10] D14 — Datos: patrones + descansos + traducciones + badge EN (A1–A4)
 

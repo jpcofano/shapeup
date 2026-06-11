@@ -693,6 +693,28 @@
 .serie-btn.done { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 .serie-btn:not(.done):hover { border-color: var(--accent); color: var(--fg); }
 
+/* ── Workout scrim (B8 — D16) ────────────────────────────────────────────── */
+.workout-content-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.workout-content-wrap > .workout-content {
+  flex: none;
+  height: 100%;
+  padding-bottom: 140px;
+}
+.workout-scrim {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+  pointer-events: none;
+}
+
 /* ── Pantalla de finalización ────────────────────────────────────────────── */
 .finish-screen {
   flex: 1;

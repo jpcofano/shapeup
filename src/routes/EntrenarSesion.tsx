@@ -43,13 +43,30 @@ export function EntrenarSesion() {
   const startRef = useRef<number>(Date.now());
 
   // Log rápido para modo guiado
-  const [logReps,   setLogReps]   = useState("");
-  const [logCarga,  setLogCarga]  = useState("");
+  const [logReps,      setLogReps]      = useState("");
+  const [logCarga,     setLogCarga]     = useState("");
   const [seriePulsing, setSeriePulsing] = useState(false);
+
+  // Scrim de contenido scrolleable (B8)
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [showScrim, setShowScrim] = useState(false);
 
   const sessionKey = `rutina:${rutinaId}`;
   const session    = useEntrenarState(sessionKey, rutina);
   const state      = session.state;
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const check = () => {
+      setShowScrim(el.scrollHeight > el.clientHeight + 4 && el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+    };
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, [state.descanso, state.bloqueActual]);
 
   // Cargar rutina, pre-fetch ejercicios y crear sesión en Firestore
   useEffect(() => {
@@ -233,25 +250,28 @@ export function EntrenarSesion() {
       {/* ── MODO GUIADO ───────────────────────────────────────────────────── */}
       {state.modoVista === "guiada" && blq && (
         <>
-          <div className="workout-content">
-            {/* Cronómetro de descanso */}
-            <DescansoTimer
-              state={state}
-              onSkip={session.saltarDescanso}
-              onAjustar={session.ajustarDescanso}
-            />
-
-            {/* Bloque actual */}
-            {!state.descanso && (
-              <BloqueGuiado
-                bloque={blq}
-                bloqueIdx={state.bloqueActual}
-                total={rutina.bloques.length}
-                seriesHechas={state.seriesHechas[state.bloqueActual] ?? 0}
-                ejercicio={ejercicio}
-                onIrASerie={(i) => void i}
+          <div className="workout-content-wrap">
+            <div className="workout-content" ref={contentRef}>
+              {/* Cronómetro de descanso */}
+              <DescansoTimer
+                state={state}
+                onSkip={session.saltarDescanso}
+                onAjustar={session.ajustarDescanso}
               />
-            )}
+
+              {/* Bloque actual */}
+              {!state.descanso && (
+                <BloqueGuiado
+                  bloque={blq}
+                  bloqueIdx={state.bloqueActual}
+                  total={rutina.bloques.length}
+                  seriesHechas={state.seriesHechas[state.bloqueActual] ?? 0}
+                  ejercicio={ejercicio}
+                  onIrASerie={(i) => void i}
+                />
+              )}
+            </div>
+            {showScrim && <div className="workout-scrim" />}
           </div>
 
           {/* Footer con log rápido + botón */}

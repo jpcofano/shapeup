@@ -41,15 +41,19 @@ function SesionesList({ entries, navigate }: { entries: Historial[]; navigate: (
             <Bicep size={20} />
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p className="rutina-card-title" style={{ marginBottom: 6 }}>{h.nombreRutina}</p>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+              <p className="rutina-card-title" style={{ margin: 0 }}>{h.nombreRutina}</p>
+              {h.rpe != null && (
+                <span className="badge badge-muted" style={{ flexShrink: 0 }}>RPE {h.rpe}</span>
+              )}
+            </div>
             <div className="rutina-card-meta">
               <span>{formatFecha(h.fechaRealizada)}</span>
-              {h.duracionRealMin != null && <span>⏱ {h.duracionRealMin} min</span>}
+              {h.duracionRealMin  != null && <span>· {h.duracionRealMin} min</span>}
               {h.totalSeriesHechas != null && <span>· {h.totalSeriesHechas} series</span>}
               {h.tonelajeKg != null && h.tonelajeKg > 0 && (
-                <span>· {h.tonelajeKg.toLocaleString("es")} kg</span>
+                <span style={{ fontWeight: 600, color: "var(--fg)" }}>· {h.tonelajeKg.toLocaleString("es")} kg</span>
               )}
-              {h.rpe != null && <span className="badge badge-muted">RPE {h.rpe}</span>}
               {h.tipo === "libre" && <span className="badge badge-muted">Libre</span>}
             </div>
           </div>
