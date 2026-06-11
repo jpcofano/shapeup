@@ -65,12 +65,37 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
   const pct      = total > 0 ? Math.min(1, done / total) : 0;
   const target   = C * (1 - pct);
   const complete = done >= total && total > 0;
-  const [offset, setOffset] = useState(C); // start full (empty ring)
+  const [offset,      setOffset]      = useState(C);
+  const [displayDone, setDisplayDone] = useState(0);
+  const rafRef      = useRef<number>(0);
+  const prevDoneRef = useRef(0);
 
   useEffect(() => {
     const id = setTimeout(() => setOffset(complete ? 0 : target), 60);
     return () => clearTimeout(id);
   }, [target, complete]);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplayDone(done);
+      prevDoneRef.current = done;
+      return;
+    }
+    cancelAnimationFrame(rafRef.current);
+    const startVal = prevDoneRef.current;
+    const endVal   = done;
+    const dur      = 420; // --dur-slow
+    const t0       = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      setDisplayDone(Math.round(startVal + e * (endVal - startVal)));
+      if (p < 1) rafRef.current = requestAnimationFrame(tick);
+      else prevDoneRef.current = endVal;
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [done]);
 
   return (
     <div style={{ position: "relative", width: SIZE, height: SIZE, flexShrink: 0 }}>
@@ -116,7 +141,7 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
               fontSize: 26, fontWeight: 800, fontVariantNumeric: "tabular-nums",
               letterSpacing: "-.03em", lineHeight: 1, color: "var(--fg)",
             }}>
-              {done}/{total}
+              {displayDone}/{total}
             </span>
             <span className="t-label" style={{ fontSize: 10 }}>sesiones</span>
           </>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { TabBar } from "../components/TabBar";
 import { Trophy } from "lucide-react";
 import type { Historial } from "../types/models";
 import { getHistorialMiembro } from "../data/historial";
@@ -23,7 +24,7 @@ function SesionesList({ entries, navigate }: { entries: Historial[]; navigate: (
     );
   }
   return (
-    <>
+    <div className="card-list">
       {entries.map((h) => (
         <div
           key={h.idHist}
@@ -54,7 +55,7 @@ function SesionesList({ entries, navigate }: { entries: Historial[]; navigate: (
           </div>
         </div>
       ))}
-    </>
+    </div>
   );
 }
 
@@ -163,6 +164,11 @@ function ProgresoTab({ entries }: { entries: Historial[] }) {
   );
 }
 
+const HIST_TABS = [
+  { key: "sesiones" as const, label: "Sesiones" },
+  { key: "progreso" as const, label: "Progreso" },
+];
+
 // ── Historial ─────────────────────────────────────────────────────────────────
 
 export function Historial() {
@@ -188,20 +194,7 @@ export function Historial() {
         <h1 className="page-title">Historial</h1>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)", marginBottom: 8 }}>
-        {(["sesiones", "progreso"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: "8px 0", background: "none", border: "none",
-            borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
-            color: tab === t ? "var(--accent)" : "var(--muted)",
-            fontWeight: tab === t ? 700 : 400, fontSize: 13, cursor: "pointer",
-            textTransform: "capitalize",
-          }}>
-            {t === "sesiones" ? "Sesiones" : "Progreso"}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={HIST_TABS} active={tab} onChange={setTab} style={{ marginBottom: 8 }} />
 
       {loading && <div className="empty-state"><div className="spinner" /></div>}
       {error   && <p className="inline-error">{error}</p>}

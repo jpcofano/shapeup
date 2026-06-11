@@ -59,7 +59,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | **Auditoría jun-2026 (ver Bitácora)** | | | |
 | D14 | Datos: validador + patrones + descansos + badge EN + re-pase muestra (A1–A4) | ✅ | 2026-06-10 |
 | D14b | Lotes de traducción (prompt 40b, repetible — se intercala cuando el owner quiera) | ⬜ | — |
-| D15 | Micro-interacciones: stagger cards, anillo animado, feedback de serie, tabs (hallazgo C9) | ⬜ | — |
+| D15 | Micro-interacciones: stagger cards, anillo animado, feedback de serie, tabs (hallazgo C9) | ✅ | 2026-06-10 |
 | D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ⬜ | — |
 
 ---
@@ -93,6 +93,36 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 #### Avance de lotes (D14b)
 - **Lote 1 (2026-06-10):** 30 re-pases · 21 entradas ahora pasan umbral 0.7 · warnings: 102 → 81
+
+---
+
+### [2026-06-10] D15 — Micro-interacciones (C9)
+
+#### (0) Tokens de movimiento
+- **`src/styles/tokens.css`** — 5 nuevos tokens en `:root`: `--dur-fast: 140ms`, `--dur-base: 220ms`, `--dur-slow: 420ms`, `--ease-out: cubic-bezier(.22,1,.36,1)`, `--ease-spring: cubic-bezier(.34,1.4,.64,1)`. Reemplazan duraciones hardcodeadas en `.ring-progress` y `.aurora-anim`.
+
+#### (1) Card stagger + `.card-list`
+- **`src/index.css`** — nueva clase `.card-list` (flex column gap:16) con `@keyframes fade-up` stagger: ítems 1–5 con delays 0/40/80/120/160 ms, ítem 6+ fijo en 200 ms. Guarda `prefers-reduced-motion`.
+- **`src/routes/Catalogo.tsx`** — `className="card-list"` en el wrapper de ejercicios (mantiene gap:8 inline).
+- **`src/routes/Biblioteca.tsx`** — `ProgramasList` y `RutinasList` envuelven su `.map()` en `<div className="card-list">`.
+- **`src/routes/Historial.tsx`** — `SesionesList` retorna `<div className="card-list">` en lugar de `<>`.
+
+#### (2) ProgressRing — anillo + count-up
+- **`src/routes/Home.tsx`** — `ProgressRing`: estado `displayDone` + rAF con ease-out cúbico (dur 420 ms); transición del anillo usa `var(--dur-slow) var(--ease-out)`. Guarda `prefers-reduced-motion` (sin rAF → muestra el valor directo).
+
+#### (3) Feedback de serie completada
+- **`src/components/entrenar/ProgressDots.tsx`** — estado `justDone` + `useRef(prevHechas)`: cuando `hechas` sube, la dot recién completada recibe clase `just-done` durante 400 ms → animación `dot-pop` (scale 1.35→1.7→1, `ease-spring`, 350 ms).
+- **`src/routes/EntrenarSesion.tsx`** — estado `seriePulsing`: `handleSerie()` activa la clase `btn-pulsing` en el botón durante 220 ms → animación `btn-pulse` (scale 1→0.96→1, 200 ms).
+
+#### (4) TabBar con sliding indicator
+- **`src/components/TabBar.tsx`** (nuevo) — componente genérico `TabBar<T>` con props `tabs/active/onChange/size/style`. Indicador absoluto (`.tab-bar-indicator`) se traslada con `translateX(idx × 100%)`, transición `var(--dur-base) var(--ease-out)`. Prop `size="sm"` para Salud (12 px, 4 tabs).
+- **`src/routes/Biblioteca.tsx`**, **`Historial.tsx`**, **`Salud.tsx`** — reemplazadas las tres barras inline por `<TabBar>`.
+
+#### (5) Pressed states
+- **`src/index.css`** — `@media (prefers-reduced-motion: no-preference)`: `.btn-primary:active`, `.card:active`, `.rutina-card:active` → `transform: scale(0.985)` con transición 80 ms.
+
+#### Tests y build
+226 tests verdes, `tsc -b` limpio.
 
 ---
 

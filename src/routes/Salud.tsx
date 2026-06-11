@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { TabBar } from "../components/TabBar";
 import { Plus, Upload, X, FileText } from "lucide-react";
 import { Sparkline } from "../components/Sparkline";
 import type { MedicionCorporal, SesionCardio, RegistroSueno, MetricaSalud, MiembroId } from "../types/models";
@@ -289,23 +290,7 @@ export function Salud() {
         />
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)", marginBottom: 12 }}>
-        {TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            style={{
-              flex: 1, padding: "8px 0", background: "none", border: "none",
-              borderBottom: tab === key ? "2px solid var(--accent)" : "2px solid transparent",
-              color: tab === key ? "var(--accent)" : "var(--muted)",
-              fontWeight: tab === key ? 700 : 400, fontSize: 12, cursor: "pointer",
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={TABS} active={tab} onChange={setTab} size="sm" style={{ marginBottom: 12 }} />
 
       {/* Progreso de extracción ZIP */}
       {zipProgress !== null && (

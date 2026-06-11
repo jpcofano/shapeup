@@ -277,7 +277,7 @@ export function Catalogo({ embedded = false }: CatalogoProps) {
       )}
 
       {!loading && !error && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="card-list" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {visibles.map((ej) => (
             <EjercicioCard
               key={ej.idEjercicio}

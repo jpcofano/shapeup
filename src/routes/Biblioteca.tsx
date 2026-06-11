@@ -9,6 +9,7 @@ import { getVisibilidad, programaVisible } from "../data/visibilidad";
 import { useAuth } from "../auth/useAuth";
 import { Catalogo } from "./Catalogo";
 import { VistaSemanal } from "../components/VistaSemanal";
+import { TabBar } from "../components/TabBar";
 
 function filtrar(
   rutinas: Rutina[],
@@ -58,7 +59,7 @@ function ProgramasList() {
   );
 
   return (
-    <>
+    <div className="card-list">
       {programas.map((p) => {
         const activos   = p.dias.filter((d) => d.tipo !== "descanso");
         const descansos = p.dias.filter((d) => d.tipo === "descanso");
@@ -96,7 +97,7 @@ function ProgramasList() {
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 
@@ -141,21 +142,23 @@ function RutinasList() {
         </div>
       )}
 
-      {visibles.map((r) => (
-        <div key={r.idRutina} className="rutina-card" onClick={() => navigate(`/biblioteca/${r.idRutina}`)}>
-          <p className="rutina-card-title">{r.nombre}</p>
-          <div className="rutina-card-meta">
-            <span className="badge badge-accent">{r.foco}</span>
-            <span className="badge badge-muted">{r.nivel}</span>
-            {r.duracionEstimadaMin != null && (
-              <span className="badge badge-muted">⏱ {r.duracionEstimadaMin} min</span>
-            )}
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>
-              {r.bloques.length} ejercicio{r.bloques.length !== 1 ? "s" : ""}
-            </span>
+      <div className="card-list">
+        {visibles.map((r) => (
+          <div key={r.idRutina} className="rutina-card" onClick={() => navigate(`/biblioteca/${r.idRutina}`)}>
+            <p className="rutina-card-title">{r.nombre}</p>
+            <div className="rutina-card-meta">
+              <span className="badge badge-accent">{r.foco}</span>
+              <span className="badge badge-muted">{r.nivel}</span>
+              {r.duracionEstimadaMin != null && (
+                <span className="badge badge-muted">⏱ {r.duracionEstimadaMin} min</span>
+              )}
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                {r.bloques.length} ejercicio{r.bloques.length !== 1 ? "s" : ""}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {isOwner && (
         <button className="fab" onClick={() => navigate("/biblioteca/nueva")} title="Nueva rutina">
@@ -191,23 +194,7 @@ export function Biblioteca() {
         <h1 className="page-title">Biblioteca</h1>
       </div>
 
-      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--border)", marginBottom: 4 }}>
-        {TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => switchTab(key)}
-            style={{
-              flex: 1, padding: "10px 0", background: "none", border: "none",
-              borderBottom: tab === key ? "2px solid var(--accent)" : "2px solid transparent",
-              color: tab === key ? "var(--accent)" : "var(--muted)",
-              fontWeight: tab === key ? 700 : 400, fontSize: 13, cursor: "pointer",
-              marginBottom: -1,
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={TABS} active={tab} onChange={switchTab} />
 
       {tab === "programas"  && <ProgramasList />}
       {tab === "rutinas"    && <RutinasList />}

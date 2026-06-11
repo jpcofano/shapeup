@@ -43,8 +43,9 @@ export function EntrenarSesion() {
   const startRef = useRef<number>(Date.now());
 
   // Log rápido para modo guiado
-  const [logReps,  setLogReps]  = useState("");
-  const [logCarga, setLogCarga] = useState("");
+  const [logReps,   setLogReps]   = useState("");
+  const [logCarga,  setLogCarga]  = useState("");
+  const [seriePulsing, setSeriePulsing] = useState(false);
 
   const sessionKey = `rutina:${rutinaId}`;
   const session    = useEntrenarState(sessionKey, rutina);
@@ -185,6 +186,8 @@ export function EntrenarSesion() {
 
   function handleSerie() {
     if (!blq) return;
+    setSeriePulsing(true);
+    window.setTimeout(() => setSeriePulsing(false), 220);
     session.completarSerie(state.bloqueActual, getLogValues());
     setLogReps("");
     setLogCarga("");
@@ -289,7 +292,7 @@ export function EntrenarSesion() {
               )}
 
               <button
-                className="btn-serie-hecha"
+                className={`btn-serie-hecha${seriePulsing ? " btn-pulsing" : ""}`}
                 onClick={handleSerie}
                 disabled={(state.seriesHechas[state.bloqueActual] ?? 0) >= seriesObjetivo(blq.prescripcion)}
               >
