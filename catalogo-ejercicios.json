@@ -13538,7 +13538,7 @@
   },
   {
     "idEjercicio": "EJ-0351",
-    "nombre": "Incline Push-Up Reverse Grip",
+    "nombre": "Flexión inclinada con agarre invertido",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -13555,29 +13555,36 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height.",
-      "Place your hands on the bar palms up, with your hands about shoulder width apart.",
-      "Position your feet back from the bar with arms and body straight. This will be your starting position.",
-      "Keeping your body straight, lower your chest to the bar by bending the arms.",
-      "Return to the starting position by extending the elbows, pressing yourself back up."
+      "Pararte frente a una barra de Smith o una plataforma elevada estable a la altura adecuada.",
+      "Colocá las manos en la barra con las palmas hacia arriba, separadas al ancho de hombros.",
+      "Alejá los pies de la barra con los brazos y el cuerpo rectos. Esta es la posición inicial.",
+      "Manteniendo el cuerpo recto, bajá el pecho hacia la barra flexionando los codos.",
+      "Volvé a la posición inicial extendiendo los codos y empujándote hacia arriba."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre invertido activa más el bíceps y la parte superior del pecho."
+    ],
+    "erroresComunes": [
+      "Dejar caer las caderas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up_Reverse_Grip/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up_Reverse_Grip/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "push up invertido",
+      "flexion inclinada agarre supino"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Incline_Push-Up_Reverse_Grip",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0352",
-    "nombre": "Incline Push-Up Wide",
+    "nombre": "Flexión inclinada con manos anchas",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -13594,25 +13601,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height.",
-      "Place your hands on the bar, with your hands wider than shoulder width.",
-      "Position your feet back from the bar with arms and body straight. Your arms should be perpendicular to the body. This will be your starting position.",
-      "Keeping your body straight, lower your chest to the bar by bending the arms.",
-      "Return to the starting position by extending the elbows, pressing yourself back up."
+      "Pararte frente a una barra de Smith o una plataforma elevada estable a la altura adecuada.",
+      "Colocá las manos en la barra más anchas que el ancho de hombros.",
+      "Alejá los pies de la barra con los brazos y el cuerpo rectos. Los brazos deben quedar perpendiculares al torso. Esta es la posición inicial.",
+      "Manteniendo el cuerpo recto, bajá el pecho hacia la barra flexionando los codos.",
+      "Volvé a la posición inicial extendiendo los codos y empujándote hacia arriba."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre ancho enfatiza la parte exterior del pecho."
+    ],
+    "erroresComunes": [
+      "Dejar que las caderas suban o bajen."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up_Wide/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up_Wide/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "push up inclinado ancho"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Incline_Push-Up_Wide",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0353",
@@ -13679,37 +13692,44 @@
   },
   {
     "idEjercicio": "EJ-0355",
-    "nombre": "Internal Rotation with Band",
+    "nombre": "Rotación interna de hombro con banda",
     "modalidad": "Fuerza",
-    "patron": "Core anti-rotación",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "grupoMuscularPrimario": "Hombros",
     "gruposSecundarios": [],
     "equipo": [
       "Banda elástica"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Choke the band around a post. The band should be at the same height as your elbow. Stand with your right side to the band a couple of feet away.",
-      "Grasp the end of the band with your right hand, and keep your elbow pressed firmly to your side. We recommend you hold a pad or foam roll in place with your elbow to keep it firmly in position.",
-      "With your upper arm in position, your elbow should be flexed to 90 degrees with your hand reaching away from your torso. This will be your starting position.",
-      "Execute the movement by rotating your arm in a forehand motion, keeping your elbow in place.",
-      "Continue as far as you are able, pause, and then return to the starting position."
+      "Anclá la banda alrededor de un poste a la altura del codo. Pararte con el lado derecho hacia el poste a un par de pasos de distancia.",
+      "Tomá el extremo de la banda con la mano derecha y mantenés el codo apretado contra el costado del cuerpo. Se recomienda sostener una almohadilla o rodillo con el codo para fijarlo en posición.",
+      "Con el brazo superior fijo, el codo debe estar flexionado a 90° con la mano apuntando hacia afuera del torso. Esta es la posición inicial.",
+      "Ejecutá el movimiento rotando el antebrazo hacia adentro (como un golpe de derecha), manteniendo el codo fijo.",
+      "Continuá hasta donde puedas, pausá y volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Solo el antebrazo rota; el codo permanece pegado al costado."
+    ],
+    "erroresComunes": [
+      "Separar el codo del cuerpo durante la rotación."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Internal_Rotation_with_Band/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Internal_Rotation_with_Band/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "rotacion interna banda",
+      "manguito rotador banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Internal_Rotation_with_Band",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0356",
@@ -13866,9 +13886,9 @@
   },
   {
     "idEjercicio": "EJ-0360",
-    "nombre": "Isometric Chest Squeezes",
+    "nombre": "Contracción isométrica de pecho",
     "modalidad": "Fuerza",
-    "patron": "Locomoción / cardio",
+    "patron": "Aislamiento",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Pecho",
@@ -13882,29 +13902,36 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "While either seating or standing, bend your arms at a 90-degree angle and place the palms of your hands together in front of your chest. Tip: Your hands should be open with the palms together and fingers facing forward (perpendicular to your torso).",
-      "Push both hands against each other as you contract your chest. Start with slow tension and increase slowly. Keep breathing normally as you execute this contraction.",
-      "Hold for the recommended number of seconds.",
-      "Now release the tension slowly.",
-      "Rest for the recommended amount of time and repeat."
+      "De pie o sentado, doblá los brazos a 90° y juntá las palmas frente al pecho. Las manos deben estar abiertas con las palmas juntas y los dedos apuntando hacia adelante (perpendiculares al torso).",
+      "Presioná ambas manos una contra la otra mientras contraés el pecho. Comenzá con tensión suave e incrementá lentamente. Seguí respirando con normalidad durante la contracción.",
+      "Sostené durante los segundos indicados.",
+      "Liberá la tensión lentamente.",
+      "Descansá el tiempo indicado y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "No contengas la respiración durante la contracción isométrica."
+    ],
+    "erroresComunes": [
+      "Subir los hombros al presionar."
+    ],
     "descansoSugeridoSeg": 45,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Isometric_Chest_Squeezes/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Isometric_Chest_Squeezes/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "isometrico pecho",
+      "chest squeeze"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Isometric_Chest_Squeezes",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0361",
-    "nombre": "Isometric Neck Exercise - Front And Back",
+    "nombre": "Ejercicio isométrico de cuello (frente y nuca)",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -13917,25 +13944,33 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "With your head and neck in a neutral position (normal position with head erect facing forward), place both of your hands on the front side of your head.",
-      "Now gently push forward as you contract the neck muscles but resisting any movement of your head. Start with slow tension and increase slowly. Keep breathing normally as you execute this contraction.",
-      "Hold for the recommended number of seconds.",
-      "Now release the tension slowly.",
-      "Rest for the recommended amount of time and repeat with your hands placed on the back side of your head."
+      "Con la cabeza y el cuello en posición neutra (erguida, mirando al frente), colocá ambas manos en la parte frontal de la cabeza.",
+      "Empujá suavemente hacia adelante contrayendo los músculos del cuello sin dejar que la cabeza se mueva. Comenzá con tensión suave e incrementá lentamente. Seguí respirando con normalidad.",
+      "Sostené durante los segundos indicados.",
+      "Liberá la tensión lentamente.",
+      "Descansá el tiempo indicado y repetí con las manos en la parte posterior de la cabeza."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El objetivo es no mover la cabeza; la resistencia es isométrica."
+    ],
+    "erroresComunes": [
+      "Contenerse la respiración.",
+      "Aplicar demasiada fuerza de golpe."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Isometric_Neck_Exercise_-_Front_And_Back/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Isometric_Neck_Exercise_-_Front_And_Back/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "isometrico cuello",
+      "neck isometric"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Isometric_Neck_Exercise_-_Front_And_Back",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0362",
@@ -13980,9 +14015,9 @@
   },
   {
     "idEjercicio": "EJ-0363",
-    "nombre": "Isometric Wipers",
+    "nombre": "Limpiaparabrisas isométrico (push-up lateral)",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Core anti-extensión",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Pecho",
@@ -13997,24 +14032,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Assume a push-up position, supporting your weight on your hands and toes while keeping your body straight. Your hands should be just outside of shoulder width. This will be your starting position.",
-      "Begin by shifting your body weight as far to one side as possible, allowing the elbow on that side to flex as you lower your body.",
-      "Reverse the motion by extending the flexed arm, pushing yourself up and then dropping to the other side.",
-      "Repeat for the desired number of repetitions."
+      "Adoptá posición de plancha alta con el peso sobre manos y pies, cuerpo recto. Las manos deben estar ligeramente más anchas que el ancho de hombros. Esta es la posición inicial.",
+      "Comenzá desplazando el peso del cuerpo lo más posible hacia un lado, dejando que el codo de ese lado se flexione mientras bajás el cuerpo.",
+      "Revertí el movimiento extendiendo ese brazo, empujándote hacia arriba y luego cayendo hacia el otro lado.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El cuerpo permanece recto; el movimiento lateral viene de los hombros."
+    ],
+    "erroresComunes": [
+      "Dejar que las caderas roten."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Isometric_Wipers/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Isometric_Wipers/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "wipers isometrico",
+      "push up lateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Isometric_Wipers",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0364",
@@ -14056,7 +14098,7 @@
   },
   {
     "idEjercicio": "EJ-0365",
-    "nombre": "Jackknife Sit-Up",
+    "nombre": "Sit-up navaja",
     "modalidad": "Fuerza",
     "patron": "Core flexión",
     "mecanica": "Compuesto",
@@ -14069,28 +14111,35 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie flat on the floor (or exercise mat) on your back with your arms extended straight back behind your head and your legs extended also. This will be your starting position.",
-      "As you exhale, bend at the waist while simultaneously raising your legs and arms to meet in a jackknife position. Tip: The legs should be extended and lifted at approximately a 35-45 degree angle from the floor and the arms should be extended and parallel to your legs. The upper torso should be off the floor.",
-      "While inhaling, lower your arms and legs back to the starting position.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte boca arriba en el piso o colchoneta con los brazos extendidos detrás de la cabeza y las piernas también extendidas. Esta es la posición inicial.",
+      "Al exhalar, doblate por la cintura elevando simultáneamente las piernas y los brazos hasta encontrarse en posición de navaja. Las piernas deben estar extendidas y elevadas unos 35–45° del piso, y los brazos extendidos paralelos a las piernas. El torso superior queda despegado del piso.",
+      "Al inhalar, bajá los brazos y las piernas a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las piernas y los brazos se elevan al mismo tiempo formando una 'V'."
+    ],
+    "erroresComunes": [
+      "Doblar las rodillas al subir."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Jackknife_Sit-Up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Jackknife_Sit-Up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "jackknife sit up",
+      "abdominal navaja"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Jackknife_Sit-Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0366",
-    "nombre": "Janda Sit-Up",
+    "nombre": "Sit-up Janda",
     "modalidad": "Fuerza",
     "patron": "Core flexión",
     "mecanica": "Aislamiento",
@@ -14103,24 +14152,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Position your body on the floor in the basic sit-up position; knees to a ninety degree angle with feet flat on the floor and arms either crossed over your chest or to the sides. This will be your starting position.",
-      "As you strongly tighten your glutes and hamstrings, fill your lungs with air and in a slow (three to six second count) ascent, slowly exhale. Tip: It is important to tighten the glutes and hamstrings as this will cause the hip flexors to be inactivated in a process called reciprocal inhibition, which basically means that opposite muscles to the contracted ones will relax.",
-      "As you inhale, slowly go back in a controlled manner to the starting position.",
-      "Repeat for the recommended amount of repetitions."
+      "Posicionáte en el piso en la posición básica de sit-up: rodillas a 90° con los pies planos en el suelo y brazos cruzados sobre el pecho o a los costados. Esta es la posición inicial.",
+      "Apretá fuerte los glúteos y los isquiotibiales mientras inhalás. En una subida lenta (3–6 segundos) exhalá lentamente. Es importante apretar los glúteos e isquiotibiales porque eso desactiva los flexores de cadera por inhibición recíproca, haciendo que los músculos abdominales trabajen más.",
+      "Al inhalar, volvé lentamente a la posición inicial de manera controlada.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Apretar glúteos e isquios al subir desconecta los flexores de cadera y maximiza el trabajo abdominal."
+    ],
+    "erroresComunes": [
+      "Subir con impulso.",
+      "No apretar los glúteos."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Janda_Sit-Up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Janda_Sit-Up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "janda sit up"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Janda_Sit-Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0367",
@@ -14552,9 +14608,9 @@
   },
   {
     "idEjercicio": "EJ-0378",
-    "nombre": "Kettlebell Pirate Ships",
+    "nombre": "Barcos piratas con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Core rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -14567,24 +14623,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "With a wide stance, hold a kettlebell with both hands. Allow it to hang at waist level with your arms extended. This will be your starting position.",
-      "Initiate the movement by turning to one side, swinging the kettlebell to head height. Briefly pause at the top of the motion.",
-      "Allow the bell to drop as you rotate to the opposite side, again raising the kettlebell to head height.",
-      "Repeat for the desired amount of repetitions."
+      "Con una postura amplia, tomá una pesa rusa con ambas manos. Dejála colgar a la altura de la cadera con los brazos extendidos. Esta es la posición inicial.",
+      "Iniciá el movimiento girando hacia un lado y balanceando la pesa rusa hasta la altura de la cabeza. Pausá brevemente en la parte superior.",
+      "Dejá caer la pesa mientras rotás hacia el lado opuesto, elevándola nuevamente hasta la altura de la cabeza.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El movimiento combina rotación de torso con swing de pesa rusa."
+    ],
+    "erroresComunes": [
+      "Usar los brazos en lugar del torso para impulsar."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Pirate_Ships/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Pirate_Ships/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "pirate ships kettlebell",
+      "rotacion lateral pesa rusa"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Pirate_Ships",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0379",
@@ -14997,9 +15060,9 @@
   },
   {
     "idEjercicio": "EJ-0389",
-    "nombre": "Knee Circles",
+    "nombre": "Círculos de rodilla",
     "modalidad": "Movilidad",
-    "patron": "Tracción horizontal",
+    "patron": "Locomoción / cardio",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Pantorrillas",
@@ -15013,23 +15076,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand with your legs together and hands by your waist.",
-      "Now move your knees in a circular motion as you breathe normally.",
-      "Repeat for the recommended amount of repetitions."
+      "Pararte con las piernas juntas y las manos a la cintura.",
+      "Mové las rodillas en un movimiento circular mientras respirás con normalidad.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Ideal como calentamiento articular."
+    ],
+    "erroresComunes": [
+      "Hacer círculos muy amplios perdiendo el equilibrio."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Knee_Circles/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Knee_Circles/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "knee circles",
+      "movilidad rodilla"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Knee_Circles",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0390",
@@ -15526,7 +15596,7 @@
   },
   {
     "idEjercicio": "EJ-0403",
-    "nombre": "Lateral Bound",
+    "nombre": "Salto lateral (bound)",
     "modalidad": "Fuerza",
     "patron": "Locomoción / cardio",
     "mecanica": "Compuesto",
@@ -15545,25 +15615,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Assume a half squat position facing 90 degrees from your direction of travel. This will be your starting position.",
-      "Allow your lead leg to do a countermovement inward as you shift your weight to the outside leg.",
-      "Immediately push off and extend, attempting to bound to the side as far as possible.",
-      "Upon landing, immediately push off in the opposite direction, returning to your original start position.",
-      "Continue back and forth for several repetitions."
+      "Adoptá una posición de media sentadilla mirando 90° respecto a la dirección de desplazamiento. Esta es la posición inicial.",
+      "Dejá que la pierna delantera haga un pequeño contramovimiento hacia adentro mientras desplazás el peso a la pierna exterior.",
+      "Empujá inmediatamente y extendé la pierna de apoyo, intentando saltar lo más posible hacia el lateral.",
+      "Al aterrizar, empujá inmediatamente en dirección contraria para volver al punto de partida.",
+      "Continuá alternando de lado a lado por las repeticiones indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Aterrizá suavemente sobre la parte media del pie amortiguando con la rodilla."
+    ],
+    "erroresComunes": [
+      "Aterrizar con la rodilla en valgo."
+    ],
     "descansoSugeridoSeg": 45,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Bound/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Bound/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "lateral bound",
+      "salto lateral pliometrico"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lateral_Bound",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0404",
@@ -15648,7 +15725,7 @@
   },
   {
     "idEjercicio": "EJ-0406",
-    "nombre": "Lateral Raise - With Bands",
+    "nombre": "Elevación lateral con banda",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -15661,24 +15738,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To begin, stand on an exercise band so that tension begins at arm's length. Grasp the handles using a pronated (palms facing your thighs) grip that is slightly less than shoulder width. The handles should be resting on the sides of your thighs. Your arms should be extended with a slight bend at the elbows and your back should be straight. This will be your starting position.",
-      "Use your side shoulders to lift the handles to the sides as you exhale. Continue to lift the handles until they are slightly above parallel. Tip: As you lift the handles, slightly tilt the hand as if you were pouring water and keep your arms extended. Also, keep your torso stationary and pause for a second at the top of the movement.",
-      "Lower the handles back down slowly to the starting position. Inhale as you perform this portion of the movement.",
-      "Repeat for the recommended amount of repetitions."
+      "Pararte sobre la banda elástica de modo que la tensión comience con los brazos extendidos. Tomá las manijas con agarre pronado (palmas hacia los muslos) ligeramente por dentro del ancho de hombros. Las manijas descansan a los costados de los muslos. Los brazos extendidos con una leve flexión de codo y la espalda recta. Esta es la posición inicial.",
+      "Usá los deltoides laterales para elevar las manijas hacia los costados mientras exhalás. Seguí subiendo hasta que queden levemente por encima de la horizontal. Al subir, incliná levemente la mano como si vertierás agua; mantenés los brazos extendidos. Mantenés el torso fijo y pausá un segundo en la parte superior.",
+      "Bajá las manijas lentamente a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La inclinación de la muñeca ('verter agua') activa mejor el deltoide medial."
+    ],
+    "erroresComunes": [
+      "Usar el impulso del torso.",
+      "Subir los hombros hacia las orejas."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Raise_-_With_Bands/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Raise_-_With_Bands/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "lateral raise banda",
+      "elevacion hombro banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lateral_Raise_-_With_Bands",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0407",
@@ -15817,7 +15902,7 @@
   },
   {
     "idEjercicio": "EJ-0411",
-    "nombre": "Leg Lift",
+    "nombre": "Curl de pierna de pie",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -15829,28 +15914,35 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "While standing up straight with both feet next to each other at around shoulder width, grab a sturdy surface such as the sides of a squat rack or the top of a chair to brace yourself and keep balance.",
-      "With or without an ankle weight, lift one leg behind you as if performing a leg curl but standing up while keeping the other leg straight. Breathe out as you perform this movement.",
-      "Slowly bring the raised leg back to the floor as you breathe in.",
-      "Repeat for the recommended amount of repetitions.",
-      "Repeat the movement with the opposite leg."
+      "De pie con ambos pies juntos al ancho de hombros aproximadamente, tomá una superficie firme como los laterales de un rack o el respaldo de una silla para equilibrarte.",
+      "Con o sin tobillera de peso, levantá una pierna hacia atrás como si hicieras un curl femoral pero de pie, manteniendo la otra pierna recta. Exhalá al realizar este movimiento.",
+      "Bajá lentamente la pierna al piso mientras inhalás.",
+      "Repetí las veces indicadas.",
+      "Repetí el movimiento con la pierna contraria."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Mantenés el torso erguido durante todo el movimiento."
+    ],
+    "erroresComunes": [
+      "Inclinar el torso hacia adelante al subir la pierna."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Lift/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Lift/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "leg lift de pie",
+      "curl femoral de pie"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Leg_Lift",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0412",
@@ -15893,9 +15985,9 @@
   },
   {
     "idEjercicio": "EJ-0413",
-    "nombre": "Leg Pull-In",
+    "nombre": "Jalón de piernas (leg pull-in)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -15906,24 +15998,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on an exercise mat with your legs extended and your hands either palms facing down next to you or under your glutes. Tip: My preference is with the hands next to me. This will be your starting position.",
-      "Bend your knees and pull your upper thighs into your midsection as you breathe out. Continue the motion until your knees are around chest level. Contract your abs as you execute this movement and hold for a second at the top. Tip: As you perform the motion, the lower legs (calves) should always remain parallel to the floor.",
-      "Return to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte en una colchoneta con las piernas extendidas y las manos con las palmas hacia abajo a los costados o bajo los glúteos. Esta es la posición inicial.",
+      "Doblá las rodillas y llevá los muslos hacia el abdomen mientras exhalás. Continuá hasta que las rodillas queden a nivel del pecho. Contraé el abdomen durante el movimiento y sostené un segundo en la parte superior. Las piernas (pantorrillas) deben permanecer siempre paralelas al piso.",
+      "Volvé a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las pantorrillas paralelas al piso activan más el abdomen inferior."
+    ],
+    "erroresComunes": [
+      "Usar el impulso de las piernas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Pull-In/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Pull-In/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "leg pull in",
+      "encogimiento de piernas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Leg_Pull-In",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0414",
@@ -16581,8 +16680,9 @@
   },
   {
     "idEjercicio": "EJ-0432",
-    "nombre": "Lower Back Curl",
+    "nombre": "Extensión de espalda baja (superman)",
     "modalidad": "Movilidad",
+    "patron": "Dominante de cadera",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Core",
     "gruposSecundarios": [],
@@ -16592,22 +16692,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on your stomach with your arms out to your sides. This will be your starting position.",
-      "Using your lower back muscles, extend your spine lifting your chest off of the ground. Do not use your arms to push yourself up. Keep your head up during the movement. Repeat for 10-20 repetitions."
+      "Acostáte boca abajo con los brazos a los costados. Esta es la posición inicial.",
+      "Usando los músculos de la espalda baja, extendé la columna levantando el pecho del piso. No uses los brazos para empujarte. Mantená la cabeza levantada durante el movimiento. Repetí de 10 a 20 veces."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "No uses los brazos; el movimiento proviene solo de la musculatura lumbar."
+    ],
+    "erroresComunes": [
+      "Empujar con las manos.",
+      "Subir demasiado generando compresión lumbar."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lower_Back_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lower_Back_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "superman",
+      "extension lumbar"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lower_Back_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0433",
@@ -17313,7 +17421,7 @@
   },
   {
     "idEjercicio": "EJ-0453",
-    "nombre": "Lying Supine Dumbbell Curl",
+    "nombre": "Curl de bíceps supino con mancuernas",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -17326,25 +17434,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie down on a flat bench face up while holding a dumbbell in each arm on top of your thighs.",
-      "Bring the dumbbells to the sides with the arms extended and the palms of the hands facing your thighs (neutral grip).",
-      "While keeping the arms close to your torso and elbows in, slowly lower your arms (as you keep them extended with a slight bend at the elbows) as far down towards the floor as you can go. Once you cannot go down any further, lock your upper arms in that position and that will be your starting position.",
-      "As you breathe out, slowly begin to curl the weights up as you simultaneously rotate your wrists so that the palms of the hands face up. Continue curling the weight until your biceps are fully contracted and squeeze hard at the top position for a second. Tip: Only the forearms should move. Upper arms should remain stationary and elbows should stay in throughout the movement.",
-      "Return back to the starting position very slowly."
+      "Acostáte boca arriba en un banco plano con una mancuerna en cada mano sobre los muslos.",
+      "Llevá las mancuernas a los costados con los brazos extendidos y las palmas hacia los muslos (agarre neutro).",
+      "Manteniendo los brazos cerca del torso y los codos adentro, bajá los brazos lentamente (con una leve flexión de codo) lo más que puedas hacia el piso. Una vez que no puedas bajar más, fijá los brazos superiores en esa posición. Esta es la posición inicial.",
+      "Al exhalar, comenzá a curvar lentamente las mancuernas hacia arriba mientras simultáneamente rotás las muñecas con las palmas hacia arriba. Continuá hasta la contracción completa del bíceps y apretá fuerte un segundo en la parte superior. Solo se mueven los antebrazos; los brazos superiores permanecen quietos y los codos fijos.",
+      "Volvé muy lentamente a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El rango de movimiento ampliado por el banco estira más el bíceps."
+    ],
+    "erroresComunes": [
+      "Mover los codos al subir."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Supine_Dumbbell_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Supine_Dumbbell_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "curl supino acostado",
+      "lying dumbbell curl"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_Supine_Dumbbell_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0454",
@@ -17821,9 +17936,9 @@
   },
   {
     "idEjercicio": "EJ-0467",
-    "nombre": "Monster Walk",
+    "nombre": "Monster walk con banda",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Abductores",
@@ -17834,23 +17949,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place a band around both ankles and another around both knees. There should be enough tension that they are tight when your feet are shoulder width apart.",
-      "To begin, take short steps forward alternating your left and right foot.",
-      "After several steps, do just the opposite and walk backward to where you started."
+      "Colocá una banda alrededor de ambos tobillos y otra alrededor de ambas rodillas. Debe haber suficiente tensión para que ambas bandas estén firmes con los pies al ancho de hombros.",
+      "Comenzá dando pasos cortos hacia adelante alternando pie izquierdo y pie derecho.",
+      "Después de varios pasos, hacé lo mismo pero caminando hacia atrás hasta el punto de partida."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Mantenés la postura semiflexionada durante toda la caminata."
+    ],
+    "erroresComunes": [
+      "Dejar que los pies se junten eliminando la tensión de la banda."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Monster_Walk/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Monster_Walk/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "monster walk",
+      "caminata monster"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Monster_Walk",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0468",
@@ -18286,9 +18408,9 @@
   },
   {
     "idEjercicio": "EJ-0479",
-    "nombre": "Oblique Crunches - On The Floor",
+    "nombre": "Crunch oblicuo en el piso",
     "modalidad": "Fuerza",
-    "patron": "Core flexión",
+    "patron": "Core rotación",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -18296,28 +18418,35 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start out by lying on your right side with your legs lying on top of each other. Make sure your knees are bent a little bit.",
-      "Place your left hand behind your head.",
-      "Once you are in this set position, begin by moving your left elbow up as you would perform a normal crunch except this time the main emphasis is on your obliques.",
-      "Crunch as high as you can, hold the contraction for a second and then slowly drop back down into the starting position.",
-      "Remember to breathe in during the eccentric (lowering) part of the exercise and to breathe out during the concentric (elevation) part of the exercise."
+      "Comenzá acostado sobre el lado derecho con las piernas superpuestas. Las rodillas deben estar ligeramente flexionadas.",
+      "Colocá la mano izquierda detrás de la cabeza.",
+      "En esta posición, comenzá a elevar el codo izquierdo hacia arriba como si hicieras un crunch normal, pero con énfasis en los oblicuos.",
+      "Subí todo lo que puedas, sostené la contracción un segundo y luego bajá lentamente a la posición inicial.",
+      "Recordá inhalar durante la fase excéntrica (bajada) y exhalar durante la fase concéntrica (subida)."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Mantené las caderas fijas en el piso para aislar el oblicuo."
+    ],
+    "erroresComunes": [
+      "Rodar el torso en lugar de flexionarlo lateralmente."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Oblique_Crunches_-_On_The_Floor/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Oblique_Crunches_-_On_The_Floor/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "crunch oblicuo lateral",
+      "side crunch"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Oblique_Crunches_-_On_The_Floor",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0480",
@@ -18476,9 +18605,9 @@
   },
   {
     "idEjercicio": "EJ-0484",
-    "nombre": "One-Arm Flat Bench Dumbbell Flye",
+    "nombre": "Apertura unilateral en banco plano",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Pecho",
@@ -18486,29 +18615,36 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie down on a flat bench with a dumbbell in one hand resting on top of your thigh. The palm of your hand with the dumbbell in it should be at a neutral grip.",
-      "By using your thighs to help you get the dumbbell up, clean the dumbbell so that you can hold it in front of you with your lifting arm being fully extended. Remember to maintain a neutral grip with this exercise. Your non lifting hand should be to the side holding the flat bench for better support. This will be your starting position.",
-      "Your arm with the weight should have a slight bend on your elbow in order to prevent stress at the biceps tendon. Begin by lowering your arm with the weight in it out in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, your lifting arm should remain stationary; the movement should only occur at the shoulder joint.",
-      "Return your lifting arm back to the starting position as you squeeze your chest muscles and breathe out. Tip: Make sure to use the same arc of motion used to lower the weights.",
-      "Hold for a second at the contracted position and repeat the movement for the prescribed amount of repetitions.",
-      "Switch arms and repeat the exercise."
+      "Acostáte en un banco plano con una mancuerna en una mano descansando sobre el muslo. La palma debe estar en agarre neutro.",
+      "Con ayuda del muslo, subí la mancuerna frente a vos con el brazo completamente extendido. Mantenés el agarre neutro. La mano que no trabaja debe sostenerse del banco para mayor estabilidad. Esta es la posición inicial.",
+      "El brazo con la mancuerna debe tener una leve flexión en el codo para no generar estrés en el tendón del bíceps. Comenzá bajando el brazo en un arco amplio hacia el costado hasta que sientas el estiramiento en el pecho. Inhalá durante esta fase. Durante todo el movimiento el brazo que trabaja permanece en la misma posición; el único movimiento ocurre en la articulación del hombro, no en el codo.",
+      "Volvé el brazo a la posición inicial usando exactamente el mismo arco de movimiento que usaste al bajar, mientras contraés los pectorales y exhalás.",
+      "Sostené un segundo en la posición contraída y repetí las veces indicadas.",
+      "Cambiá de brazo y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El arco es el mismo tanto al bajar como al subir."
+    ],
+    "erroresComunes": [
+      "Extender el codo al volver (convertirlo en press)."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Flat_Bench_Dumbbell_Flye/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Flat_Bench_Dumbbell_Flye/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "apertura unilateral banco",
+      "dumbbell flye un brazo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Flat_Bench_Dumbbell_Flye",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0485",
@@ -18550,7 +18686,7 @@
   },
   {
     "idEjercicio": "EJ-0486",
-    "nombre": "One-Arm Incline Lateral Raise",
+    "nombre": "Elevación lateral unilateral en banco inclinado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -18560,29 +18696,35 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie down sideways on an incline bench press with a dumbbell in the hand. Make sure the shoulder is pressing against the incline bench and the arm is lying across your body with the palm around your navel.",
-      "Hold a dumbbell in your uppermost arm while keeping it extended in front of you parallel to the floor. This is your starting position.",
-      "While keeping the dumbbell parallel to the floor at all times, perform a lateral raise. Your arm should travel straight up until it is pointing at the ceiling. Tip: Exhale as you perform this movement. Hold the dumbbell in the position and feel the contraction in the shoulders for a second.",
-      "While inhaling lower the weight across your body back into the starting position.",
-      "Repeat the movement for the prescribed amount of repetitions.",
-      "Switch arms and repeat the movement."
+      "Acostáte de lado en un banco inclinado con una mancuerna en la mano superior. El hombro debe presionar contra el banco y el brazo inferior descansa cruzado sobre el cuerpo con la palma cerca del ombligo.",
+      "Sostené la mancuerna con el brazo superior extendido al frente paralelo al piso. Esta es la posición inicial.",
+      "Manteniendo la mancuerna siempre paralela al piso, realizá una elevación lateral: el brazo viaja directamente hacia arriba hasta apuntar al techo. Exhalá durante este movimiento. Sostené un segundo apretando el deltoide.",
+      "Al inhalar, bajá el peso cruzando el cuerpo de vuelta a la posición inicial.",
+      "Repetí las veces indicadas.",
+      "Cambiá de brazo y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La posición inclinada estira más el deltoide en el inicio."
+    ],
+    "erroresComunes": [
+      "No mantener la mancuerna paralela al piso durante el movimiento."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Incline_Lateral_Raise/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Incline_Lateral_Raise/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "elevacion lateral inclinado unilateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Incline_Lateral_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0487",
@@ -19247,7 +19389,7 @@
   },
   {
     "idEjercicio": "EJ-0504",
-    "nombre": "One-Arm Side Laterals",
+    "nombre": "Elevación lateral unilateral con mancuerna",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -19257,29 +19399,36 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Pick a dumbbell and place it in one of your hands. Your non lifting hand should be used to grab something steady such as an incline bench press. Lean towards your lifting arm and away from the hand that is gripping the incline bench as this will allow you to keep your balance.",
-      "Stand with a straight torso and have the dumbbell by your side at arm's length with the palm of the hand facing you. This will be your starting position.",
-      "While maintaining the torso stationary (no swinging), lift the dumbbell to your side with a slight bend on the elbow and your hand slightly tilted forward as if pouring water in a glass. Continue to go up until you arm is parallel to the floor. Exhale as you execute this movement and pause for a second at the top.",
-      "Lower the dumbbell back down slowly to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions.",
-      "Switch arms and repeat the exercise."
+      "Tomá una mancuerna en una mano. Con la mano libre, agarráte de algo firme como un banco inclinado. Inclinarte levemente hacia el lado del brazo que trabaja para mantener el equilibrio.",
+      "Pararte con el torso recto y la mancuerna al costado a extensión de brazo, con la palma mirando hacia vos. Esta es la posición inicial.",
+      "Manteniendo el torso quieto, elevá la mancuerna hacia el costado con una leve flexión de codo y la mano levemente inclinada hacia adelante como si vertierás agua. Seguí hasta que el brazo quede paralelo al piso. Exhalá y pausá un segundo en la parte superior.",
+      "Bajá la mancuerna lentamente a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas.",
+      "Cambiá de brazo y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El apoyo con la mano libre permite concentrarse mejor en el deltoide."
+    ],
+    "erroresComunes": [
+      "Inclinarse demasiado usando el impulso del torso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Side_Laterals/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Side_Laterals/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "elevacion lateral un brazo",
+      "lateral raise unilateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Side_Laterals",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0505",
@@ -19394,7 +19543,7 @@
   },
   {
     "idEjercicio": "EJ-0508",
-    "nombre": "One Arm Dumbbell Bench Press",
+    "nombre": "Press de banca unilateral con mancuerna",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -19407,34 +19556,41 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie down on a flat bench with a dumbbell in one hand on top of your thigh.",
-      "By using your thigh to help you get the dumbbell up, clean the dumbbell up so that you can hold it in front of you at shoulder width. Use the hand you are not lifting with to help position the dumbbell over you properly.",
-      "Once at shoulder width, rotate your wrist forward so that the palm of your hand is facing away from you. This will be your starting position.",
-      "Bring down the weights slowly to your side as you breathe in. Keep full control of the dumbbell at all times. Tip: Use the hand that you are not lifting with to help keep the dumbbell balance as you may struggle a bit at first. Only use your non-lifting hand if it is needed. Otherwise, keep it resting to the side.",
-      "As you breathe out, push the dumbbells up using your pectoral muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up.",
-      "Repeat the movement for the prescribed amount of repetitions of your training program.",
-      "Switch arms and repeat the movement."
+      "Acostáte en un banco plano con una mancuerna en una mano sobre el muslo.",
+      "Con ayuda del muslo, subí la mancuerna al frente al ancho de hombros. Usá la mano libre para ayudar a posicionarla correctamente.",
+      "Una vez en posición, rotá la muñeca para que la palma quede mirando hacia afuera. Esta es la posición inicial.",
+      "Bajá la mancuerna lentamente hacia el costado mientras inhalás. Mantenés el control total en todo momento. Podés usar la mano libre para asistir el equilibrio si es necesario; de lo contrario, dejala descansando al costado.",
+      "Al exhalar, empujá la mancuerna hacia arriba usando los pectorales. Extendé el codo, apretá el pecho, sostené un segundo y comenzá a bajar. El descenso debería llevar al menos el doble de tiempo que el ascenso.",
+      "Repetí las veces indicadas.",
+      "Cambiá de brazo y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El press unilateral desafía el núcleo por la asimetría de carga."
+    ],
+    "erroresComunes": [
+      "Dejar que el torso rote hacia la mancuerna."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Dumbbell_Bench_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Dumbbell_Bench_Press/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "press banca un brazo",
+      "one arm bench press"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One_Arm_Dumbbell_Bench_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0509",
-    "nombre": "One Arm Dumbbell Preacher Curl",
+    "nombre": "Curl predicador unilateral con mancuerna",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -19444,28 +19600,35 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Grab a dumbbell with the right arm and place the upper arm on top of the preacher bench or the incline bench. The dumbbell should be held at shoulder length. This will be your starting position.",
-      "As you breathe in, slowly lower the dumbbell until your upper arm is extended and the biceps is fully stretched.",
-      "As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the dumbbell is at shoulder height. Again, remember that to ensure full contraction you need to bring that small finger higher than the thumb.",
-      "Squeeze the biceps hard for a second at the contracted position and repeat for the recommended amount of repetitions.",
-      "Switch arms and repeat the movement."
+      "Tomá una mancuerna con la mano derecha y colocá el brazo superior sobre el banco predicador o banco inclinado. La mancuerna debe estar a la altura del hombro. Esta es la posición inicial.",
+      "Al inhalar, bajá lentamente la mancuerna hasta que el brazo esté completamente extendido y el bíceps en estiramiento total.",
+      "Al exhalar, usá el bíceps para curvar el peso hacia arriba hasta la contracción completa y la mancuerna a la altura del hombro. Para asegurar la contracción completa, el dedo meñique debe quedar más alto que el pulgar.",
+      "Apretá fuerte el bíceps un segundo en la posición contraída y repetí las veces indicadas.",
+      "Cambiá de brazo y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El banco predicador elimina el impulso del hombro."
+    ],
+    "erroresComunes": [
+      "Subir el codo del banco para ayudar."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Dumbbell_Preacher_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Dumbbell_Preacher_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "preacher curl un brazo",
+      "curl predicador unilateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One_Arm_Dumbbell_Preacher_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0510",
@@ -19546,7 +19709,7 @@
   },
   {
     "idEjercicio": "EJ-0512",
-    "nombre": "One Arm Pronated Dumbbell Triceps Extension",
+    "nombre": "Extensión de tríceps unilateral con agarre pronado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -19556,33 +19719,39 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie flat on a bench while holding a dumbbell at arms length. Your arm should be perpendicular to your body. The palm of your hand should be facing towards your feet as a pronated grip is required to perform this exercise.",
-      "Place your non lifting hand on your bicep for support.",
-      "Slowly begin to lower the dumbbell down as you breathe in.",
-      "Then, begin lifting the dumbbell upward as you contract the triceps. Remember to breathe out during the concentric (lifting part of the exercise).",
-      "Repeat until you have performed your set repetitions.",
-      "Switch arms and repeat the movement."
+      "Acostáte en un banco con una mancuerna a extensión de brazo. El brazo debe quedar perpendicular al cuerpo. La palma mira hacia los pies (agarre pronado).",
+      "Colocá la mano que no trabaja sobre el bíceps para mayor soporte.",
+      "Bajá lentamente la mancuerna mientras inhalás.",
+      "Levantá la mancuerna hacia arriba contrayendo el tríceps. Exhalá durante la fase concéntrica.",
+      "Repetí las veces indicadas.",
+      "Cambiá de brazo y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre pronado crea una posición única de tensión para el tríceps."
+    ],
+    "erroresComunes": [
+      "Mover el hombro al bajar."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Pronated_Dumbbell_Triceps_Extension/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Pronated_Dumbbell_Triceps_Extension/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "extensión triceps pronado unilateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One_Arm_Pronated_Dumbbell_Triceps_Extension",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0513",
-    "nombre": "One Arm Supinated Dumbbell Triceps Extension",
+    "nombre": "Extensión de tríceps unilateral con agarre supino",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -19592,30 +19761,36 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie flat on a bench while holding a dumbbell at arms length. Your arm should be perpendicular to your body. The palm of your hand should be facing towards your face as a supinated grip is required to perform this exercise.",
-      "Place your non lifting hand on your bicep for support.",
-      "Slowly begin to lower the dumbbell down as you breathe in.",
-      "Then, begin lifting the dumbbell upward as you contract the triceps. Remember to breathe out during the concentric (lifting part of the exercise).",
-      "Repeat until you have performed your set repetitions.",
-      "Switch arms and repeat the movement.",
-      "Switch arms again and repeat the movement."
+      "Acostáte en un banco con una mancuerna a extensión de brazo. El brazo debe quedar perpendicular al cuerpo. La palma mira hacia la cara (agarre supino).",
+      "Colocá la mano que no trabaja sobre el bíceps para mayor soporte.",
+      "Bajá lentamente la mancuerna mientras inhalás.",
+      "Levantá la mancuerna hacia arriba contrayendo el tríceps. Exhalá durante la fase concéntrica.",
+      "Repetí las veces indicadas.",
+      "Cambiá de brazo y repetí.",
+      "Cambiá de brazo nuevamente y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre supino recluta el tríceps desde un ángulo diferente al pronado."
+    ],
+    "erroresComunes": [
+      "Mover el codo hacia afuera al subir."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Supinated_Dumbbell_Triceps_Extension/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One_Arm_Supinated_Dumbbell_Triceps_Extension/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "extensión triceps supinado unilateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One_Arm_Supinated_Dumbbell_Triceps_Extension",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0514",
@@ -20150,9 +20325,9 @@
   },
   {
     "idEjercicio": "EJ-0528",
-    "nombre": "Palms-Down Dumbbell Wrist Curl Over A Bench",
+    "nombre": "Curl de muñeca pronado sobre banco",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Antebrazos",
@@ -20163,27 +20338,34 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start out by placing two dumbbells on one side of a flat bench.",
-      "Kneel down on both of your knees so that your body is facing the flat bench.",
-      "Use your arms to grab both of the dumbbells with a pronated grip (palms facing down) and bring them up so that your forearms are resting against the flat bench. Your wrists should be hanging over the edge.",
-      "Start out by curling your wrist upwards and exhaling.",
-      "Slowly lower your wrists back down to the starting position while inhaling.",
-      "Your forearms should be stationary as your wrist is the only movement needed to perform this exercise.",
-      "Repeat for the recommended amount of repetitions."
+      "Colocá dos mancuernas a un lado de un banco plano.",
+      "Arrodilláte frente al banco con ambas rodillas en el piso.",
+      "Tomá ambas mancuernas con agarre pronado (palmas hacia abajo) y apoyá los antebrazos sobre el banco, dejando las muñecas colgando del borde.",
+      "Comenzá curvando las muñecas hacia arriba mientras exhalás.",
+      "Bajá lentamente las muñecas a la posición inicial mientras inhalás.",
+      "Solo las muñecas se mueven; los antebrazos permanecen sobre el banco.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja los extensores del antebrazo."
+    ],
+    "erroresComunes": [
+      "Levantar los antebrazos del banco."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "wrist curl pronado",
+      "curl muñeca palmas abajo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0529",
@@ -20261,9 +20443,9 @@
   },
   {
     "idEjercicio": "EJ-0531",
-    "nombre": "Palms-Up Dumbbell Wrist Curl Over A Bench",
+    "nombre": "Curl de muñeca supino sobre banco",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Antebrazos",
@@ -20274,27 +20456,34 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start out by placing two dumbbells on one side of a flat bench.",
-      "Kneel down on both of your knees so that your body is facing the flat bench.",
-      "Use your arms to grab both of the dumbbells with a supinated grip (palms up) and bring them up so that your forearms are resting against the flat bench. Your wrists should be hanging over the edge.",
-      "Start out by curling your wrist upwards and exhaling.",
-      "Slowly lower your wrists back down to the starting position while inhaling. Make sure to inhale during this part of the exercise.",
-      "Your forearms should be stationary as your wrist is the only movement needed to perform this exercise.",
-      "Repeat for the recommended amount of repetitions."
+      "Colocá dos mancuernas a un lado de un banco plano.",
+      "Arrodilláte frente al banco con ambas rodillas en el piso.",
+      "Tomá ambas mancuernas con agarre supino (palmas hacia arriba) y apoyá los antebrazos sobre el banco, dejando las muñecas colgando del borde.",
+      "Comenzá curvando las muñecas hacia arriba mientras exhalás.",
+      "Bajá lentamente las muñecas a la posición inicial mientras inhalás. Aseguráte de inhalar durante esta parte.",
+      "Solo las muñecas se mueven; los antebrazos permanecen sobre el banco.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja los flexores del antebrazo."
+    ],
+    "erroresComunes": [
+      "Levantar los antebrazos del banco."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "wrist curl supino",
+      "curl muñeca palmas arriba"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0532",
@@ -20771,9 +20960,9 @@
   },
   {
     "idEjercicio": "EJ-0545",
-    "nombre": "Plyo Push-up",
+    "nombre": "Flexión pliométrica (plyo push-up)",
     "modalidad": "Fuerza",
-    "patron": "Locomoción / cardio",
+    "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Pecho",
@@ -20787,26 +20976,34 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Move into a prone position on the floor, supporting your weight on your hands and toes.",
-      "Your arms should be fully extended with the hands around shoulder width. Keep your body straight throughout the movement. This will be your starting position.",
-      "Descend by flexing at the elbow, lowering your chest towards the ground.",
-      "At the bottom, reverse the motion by pushing yourself up through elbow extension as quickly as possible. Attempt to push your upper body up until your hands leave the ground.",
-      "Return to the starting position and repeat the exercise.",
-      "For added difficulty, add claps into the movement while you are air borne."
+      "Adoptá posición de plancha alta apoyado sobre manos y pies.",
+      "Los brazos deben estar completamente extendidos con las manos al ancho de hombros. Mantenés el cuerpo recto durante todo el movimiento. Esta es la posición inicial.",
+      "Descendé flexionando los codos llevando el pecho hacia el piso.",
+      "En la parte baja, revertí el movimiento empujándote hacia arriba extendiendo los codos lo más explosivamente posible. Intentá despegar las manos del piso.",
+      "Volvé a la posición inicial y repetí.",
+      "Para mayor dificultad, agregá palmadas mientras estás en el aire."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El objetivo es maximizar la explosividad en la fase de empuje."
+    ],
+    "erroresComunes": [
+      "No absorber bien el aterrizaje — doblar los codos al caer."
+    ],
     "descansoSugeridoSeg": 45,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plyo_Push-up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plyo_Push-up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "clap push up",
+      "flexion con palmada",
+      "push up explosivo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Plyo_Push-up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0546",
@@ -20983,7 +21180,7 @@
   },
   {
     "idEjercicio": "EJ-0550",
-    "nombre": "Power Partials",
+    "nombre": "Elevaciones parciales de hombro",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -20996,25 +21193,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand up with your torso upright and a dumbbell on each hand being held at arms length. The elbows should be close to the torso.",
-      "The palms of the hands should be facing your torso. Your feet should be about shoulder width apart. This will be your starting position.",
-      "Keeping your arms straight and the torso stationary, lift the weights out to your sides until they are about shoulder level height while exhaling.",
-      "Feel the contraction for a second and begin to lower the weights back down to the starting position while inhaling. Tip: Keep the palms facing down with the little finger slightly higher while lifting and lowering the weights as it will concentrate the stress on your shoulders mainly.",
-      "Repeat for the recommended amount of repetitions."
+      "De pie con el torso erguido y una mancuerna en cada mano a extensión de brazos, codos cerca del torso.",
+      "Las palmas miran hacia el cuerpo. Los pies al ancho de hombros. Esta es la posición inicial.",
+      "Manteniendo los brazos rectos y el torso fijo, elevá las mancuernas hacia los costados hasta la altura de los hombros mientras exhalás.",
+      "Sentí la contracción un segundo y comenzá a bajar lentamente a la posición inicial mientras inhalás. Al subir y bajar, mantenés las palmas mirando hacia abajo con el meñique levemente más alto para enfocar la tensión en el deltoide.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El meñique levemente más alto en la elevación activa mejor el deltoide medial."
+    ],
+    "erroresComunes": [
+      "Usar el torso para dar impulso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Power_Partials/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Power_Partials/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "power partials",
+      "elevacion parcial deltoide"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Power_Partials",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0551",
@@ -21182,7 +21386,7 @@
   },
   {
     "idEjercicio": "EJ-0555",
-    "nombre": "Preacher Hammer Dumbbell Curl",
+    "nombre": "Curl de martillo en banco predicador",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -21197,24 +21401,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place the upper part of both arms on top of the preacher bench as you hold a dumbbell in each hand with the palms facing each other (neutral grip).",
-      "As you breathe in, slowly lower the dumbbells until your upper arm is extended and the biceps is fully stretched.",
-      "As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the dumbbells are at shoulder height.",
-      "Squeeze the biceps hard for a second at the contracted position and repeat for the recommended amount of repetitions."
+      "Colocá la parte superior de ambos brazos sobre el banco predicador y tomá una mancuerna en cada mano con las palmas enfrentadas (agarre neutro).",
+      "Al inhalar, bajá lentamente las mancuernas hasta que el brazo esté completamente extendido y el bíceps en estiramiento total.",
+      "Al exhalar, usá el bíceps para curvar el peso hacia arriba hasta la contracción completa y las mancuernas a la altura de los hombros.",
+      "Apretá fuerte el bíceps un segundo en la posición contraída y repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre neutro enfatiza el braquial y el braquiorradial."
+    ],
+    "erroresComunes": [
+      "Subir los codos del banco."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Preacher_Hammer_Dumbbell_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Preacher_Hammer_Dumbbell_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "preacher hammer curl",
+      "curl martillo predicador"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Preacher_Hammer_Dumbbell_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0556",
