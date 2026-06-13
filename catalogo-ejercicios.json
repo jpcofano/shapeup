@@ -1,7 +1,7 @@
 [
   {
     "idEjercicio": "EJ-0001",
-    "nombre": "3/4 Sit-Up",
+    "nombre": "Sit-up 3/4",
     "modalidad": "Fuerza",
     "patron": "Core flexión",
     "mecanica": "Compuesto",
@@ -14,25 +14,33 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie down on the floor and secure your feet. Your legs should be bent at the knees.",
-      "Place your hands behind or to the side of your head. You will begin with your back on the ground. This will be your starting position.",
-      "Flex your hips and spine to raise your torso toward your knees.",
-      "At the top of the contraction your torso should be perpendicular to the ground. Reverse the motion, going only ¾ of the way down.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte en el piso y asegurá los pies. Las piernas deben estar flexionadas con las rodillas dobladas.",
+      "Colocá las manos detrás o a los costados de la cabeza. Comenzás con la espalda en el piso. Esta es la posición inicial.",
+      "Flexioná la cadera y la columna para elevar el torso hacia las rodillas.",
+      "En la parte superior de la contracción el torso debe quedar perpendicular al piso. Revertí el movimiento bajando solo 3/4 del camino hacia el piso.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "No bajar completamente entre reps mantiene tensión constante en el abdomen."
+    ],
+    "erroresComunes": [
+      "Tirar del cuello con las manos.",
+      "Usar impulso en lugar de contraer el abdomen."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/3_4_Sit-Up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/3_4_Sit-Up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "sit up",
+      "abdominal 3/4"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "3_4_Sit-Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0002",
@@ -50,9 +58,10 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Boca arriba, llevá una pierna a 90° de cadera y 90° de rodilla.",
-      "Sostené el muslo con las manos y extendé despacio la rodilla hacia el techo.",
-      "Mantené el estiramiento detrás del muslo y respirá."
+      "Acostáte boca arriba con una pierna extendida recta en el piso.",
+      "Con la otra pierna, flexioná la cadera y la rodilla a 90° cada una. Podés sostener el muslo con las manos si lo necesitás. Esta es la posición inicial.",
+      "Extendé la pierna hacia el techo pausando brevemente arriba. Volvé a la posición inicial.",
+      "Repetí entre 10 y 20 repeticiones y luego cambiá a la otra pierna."
     ],
     "puntosClave": [
       "Estiramiento suave, sin rebotes."
@@ -308,9 +317,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "En cuatro apoyos, tomá un pie con la mano del mismo lado.",
-      "Llevá el talón hacia el glúteo sintiendo el estiramiento al frente del muslo.",
-      "Mantené y cambiá de lado."
+      "Comenzá en cuatro apoyos y luego levantá un pie del piso tomándolo con la mano del mismo lado.",
+      "Usá la mano para sostener el pie o el tobillo, manteniendo la rodilla completamente flexionada para estirar cuádriceps y flexores de cadera.",
+      "Concentráte en extender la cadera empujándola hacia el piso. Mantené entre 10 y 20 segundos y luego cambiá de lado."
     ],
     "puntosClave": [
       "Mantené la cadera estable."
@@ -334,7 +343,7 @@
   },
   {
     "idEjercicio": "EJ-0010",
-    "nombre": "Alternate Hammer Curl",
+    "nombre": "Curl de martillo alternado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -346,29 +355,36 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand up with your torso upright and a dumbbell in each hand being held at arms length. The elbows should be close to the torso.",
-      "The palms of the hands should be facing your torso. This will be your starting position.",
-      "While holding the upper arm stationary, curl the right weight forward while contracting the biceps as you breathe out. Continue the movement until your biceps is fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Tip: Only the forearms should move.",
-      "Slowly begin to bring the dumbbells back to starting position as your breathe in.",
-      "Repeat the movement with the left hand. This equals one repetition.",
-      "Continue alternating in this manner for the recommended amount of repetitions."
+      "Pararte con el torso erguido y una mancuerna en cada mano con los brazos extendidos a los costados. Los codos deben estar cerca del torso.",
+      "Las palmas de las manos miran hacia el cuerpo (agarre neutro). Esta es la posición inicial.",
+      "Manteniendo el brazo superior quieto, flexioná el codo derecho llevando la mancuerna hacia el hombro mientras exhalás. Solo el antebrazo se mueve. Llegá hasta la contracción completa del bíceps y sostené un segundo apretando.",
+      "Bajá la mancuerna lentamente a la posición inicial mientras inhalás.",
+      "Repetí con la mano izquierda. Eso equivale a una repetición.",
+      "Seguí alternando de esta manera por las repeticiones indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Solo el antebrazo se mueve; el codo permanece fijo."
+    ],
+    "erroresComunes": [
+      "Mover el codo hacia adelante.",
+      "Usar el torso para dar impulso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternate_Hammer_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternate_Hammer_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "hammer curl alternado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Alternate_Hammer_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0011",
@@ -416,7 +432,7 @@
   },
   {
     "idEjercicio": "EJ-0012",
-    "nombre": "Alternate Incline Dumbbell Curl",
+    "nombre": "Curl inclinado alternado con mancuernas",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -428,28 +444,34 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sit down on an incline bench with a dumbbell in each hand being held at arms length. Tip: Keep the elbows close to the torso.This will be your starting position.",
-      "While holding the upper arm stationary, curl the right weight forward while contracting the biceps as you breathe out. As you do so, rotate the hand so that the palm is facing up. Continue the movement until your biceps is fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Tip: Only the forearms should move.",
-      "Slowly begin to bring the dumbbell back to starting position as your breathe in.",
-      "Repeat the movement with the left hand. This equals one repetition.",
-      "Continue alternating in this manner for the recommended amount of repetitions."
+      "Sentáte en un banco inclinado con una mancuerna en cada mano a extensión de brazos. Mantenés los codos cerca del torso. Esta es la posición inicial.",
+      "Manteniendo el brazo superior quieto, flexioná el codo derecho llevando la mancuerna hacia el hombro mientras exhalás. Al hacerlo, rotá la muñeca para que la palma quede mirando hacia arriba. Seguí hasta la contracción completa del bíceps y sostené un segundo apretando. Solo el antebrazo se mueve.",
+      "Bajá la mancuerna lentamente a la posición inicial mientras inhalás.",
+      "Repetí con la mano izquierda. Eso equivale a una repetición.",
+      "Seguí alternando por las repeticiones indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La inclinación del banco aumenta el rango de movimiento del bíceps."
+    ],
+    "erroresComunes": [
+      "Mover el hombro hacia adelante al subir."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternate_Incline_Dumbbell_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternate_Incline_Dumbbell_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "curl en banco inclinado alternado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Alternate_Incline_Dumbbell_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0013",
@@ -529,7 +551,7 @@
   },
   {
     "idEjercicio": "EJ-0015",
-    "nombre": "Alternating Deltoid Raise",
+    "nombre": "Elevación alterna de deltoide (frente y lateral)",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -539,32 +561,39 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "In a standing position, hold a pair of dumbbells at your side.",
-      "Keeping your elbows slightly bent, raise the weights directly in front of you to shoulder height, avoiding any swinging or cheating.",
-      "Return the weights to your side.",
-      "On the next repetition, raise the weights laterally, raising them out to your side to about shoulder height.",
-      "Return the weights to the starting position and continue alternating to the front and side."
+      "De pie, sostené un par de mancuernas a los costados.",
+      "Manteniendo los codos ligeramente flexionados, elevá las mancuernas directamente al frente hasta la altura de los hombros sin balancear el torso.",
+      "Volvé las mancuernas a los costados.",
+      "En la siguiente repetición, elevá las mancuernas hacia los costados hasta la altura de los hombros.",
+      "Volvé a la posición inicial y seguí alternando frente y lateral."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja deltoide anterior y medial en un solo ejercicio."
+    ],
+    "erroresComunes": [
+      "Usar impulso del torso.",
+      "Subir los hombros hacia las orejas."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternating_Deltoid_Raise/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternating_Deltoid_Raise/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "elevacion deltoides alternada"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Alternating_Deltoid_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0016",
-    "nombre": "Alternating Floor Press",
+    "nombre": "Press de piso alternado con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -578,27 +607,33 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on the floor with two kettlebells next to your shoulders.",
-      "Position one in place on your chest and then the other, gripping the kettlebells on the handle with the palms facing forward.",
-      "Extend both arms, so that the kettlebells are being held above your chest. Lower one kettlebell, bringing it to your chest and turn the wrist in the direction of the locked out kettlebell.",
-      "Raise the kettlebell and repeat on the opposite side."
+      "Acostáte en el piso con dos pesas rusas a los costados de los hombros.",
+      "Colocá una pesa sobre el pecho y luego la otra, tomando los mangos con las palmas mirando hacia adelante.",
+      "Extendé ambos brazos de manera que las pesas queden sobre el pecho. Bajá una pesa llevándola al pecho y girá la muñeca en dirección a la pesa del lado contrario (que permanece extendida).",
+      "Subí esa pesa y repetí del otro lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El piso limita el rango de movimiento protegiendo el hombro."
+    ],
+    "erroresComunes": [
+      "No controlar el descenso."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternating_Floor_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Alternating_Floor_Press/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "floor press alternado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Alternating_Floor_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0017",
@@ -732,9 +767,9 @@
     "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "En plancha alta con las manos sobre dos mancuernas, pies algo separados.",
-      "Remá una mancuerna hacia la cadera sin rotar la cadera ni el torso.",
-      "Apoyá y repetí del otro lado, alternando."
+      "Colocá dos pesas rusas en el piso a la distancia de los hombros. Posicionáte en las puntas de los pies y las manos como si fueras a hacer una flexión, con el cuerpo recto y extendido. Usá los mangos de las pesas rusas para apoyar la parte superior del cuerpo. Puede que necesités abrir bastante los pies para mayor estabilidad.",
+      "Empujá una pesa rusa contra el piso y remá la otra contrayendo el omóplato del lado que trabaja mientras flexionás el codo, jalándola hacia el costado del cuerpo.",
+      "Bajá la pesa al piso y comenzá con la del lado opuesto. Repetí alternando por las repeticiones indicadas."
     ],
     "puntosClave": [
       "La cadera queda quieta: el core anti-rota."
@@ -906,9 +941,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, brazos extendidos a los costados a la altura de los hombros.",
-      "Hacé círculos chicos hacia adelante y después hacia atrás.",
-      "Aumentá de a poco el tamaño del círculo."
+      "Pararte y extendé los brazos rectos hacia los costados a la altura de los hombros, paralelos al piso y perpendiculares al torso. Esta es la posición inicial.",
+      "Comenzá a hacer círculos de unos 30 cm de diámetro con cada brazo extendido. Respirá normalmente durante el movimiento.",
+      "Continuá los círculos unos diez segundos y luego invertí la dirección, girando hacia el lado opuesto."
     ],
     "puntosClave": [
       "Ideal para calentar el hombro al inicio."
@@ -947,10 +982,10 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Sentado en un banco con respaldo, sostené las mancuernas frente al pecho con las palmas hacia el cuerpo y los codos flexionados junto al torso. La posición se asemeja a la cima de un curl.",
-      "Empezá subiendo las mancuernas al tiempo que girás las palmas hacia adelante.",
-      "Continuá hasta extender completamente los brazos por encima de la cabeza. Exhalá durante esta parte.",
-      "Sostené un segundo arriba y comenzá a bajar a la posición original rotando las palmas de vuelta hacia el cuerpo mientras inhalás. El brazo izquierdo rota en sentido antihorario; el derecho en sentido horario.",
+      "Sentáte en un banco con respaldo y sostenés dos mancuernas frente a vos a la altura del pecho superior con las palmas mirando hacia el cuerpo y los codos flexionados. Los brazos deben estar junto al torso. La posición inicial se asemeja a la parte contraída de un curl de bíceps.",
+      "Para ejecutar el movimiento, empezá a subir las mancuernas mientras rotás las palmas hacia adelante.",
+      "Seguí levantando las mancuernas hasta que los brazos estén completamente extendidos por encima de la cabeza. Exhalá durante esta parte del movimiento.",
+      "Después de una pausa de un segundo arriba, comenzá a bajar las mancuernas a la posición original rotando las palmas de vuelta hacia el cuerpo. El brazo izquierdo rota en sentido antihorario y el derecho en sentido horario. Inhalá durante esta parte del movimiento.",
       "Repetí las veces indicadas."
     ],
     "puntosClave": [
@@ -993,9 +1028,9 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Acostado, mancuernas a los costados de los muslos.",
-      "Llevalas en arco amplio por los costados hasta arriba de la cabeza.",
-      "Volvé por el mismo camino, controlando."
+      "Acostáte en un banco plano con una mancuerna en cada mano, palmas hacia el techo. Los brazos paralelos al piso y al costado de los muslos; codos ligeramente flexionados para proteger la articulación. Esta es la posición inicial.",
+      "Llevá las mancuernas en semicírculo por los costados hacia arriba y sobre la cabeza, manteniendo los brazos paralelos al piso en todo momento. Inhalá durante esta fase.",
+      "Revertí el movimiento volviendo a la posición inicial mientras exhalás."
     ],
     "puntosClave": [
       "Recorrido amplio y lento; pesos livianos."
@@ -1145,9 +1180,9 @@
   },
   {
     "idEjercicio": "EJ-0031",
-    "nombre": "Back Flyes - With Bands",
+    "nombre": "Aperturas de espalda con banda",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Tracción horizontal",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -1161,26 +1196,34 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Run a band around a stationary post like that of a squat rack.",
-      "Grab the band by the handles and stand back so that the tension in the band rises.",
-      "Extend and lift the arms straight in front of you. Tip: Your arms should be straight and parallel to the floor while perpendicular to your torso. Your feet should be firmly planted on the floor spread at shoulder width. This will be your starting position.",
-      "As you exhale, move your arms to the sides and back. Keep your arms extended and parallel to the floor. Continue the movement until the arms are extended to your sides.",
-      "After a pause, go back to the original position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Pasá una banda alrededor de un poste estable como el de un rack de sentadillas.",
+      "Tomá los extremos de la banda y alejáte hasta que haya tensión.",
+      "Extendé y levantá los brazos al frente paralelos al piso y perpendiculares al torso; los pies bien apoyados al ancho de hombros. Esta es la posición inicial.",
+      "Exhalando, mové los brazos hacia los costados y hacia atrás manteniendo los brazos extendidos y paralelos al piso, hasta que queden a los lados del cuerpo.",
+      "Pausá y volvé a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Mantené los brazos paralelos al piso durante todo el arco."
+    ],
+    "erroresComunes": [
+      "Bajar los brazos durante el movimiento.",
+      "Arquear la espalda."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Back_Flyes_-_With_Bands/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Back_Flyes_-_With_Bands/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "back flyes banda",
+      "aperturas posteriores con banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Back_Flyes_-_With_Bands",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0032",
@@ -1344,10 +1387,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Enganchá una banda en la barra y apoyá una rodilla o un pie en ella.",
-      "Colgá con agarre prono algo más ancho que los hombros, brazos extendidos.",
-      "Tirá llevando el pecho hacia la barra, bajando los codos hacia las costillas.",
-      "Bajá controlando hasta extender por completo los brazos."
+      "Enganchá la banda alrededor del centro de la barra de dominadas. Podés usar bandas de diferente resistencia para distintos niveles de asistencia.",
+      "Tirá del extremo de la banda hacia abajo y colocá una rodilla flexionada en el lazo, asegurándote de que no se escape. Tomá la barra con un agarre de ancho medio a ancho. Esta es la posición inicial.",
+      "Tirá hacia arriba contrayendo los dorsales mientras flexionás los codos. Llevá los codos hacia los costados del cuerpo. Subí hacia adelante intentando superar la barra con el mentón. Evitá balancearte o hacer movimientos bruscos.",
+      "Después de una breve pausa en la parte superior, volvé a la posición inicial."
     ],
     "puntosClave": [
       "Iniciá deprimiendo las escápulas antes de flexionar los codos.",
@@ -1390,9 +1433,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Parado sobre la banda, pasala por detrás del cuello/hombros.",
-      "Con rodillas apenas flexionadas, llevá la cadera atrás bajando el torso.",
-      "Volvé extendiendo la cadera hasta quedar erguido."
+      "Usá una banda de resistencia. Pararte sobre un extremo separando un poco los pies. Doblate en la cadera para pasar el otro extremo de la banda detrás del cuello. Esta es la posición inicial.",
+      "Manteniendo las piernas rectas, extendé desde la cadera hasta quedar casi vertical.",
+      "Al bajar de vuelta a la posición inicial, aseguráte de no redondear la espalda."
     ],
     "puntosClave": [
       "Bisagra de cadera con espalda neutra."
@@ -1434,9 +1477,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Anclá la banda baja detrás tuyo y pasala entre las piernas, sosteniéndola al frente.",
-      "Con bisagra de cadera, llevá la cadera atrás y luego empujala adelante extendiendo, apretando glúteos.",
-      "Mantené la espalda neutra todo el tiempo."
+      "Pasá la banda alrededor de un poste. Parándote a cierta distancia, pasá el extremo libre alrededor del cuello. Las manos pueden ayudar a mantener la banda en posición.",
+      "Comenzá doblándote desde las caderas, llevando los glúteos hacia atrás lo más posible. Mantené la espalda plana y doblate hacia adelante hasta unos 90°. Las rodillas deben estar solo ligeramente flexionadas.",
+      "Volvé a la posición inicial impulsando las caderas hacia adelante hasta quedar de pie."
     ],
     "puntosClave": [
       "Patrón de bisagra de cadera con tensión de banda."
@@ -1461,7 +1504,7 @@
   },
   {
     "idEjercicio": "EJ-0039",
-    "nombre": "Band Hip Adductions",
+    "nombre": "Aducción de cadera con banda",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -1471,29 +1514,36 @@
     "equipo": [
       "Banda elástica"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Anchor a band around a solid post or other object.",
-      "Stand with your left side to the post, and put your right foot through the band, getting it around the ankle.",
-      "Stand up straight and hold onto the post if needed. This will be your starting position.",
-      "Keeping the knee straight, raise your right legs out to the side as far as you can.",
-      "Return to the starting position and repeat for the desired rep count.",
-      "Switch sides."
+      "Anclá la banda alrededor de un poste sólido u otro objeto.",
+      "Pararte con el lado izquierdo hacia el poste y pasá el pie derecho por la banda, colocándola alrededor del tobillo.",
+      "Pararte derecho y agarráte del poste si necesitás apoyo. Esta es la posición inicial.",
+      "Manteniendo la rodilla recta, llevá la pierna derecha hacia afuera lo más posible.",
+      "Volvé a la posición inicial y repetí las repeticiones indicadas.",
+      "Cambiá de lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja aductores de cadera."
+    ],
+    "erroresComunes": [
+      "Flexionar la rodilla durante el movimiento.",
+      "Inclinarse hacia el costado."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Hip_Adductions/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Hip_Adductions/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "hip adduction banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Band_Hip_Adductions",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0040",
@@ -1513,9 +1563,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, sostené una banda al frente con los brazos extendidos a la altura del pecho.",
-      "Abrí los brazos separando la banda, juntando los omóplatos.",
-      "Volvé controlando al frente."
+      "Comenzá con los brazos extendidos al frente a la altura del pecho, tomando la banda con ambas manos.",
+      "Iniciá el movimiento realizando un vuelo inverso: llevá las manos hacia los costados lateralmente.",
+      "Mantené los codos extendidos durante el movimiento, llevando la banda hasta el pecho. Aseguráte de mantener los hombros hacia atrás durante todo el ejercicio.",
+      "Pausá al completar el movimiento y volvé a la posición inicial de manera controlada."
     ],
     "puntosClave": [
       "Ideal para postura y salud del hombro."
@@ -1539,7 +1590,7 @@
   },
   {
     "idEjercicio": "EJ-0041",
-    "nombre": "Band Skull Crusher",
+    "nombre": "Skull crusher con banda",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -1552,23 +1603,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Secure a band to the base of a rack or the bench. Lay on the bench so that the band is lined up with your head.",
-      "Take hold of the band, raising your elbows so that the upper arm is perpendicular to the floor. With the elbow flexed, the band should be above your head. This will be your starting position.",
-      "Extend through the elbow to straighten your arm, keeping your upper arm in place. Pause at the top of the motion, and return to the starting position."
+      "Asegurá la banda en la base de un rack o del banco. Acostáte en el banco de modo que la banda quede alineada con la cabeza.",
+      "Tomá la banda y levantá los codos de manera que la parte superior del brazo quede perpendicular al piso; con el codo flexionado, la banda debe quedar por encima de la cabeza. Esta es la posición inicial.",
+      "Extendé el codo para estirar el brazo manteniendo la parte superior del brazo fija. Pausá en la parte superior y volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Los codos apuntan al techo en todo momento."
+    ],
+    "erroresComunes": [
+      "Mover los codos hacia los costados."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Skull_Crusher/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Skull_Crusher/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "skull crusher banda",
+      "rompecabezas con banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Band_Skull_Crusher",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0042",
@@ -2683,9 +2741,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Con un banco detrás tuyo y de espaldas a él, apoyá las manos en el borde al ancho de hombros con los brazos extendidos. Las piernas se extienden al frente formando un ángulo perpendicular al torso. Esta es la posición inicial.",
-      "Bajá lentamente inhalando, flexionando los codos hasta que el ángulo entre brazo y antebrazo sea un poco menor de 90°. Los codos deben permanecer lo más pegados posible al cuerpo; los antebrazos apuntan siempre hacia abajo.",
-      "Usando los tríceps, empujá para subir el cuerpo de nuevo a la posición inicial.",
+      "Colocá un banco detrás tuyo. Con el banco perpendicular al cuerpo y de espaldas a él, apoyá las manos en el borde al ancho de los hombros con los brazos completamente extendidos. Las piernas se extienden hacia adelante, flexionadas en la cintura y perpendiculares al torso. Esta es la posición inicial.",
+      "Bajá lentamente el cuerpo mientras inhalás, flexionando los codos hasta alcanzar un ángulo levemente menor de 90° entre el brazo y el antebrazo. Mantenés los codos lo más pegados posible al cuerpo durante todo el movimiento; los antebrazos deben apuntar siempre hacia abajo.",
+      "Usando los tríceps, empujá el cuerpo hacia arriba de vuelta a la posición inicial.",
       "Repetí las veces indicadas."
     ],
     "puntosClave": [
@@ -2791,7 +2849,7 @@
   },
   {
     "idEjercicio": "EJ-0074",
-    "nombre": "Bench Press - With Bands",
+    "nombre": "Press de banca con banda elástica",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -2807,27 +2865,33 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Using a flat bench secure a band under the leg of the bench that is nearest to your head.",
-      "Once the band is secure, grab it by both handles and lie down on the bench.",
-      "Extend your arms so that you are holding the band handles in front of you at shoulder width.",
-      "Once at shoulder width, rotate your wrists forward so that the palms of your hands are facing away from you. This will be your starting position.",
-      "Bring down the handles slowly until your elbow forms a 90 degree angle. Keep full control at all times.",
-      "As you breathe out, bring the handles up using your pectoral muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up.",
-      "Repeat the movement for the prescribed amount of repetitions of your training program."
+      "Usando un banco plano, asegurá la banda bajo la pata del banco más cercana a la cabeza.",
+      "Una vez asegurada, tomá los extremos de la banda con ambas manos y acostáte en el banco.",
+      "Extendé los brazos sosteniéndolos al ancho de los hombros.",
+      "Rotá las muñecas hacia adelante de manera que las palmas queden mirando hacia afuera. Esta es la posición inicial.",
+      "Bajá los extremos lentamente hasta que el codo forme un ángulo de 90°. Mantenés el control total en todo momento.",
+      "Exhalando, empujá los extremos hacia arriba usando los pectorales. Extendé los codos, apretá el pecho, sostené un segundo y luego comenzá a bajar lentamente. El descenso debería llevar al menos el doble de tiempo que el ascenso.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La banda añade resistencia variable: más difícil arriba que abajo."
+    ],
+    "erroresComunes": [
+      "Perder el control de la banda."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bench_Press_-_With_Bands/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bench_Press_-_With_Bands/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "press de pecho con banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Bench_Press_-_With_Bands",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0075",
@@ -2987,9 +3051,9 @@
   },
   {
     "idEjercicio": "EJ-0079",
-    "nombre": "Bent-Knee Hip Raise",
+    "nombre": "Elevación de cadera con rodillas flexionadas",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -3000,25 +3064,33 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lay flat on the floor with your arms next to your sides.",
-      "Now bend your knees at around a 75 degree angle and lift your feet off the floor by around 2 inches.",
-      "Using your lower abs, bring your knees in towards you as you maintain the 75 degree angle bend in your legs. Continue this movement until you raise your hips off of the floor by rolling your pelvis backward. Breathe out as you perform this portion of the movement. Tip: At the end of the movement your knees will be over your chest.",
-      "Squeeze your abs at the top of the movement for a second and then return to the starting position slowly as you breathe in. Tip: Maintain a controlled motion at all times.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte boca arriba con los brazos a los costados.",
+      "Flexioná las rodillas unos 75° y elevá los pies del suelo unos 5 cm.",
+      "Usando el abdomen inferior, llevá las rodillas hacia el pecho manteniendo el ángulo de 75° en las piernas. Continuá hasta levantar la cadera del piso haciendo rodar la pelvis hacia atrás. Exhalá durante esta parte. Al final del movimiento las rodillas quedarán sobre el pecho.",
+      "Apretá el abdomen en la parte superior un segundo y volvé lentamente a la posición inicial mientras inhalás. Mantenés un movimiento controlado en todo momento.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El movimiento proviene del abdomen inferior, no del impulso de las piernas."
+    ],
+    "erroresComunes": [
+      "Usar el impulso de las piernas para subir.",
+      "Dejar caer la espalda baja bruscamente."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent-Knee_Hip_Raise/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent-Knee_Hip_Raise/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "hip raise rodillas dobladas",
+      "reverse crunch"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Bent-Knee_Hip_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0080",
@@ -3060,9 +3132,9 @@
   },
   {
     "idEjercicio": "EJ-0081",
-    "nombre": "Bent Over Dumbbell Rear Delt Raise With Head On Bench",
+    "nombre": "Elevación de deltoide posterior con cabeza en banco",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -3073,25 +3145,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand up straight while holding a dumbbell in each hand and with an incline bench in front of you.",
-      "While keeping your back straight and maintaining the natural arch of your back, lean forward until your forehead touches the bench in front of you. Let the arms hang in front of you perpendicular to the ground. The palms of your hands should be facing each other and your torso should be parallel to the floor. This will be your starting position.",
-      "Keeping your torso forward and stationary, and the arms straight with a slight bend at the elbows, lift the dumbbells straight to the side until both arms are parallel to the floor. Exhale as you lift the weights. Caution: avoid swinging the torso or bringing the arms back as opposed to the side.",
-      "After a one second contraction at the top, slowly lower the dumbbells back to the starting position.",
-      "Repeat the recommended amount of repetitions."
+      "Pararte con el torso erguido sosteniendo una mancuerna en cada mano, con un banco inclinado frente a vos.",
+      "Manteniendo la espalda recta y la curvatura natural de la columna, inclinate hacia adelante hasta que la frente toque el banco. Los brazos cuelgan perpendicularmente al piso con las palmas enfrentadas; el torso queda paralelo al piso. Esta es la posición inicial.",
+      "Manteniendo el torso quieto y los brazos rectos con una leve flexión de codo, elevá las mancuernas hacia los costados hasta que ambos brazos queden paralelos al piso. Exhalá al subir. No balancees el torso ni lleves los brazos hacia atrás en lugar de hacia los costados.",
+      "Sostené la contracción un segundo y bajá lentamente las mancuernas a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El banco estabiliza el torso y aísla el deltoide posterior."
+    ],
+    "erroresComunes": [
+      "Tirar los brazos hacia atrás en lugar de abrirlos al costado."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "rear delt raise con banco",
+      "pajaro con banco"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0082",
@@ -3231,9 +3310,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Bisagra de cadera, torso a ~45°, espalda neutra, mancuernas colgando.",
-      "Remá ambas mancuernas hacia la cadera bajando los codos.",
-      "Bajá controlando estirando la espalda."
+      "Con una mancuerna en cada mano (palmas hacia el cuerpo), flexioná ligeramente las rodillas y llevá el torso hacia adelante doblando desde la cintura; mantenés la espalda recta hasta que quede casi paralela al piso. Cabeza arriba, las mancuernas colgando perpendiculares al piso. Esta es la posición inicial.",
+      "Manteniendo el torso quieto, llevá las mancuernas hacia los costados mientras exhalás, con los codos cerca del cuerpo. En la posición contraída, apretá los músculos de la espalda y mantené un segundo.",
+      "Bajá las mancuernas lentamente a la posición inicial mientras inhalás.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "El torso queda quieto: trabaja la espalda."
@@ -3259,7 +3339,7 @@
   },
   {
     "idEjercicio": "EJ-0086",
-    "nombre": "Bent Over Two-Dumbbell Row With Palms In",
+    "nombre": "Remo con mancuernas agarre neutro",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
     "mecanica": "Compuesto",
@@ -3275,24 +3355,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "With a dumbbell in each hand (palms facing each other), bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Tip: Make sure that you keep the head up. The weights should hang directly in front of you as your arms hang perpendicular to the floor and your torso. This is your starting position.",
-      "While keeping the torso stationary, lift the dumbbells to your side as you breathe out, squeezing your shoulder blades together. On the top contracted position, squeeze the back muscles and hold for a second.",
-      "Slowly lower the weight again to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Con una mancuerna en cada mano y las palmas enfrentadas entre sí, flexioná levemente las rodillas y llevá el torso hacia adelante doblándote desde la cintura, manteniendo la espalda recta hasta que quede casi paralela al piso. Cabeza arriba; las mancuernas cuelgan perpendicularmente al piso. Esta es la posición inicial.",
+      "Manteniendo el torso quieto, llevá las mancuernas hacia los costados mientras exhalás, apretando los omóplatos entre sí. En la posición contraída, apretá los músculos de la espalda y sostené un segundo.",
+      "Bajá lentamente las mancuernas a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre neutro (palmas enfrentadas) enfatiza la tracción alta y el dorsal."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda.",
+      "Levantarse con el torso al tirar."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row_With_Palms_In/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row_With_Palms_In/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "remo agarre neutro",
+      "bent over row palmas adentro"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Bent_Over_Two-Dumbbell_Row_With_Palms_In",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0087",
@@ -3479,9 +3567,9 @@
   },
   {
     "idEjercicio": "EJ-0092",
-    "nombre": "Body Tricep Press",
+    "nombre": "Press de tríceps con peso corporal",
     "modalidad": "Fuerza",
-    "patron": "Aislamiento",
+    "patron": "Empuje horizontal",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Tríceps",
@@ -3492,25 +3580,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Position a bar in a rack at chest height.",
-      "Standing, take a shoulder width grip on the bar and step a yard or two back, feet together and arms extended so that you are leaning on the bar. This will be your starting position.",
-      "Begin by flexing the elbow, lowering yourself towards the bar.",
-      "Pause, and then reverse the motion by extending the elbows.",
-      "Progress from bodyweight by adding chains over your shoulders."
+      "Colocá una barra en un rack a la altura del pecho.",
+      "De pie, tomá la barra al ancho de los hombros y alejáte uno o dos pasos con los pies juntos y los brazos extendidos de modo que el cuerpo se apoye en la barra inclinado. Esta es la posición inicial.",
+      "Comenzá flexionando los codos, bajando el cuerpo hacia la barra.",
+      "Pausá y luego revertí el movimiento extendiendo los codos.",
+      "Para progresar, agregá cadenas sobre los hombros para incrementar el peso."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Cuanto más inclinado el cuerpo, más difícil."
+    ],
+    "erroresComunes": [
+      "Abrir los codos hacia los costados."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Body_Tricep_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Body_Tricep_Press/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "tricep press corporal"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Body_Tricep_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0093",
@@ -3758,9 +3852,9 @@
   },
   {
     "idEjercicio": "EJ-0099",
-    "nombre": "Bottoms Up",
+    "nombre": "Elevación de glúteos con extensión de piernas",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -3771,23 +3865,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Begin by lying on your back on the ground. Your legs should be straight and your arms at your side. This will be your starting position.",
-      "To perform the movement, tuck the knees toward your chest by flexing the hips and knees. Following this, extend your legs directly above you so that they are perpendicular to the ground. Rotate and elevate your pelvis to raise your glutes from the floor.",
-      "After a brief pause, return to the starting position."
+      "Comenzá acostado boca arriba en el piso con las piernas extendidas y los brazos a los costados. Esta es la posición inicial.",
+      "Para ejecutar el movimiento, llevá las rodillas hacia el pecho flexionando caderas y rodillas. Luego extendé las piernas directamente hacia arriba para que queden perpendiculares al piso. Rotá y elevá la pelvis para levantar los glúteos del suelo.",
+      "Después de una breve pausa, volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La elevación de pelvis activa el abdomen inferior."
+    ],
+    "erroresComunes": [
+      "Usar impulso en lugar de abdomen."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bottoms_Up/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bottoms_Up/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "bottoms up",
+      "elevacion pelvis piernas arriba"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Bottoms_Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0100",
@@ -4062,9 +4163,9 @@
   },
   {
     "idEjercicio": "EJ-0107",
-    "nombre": "Butt-Ups",
+    "nombre": "Elevación de glúteos en plancha (butt-ups)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core anti-rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -4075,25 +4176,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Begin a pushup position but with your elbows on the ground and resting on your forearms. Your arms should be bent at a 90 degree angle.",
-      "Arch your back slightly out rather than keeping your back completely straight.",
-      "Raise your glutes toward the ceiling, squeezing your abs tightly to close the distance between your ribcage and hips. The end result will be that you'll end up in a high bridge position. Exhale as you perform this portion of the movement.",
-      "Lower back down slowly to your starting position as you breathe in. Tip: Don't let your back sag downwards.",
-      "Repeat for the recommended amount of repetitions."
+      "Comenzá en posición de plancha baja (antebrazos en el piso), con los brazos doblados a 90°.",
+      "Arqueá levemente la espalda hacia afuera en lugar de mantenerla completamente recta.",
+      "Elevá los glúteos hacia el techo apretando fuerte el abdomen para acercar las costillas a las caderas. El resultado final es una posición de puente alto. Exhalá al realizar esta parte.",
+      "Bajá lentamente a la posición inicial mientras inhalás. No dejes que la espalda se hunda hacia abajo.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Contrae el abdomen para cerrar la distancia costillas-caderas."
+    ],
+    "erroresComunes": [
+      "Dejar caer la espalda entre repeticiones."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Butt-Ups/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Butt-Ups/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "butt ups",
+      "pike en plancha"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Butt-Ups",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0108",
@@ -4112,9 +4220,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Boca arriba, rodillas flexionadas y pies apoyados al ancho de cadera.",
-      "Empujá con los talones y subí la cadera hasta alinear torso y muslos.",
-      "Apretá glúteos arriba y bajá controlando."
+      "Acostáte boca arriba con las manos a los costados y las rodillas flexionadas. Los pies deben estar al ancho de los hombros aproximadamente. Esta es la posición inicial.",
+      "Empujando principalmente con los talones, levantá la cadera del piso manteniendo la espalda recta. Exhalá durante esta parte del movimiento y mantené arriba un segundo.",
+      "Volvé lentamente a la posición inicial mientras inhalás."
     ],
     "puntosClave": [
       "Empujá con el talón y apretá glúteo arriba, sin arquear la lumbar."
@@ -5272,9 +5380,9 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Manos apoyadas en la pared, una pierna adelante flexionada y la otra atrás extendida.",
-      "Empujá la pared llevando el talón de atrás al piso.",
-      "Mantené y cambiá."
+      "Pararte mirando una pared a varios pasos de distancia. Adoptá una postura escalonada colocando un pie adelante.",
+      "Inclinate hacia adelante y apoyá las manos en la pared, manteniendo el talón, la cadera y la cabeza en línea recta.",
+      "Intentá mantener el talón trasero en el piso durante todo el estiramiento. Sostené entre 10 y 20 segundos y luego cambiá de lado."
     ],
     "puntosClave": [
       "Talón de atrás en el piso."
@@ -5966,9 +6074,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Arrodillado, sentate sobre los talones y llevá el torso hacia adelante.",
-      "Estirá los brazos al frente y apoyá la frente en el piso.",
-      "Respirá profundo relajando la espalda baja."
+      "Posicionáte en cuatro apoyos y caminá las manos hacia adelante.",
+      "Bajá los glúteos hasta sentarte sobre los talones. Dejá que los brazos se deslicen por el piso mientras te sentás hacia atrás para estirar toda la columna.",
+      "Una vez asentado sobre los talones, llevá las manos junto a los pies y relajáte. Respirá profundo 'hacia la espalda'. Apoyá la frente en el piso. Evitá esta posición si tenés problemas de rodilla."
     ],
     "puntosClave": [
       "Relaja zona lumbar y caderas; buena para enfriar."
@@ -6010,11 +6118,11 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Colgá de la barra con las palmas hacia el cuerpo (agarre supino) y un agarre más estrecho que el ancho de hombros.",
-      "Con ambos brazos extendidos, mantené el torso tan erguido como sea posible con una leve curvatura lumbar y el pecho hacia afuera. Esta es la posición inicial.",
-      "Exhalando, tirá hacia arriba hasta que la cabeza quede a la altura de la barra, concentrándote en los bíceps. Los codos permanecen cerca del cuerpo; los antebrazos son el único punto de movimiento activo.",
-      "Sostené un segundo en la cima apretando los bíceps, luego bajá lentamente a la posición inicial mientras inhalás hasta extender completamente los brazos.",
-      "Repetí las veces indicadas."
+      "Colgáte de la barra con las palmas mirando hacia vos (agarre supino) y un agarre más angosto que el ancho de los hombros.",
+      "Con ambos brazos extendidos sosteniendo la barra al agarre elegido, mantenés el torso lo más recto posible generando una leve curvatura lumbar y sacando el pecho hacia adelante. Esta es la posición inicial. Mantener el torso recto maximiza la estimulación de los bíceps y minimiza la intervención de la espalda.",
+      "Exhalando, tirá el torso hacia arriba hasta que la cabeza quede a la altura de la barra. Concentráte en usar los bíceps para ejecutar el movimiento, manteniendo los codos cerca del cuerpo. El torso sube en el espacio como unidad, y solo los brazos se mueven; los antebrazos cumplen únicamente la función de sostener la barra.",
+      "Después de un segundo apretando los bíceps en la posición contraída, bajá lentamente el torso a la posición inicial hasta extender completamente los brazos, inhalando durante este descenso.",
+      "Repetí el movimiento las veces indicadas."
     ],
     "puntosClave": [
       "Mantener el torso lo más recto posible para maximizar la activación del bíceps.",
@@ -6423,9 +6531,12 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Hacé una flexión y, arriba, 'caminá' las manos rotando el cuerpo como las agujas de un reloj.",
-      "Hacé otra flexión en la nueva posición.",
-      "Seguí rotando alrededor del círculo."
+      "Posicionáte en plancha alta apoyado en las puntas de los pies y las manos, aproximadamente a la altura de los hombros, con los brazos extendidos y el cuerpo recto. Esta es la posición inicial.",
+      "Bajá el pecho hacia el piso flexionando los codos.",
+      "En la parte baja, revertí el movimiento empujando con fuerza para despegar del piso. Intentá 'saltar' unos 30-45 cm hacia un lado.",
+      "Al acelerar hacia arriba, mové el pie externo en la dirección de desplazamiento para acompañar el giro.",
+      "Al despegar, desplazá el cuerpo unos 30° para posicionarte para la próxima repetición.",
+      "Volvé a la posición inicial y repetí avanzando en círculo hasta completar el reloj."
     ],
     "puntosClave": [
       "Suma trabajo de hombro y core por la rotación."
@@ -6487,7 +6598,7 @@
   },
   {
     "idEjercicio": "EJ-0172",
-    "nombre": "Close-Grip Dumbbell Press",
+    "nombre": "Press con agarre cerrado con mancuernas",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -6503,25 +6614,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place a dumbbell standing up on a flat bench.",
-      "Ensuring that the dumbbell stays securely placed at the top of the bench, lie perpendicular to the bench with only your shoulders lying on the surface. Hips should be below the bench and your legs bent with your feet firmly on the floor.",
-      "Grasp the dumbbell with both hands and hold it straight over your chest at arm's length. Both palms should be pressing against the underside of the sides of the dumbbell. This will be your starting position.",
-      "Initiate the movement by lowering the dumbbell to your chest.",
-      "Return to the starting position by extending the elbows."
+      "Colocá una mancuerna parada y asegurada en un extremo de un banco plano.",
+      "Asegurándote de que la mancuerna esté firmemente colocada en el banco, acostáte perpendicular a él con solo los hombros apoyados en la superficie. Las caderas quedan por debajo del banco y las piernas flexionadas con los pies en el piso.",
+      "Tomá la mancuerna con ambas manos y sostenela directamente sobre el pecho con los brazos extendidos. Ambas palmas deben presionar contra la cara inferior de los extremos de la mancuerna. Esta es la posición inicial.",
+      "Iniciá el movimiento bajando la mancuerna hacia el pecho.",
+      "Volvé a la posición inicial extendiendo los codos."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre cerrado enfatiza los tríceps sobre el pecho."
+    ],
+    "erroresComunes": [
+      "Abrir los codos durante el press."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Close-Grip_Dumbbell_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Close-Grip_Dumbbell_Press/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "close grip dumbbell press"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Close-Grip_Dumbbell_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0173",
@@ -6694,9 +6811,10 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Manos juntas apoyadas sobre una mancuerna en el piso, cuerpo recto.",
-      "Bajá el pecho hacia la mano manteniendo los codos cerca del cuerpo.",
-      "Empujá hasta extender."
+      "Acostáte en el piso y apoyá las manos sobre una mancuerna en posición vertical. Sostené tu peso sobre las puntas de los pies y las manos, con el torso rígido, los codos pegados al cuerpo y los brazos extendidos. Esta es la posición inicial.",
+      "Bajá el cuerpo permitiendo que los codos se flexionen mientras inhalás. Mantenés el cuerpo recto, sin que las caderas suban o caigan.",
+      "Empujáte hasta la posición inicial extendiendo los codos. Exhalá al hacerlo.",
+      "Después de una pausa en la posición contraída, repetí el movimiento las veces indicadas."
     ],
     "puntosClave": [
       "Codos pegados: más tríceps."
@@ -6758,9 +6876,9 @@
   },
   {
     "idEjercicio": "EJ-0179",
-    "nombre": "Cocoons",
+    "nombre": "Cocoons (abdominal combinado)",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core flexión",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -6771,23 +6889,30 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Begin by lying on your back on the ground. Your legs should be straight and your arms extended behind your head. This will be your starting position.",
-      "To perform the movement, tuck the knees toward your chest, rotating your pelvis to lift your glutes from the floor. As you do so, flex the spine, bringing your arms back over your head to perform a simultaneous crunch motion.",
-      "After a brief pause, return to the starting position."
+      "Comenzá acostado boca arriba en el piso con las piernas extendidas y los brazos extendidos detrás de la cabeza. Esta es la posición inicial.",
+      "Para ejecutar el movimiento, llevá las rodillas hacia el pecho rotando la pelvis para elevar los glúteos del piso. Al mismo tiempo, llevá los brazos por encima de la cabeza hacia adelante realizando un crunch simultáneo.",
+      "Después de una breve pausa, volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina crunch de abdomen superior e inferior en una sola rep."
+    ],
+    "erroresComunes": [
+      "No sincronizar brazos y rodillas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cocoons/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cocoons/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "cocoons",
+      "cocones"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Cocoons",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0180",
@@ -6844,11 +6969,11 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sentate en un banco plano con una mancuerna entre las piernas; pies en el piso con las rodillas flexionadas y separadas.",
-      "Con la mano derecha, tomá la mancuerna y apoyá la parte posterior del brazo en la cara interna del muslo derecho. Rotá la palma hacia adelante con el brazo extendido y la mancuerna sobre el piso: esta es la posición inicial.",
-      "Manteniendo el brazo estático, flexioná el codo llevando la mancuerna hacia el hombro mientras exhalás. Solo el antebrazo se mueve; continuá hasta contraer completamente el bíceps. Sostené un segundo en la cima apretando.",
-      "Bajá la mancuerna lentamente a la posición inicial mientras inhalás.",
-      "Completá las repeticiones indicadas y repetí con el brazo izquierdo."
+      "Sentáte en un banco plano con una mancuerna entre las piernas. Las piernas deben estar separadas con las rodillas flexionadas y los pies en el piso.",
+      "Con la mano derecha, tomá la mancuerna y apoyá la cara posterior del brazo derecho sobre la cara interna del muslo derecho. Rotá la palma hacia adelante, alejándola del muslo. El brazo debe estar extendido y la mancuerna sobre el piso. Esta es la posición inicial.",
+      "Manteniendo el brazo superior quieto, flexioná el codo llevando la mancuerna hacia arriba mientras exhalás. Solo se mueve el antebrazo. Seguí hasta que el bíceps esté completamente contraído y la mancuerna a la altura del hombro. En la parte superior del movimiento, aseguráte de que el meñique quede más alto que el pulgar para garantizar una buena contracción. Sostené la posición contraída un segundo apretando el bíceps.",
+      "Bajá lentamente la mancuerna a la posición inicial mientras inhalás. No hagas balanceos en ningún momento del ejercicio.",
+      "Completá las repeticiones indicadas y luego repetí el movimiento con el brazo izquierdo."
     ],
     "puntosClave": [
       "En la cima, el meñique debe quedar más alto que el pulgar para maximizar la contracción.",
@@ -6874,9 +6999,9 @@
   },
   {
     "idEjercicio": "EJ-0182",
-    "nombre": "Cross-Body Crunch",
+    "nombre": "Crunch cruzado",
     "modalidad": "Fuerza",
-    "patron": "Core flexión",
+    "patron": "Core rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -6887,29 +7012,37 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie flat on your back and bend your knees about 60 degrees.",
-      "Keep your feet flat on the floor and place your hands loosely behind your head. This will be your starting position.",
-      "Now curl up and bring your right elbow and shoulder across your body while bring your left knee in toward your left shoulder at the same time. Reach with your elbow and try to touch your knee. Exhale as you perform this movement. Tip: Try to bring your shoulder up towards your knee rather than just your elbow and remember that the key is to contract the abs as you perform the movement; not just to move the elbow.",
-      "Now go back down to the starting position as you inhale and repeat with the left elbow and the right knee.",
-      "Continue alternating in this manner until all prescribed repetitions are done."
+      "Acostáte boca arriba y flexioná las rodillas unos 60°.",
+      "Mantené los pies planos en el piso y colocá las manos suavemente detrás de la cabeza. Esta es la posición inicial.",
+      "Enroscáte hacia arriba y llevá el codo y el hombro derechos a través del cuerpo mientras llevás la rodilla izquierda hacia el hombro izquierdo al mismo tiempo. Intentá tocar la rodilla con el codo. Exhalá al realizar este movimiento. Concentráte en llevar el hombro hacia la rodilla, no solo el codo; la clave es contraer el abdomen, no mover el codo.",
+      "Volvé a la posición inicial mientras inhalás y repetí con el codo izquierdo y la rodilla derecha.",
+      "Seguí alternando hasta completar las repeticiones indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Girá el hombro, no el codo."
+    ],
+    "erroresComunes": [
+      "Tirar del cuello.",
+      "No rotar el torso."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cross-Body_Crunch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cross-Body_Crunch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "cross body crunch",
+      "crunch oblicuo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Cross-Body_Crunch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0183",
-    "nombre": "Cross Body Hammer Curl",
+    "nombre": "Curl de martillo cruzado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -6921,33 +7054,40 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand up straight with a dumbbell in each hand. Your hands should be down at your side with your palms facing in.",
-      "While keeping your palms facing in and without twisting your arm, curl the dumbbell of the right arm up towards your left shoulder as you exhale. Touch the top of the dumbbell to your shoulder and hold the contraction for a second.",
-      "Slowly lower the dumbbell along the same path as you inhale and then repeat the same movement for the left arm.",
-      "Continue alternating in this fashion until the recommended amount of repetitions is performed for each arm."
+      "Pararte con el torso erguido y una mancuerna en cada mano. Las manos deben estar a los costados con las palmas mirando hacia adentro.",
+      "Manteniendo las palmas hacia adentro y sin torcer el brazo, flexioná el codo derecho llevando la mancuerna hacia el hombro izquierdo mientras exhalás. Tocá la parte superior de la mancuerna con el hombro y sostené la contracción un segundo.",
+      "Bajá la mancuerna lentamente por el mismo camino mientras inhalás y luego repetí con el brazo izquierdo.",
+      "Seguí alternando hasta completar las repeticiones indicadas para cada brazo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El movimiento cruzado enfatiza el braquial y braquiorradial."
+    ],
+    "erroresComunes": [
+      "Rotar la palma al subir."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cross_Body_Hammer_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cross_Body_Hammer_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "cross body curl",
+      "curl cruzado martillo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Cross_Body_Hammer_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0184",
-    "nombre": "Cross Over - With Bands",
+    "nombre": "Cruce de pecho con banda (crossover)",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Pecho",
@@ -6961,26 +7101,33 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Secure an exercise band around a stationary post.",
-      "While facing away from the post, grab the handles on both ends of the band and step forward enough to create tension on the band.",
-      "Raise your arms to the sides, parallel to the floor, perpendicular to your torso (your torso and the arms should resemble the letter \"T\") and with the palms facing forward. Have them extended with a slight bend at the elbows. This will be your starting position.",
-      "While keeping your arms straight, bring them across your chest in a semicircular motion to the front as you exhale and flex your pecs. Hold the contraction for a second.",
-      "Slowly return to the starting position as you inhale.",
-      "Perform for the recommended amount of repetitions."
+      "Asegurá una banda elástica alrededor de un poste estable.",
+      "De espaldas al poste, tomá los extremos de la banda en cada mano y alejáte lo suficiente para crear tensión.",
+      "Levantá los brazos a los costados paralelos al piso y perpendiculares al torso, con las palmas mirando hacia adelante y los codos ligeramente flexionados. El torso y los brazos deben asemejarse a la letra 'T'. Esta es la posición inicial.",
+      "Manteniendo los brazos rectos, llevalos hacia adelante en arco hasta que queden al frente mientras exhalás y contraés el pecho. Sostené la contracción un segundo.",
+      "Volvé lentamente a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El arco de movimiento es solo de hombro; el ángulo del codo no cambia."
+    ],
+    "erroresComunes": [
+      "Cerrar los brazos con los codos en lugar de con el hombro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cross_Over_-_With_Bands/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cross_Over_-_With_Bands/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "crossover con banda",
+      "cable crossover con banda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Cross_Over_-_With_Bands",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0185",
@@ -7056,7 +7203,7 @@
   },
   {
     "idEjercicio": "EJ-0187",
-    "nombre": "Crunch - Hands Overhead",
+    "nombre": "Crunch con brazos extendidos",
     "modalidad": "Fuerza",
     "patron": "Core flexión",
     "mecanica": "Aislamiento",
@@ -7069,29 +7216,36 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on the floor with your back flat and knees bent with around a 60-degree angle between the hamstrings and the calves.",
-      "Keep your feet flat on the floor and stretch your arms overhead with your palms crossed. This will be your starting position.",
-      "Curl your upper body forward and bring your shoulder blades just off the floor. At all times, keep your arms aligned with your head, neck and shoulder. Don't move them forward from that position. Exhale as you perform this portion of the movement and hold the contraction for a second.",
-      "Slowly lower down to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte en el piso con la espalda plana y las rodillas flexionadas unos 60°.",
+      "Mantené los pies planos en el piso y estirá los brazos sobre la cabeza con las palmas cruzadas. Esta es la posición inicial.",
+      "Enroscá la parte superior del cuerpo hacia adelante y despegá los omóplatos del piso. En todo momento mantenés los brazos alineados con la cabeza, el cuello y el hombro, sin llevarlos más hacia adelante. Exhalá durante esta parte y sostené la contracción un segundo.",
+      "Bajá lentamente a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Los brazos extendidos aumentan el brazo de palanca y el trabajo abdominal."
+    ],
+    "erroresComunes": [
+      "Llevar los brazos hacia adelante para ayudar al movimiento."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunch_-_Hands_Overhead/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunch_-_Hands_Overhead/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "crunch brazos arriba",
+      "crunch overhead"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Crunch_-_Hands_Overhead",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0188",
-    "nombre": "Crunch - Legs On Exercise Ball",
+    "nombre": "Crunch con piernas en pelota de ejercicio",
     "modalidad": "Fuerza",
     "patron": "Core flexión",
     "mecanica": "Aislamiento",
@@ -7104,27 +7258,35 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie flat on your back with your feet resting on an exercise ball and your knees bent at a 90 degree angle.",
-      "Place your feet three to four inches apart and point your toes inward so they touch.",
-      "Place your hands lightly on either side of your head keeping your elbows in. Tip: Don't lock your fingers behind your head.",
-      "Push the small of your back down in the floor in order to better isolate your abdominal muscles. This will be your starting position.",
-      "Begin to roll your shoulders off the floor and continue to push down as hard as you can with your lower back. Your shoulders should come up off the floor only about four inches, and your lower back should remain on the floor. Breathe out as you execute this portion of the movement. Squeeze your abdominals hard at the top of the contraction and hold for a second. Tip: Focus on a slow, controlled movement. Refrain from using momentum at any time.",
-      "Slowly go back down to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte boca arriba con los pies apoyados en una pelota de ejercicio y las rodillas flexionadas a 90°.",
+      "Separás los pies unos 8-10 cm y apuntás los dedos hacia adentro para que se toquen.",
+      "Colocá las manos a los costados de la cabeza con los codos hacia adelante. No entrelacer los dedos detrás de la nuca.",
+      "Presioná la zona lumbar contra el piso para aislar mejor los abdominales. Esta es la posición inicial.",
+      "Comenzá a despegar los hombros del piso y seguí presionando la zona lumbar hacia abajo. Los hombros solo deben elevarse unos 10 cm; la zona lumbar permanece en el piso. Exhalá al hacerlo. Apretá fuerte el abdomen en la parte superior y sostené un segundo. Enfocáte en movimientos lentos y controlados sin usar impulso.",
+      "Volvé lentamente a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La pelota eleva los pies y activa más el abdomen inferior."
+    ],
+    "erroresComunes": [
+      "Tirar del cuello.",
+      "Subir demasiado usando el impulso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunch_-_Legs_On_Exercise_Ball/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunch_-_Legs_On_Exercise_Ball/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "crunch en pelota",
+      "crunch fitball"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Crunch_-_Legs_On_Exercise_Ball",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0189",
@@ -7141,10 +7303,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Acostado boca arriba, pies apoyados en el piso o en un banco con las rodillas a 90°; si usás el banco, separá los pies unos 8–10 cm con los dedos apuntando hacia adentro.",
-      "Colocá las manos a los lados de la cabeza con los codos hacia adelante. No entrelacer los dedos detrás de la nuca.",
-      "Presioná la zona lumbar contra el piso para aislar los abdominales y empezá a despegar los hombros.",
-      "Seguí presionando la zona lumbar mientras contraés el abdomen y exhalás. Los hombros solo suben unos 10 cm; la cintura queda en el piso. Sostené la contracción un segundo en la cima.",
+      "Acostáte boca arriba con los pies apoyados en el piso o sobre un banco con las rodillas a 90°. Si usás el banco, separás los pies unos 8-10 cm con los dedos apuntando hacia adentro para que se toquen.",
+      "Colocá las manos a los costados de la cabeza con los codos hacia adelante. No entrelacer los dedos detrás de la nuca.",
+      "Presionando la zona lumbar contra el piso para aislar mejor los abdominales, comenzá a despegar los hombros del piso.",
+      "Seguí presionando la zona lumbar hacia abajo mientras contraés el abdomen y exhalás. Los hombros solo deben elevarse unos 10 cm; la zona lumbar permanece en el piso. Al llegar arriba, contraé fuerte el abdomen y sostené la contracción un segundo. Enfocáte en un movimiento lento y controlado, sin usar impulso.",
       "Bajá lentamente a la posición inicial mientras inhalás.",
       "Repetí las veces indicadas."
     ],
@@ -7486,7 +7648,7 @@
   },
   {
     "idEjercicio": "EJ-0198",
-    "nombre": "Decline Dumbbell Bench Press",
+    "nombre": "Press en banco decline con mancuernas",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -7502,32 +7664,38 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Secure your legs at the end of the decline bench and lie down with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other.",
-      "Once you are laying down, move the dumbbells in front of you at shoulder width.",
-      "Once at shoulder width, rotate your wrists forward so that the palms of your hands are facing away from you. This will be your starting position.",
-      "Bring down the weights slowly to your side as you breathe out. Keep full control of the dumbbells at all times. Tip: Throughout the motion, the forearms should always be perpendicular to the floor.",
-      "As you breathe out, push the dumbbells up using your pectoral muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up..",
-      "Repeat the movement for the prescribed amount of repetitions of your training program."
+      "Asegurá las piernas al extremo del banco decline y acostáte con una mancuerna en cada mano sobre los muslos. Las palmas se miran entre sí.",
+      "Una vez acostado, mové las mancuernas al frente al ancho de los hombros.",
+      "Rotá las muñecas de modo que las palmas queden mirando hacia afuera. Esta es la posición inicial.",
+      "Bajá lentamente las mancuernas hacia los lados mientras inhalás. Mantenés el control total en todo momento. Durante el movimiento, los antebrazos siempre deben quedar perpendiculares al piso.",
+      "Exhalando, empujá las mancuernas hacia arriba usando los pectorales. Extendé los codos, apretá el pecho, sostené un segundo y comenzá a bajar lentamente. El descenso debería llevar al menos el doble de tiempo que el ascenso.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El banco decline enfatiza la zona inferior del pecho."
+    ],
+    "erroresComunes": [
+      "Perder el control de las mancuernas al final del rango."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Dumbbell_Bench_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Dumbbell_Bench_Press/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "press decline mancuernas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Decline_Dumbbell_Bench_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0199",
-    "nombre": "Decline Dumbbell Flyes",
+    "nombre": "Aperturas en banco decline con mancuernas",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Pecho",
@@ -7538,29 +7706,36 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Secure your legs at the end of the decline bench and lie down with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other.",
-      "Once you are laying down, move the dumbbells in front of you at shoulder width. The palms of the hands should be facing each other and the arms should be perpendicular to the floor and fully extended. This will be your starting position.",
-      "With a slight bend on your elbows in order to prevent stress at the biceps tendon, lower your arms out at both sides in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, the arms should remain stationary; the movement should only occur at the shoulder joint.",
-      "Return your arms back to the starting position as you squeeze your chest muscles and breathe out. Tip: Make sure to use the same arc of motion used to lower the weights.",
-      "Hold for a second at the contracted position and repeat the movement for the prescribed amount of repetitions."
+      "Asegurá las piernas al extremo del banco decline y acostáte con una mancuerna en cada mano sobre los muslos. Las palmas se miran entre sí.",
+      "Una vez acostado, mové las mancuernas al frente al ancho de los hombros con las palmas mirándose y los brazos perpendiculares al piso completamente extendidos. Esta es la posición inicial.",
+      "Con los codos levemente flexionados para proteger el tendón del bíceps, abrí los brazos hacia los lados en arco amplio bajando lentamente mientras inhalás hasta sentir el estiramiento en el pecho. Los brazos permanecen estáticos durante el movimiento; este ocurre solo en la articulación del hombro.",
+      "Volvé los brazos a la posición inicial usando el mismo arco, apretando los pectorales mientras exhalás.",
+      "Sostené un segundo en la posición contraída y repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El ángulo decline recluta más la zona inferior del pectoral."
+    ],
+    "erroresComunes": [
+      "Bajar los brazos más allá del pecho perdiendo el control."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Dumbbell_Flyes/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Dumbbell_Flyes/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "decline flyes",
+      "aperturas decline"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Decline_Dumbbell_Flyes",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0200",
-    "nombre": "Decline Dumbbell Triceps Extension",
+    "nombre": "Extensión de tríceps en banco decline",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -7573,25 +7748,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Secure your legs at the end of the decline bench and lie down with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other.",
-      "Once you are laying down, move the dumbbells in front of you at shoulder width. The palms of the hands should be facing each other and the arms should be perpendicular to the floor and fully extended. This will be your starting position.",
-      "As you breathe in and you keep the upper arms stationary (and elbows in), bring the dumbbells down slowly by moving your forearms in a semicircular motion towards you until your thumbs are next to your ears. Breathe in as you perform this portion of the movement.",
-      "Lift the dumbbells back to the starting position by contracting the triceps and exhaling.",
-      "Repeat for the recommended amount of repetitions."
+      "Asegurá las piernas al extremo del banco decline y acostáte con una mancuerna en cada mano sobre los muslos. Las palmas se miran entre sí.",
+      "Una vez acostado, mové las mancuernas al frente al ancho de los hombros con las palmas enfrentadas y los brazos perpendiculares al piso completamente extendidos. Esta es la posición inicial.",
+      "Manteniendo los brazos superiores fijos y los codos hacia adentro, bajá las mancuernas lentamente en arco hacia vos hasta que los pulgares queden a la altura de las orejas. Inhalá durante esta parte.",
+      "Levantá las mancuernas a la posición inicial contrayendo los tríceps mientras exhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Solo se mueven los antebrazos; los codos apuntan al techo."
+    ],
+    "erroresComunes": [
+      "Mover los codos hacia afuera al bajar."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Dumbbell_Triceps_Extension/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Dumbbell_Triceps_Extension/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "skull crusher decline",
+      "extensión triceps decline"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Decline_Dumbbell_Triceps_Extension",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0201",
@@ -7630,9 +7812,9 @@
   },
   {
     "idEjercicio": "EJ-0202",
-    "nombre": "Decline Oblique Crunch",
+    "nombre": "Crunch oblicuo en banco decline",
     "modalidad": "Fuerza",
-    "patron": "Core flexión",
+    "patron": "Core rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -7640,29 +7822,35 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Secure your legs at the end of the decline bench and slowly lay down on the bench.",
-      "Raise your upper body off the bench until your torso is about 35-45 degrees if measured from the floor.",
-      "Put one hand beside your head and the other on your thigh. This will be your starting position.",
-      "Raise your upper body slowly from the starting position while turning your torso to the left. Continue crunching up as you exhale until your right elbow touches your left knee. Hold this contracted position for a second. Tip: Focus on keeping your abs tight and keeping the movement slow and controlled.",
-      "Lower your body back down slowly to the starting position as you inhale.",
-      "After completing one set on the right for the recommended amount of repetitions, switch to your left side. Tip: Focus on really twisting your torso and feeling the contraction when you are in the up position."
+      "Asegurá las piernas al extremo del banco decline y acostáte en él lentamente.",
+      "Elevá el torso del banco hasta que quede a unos 35-45° del piso.",
+      "Colocá una mano a un lado de la cabeza y la otra sobre el muslo. Esta es la posición inicial.",
+      "Elevá lentamente el torso desde la posición inicial girando el torso hacia la izquierda. Seguí subiendo mientras exhalás hasta que el codo derecho toque la rodilla izquierda. Sostené esta posición contraída un segundo. Concentráte en mantener el abdomen apretado y el movimiento lento y controlado.",
+      "Bajá el cuerpo lentamente a la posición inicial mientras inhalás.",
+      "Después de completar un lado con las reps indicadas, cambiá al lado izquierdo. Enfocáte en rotar bien el torso y sentir la contracción en la parte superior."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La inclinación del banco aumenta la activación abdominal."
+    ],
+    "erroresComunes": [
+      "Tirar del cuello en lugar de rotar el torso."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Oblique_Crunch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Oblique_Crunch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "crunch oblicuo decline"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Decline_Oblique_Crunch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0203",
@@ -7682,10 +7870,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "En posición de flexión, apoyá las manos al ancho de hombros en el piso y subí los pies sobre un cajón o banco. Esta es la posición inicial.",
-      "Bajá inhalando hasta que el pecho casi toque el piso.",
-      "Exhalando, empujá hasta volver a la posición inicial apretando el pecho.",
-      "Sostené un segundo en la cima y comenzá a bajar de nuevo para la siguiente repetición."
+      "Acostáte boca abajo en el piso y colocá las manos separadas unos 90 cm. Subí los pies sobre un cajón o banco y sostenés el torso a extensión de brazos. Esta es la posición inicial.",
+      "Bajá hasta que el pecho casi toque el piso mientras inhalás.",
+      "Exhalá y empujá el cuerpo de vuelta a la posición inicial apretando el pecho.",
+      "Después de una breve pausa en la posición contraída, comenzá a bajar de nuevo para las repeticiones indicadas."
     ],
     "puntosClave": [
       "Pone más carga en pecho superior y hombros.",
@@ -7712,7 +7900,7 @@
   },
   {
     "idEjercicio": "EJ-0204",
-    "nombre": "Decline Reverse Crunch",
+    "nombre": "Crunch inverso en banco decline",
     "modalidad": "Fuerza",
     "patron": "Core flexión",
     "mecanica": "Compuesto",
@@ -7725,25 +7913,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Lie on your back on a decline bench and hold on to the top of the bench with both hands. Don't let your body slip down from this position.",
-      "Hold your legs parallel to the floor using your abs to hold them there while keeping your knees and feet together. Tip: Your legs should be fully extended with a slight bend on the knee. This will be your starting position.",
-      "While exhaling, move your legs towards the torso as you roll your pelvis backwards and you raise your hips off the bench. At the end of this movement your knees will be touching your chest.",
-      "Hold the contraction for a second and move your legs back to the starting position while inhaling.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte boca arriba en un banco decline y agarráte del extremo superior con ambas manos. No dejés que el cuerpo se deslice.",
+      "Mantenés las piernas paralelas al piso usando el abdomen, con las rodillas y los pies juntos. Las piernas deben estar completamente extendidas con una leve flexión en la rodilla. Esta es la posición inicial.",
+      "Exhalando, llevá las piernas hacia el torso haciendo rodar la pelvis hacia atrás y elevando las caderas del banco. Al final del movimiento las rodillas tocarán el pecho.",
+      "Sostené la contracción un segundo y volvé las piernas a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Activa el abdomen inferior; el movimiento viene de la pelvis, no de las piernas."
+    ],
+    "erroresComunes": [
+      "Usar el impulso de las piernas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Reverse_Crunch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Reverse_Crunch/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "reverse crunch decline"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Decline_Reverse_Crunch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0205",
@@ -7940,9 +8134,9 @@
   },
   {
     "idEjercicio": "EJ-0210",
-    "nombre": "Dips - Triceps Version",
+    "nombre": "Fondos de tríceps (dips)",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Tríceps",
@@ -7956,24 +8150,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To get into the starting position, hold your body at arm's length with your arms nearly locked above the bars.",
-      "Now, inhale and slowly lower yourself downward. Your torso should remain upright and your elbows should stay close to your body. This helps to better focus on tricep involvement. Lower yourself until there is a 90 degree angle formed between the upper arm and forearm.",
-      "Then, exhale and push your torso back up using your triceps to bring your body back to the starting position.",
-      "Repeat the movement for the prescribed amount of repetitions."
+      "Adoptá la posición inicial sosteniéndote a extensión de brazos sobre las barras, con los brazos casi bloqueados.",
+      "Inhalá y bajá lentamente. El torso debe mantenerse erguido y los codos cerca del cuerpo para enfocar el trabajo en los tríceps. Bajá hasta que se forme un ángulo de 90° entre brazo y antebrazo.",
+      "Exhalá y empujá el cuerpo hacia arriba usando los tríceps hasta volver a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Torso erguido y codos pegados al cuerpo para énfasis en tríceps."
+    ],
+    "erroresComunes": [
+      "Inclinarse hacia adelante (eso enfatiza el pecho en lugar de los tríceps)."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dips_-_Triceps_Version/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dips_-_Triceps_Version/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "dips",
+      "fondos paralelas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Dips_-_Triceps_Version",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0211",
@@ -8225,8 +8426,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Trotando en el lugar, llevá los talones hacia los glúteos alternando rápido.",
-      "Mantené el torso erguido y un ritmo parejo."
+      "Comenzá de pie con las rodillas ligeramente flexionadas.",
+      "Hacé una semi-sentadilla rápida flexionando caderas y rodillas y, de inmediato, explotá hacia arriba buscando la máxima altura.",
+      "Al subir, llevá los talones hacia los glúteos flexionando las rodillas, intentando tocarlos.",
+      "Terminá el movimiento aterrizando con las rodillas parcialmente flexionadas, usando las piernas para absorber el impacto."
     ],
     "puntosClave": [
       "Bueno para entrada en calor o cardio liviano."
@@ -8358,7 +8561,7 @@
   },
   {
     "idEjercicio": "EJ-0221",
-    "nombre": "Dumbbell Alternate Bicep Curl",
+    "nombre": "Curl de bíceps alternado con mancuernas",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -8370,28 +8573,36 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand (torso upright) with a dumbbell in each hand held at arms length. The elbows should be close to the torso and the palms of your hand should be facing your thighs.",
-      "While holding the upper arm stationary, curl the right weight as you rotate the palm of the hands until they are facing forward. At this point continue contracting the biceps as you breathe out until your biceps is fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Tip: Only the forearms should move.",
-      "Slowly begin to bring the dumbbell back to the starting position as your breathe in. Tip: Remember to twist the palms back to the starting position (facing your thighs) as you come down.",
-      "Repeat the movement with the left hand. This equals one repetition.",
-      "Continue alternating in this manner for the recommended amount of repetitions."
+      "Pararte con el torso erguido y una mancuerna en cada mano a extensión de brazos. Los codos cerca del torso y las palmas mirando hacia los muslos.",
+      "Manteniendo el brazo superior quieto, flexioná el codo derecho llevando la mancuerna mientras rotás la palma hacia arriba (agarre supino) al subir. Seguí hasta la contracción completa del bíceps y sostené un segundo apretando. Solo el antebrazo se mueve.",
+      "Bajá lentamente la mancuerna a la posición inicial mientras inhalás. Al bajar, rotá la palma de vuelta hacia el muslo.",
+      "Repetí con la mano izquierda. Eso equivale a una repetición.",
+      "Seguí alternando por las repeticiones indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La supinación al subir maximiza la activación del bíceps."
+    ],
+    "erroresComunes": [
+      "Mover el codo hacia adelante al subir.",
+      "No rotar la muñeca de vuelta al bajar."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Alternate_Bicep_Curl/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Alternate_Bicep_Curl/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "curl alternado biceps",
+      "alternate bicep curl"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Dumbbell_Alternate_Bicep_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0222",
@@ -8411,11 +8622,11 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Acostado en el banco con una mancuerna en cada mano sobre los muslos, palmas enfrentadas.",
-      "Ayudándote con los muslos, subí las mancuernas una a la vez a la altura de los hombros.",
-      "Rotá las muñecas de modo que las palmas miren hacia afuera; las mancuernas quedan a los costados del pecho con el codo a 90°. Esta es la posición inicial.",
-      "Exhalando, empujá con el pecho hasta extender los codos; apretá el pecho en la cima un segundo y bajá despacio. El descenso debería llevar el doble de tiempo que el ascenso.",
-      "Repetí las veces indicadas."
+      "Acostáte en un banco plano con una mancuerna en cada mano apoyada sobre los muslos. Las palmas de las manos se miran entre sí.",
+      "Ayudándote con los muslos para impulsarlas, levantá las mancuernas de a una a la vez hasta sostenerlas frente a vos al ancho de los hombros.",
+      "Una vez a esa altura, rotá las muñecas de manera que las palmas queden mirando hacia adelante. Las mancuernas deben estar a los costados del pecho con el brazo superior y el antebrazo formando un ángulo de 90°. Aseguráte de mantener el control total de las mancuernas en todo momento. Esta es la posición inicial.",
+      "Exhalando, usá el pecho para empujar las mancuernas hacia arriba. Extendé los codos al llegar arriba, apretá el pecho, sostené un segundo y luego comenzá a bajar lentamente. Idealmente, el descenso debe llevar el doble de tiempo que el ascenso.",
+      "Repetí el movimiento las veces indicadas."
     ],
     "puntosClave": [
       "Muñecas firmes y omóplatos retraídos.",
@@ -8442,7 +8653,7 @@
   },
   {
     "idEjercicio": "EJ-0223",
-    "nombre": "Dumbbell Bench Press with Neutral Grip",
+    "nombre": "Press de banca con agarre neutro",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -8458,24 +8669,31 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Take a dumbbell in each hand and lay back onto a flat bench. Your feet should be flat on the floor and your shoulder blades retracted.",
-      "Maintaining a neutral grip, palms facing each other, begin with your arms extended directly above you, perpendicular to the floor. This will be your starting position.",
-      "Begin the movement by flexing the elbow, lowering the upper arms to the side. Descend until the dumbbells are to your torso.",
-      "Pause, then extend the elbow and return to the starting position."
+      "Tomá una mancuerna en cada mano y acostáte en un banco plano. Los pies apoyados en el piso y los omóplatos retraídos.",
+      "Manteniendo el agarre neutro (palmas enfrentadas entre sí), comenzá con los brazos extendidos directamente sobre vos, perpendiculares al piso. Esta es la posición inicial.",
+      "Comenzá el movimiento flexionando los codos, bajando los brazos superiores hacia los costados. Descendé hasta que las mancuernas queden al nivel del torso.",
+      "Pausá y luego extendé los codos volviendo a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre neutro reduce la tensión en el hombro."
+    ],
+    "erroresComunes": [
+      "Dejar que los codos se abran demasiado hacia los costados."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bench_Press_with_Neutral_Grip/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bench_Press_with_Neutral_Grip/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "neutral grip bench press",
+      "press pecho agarre neutro"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Dumbbell_Bench_Press_with_Neutral_Grip",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0224",
@@ -8494,9 +8712,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie con el torso erguido, mancuernas a los costados con los brazos extendidos. Codos pegados al torso, palmas hacia adelante. Esta es la posición inicial.",
-      "Manteniendo los brazos estáticos, exhalá y flexioná los codos llevando las mancuernas hasta la altura de los hombros, contrayendo los bíceps. Sostené un segundo en la cima apretando.",
-      "Inhalá y bajá lentamente las mancuernas a la posición inicial.",
+      "Pararte con el torso erguido y una mancuerna en cada mano a extensión de brazos. Mantenés los codos cerca del torso y rotás las palmas de las manos hasta que queden mirando hacia adelante. Esta es la posición inicial.",
+      "Manteniendo los brazos superiores quietos, exhalá y flexioná los codos llevando las mancuernas mientras contraés los bíceps. Seguí hasta que los bíceps estén completamente contraídos y las mancuernas a la altura de los hombros. Sostené la posición contraída una breve pausa apretando los bíceps.",
+      "Inhalá y comenzá a bajar lentamente las mancuernas a la posición inicial.",
       "Repetí las veces indicadas."
     ],
     "puntosClave": [
@@ -8544,9 +8762,11 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Mancuernas a los lados de los pies, cadera atrás y espalda neutra.",
-      "Extendé cadera y rodillas con fuerza y, con ese impulso, llevá las mancuernas a los hombros.",
-      "Bajá controlando a la posición inicial."
+      "Pararte con una mancuerna en cada mano a los costados, pies a la altura de los hombros.",
+      "Bajá las mancuernas al piso flexionando cadera y rodillas, empujando las caderas hacia atrás hasta que las mancuernas toquen el piso. Esta es la posición inicial.",
+      "Para iniciar el movimiento, explotá hacia arriba extendiendo cadera, rodillas y tobillos para acelerar las mancuernas. Mantené un agarre neutro y los brazos extendidos hasta alcanzar la extensión completa.",
+      "Tras la extensión completa, volvé a flexionar cadera y rodillas para recibir el peso en cuclillas. Dejá que los brazos se flexionen llevando las mancuernas a los hombros.",
+      "Al recibir el peso en cuclillas, extendé cadera y rodillas hasta quedar de pie con las mancuernas sobre los hombros."
     ],
     "puntosClave": [
       "La potencia viene de la cadera (triple extensión)."
@@ -8621,11 +8841,11 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Acostado en un banco plano, tomá las mancuernas apoyadas sobre los muslos con las palmas mirándose entre sí.",
-      "Ayudándote con los muslos para levantarlas, sujetá las mancuernas al ancho de hombros sobre el pecho con las palmas mirándose; llevalas hasta casi bloquear los codos. Esta es la posición inicial.",
-      "Con los codos levemente flexionados para proteger el tendón del bíceps, abrí los brazos en arco amplio hacia los lados bajando lentamente mientras inhalás, hasta sentir el estiramiento en el pecho. Solo el hombro se mueve; el ángulo del codo se mantiene fijo durante todo el arco.",
-      "Volvé los brazos a la posición inicial usando el mismo arco, apretando el pecho mientras exhalás.",
-      "Sostené un segundo en la posición contraída y repetí las veces indicadas."
+      "Acostáte en un banco plano con una mancuerna en cada mano apoyada sobre los muslos. Las palmas de las manos se miran entre sí.",
+      "Ayudándote con los muslos para levantarlas, sujetá las mancuernas al ancho de los hombros sobre el pecho con las palmas mirándose; subí las mancuernas como si las presionaras, pero detenéte y sostenélas justo antes de bloquear los codos. Esta es la posición inicial.",
+      "Con los codos levemente flexionados para evitar el estrés en el tendón del bíceps, abrí los brazos hacia los lados en un arco amplio bajando lentamente mientras inhalás, hasta sentir el estiramiento en el pecho. A lo largo del movimiento los brazos permanecen estáticos; el movimiento ocurre solo en la articulación del hombro.",
+      "Volvé los brazos a la posición inicial usando el mismo arco, apretando los músculos del pecho mientras exhalás. Usá el mismo arco de movimiento con el que bajaste el peso.",
+      "Sostené un segundo en la posición contraída y repetí el movimiento las veces indicadas."
     ],
     "puntosClave": [
       "El ángulo del codo debe permanecer constante durante todo el movimiento.",
@@ -9000,9 +9220,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Tomá una mancuerna y quedate de pie con el brazo extendido y una leve flexión en el codo; la mancuerna descansa sobre el muslo con la palma hacia el cuerpo. Esta es la posición inicial.",
-      "El otro brazo puede quedar extendido al costado, en la cintura o aferrado a una superficie fija como apoyo.",
-      "Usá el hombro lateral para subir la mancuerna pegada al cuerpo mientras exhalás, hasta que quede a la altura del mentón. Los codos guían el movimiento y deben ir siempre por encima de los antebrazos; sostené un segundo arriba con el torso quieto.",
+      "Tomá una mancuerna y paráte con el brazo extendido al frente, con una leve flexión en el codo y la espalda recta. La mancuerna descansa sobre el muslo con la palma mirando hacia el muslo. Esta es la posición inicial.",
+      "El otro brazo puede quedar completamente extendido al costado, en la cintura o aferrado a una superficie fija para apoyo.",
+      "Usá el hombro lateral para subir la mancuerna pegada al cuerpo mientras exhalás. Continuá hasta que la mancuerna quede casi a la altura del mentón. Los codos deben guiar el movimiento y permanecer siempre por encima de los antebrazos. Mantenés el torso quieto y pausás un segundo en la parte superior.",
       "Bajá la mancuerna lentamente a la posición inicial mientras inhalás.",
       "Completá las repeticiones indicadas y cambiá de brazo."
     ],
@@ -9119,9 +9339,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "De pie con el torso erguido, mancuernas a los costados. Esta es la posición inicial.",
-      "Dá un paso largo hacia atrás con la pierna derecha y bajá el torso manteniendo el equilibrio y la espalda recta. Inhalá al descender. La rodilla delantera no supera los dedos del pie; la tibia delantera queda perpendicular al piso. Una zancada larga enfatiza glúteos; una corta, cuádriceps.",
-      "Empujá para volver a la posición inicial mientras exhalás. Para enfatizar cuádriceps, empujá con la punta del pie; para glúteos, con el talón.",
+      "Pararte con el torso erguido y una mancuerna en cada mano a los costados. Esta es la posición inicial.",
+      "Dá un paso largo hacia atrás con la pierna derecha, a unos 60 cm del pie izquierdo, y bajá el torso manteniendo el equilibrio y la espalda recta. Inhalá al descender. La rodilla delantera no debe superar los dedos del pie, y la tibia delantera queda perpendicular al piso. Mantené el torso erguido durante toda la zancada; los flexores de cadera deben estar flexibles. Una zancada larga enfatiza el glúteo; una corta enfatiza el cuádriceps.",
+      "Empujá para volver a la posición inicial mientras exhalás. Para enfatizar el cuádriceps, empujá con la punta del pie; para el glúteo, empujá con el talón.",
       "Repetí con la pierna izquierda."
     ],
     "puntosClave": [
@@ -9235,9 +9455,12 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sentado, apoyá la mancuerna sobre el muslo de la pierna que trabaja, con la punta del pie en un escalón.",
-      "Subí lo más alto posible sobre la punta.",
-      "Bajá lento sintiendo el estiramiento."
+      "Colocá un bloque o escalón en el piso a unos 30 cm de un banco plano.",
+      "Sentate en el banco y apoyá una mancuerna sobre el muslo superior izquierdo, a unos 7-8 cm por encima de la rodilla.",
+      "Apoyá las puntas del pie izquierdo en el bloque, con el talón libre en el aire. Esta es la posición inicial.",
+      "Elevá el talón lo más alto posible exhalando y contrayendo el gemelo. Mantené la contracción un segundo.",
+      "Volvé lentamente a la posición inicial bajando el talón y estirando el gemelo todo lo posible.",
+      "Completá las repeticiones indicadas y luego repetí con la pierna derecha."
     ],
     "puntosClave": [
       "Rango completo y pausa arriba."
@@ -9322,9 +9545,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, mancuernas a los costados, brazos extendidos.",
-      "Encogé los hombros hacia arriba como apuntando a las orejas.",
-      "Bajá controlando sin rotar los hombros."
+      "Pararte con el torso erguido, una mancuerna en cada mano con las palmas mirando al cuerpo y los brazos extendidos a los costados.",
+      "Encogé los hombros lo más alto posible, como apuntando a las orejas, mientras exhalás. Mantené la contracción un segundo. Los brazos permanecen extendidos en todo momento; no uses los bíceps para levantar.",
+      "Bajá las mancuernas a la posición original.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "Subí recto; no hagas círculos con el hombro."
@@ -9362,9 +9586,10 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, una mancuerna en una mano, la otra mano en la nuca o cintura.",
-      "Inclinate hacia el lado de la mancuerna y volvé contrayendo el oblicuo opuesto.",
-      "Completá el lado y cambiá."
+      "Pararte con el torso erguido, una mancuerna en la mano izquierda (palma mirando al cuerpo) y la mano derecha apoyada en la cintura. Pies a la altura de los hombros. Esta es la posición inicial.",
+      "Manteniendo la espalda recta y la cabeza arriba, inclinarte solo desde la cintura hacia la derecha tan lejos como puedas mientras inhalás. Mantené un segundo y volvé a la posición inicial exhalando. El resto del cuerpo permanece estático.",
+      "Ahora repetí el movimiento inclinándote hacia la izquierda. Mantené un segundo y volvé.",
+      "Repetí las repeticiones indicadas y luego cambiá de mano."
     ],
     "puntosClave": [
       "Movimiento solo lateral; sin rotar ni inclinarte adelante."
@@ -9595,9 +9820,8 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, brazos extendidos al frente a la altura del pecho.",
-      "Abrí los brazos hacia atrás juntando los omóplatos.",
-      "Volvé al frente y repetí con ritmo controlado."
+      "Pararte con las manos juntas y los brazos extendidos directamente al frente a la altura del pecho. Esta es la posición inicial.",
+      "Manteniendo los brazos rectos, movalos rápidamente hacia atrás lo más posible y volvé, como un aplauso exagerado. Repetí entre 5 y 10 veces aumentando la velocidad a medida que avanzás."
     ],
     "puntosClave": [
       "Movilidad de entrada en calor, sin forzar."
@@ -10685,8 +10909,12 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Hacé una sentadilla y, al subir, empujá con fuerza para despegar del piso.",
-      "Caé suave amortiguando con las rodillas, directo a la próxima sentadilla."
+      "Cruzá los brazos sobre el pecho.",
+      "Con la cabeza arriba y la espalda recta, colocá los pies a la altura de los hombros.",
+      "Manteniendo la espalda recta y el pecho erguido, bajá en sentadilla inhalando hasta que los muslos queden paralelos al piso o más abajo.",
+      "Empujando principalmente con las puntas de los pies, saltá lo más alto posible usando los muslos como resortes. Exhalá durante esta fase.",
+      "Al tocar el piso, bajá inmediatamente a la sentadilla y volvé a saltar.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "Caída blanda y controlada para cuidar las rodillas."
@@ -10728,9 +10956,8 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Desde una sentadilla profunda, saltá hacia adelante con ambos pies.",
-      "Caé en sentadilla amortiguando con las rodillas.",
-      "Encadená el siguiente salto."
+      "Pararte con las manos detrás de la cabeza y bajá en sentadilla manteniendo el torso erguido y la cabeza arriba. Esta es la posición inicial.",
+      "Saltá hacia adelante varios pasos evitando saltar innecesariamente alto. Al contactar el piso, absorbé el impacto a través de las piernas y saltá de nuevo. Repetí esta acción entre 5 y 10 veces."
     ],
     "puntosClave": [
       "Caída blanda; explosividad en la subida."
@@ -11713,10 +11940,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie con el torso erguido y una mancuerna en cada mano con los brazos extendidos a los costados; codos cerca del torso.",
-      "Las palmas miran hacia el cuerpo (agarre neutro). Esta es la posición inicial.",
-      "Manteniendo el brazo estático, exhalá y flexioná el codo llevando la mancuerna hacia el hombro. El codo queda quieto; solo se mueve el antebrazo. Llegá hasta la contracción completa y sostené un segundo apretando.",
-      "Inhalá y bajá lentamente las mancuernas a la posición inicial.",
+      "Pararte con el torso erguido y una mancuerna en cada mano con los brazos extendidos a los costados; codos cerca del torso.",
+      "Las palmas de las manos miran hacia el cuerpo (agarre neutro). Esta es la posición inicial.",
+      "Manteniendo el brazo superior quieto, exhalá y flexioná el codo llevando la mancuerna hacia el hombro. Seguí hasta que el bíceps esté completamente contraído y la mancuerna a la altura del hombro. Sostené la posición contraída un breve momento apretando el bíceps. Enfocáte en mantener el codo estático y mover solo el antebrazo.",
+      "Después de la pausa breve, inhalá y comenzá a bajar las mancuernas lentamente a la posición inicial.",
       "Repetí las veces indicadas."
     ],
     "puntosClave": [
@@ -12316,9 +12543,9 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "En cuatro apoyos, elevá una rodilla al costado.",
-      "Dibujá círculos con esa rodilla, abriendo la cadera.",
-      "Cambiá de sentido y de lado."
+      "Posicionáte en cuatro apoyos en el piso. Manteniendo una buena postura, levantá una rodilla flexionada del suelo. Esta es la posición inicial.",
+      "Manteniendo la rodilla flexionada, rotá el fémur en arco intentando hacer un círculo grande con la rodilla y abriendo la cadera al máximo.",
+      "Realizá el movimiento lentamente por el número de repeticiones indicadas y luego repetí del otro lado."
     ],
     "puntosClave": [
       "Movilidad de cadera; mantené el core firme."
@@ -12357,9 +12584,10 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Anclá la banda baja y pasala por un tobillo.",
-      "Parado y estable, llevá la pierna hacia atrás extendiendo la cadera.",
-      "Volvé controlando sin arquear la lumbar."
+      "Asegurá un extremo de la banda en la parte baja de un poste y enganchá el otro extremo en un tobillo.",
+      "Mirando el punto de anclaje de la banda, agarráte de la columna o soporte para estabilizarte.",
+      "Manteniendo la cabeza y el pecho arriba, llevá la pierna con resistencia hacia atrás lo más posible manteniendo la rodilla recta.",
+      "Volvé la pierna a la posición inicial."
     ],
     "puntosClave": [
       "El movimiento es de cadera; apretá el glúteo atrás."
@@ -13206,9 +13434,11 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Manos juntas sobre una superficie elevada, cuerpo recto.",
-      "Bajá con los codos cerca del cuerpo.",
-      "Empujá hasta extender."
+      "Colocáte frente a una barra de Smith o una superficie elevada estable a la altura apropiada, mirando hacia ella.",
+      "Apoyá las manos juntas sobre la barra.",
+      "Colocá los pies hacia atrás con los brazos y el cuerpo extendidos y rectos. Esta es la posición inicial.",
+      "Manteniendo el cuerpo recto, bajá el pecho hacia la barra flexionando los brazos.",
+      "Volvé a la posición inicial extendiendo los codos y empujándote hacia arriba."
     ],
     "puntosClave": [
       "Regresión de la flexión cerrada: más fácil cuanto más alta la superficie."
@@ -13722,9 +13952,11 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Apoyá la palma en un costado de la cabeza.",
-      "Empujá la cabeza contra la mano sin que haya movimiento (isométrico).",
-      "Mantené unos segundos y cambiá de lado."
+      "Con la cabeza y el cuello en posición neutra (erguida, mirando al frente), apoyá la mano izquierda en el lado izquierdo de la cabeza.",
+      "Empujá suavemente hacia la izquierda contrayendo los músculos del cuello izquierdo, pero resistiendo cualquier movimiento de la cabeza. Comenzá con tensión suave y aumentala gradualmente. Seguí respirando normalmente durante la contracción.",
+      "Mantené el tiempo indicado.",
+      "Soltá la tensión lentamente.",
+      "Descansá el tiempo indicado y repetí con la mano derecha en el lado derecho de la cabeza."
     ],
     "puntosClave": [
       "Fuerza suave y progresiva; sin movimiento."
@@ -14175,9 +14407,8 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Semi-sentadilla con la espalda neutra.",
-      "Pasá la pesa entre las piernas en forma de ocho, cambiándola de mano detrás de cada rodilla.",
-      "Mantené el ritmo y el core firme."
+      "Colocá una pesa rusa entre las piernas y adoptá una postura más ancha que el ancho de hombros. Inclinate empujando los glúteos hacia atrás y manteniendo la espalda plana.",
+      "Tomá la pesa y pasala a la otra mano por entre las piernas. La mano receptora debe llegar desde atrás de la pierna. Continuá pasándola de un lado al otro dibujando un ocho durante varias repeticiones."
     ],
     "puntosClave": [
       "El torso queda estable; trabaja coordinación y core."
@@ -14257,9 +14488,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Parado en una pierna con la pesa en la mano contraria.",
-      "Bisagra de cadera: bajá la pesa mientras la pierna libre se extiende hacia atrás.",
-      "Volvé extendiendo la cadera, manteniendo el equilibrio."
+      "Sostené una pesa rusa por el mango en una mano. Pararte en la pierna del mismo lado que la pesa.",
+      "Manteniendo esa rodilla ligeramente flexionada, realizá un peso muerto con pierna rígida: doblate desde la cadera extendiendo la pierna libre hacia atrás para mantener el equilibrio.",
+      "Seguí bajando la pesa hasta que el cuerpo quede paralelo al suelo y luego volvé a la posición erguida extendiendo la cadera."
     ],
     "puntosClave": [
       "Cadera y hombros mirando al piso, sin rotar."
@@ -14375,9 +14606,10 @@
     "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Sostené la pesa al frente como contrapeso; parate en una pierna con la otra extendida al frente.",
-      "Bajá en una sola pierna lo más profundo que controles.",
-      "Subí empujando con el talón."
+      "Tomá una pesa rusa con ambas manos sosteniéndola por los cuernos. Levantá una pierna del piso y bajá en sentadilla sobre la otra.",
+      "Bajá flexionando la rodilla y llevando la cadera hacia atrás, sosteniendo la pesa al frente como contrapeso.",
+      "Mantené la posición del fondo un segundo y luego revertí el movimiento empujando con el talón, manteniendo la cabeza y el pecho arriba.",
+      "Bajá nuevamente y repetí."
     ],
     "puntosClave": [
       "La pesa al frente hace de contrapeso y ayuda al equilibrio."
@@ -14491,9 +14723,8 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Pies separados, pesa en el piso entre las piernas, cadera atrás.",
-      "Extendé cadera con fuerza y, con ese impulso, tirá la pesa hacia el mentón con los codos altos.",
-      "Bajá controlando a la posición inicial."
+      "Colocá una pesa rusa en el piso entre tus pies. Adoptá una postura ancha tipo sumo y tomá la pesa con ambas manos. Llevá la cadera bien hacia atrás con las rodillas flexionadas. Mantenés el pecho y la cabeza arriba. Esta es la posición inicial.",
+      "Comenzá extendiendo caderas y rodillas simultáneamente, y al hacerlo tirá la pesa hacia los hombros elevando los codos. Luego invertí el movimiento para volver a la posición inicial."
     ],
     "puntosClave": [
       "El impulso viene de la cadera, no de los brazos."
@@ -14533,9 +14764,10 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Pesa(s) en posición de rack a la altura de los hombros.",
-      "Hacé una sentadilla completa.",
-      "Al subir, aprovechá el impulso para empujar la pesa por encima de la cabeza; bajá al rack."
+      "Limpiá dos pesas rusas a los hombros: extendé piernas y cadera jalando las pesas hacia los hombros y rotando las muñecas para que las palmas queden mirando al frente. Esta es la posición inicial.",
+      "Comenzá la sentadilla flexionando cadera y rodillas, bajando las caderas entre las piernas. Mantenés la espalda recta y el torso erguido mientras bajás lo más posible.",
+      "En la parte baja, extendé rodillas y cadera empujando desde los talones. Al hacerlo, presioná las pesas por encima de la cabeza extendiendo los brazos completamente, usando el impulso de la sentadilla para ayudar a mover el peso.",
+      "Al comenzar la próxima repetición, volvé las pesas a la posición de rack en los hombros."
     ],
     "puntosClave": [
       "Sentadilla + press en un movimiento fluido."
@@ -14616,9 +14848,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Acostado, sostené la pesa con un brazo extendido hacia el techo.",
-      "Incorporate paso a paso (codo, mano, cadera arriba, rodilla) hasta quedar de pie, siempre con el brazo extendido.",
-      "Revertí la secuencia para volver al piso."
+      "Acostáte boca arriba en el piso y presioná la pesa rusa hasta la posición superior extendiendo el codo. Flexioná la rodilla del mismo lado que la pesa.",
+      "Manteniendo la pesa bloqueada arriba en todo momento, pivotá hacia el lado opuesto y usá el brazo libre para ayudarte a impulsarte hasta la posición de zancada.",
+      "Con la mano libre empujá el suelo hasta quedar sentado, luego progresá hasta ponerte de pie. Mirando hacia arriba donde está la pesa, levantáte lentamente. Luego revertí toda la secuencia hasta volver al piso y repetí."
     ],
     "puntosClave": [
       "Movimiento lento y controlado; la vista en la pesa."
@@ -14661,9 +14893,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Pesa arriba con un brazo extendido; pies algo más anchos que los hombros.",
-      "Bajá el torso de lado deslizando la mano libre por la pierna, mirando la pesa.",
-      "Volvé a la vertical sin perder la pesa de la vista."
+      "Colocá una pesa rusa frente al pie delantero. Hacé una cargada llevándola al hombro extendiendo piernas y cadera mientras jalás la pesa hacia arriba; rotá la muñeca para que la palma quede mirando al frente y presionála sobre la cabeza extendiendo el codo. El brazo levantado es el opuesto al pie delantero. Girá los pies 45° respecto al brazo levantado; pies algo más anchos que los hombros.",
+      "Manteniendo la pesa bloqueada arriba en todo momento, empujá el glúteo hacia el lado del brazo levantado. Doblá desde la cadera hacia un costado, empujando el glúteo hacia afuera, e inclinarte lentamente hasta tocar el piso con la mano libre, deslizándola por la pierna. Mantenés la vista en la pesa sobre la cabeza en todo momento.",
+      "Pausá un segundo al llegar al piso y revertí el movimiento volviendo a la posición vertical."
     ],
     "puntosClave": [
       "Trabaja core, cadera y movilidad de hombro."
@@ -14855,9 +15087,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Desde semi-sentadilla, saltá lo más alto posible.",
-      "En el aire, llevá las rodillas hacia el pecho.",
-      "Caé suave amortiguando y encadená."
+      "Comenzá de pie con las rodillas ligeramente flexionadas. Mantenés las manos frente a vos, palmas hacia abajo y los dedos juntos a la altura del pecho. Esta es la posición inicial.",
+      "Bajá rápidamente a un cuarto de sentadilla y explotá hacia arriba de inmediato. Llevá las rodillas hacia el pecho intentando tocarlas con las palmas de las manos.",
+      "Saltá lo más alto posible con las rodillas elevadas; luego extendé las piernas para aterrizar suave, absorbiendo el impacto permitiendo que las rodillas se flexionen al recibir el peso."
     ],
     "puntosClave": [
       "Caída blanda; explosividad arriba."
@@ -15075,9 +15307,8 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Arrodillado en una pierna, la otra adelante con el pie apoyado.",
-      "Llevá la cadera hacia adelante manteniendo el torso erguido.",
-      "Sentí el estiramiento al frente de la cadera de la pierna de atrás."
+      "Arrodilláte sobre una colchoneta y llevá la rodilla derecha hacia adelante de manera que la planta del pie quede en el piso; extendé la pierna izquierda hacia atrás de modo que el empeine quede en el piso.",
+      "Desplazá el peso hacia adelante hasta sentir el estiramiento en la cadera. Sostené 15 segundos y luego repetí del otro lado."
     ],
     "puntosClave": [
       "Apretá el glúteo del lado que estirás para profundizar."
@@ -18212,9 +18443,9 @@
     "instrucciones": [
       "Colocá una mancuerna a cada lado de un banco plano.",
       "Apoyá la rodilla y la mano derechas en el banco, inclinando el torso desde la cintura hasta que quede paralelo al piso.",
-      "Tomá la mancuerna del piso con la mano izquierda con la palma hacia el cuerpo y la espalda recta. Esta es la posición inicial.",
-      "Traccioná la mancuerna hacia arriba hasta la altura del pecho, pegando el codo al cuerpo y sin mover el torso. Exhalá al subir.",
-      "Bajá la mancuerna a la posición inicial mientras inhalás.",
+      "Tomá la mancuerna del piso con la mano izquierda con la palma mirando al cuerpo y la espalda recta. Esta es la posición inicial.",
+      "Traccioná la mancuerna directamente hacia arriba hasta el costado del pecho, manteniendo el brazo superior pegado al cuerpo y el torso estático. Exhalá al subir. Concentráte en apretar los músculos de la espalda al llegar a la posición contraída. Aseguráte de que la fuerza venga de la espalda, no de los brazos; el torso superior no debe moverse, solo el brazo. Los antebrazos cumplen únicamente la función de gancho para la mancuerna: no intentes tirar con los antebrazos.",
+      "Bajá la mancuerna directamente a la posición inicial mientras inhalás.",
       "Completá las repeticiones indicadas.",
       "Cambiá de lado y repetí con el brazo opuesto."
     ],
@@ -18589,9 +18820,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Pesa a la altura del hombro en posición de rack.",
-      "Hacé un pequeño impulso con las piernas y empujá la pesa arriba hasta extender el brazo.",
-      "Bajá controlando al hombro."
+      "Tomá una pesa rusa por el mango. Hacé una cargada llevándola al hombro: extendé piernas y cadera jalando la pesa hacia el hombro y rotando la muñeca para que la palma quede mirando al frente. Esta es la posición inicial.",
+      "Flexioná ligeramente las rodillas manteniendo el torso erguido.",
+      "Revertí de inmediato la dirección empujando desde los talones como si fueras a saltar, para crear impulso. Con ese impulso, presioná la pesa sobre la cabeza hasta extender el brazo completamente. Bajá el peso al hombro para realizar la próxima repetición."
     ],
     "puntosClave": [
       "El impulso de piernas ayuda a mover más peso que un press estricto."
@@ -18669,9 +18900,9 @@
     "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Pesa entre los pies, cadera atrás.",
-      "Con un impulso explosivo de cadera, llevá la pesa en un solo movimiento hasta arriba de la cabeza, girando la mano al final.",
-      "Bajá controlando al swing y encadená."
+      "Colocá una pesa rusa entre tus pies. Flexioná las rodillas y llevá la cadera hacia atrás para adoptar la posición inicial correcta con la espalda neutra.",
+      "Mirá al frente y hacé un swing de la pesa hacia atrás entre las piernas.",
+      "Inmediatamente invertí la dirección impulsando con caderas y rodillas para acelerar la pesa hacia arriba. A medida que la pesa sube a la altura del hombro, rotá la mano y extendé el brazo hacia arriba para recibir el peso bloqueado sobre la cabeza usando el impulso."
     ],
     "puntosClave": [
       "Movimiento técnico; arrancá con poco peso."
@@ -20325,9 +20556,8 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Antebrazos en el piso, bajo los hombros; cuerpo en línea recta.",
-      "Apretá glúteos y abdomen; mirada hacia el piso.",
-      "Mantené la posición respirando con normalidad."
+      "Posicionáte boca abajo en el piso sosteniéndote sobre las puntas de los pies y los antebrazos. Los brazos deben estar flexionados y directamente debajo de los hombros.",
+      "Mantenés el cuerpo en línea recta en todo momento y sostenés esta posición el mayor tiempo posible. Para aumentar la dificultad, podés levantar un brazo o una pierna."
     ],
     "puntosClave": [
       "Cadera ni hundida ni elevada: una línea recta."
@@ -20476,9 +20706,11 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Pies bien separados, puntas hacia afuera; sostené una mancuerna entre las piernas.",
-      "Bajá manteniendo el torso erguido y las rodillas hacia las puntas.",
-      "Subí apretando glúteos."
+      "Sostené una mancuerna con ambas manos por el extremo y pararte derecho. Colocá los pies bastante más anchos que los hombros con las rodillas ligeramente flexionadas.",
+      "Las puntas de los pies apuntando hacia afuera. Los brazos permanecen estáticos durante el ejercicio. Esta es la posición inicial.",
+      "Bajá lentamente flexionando las rodillas hasta que los muslos queden paralelos al piso. Inhalá durante esta fase.",
+      "Empujando principalmente con los talones, volvé a la posición inicial exhalando.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "Trabaja más aductores y glúteos."
@@ -21185,9 +21417,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Manos bastante más anchas que los hombros, cuerpo recto.",
-      "Bajá el pecho flexionando los codos hacia afuera.",
-      "Empujá hasta extender."
+      "Colocá las manos bastante más anchas que los hombros y apoyáte en las puntas de los pies en posición de plancha, con los codos extendidos y el cuerpo recto. No dejes que las caderas caigan. Esta es la posición inicial.",
+      "Flexioná los codos bajando el pecho hacia el piso mientras inhalás.",
+      "Usando los músculos del pecho, empujá el cuerpo de vuelta a la posición inicial extendiendo los codos. Exhalá al hacerlo.",
+      "Después de pausar en la posición contraída, repetí el movimiento las veces indicadas."
     ],
     "puntosClave": [
       "Enfatiza más el pecho."
@@ -21410,9 +21643,11 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Hacé una flexión completa.",
-      "Al subir, rotá el cuerpo a plancha lateral extendiendo un brazo al techo.",
-      "Volvé y repetí alternando el lado en cada flexión."
+      "Colocáte en posición de flexión en las puntas de los pies con las manos un poco más anchas que el ancho de hombros.",
+      "Realizá una flexión permitiendo que los codos se flexionen; bajá manteniendo el cuerpo recto.",
+      "Hacé la flexión y, al subir, desplazá el peso hacia el lado izquierdo del cuerpo, rotá al costado y llevá el brazo derecho hacia el techo en plancha lateral.",
+      "Bajá el brazo al piso para otra flexión y luego rotá al otro lado.",
+      "Repetí la serie alternando cada lado por 10 o más repeticiones."
     ],
     "puntosClave": [
       "Combina empuje y core anti-rotación."
@@ -21499,9 +21734,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Alterná series con manos juntas (más tríceps) y manos anchas (más pecho).",
-      "Mantené el cuerpo recto en ambas.",
-      "Recorrido completo en cada repetición."
+      "Acostáte boca abajo con el cuerpo recto, apoyándote en las puntas de los pies y las manos: anchas (más allá de los hombros) para énfasis en pecho, o juntas (más cerca que los hombros) para énfasis en tríceps. Sostené el torso a extensión de brazos.",
+      "Bajá hasta que el pecho casi toque el piso mientras inhalás.",
+      "Usando los músculos del pecho, empujá el cuerpo hacia arriba apretando el pecho. Exhalá al hacerlo.",
+      "Después de una pausa en la posición contraída, repetí el movimiento las veces indicadas."
     ],
     "puntosClave": [
       "Variar el agarre cambia el énfasis."
@@ -22246,9 +22482,12 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Inclinado con el torso casi paralelo al piso, mancuernas colgando bajo el pecho, codos apenas flexionados.",
-      "Abrí los brazos hacia los lados juntando los omóplatos.",
-      "Bajá controlando."
+      "Acostáte en un banco inclinado con el pecho y el abdomen apoyados contra la inclinación. Tomá una mancuerna en cada mano con las palmas enfrentadas (agarre neutro).",
+      "Extendé los brazos hacia adelante, perpendiculares al ángulo del banco. Las piernas se mantienen estables apoyando con las puntas de los pies. Esta es la posición inicial.",
+      "Manteniendo los codos ligeramente flexionados, abrí los brazos hacia los costados en arco mientras exhalás. Intentá juntar los omóplatos para maximizar el trabajo del deltoide posterior.",
+      "Elevá hasta que los brazos queden paralelos al piso.",
+      "Sentí la contracción y bajá lentamente a la posición inicial inhalando.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "Liderá con los codos; trabajá el deltoide posterior, no la espalda baja."
@@ -22808,10 +23047,10 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Tomá una barra (o mancuernas) con agarre prono, un poco más ancho que el ancho de hombros.",
-      "Flexioná las rodillas levemente, tibias verticales, cadera hacia atrás y espalda recta. Esta es la posición inicial.",
-      "Manteniendo espalda y brazos completamente rectos, subí usando la cadera mientras exhalás. El movimiento debe ser controlado, no explosivo.",
-      "Al estar completamente erguido, bajá la barra llevando la cadera hacia atrás, con las rodillas apenas flexionadas (menos que en la sentadilla). Inhalá al inicio, sostené el aire al bajar y exhalá al completar el movimiento.",
+      "Colocá una barra frente a vos en el piso y tomala con un agarre prono (palmas hacia abajo), un poco más ancho que el ancho de hombros. Dependiendo del peso, puede que necesités muñequeras y una plataforma elevada para mayor rango de movimiento.",
+      "Flexioná levemente las rodillas, tibias verticales, cadera hacia atrás y espalda recta. Esta es la posición inicial.",
+      "Manteniendo la espalda y los brazos completamente rectos en todo momento, usá las caderas para levantar la barra mientras exhalás. El movimiento debe ser controlado y parejo, nunca brusco.",
+      "Al estar completamente erguido, bajá la barra llevando las caderas hacia atrás, flexionando las rodillas solo levemente (mucho menos que en una sentadilla). Tomá una respiración profunda al inicio del movimiento, mantené el pecho arriba y sostené el aire al bajar; exhalá al completar el movimiento.",
       "Repetí las veces indicadas."
     ],
     "puntosClave": [
@@ -22969,9 +23208,8 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Codos cerca del cuerpo; girá la cuerda con las muñecas.",
-      "Hacé saltos bajos sobre las puntas de los pies.",
-      "Mantené un ritmo constante."
+      "Tomá un extremo de la cuerda en cada mano. Posicionáte con la cuerda detrás de vos en el piso. Levantá los brazos y hacé girar la cuerda por encima de la cabeza hacia adelante; cuando llegue al piso, saltá. Encontrá un ritmo de giro que puedas mantener usando principalmente las muñecas. Podés variar la velocidad y la técnica para mayor variedad.",
+      "Saltar la cuerda es cardiovascularmente exigente y divertido: una persona de 70 kg quema aproximadamente 350 calorías en 30 minutos, más que corriendo el mismo tiempo."
     ],
     "puntosClave": [
       "Saltos chiquitos y eficientes."
@@ -23277,9 +23515,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Colgá de la barra con los brazos extendidos.",
-      "Sin flexionar los codos, deprimí y juntá los omóplatos elevando apenas el cuerpo.",
-      "Volvé controlando a colgar."
+      "Tomá la barra de dominadas con agarre prono (palmas hacia afuera).",
+      "Desde la posición de colgado, eleváte unos centímetros sin usar los brazos. Hacelo deprimiendo la cintura escapular en un movimiento inverso al encogimiento de hombros.",
+      "Pausá al completar el movimiento y luego volvé lentamente a la posición de colgado antes de realizar más repeticiones."
     ],
     "puntosClave": [
       "Activa las escápulas; base para la dominada."
@@ -23317,9 +23555,11 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Boca arriba, manos bajo los glúteos y piernas extendidas algo elevadas.",
-      "Cruzá una pierna sobre la otra alternando, como tijeras.",
-      "Mantené la lumbar pegada al piso."
+      "Acostáte boca arriba con la espalda apoyada en el piso y los brazos extendidos a los costados, palmas hacia abajo. Los brazos permanecen estáticos durante todo el ejercicio.",
+      "Con las rodillas ligeramente flexionadas, elevá las piernas hasta que los talones queden a unos 15 cm del piso. Esta es la posición inicial.",
+      "Subí la pierna izquierda hasta unos 45° mientras bajás la derecha hasta que el talón quede a unos 5-7 cm del piso.",
+      "Cambiá el movimiento subiendo la pierna derecha y bajando la izquierda. Respirá de manera continua durante todo el ejercicio.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "La lumbar no se despega."
@@ -23359,9 +23599,10 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Desde una zancada, saltá y cambiá de pierna en el aire.",
-      "Caé en zancada con la otra pierna adelante, amortiguando.",
-      "Encadená alternando."
+      "Asumí una posición de zancada con una pierna adelante y la rodilla flexionada, y la rodilla trasera casi tocando el piso.",
+      "Aseguráte de que la rodilla delantera esté alineada sobre el pie. Extendiendo ambas piernas, saltá lo más alto posible balanceando los brazos para ganar impulso.",
+      "En el aire, cambiá la posición de las piernas: la delantera va hacia atrás y la trasera hacia adelante.",
+      "Al aterrizar, amortiguá el impacto adoptando la posición de zancada y repetí."
     ],
     "puntosClave": [
       "Caída controlada; rodilla de adelante sobre el pie."
@@ -23764,9 +24005,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sentado con piernas extendidas.",
-      "Tomá las puntas de los pies (o usá una banda) y tiralas hacia vos.",
-      "Sentí el estiramiento en gemelos y mantené."
+      "Sentate erguido sobre una colchoneta o el piso.",
+      "Flexioná una rodilla y apoyá ese pie en el piso para estabilizar el torso.",
+      "Extendé la otra pierna y flexioná el tobillo (punta del pie hacia vos).",
+      "Usando una banda, una toalla o la mano si alcanzás, tirá los dedos del pie hacia vos. Mantené entre 10 y 20 segundos y luego cambiá de lado."
     ],
     "puntosClave": [
       "Sin rebotes; suave."
@@ -23946,9 +24188,13 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sentado, antebrazos sobre los muslos, palmas hacia arriba y muñecas pasando la rodilla.",
-      "Subí el peso flexionando solo la muñeca.",
-      "Bajá controlando en rango completo."
+      "Colocá dos mancuernas en el piso frente a un banco plano.",
+      "Sentate en el borde del banco con las piernas separadas a la altura de los hombros y los pies apoyados en el piso.",
+      "Tomá las mancuernas y apoyá los antebrazos sobre los muslos con las palmas mirando hacia arriba. Las muñecas deben colgar más allá del borde de los muslos.",
+      "Flexioná las muñecas hacia arriba exhalando.",
+      "Bajá lentamente las muñecas a la posición inicial inhalando. Los antebrazos permanecen quietos; solo se mueve la muñeca.",
+      "Repetí las repeticiones indicadas.",
+      "Al terminar, bajá las mancuernas al piso con cuidado."
     ],
     "puntosClave": [
       "Solo se mueve la muñeca."
@@ -25028,9 +25274,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, mancuernas a los costados, codos apenas flexionados.",
-      "Elevá los brazos hacia los lados hasta la altura de los hombros.",
-      "Bajá lento, controlando."
+      "Tomá una mancuerna en cada mano y pararte con el torso recto, mancuernas a los costados con los brazos extendidos y las palmas mirando al cuerpo. Esta es la posición inicial.",
+      "Manteniendo el torso quieto (sin balanceo), elevá las mancuernas hacia los costados con los codos ligeramente flexionados y las manos un poco inclinadas hacia adelante como si derramaras agua. Seguí hasta que los brazos queden paralelos al piso. Exhalá durante el movimiento y pausá un segundo arriba.",
+      "Bajá las mancuernas lentamente a la posición inicial mientras inhalás.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "Liderá con los codos, no con las manos."
@@ -25106,9 +25353,9 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Acostado de costado, piernas extendidas y alineadas con el cuerpo.",
-      "Elevá la pierna de arriba sin rotar la cadera.",
-      "Bajá controlando; completá y cambiá de lado."
+      "Paráte junto a una silla o apoyo que puedas sostener para estabilizarte. Pararte en una sola pierna. Esta es la posición inicial.",
+      "Manteniendo la pierna recta, elevala hacia el costado lo más posible y luego balanceala de vuelta hacia abajo permitiendo que cruce la pierna de apoyo.",
+      "Repetí este movimiento de balanceo entre 5 y 10 veces, aumentando el rango de movimiento a medida que avanzás."
     ],
     "puntosClave": [
       "Trabaja abductores y glúteo medio."
@@ -27423,9 +27670,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Sentado con piernas extendidas, dejá caer el torso hacia adelante.",
-      "Relajá la cabeza y los brazos hacia los pies.",
-      "Respirá y soltá la tensión de la espalda."
+      "Sentate en una silla con la espalda recta y los pies apoyados en el piso.",
+      "Entrelazá los dedos detrás de la cabeza, los codos hacia afuera y el mentón hacia abajo.",
+      "Rotá la parte superior del cuerpo hacia un lado lo más que puedas, unas 3 veces. Luego inclinarte hacia adelante y rotá el torso hasta apuntar el codo al piso en el interior de la rodilla.",
+      "Volvé a la posición erguida y repetí hacia el otro lado."
     ],
     "puntosClave": [
       "Suave; no rebotes."
@@ -27633,9 +27881,10 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Mancuernas a los costados; un pie adelante y el otro atrás (apoyado en un banco si querés versión búlgara).",
-      "Bajá flexionando la pierna de adelante hasta que la rodilla de atrás casi toque el piso.",
-      "Subí empujando con el talón de adelante."
+      "Posicionáte en postura escalonada con el pie trasero elevado sobre un banco y el pie delantero hacia adelante.",
+      "Tomá una mancuerna en cada mano y dejalas colgar a los costados. Esta es la posición inicial.",
+      "Comenzá el descenso flexionando rodilla y cadera para bajar el cuerpo. Mantenés una buena postura durante todo el movimiento y la rodilla delantera alineada sobre el pie.",
+      "En el punto más bajo, empujá con el talón para extender rodilla y cadera y volver a la posición inicial."
     ],
     "puntosClave": [
       "Torso erguido; el peso en la pierna de adelante."
@@ -28424,9 +28673,10 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "De pie con mancuernas a los costados, puntas de los pies en un escalón si tenés.",
-      "Subí lo más alto posible sobre las puntas.",
-      "Bajá lento sintiendo el estiramiento."
+      "Pararte con el torso erguido y una mancuerna en cada mano a los costados. Apoyá las puntas de los pies en una tabla firme de unos 5-7 cm de altura para que los talones queden a nivel del piso. Esta es la posición inicial.",
+      "Con los pies apuntando al frente (para trabajo equilibrado), hacia adentro (énfasis en la cabeza externa del gemelo) o hacia afuera (énfasis en la cabeza interna), elevá los talones lo más alto posible exhalando y contrayendo los gemelos. Mantené la contracción un segundo arriba.",
+      "Inhalando, volvé a la posición inicial bajando los talones lentamente.",
+      "Repetí las veces indicadas."
     ],
     "puntosClave": [
       "Rango completo y pausa arriba."
@@ -28500,9 +28750,10 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "De pie, mancuernas con agarre prono (palmas hacia atrás), codos al cuerpo.",
-      "Flexioná llevando las mancuernas hacia los hombros sin rotar la muñeca.",
-      "Bajá controlando."
+      "Pararte con una mancuerna en cada mano, agarre prono (palmas hacia abajo), brazos completamente extendidos y pies a la altura de los hombros. Esta es la posición inicial.",
+      "Manteniendo la parte superior del brazo quieta, flexioná los antebrazos hacia arriba contrayendo los bíceps mientras exhalás. Solo se mueven los antebrazos. Seguí hasta que los bíceps estén completamente contraídos y las mancuernas a la altura de los hombros. Mantené la contracción un segundo.",
+      "Bajá las mancuernas lentamente a la posición inicial mientras inhalás.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "Enfatiza braquial y antebrazo."
@@ -28575,9 +28826,11 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, sostené una mancuerna con ambas manos por encima de la cabeza.",
-      "Bajá la mancuerna detrás de la cabeza flexionando los codos.",
-      "Extendé los codos hasta arriba sin abrirlos."
+      "Pararte con una mancuerna tomada con ambas manos. Los pies a la altura de los hombros. Con ambas manos, levantá la mancuerna sobre la cabeza hasta que los brazos estén completamente extendidos.",
+      "La mancuerna queda en las palmas con los pulgares alrededor y las palmas mirando hacia el techo. Esta es la posición inicial.",
+      "Manteniendo los codos cerca de la cabeza, apuntando al frente y perpendiculares al piso, bajá la mancuerna en arco detrás de la cabeza hasta que los antebrazos toquen los bíceps. Solo se mueven los antebrazos. Inhalá durante esta fase.",
+      "Volvé a la posición inicial extendiendo los codos. Exhalá al hacerlo.",
+      "Repetí las repeticiones indicadas."
     ],
     "puntosClave": [
       "Codos apuntando al frente y quietos."
@@ -28618,8 +28871,8 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Tomá una mancuerna en cada mano con agarre prono (palmas hacia el cuerpo), un poco más angosto que el ancho de hombros. Las mancuernas descansan sobre los muslos con los brazos casi extendidos y la espalda recta. Esta es la posición inicial.",
-      "Usá los hombros laterales para subir las mancuernas pegadas al cuerpo mientras exhalás; los codos guían el movimiento y deben ir siempre más altos que los antebrazos. Continuá hasta que las mancuernas casi toquen el mentón; sostené un segundo con el torso quieto.",
+      "Tomá una mancuerna en cada mano con un agarre prono (palmas hacia el cuerpo), un poco más angosto que el ancho de los hombros. Las mancuernas descansan sobre los muslos con los brazos casi extendidos y la espalda recta. Esta es la posición inicial.",
+      "Usá los hombros laterales para subir las mancuernas pegadas al cuerpo mientras exhalás. Los codos deben guiar el movimiento y permanecer siempre más altos que los antebrazos. Seguí hasta que las mancuernas casi toquen el mentón. Mantenés el torso quieto y pausás un segundo en la parte superior.",
       "Bajá las mancuernas lentamente a la posición inicial mientras inhalás.",
       "Repetí las veces indicadas."
     ],
@@ -28728,9 +28981,9 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie frente a una pared, una pierna atrás con la rodilla extendida y el talón en el piso.",
-      "Llevá la cadera hacia adelante hasta sentir el estiramiento en el gemelo.",
-      "Mantené y cambiá de lado."
+      "Colocá el talón derecho sobre un escalón con la rodilla extendida e inclinate hacia adelante para tomar el dedo gordo del pie derecho con la mano derecha. La rodilla izquierda debe estar levemente flexionada y la espalda recta.",
+      "Sostenés tu peso sobre la pierna izquierda y apoyás la mano izquierda sobre el muslo izquierdo.",
+      "Tirá los dedos del pie derecho hacia la rodilla hasta sentir el estiramiento en el gemelo."
     ],
     "puntosClave": [
       "Talón pegado al piso, rodilla de atrás recta."
@@ -28800,9 +29053,10 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, manos en la cintura.",
-      "Hacé círculos amplios con la cadera en un sentido y después en el otro.",
-      "Mantené las rodillas algo flexionadas."
+      "Comenzá de pie en una sola pierna, sosteniéndote de un apoyo vertical.",
+      "Elevá la rodilla libre a 90°. Esta es la posición inicial.",
+      "Abrí la cadera lo más posible intentando hacer un círculo grande con la rodilla.",
+      "Realizá este movimiento lentamente por el número de repeticiones indicadas y luego repetí del otro lado."
     ],
     "puntosClave": [
       "Buen ejercicio de entrada en calor para la cadera."
@@ -28840,9 +29094,8 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "En posición de zancada de pie, llevá la cadera hacia adelante.",
-      "Mantené el torso erguido y apretá el glúteo de atrás.",
-      "Sentí el estiramiento al frente de la cadera; cambiá de lado."
+      "Pararte con la columna vertical, el pie izquierdo levemente adelantado respecto al derecho.",
+      "Flexioná ambas rodillas y levantá el talón trasero del piso mientras empujás la cadera derecha hacia adelante. Este estiramiento es sutil porque es difícil relajar el flexor de cadera mientras estás parado sobre él. Mantené unos segundos y cambiá de lado."
     ],
     "puntosClave": [
       "Apretar el glúteo profundiza el estiramiento."
@@ -29532,9 +29785,8 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "De pie, piernas casi extendidas.",
-      "Llevá la cadera atrás e inclinate hacia los pies con la espalda lo más recta posible.",
-      "Sentí el estiramiento detrás de las piernas."
+      "Pararte con espacio tanto adelante como atrás.",
+      "Doblarte desde la cintura manteniendo las piernas rectas hasta poder relajarte y dejar que la parte superior del cuerpo cuelgue hacia adelante. Dejá que los brazos y las manos cuelguen de manera natural. Sostené entre 10 y 20 segundos."
     ],
     "puntosClave": [
       "Bisagra de cadera; no redondees de golpe."
@@ -29646,9 +29898,9 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Desde semi-sentadilla con manos al centro, saltá abriendo brazos y piernas en estrella.",
-      "Caé suave volviendo a la posición inicial.",
-      "Encadená con ritmo."
+      "Comenzá de pie relajado con los pies al ancho de los hombros y los brazos cerca del cuerpo.",
+      "Para iniciar el movimiento, hacé una media sentadilla y explotá hacia arriba lo más alto posible. Extendé todo el cuerpo completamente, separando piernas y brazos del cuerpo en forma de estrella.",
+      "Al aterrizar, volvé a unir las extremidades y absorbé el impacto a través de las piernas."
     ],
     "puntosClave": [
       "Caída amortiguada."
@@ -29689,9 +29941,9 @@
     "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Frente a un cajón firme, subí apoyando todo el pie y empujando con esa pierna.",
-      "Arriba, elevá la rodilla contraria hacia el pecho.",
-      "Bajá controlando y alterná."
+      "Pararte frente a un cajón o banco de altura apropiada con los pies juntos. Esta es la posición inicial.",
+      "Comenzá el movimiento subiendo un pie al cajón y apoyándolo completo. Extendé cadera y rodilla de esa pierna para pararte sobre el cajón. Al quedar en el cajón con esa pierna, flexioná la rodilla y cadera de la pierna libre, elevando esa rodilla lo más alto posible.",
+      "Revertí el movimiento para bajar del cajón y repetí la secuencia con la otra pierna, alternando."
     ],
     "puntosClave": [
       "Empujá con el talón de la pierna de arriba."
@@ -29917,11 +30169,11 @@
     "nivel": "Intermedio",
     "instrucciones": [
       "Colocá una mancuerna parada y asegurada en un extremo de un banco plano.",
-      "Acostado perpendicular al banco (solo los hombros apoyados), con las caderas por debajo del nivel del banco, las rodillas flexionadas y los pies en el piso; la cabeza cuelga fuera del banco. Verificá siempre que la mancuerna esté bien sujeta antes de comenzar.",
-      "Tomá la mancuerna con ambas manos apoyando las palmas en la cara inferior de uno de sus extremos y extendé los brazos sobre el pecho: esta es la posición inicial.",
-      "Manteniendo los brazos rectos, bajá lentamente la mancuerna en arco por detrás de la cabeza mientras inhalás, hasta sentir el estiramiento en el pecho.",
+      "Asegurándote de que la mancuerna permanezca bien ubicada en la parte superior del banco, acostáte perpendicular al banco (torso a través de él formando una cruz) con solo los hombros apoyados en la superficie. Las caderas deben quedar por debajo del banco y las piernas flexionadas con los pies firmemente en el piso. La cabeza también colgará fuera del banco.",
+      "Tomá la mancuerna con ambas manos y sostenéla directamente sobre el pecho con los brazos extendidos. Ambas palmas deben estar presionando contra la cara inferior de uno de los extremos de la mancuerna. Esta es la posición inicial. Precaución: Verificá siempre que la mancuerna esté bien asegurada antes de comenzar; una mancuerna con discos flojos puede desarmarse y caer.",
+      "Manteniendo los brazos rectos, bajá lentamente el peso en arco detrás de la cabeza mientras inhalás, hasta sentir el estiramiento en el pecho.",
       "Devolvé la mancuerna a la posición inicial siguiendo el mismo arco mientras exhalás.",
-      "Sostené un segundo en la posición inicial y repetí las veces indicadas."
+      "Sostené el peso en la posición inicial un segundo y repetí el movimiento las veces indicadas."
     ],
     "puntosClave": [
       "Los brazos permanecen rectos durante todo el movimiento.",
@@ -31627,8 +31879,8 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Pisá la banda elástica con los pies y agarrá los extremos con un agarre prono (palmas hacia los muslos), un poco más angosto que el ancho de hombros. Los extremos descansan sobre los muslos con los brazos casi extendidos y la espalda recta: esta es la posición inicial.",
-      "Usá los hombros laterales para subir los extremos pegados al cuerpo mientras exhalás, hasta que casi toquen el mentón. Los codos guían el movimiento y deben ir siempre más altos que los antebrazos; sostené un segundo arriba con el torso quieto.",
+      "Para comenzar, pisá la banda elástica de modo que la tensión empiece a nivel de los brazos extendidos. Tomá los extremos con un agarre prono (palmas mirando hacia los muslos), un poco más angosto que el ancho de los hombros. Los extremos descansan sobre los muslos con los brazos casi extendidos, una leve flexión en los codos y la espalda recta. Esta es la posición inicial.",
+      "Usá los hombros laterales para subir los extremos mientras exhalás. Mantenelos cerca del cuerpo a medida que suben; los codos deben guiar el movimiento y permanecer siempre más altos que los antebrazos. Seguí hasta que los extremos casi toquen el mentón. Mantenés el torso quieto y pausás un segundo en la parte superior.",
       "Bajá los extremos lentamente a la posición inicial mientras inhalás.",
       "Repetí las veces indicadas."
     ],
@@ -32605,9 +32857,9 @@
     "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Desde una zancada larga, apoyá la mano de adentro en el piso.",
-      "Llevá el codo de ese lado hacia el piso, cerca del pie.",
-      "Rotá abriendo ese brazo hacia el techo; volvé y cambiá de lado."
+      "Comenzá en una zancada larga con el pie delantero plano en el piso y las puntas del pie trasero apoyadas. Con las rodillas flexionadas, bajá hasta que la rodilla trasera casi toque el piso. Mantenés el torso erguido y sostenés esta posición entre 10 y 20 segundos.",
+      "Apoyá el brazo del mismo lado que la pierna delantera en el piso, con el codo al lado del pie delantero. La otra mano se apoya en el piso de manera paralela a la pierna delantera para dar soporte. Sostené entre 10 y 20 segundos.",
+      "Apoyá ambas manos a los costados del pie delantero. Elevá los dedos del pie delantero del piso y extendé esa pierna. Puede que necesités reposicionar la pierna trasera. Mantené entre 10 y 20 segundos y luego repetí toda la secuencia del otro lado."
     ],
     "puntosClave": [
       "Abre cadera, dorsal y torácica de una; ideal de entrada en calor."

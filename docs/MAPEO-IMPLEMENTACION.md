@@ -123,6 +123,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 - **Lote 2 (2026-06-12):** 30 re-pases (ratios 0.20–0.33) · 30/30 pasan umbral 0.7 · warnings: 81 → 51
 - **Lote 3 (2026-06-12):** 30 re-pases (ratios 0.34–0.55) · 30/30 pasan umbral 0.7 · warnings: 51 → 21
 - **Lote 4 (2026-06-12):** 21 re-pases (ratios 0.55–0.70) · 21/21 pasan umbral 0.7 · warnings: 21 → **0** ✅ todas las 115 traducciones superan el umbral
+- **Lote 5 (2026-06-12):** 30 nuevas (beginner + equipo hogareño) · 0 warnings · traducidos 145/873
 
 ---
 
