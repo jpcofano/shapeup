@@ -127,6 +127,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 - **Lote 6 (2026-06-13):** 30 nuevas (beginner + equipo hogareño, tanda 2) · 0 warnings · traducidos 175/873
 - **Lote 7 (2026-06-25):** 30 nuevas (beginner + equipo hogareño, tanda 3) · 0 warnings · traducidos 205/873
 - **Lote 8 (2026-06-25):** 30 nuevas (beginner + equipo hogareño, tanda 4) · 0 warnings · traducidos 235/873
+- **Lote 9 (2026-06-25):** 11 nuevas — completa el pool beginner + equipo hogareño (body only/dumbbell/bands/kettlebells) · 0 warnings · traducidos 246/873
 
 ---
 
