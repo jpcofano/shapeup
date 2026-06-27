@@ -210,6 +210,7 @@ export interface Ejercicio {
   // ── Media (FEDB hospeda imágenes vía raw.githubusercontent) ──
   imagenes?: string[];             // URLs
   videoUrl?: string;
+  videoEsGenerico?: boolean;       // true: clip representativo por patrón, no footage propio del ejercicio
 
   sinonimos: string[];
   // ── Trazabilidad de la fuente (lo que pidió el usuario) ──

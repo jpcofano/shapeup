@@ -61,10 +61,23 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | D14b | Lotes de traducción (prompt 40b, repetible — se intercala cuando el owner quiera) | ⬜ | — |
 | D15 | Micro-interacciones: stagger cards, anillo animado, feedback de serie, tabs (hallazgo C9) | ✅ | 2026-06-10 |
 | D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ✅ | 2026-06-11 |
+| P43 (B2) | Video demo real en MediaTabs — 2 tabs (Demo/Músculo) + `videoUrl` por patrón (FEDB) | ✅ | 2026-06-27 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-27] P43 (B2) — Video de demostración real en MediaTabs
+
+- **`src/components/entrenar/MediaTabs.tsx`** — de 3 tabs (Foto/Demo/Músculo) a **2 tabs (Demo/Músculo)**, decisión del owner: la foto pasa a ser el póster de Demo. `type Tab = "demo" | "musculo"`. Estado inicial de Demo: foto (`ej.imagenes[0]`) a opacidad plena + botón play encima (sin foto → placeholder `<Dumbbell>` + play); sin `ej?.videoUrl` → foto atenuada + badge tenue "Video pronto" (sin botón play, sin spinner colgado). Al click con `videoUrl` disponible: `<video autoPlay muted loop playsInline controls>` cubriendo el frame; `onWaiting`/`onCanPlay` controlan un overlay "Cargando demo…" (`.spinner` reusado); `onError` vuelve a la foto y marca el video como roto (no reintenta). Reset a "Demo" por `useEffect` sobre `ej.idEjercicio`. Crédito chico bajo el frame cuando `ej.videoEsGenerico` es `true`: "Demo: Wikimedia Commons · CC BY 3.0".
+- **`src/types/models.ts`** — nuevo campo opcional `videoEsGenerico?: boolean` en `Ejercicio` (distingue clip representativo de footage propio).
+- **`scripts/data/videos-genericos.ts`** (nuevo) — tabla `PatronMovimiento → ClipGenerico` (archivo de Commons + crédito + URL de la página, para atribución) y helpers `videoGenericoPorPatron()` / `urlClip()` (arma la URL hotlinkeable vía `Special:FilePath`, estable aunque cambie el hash de carpeta de `upload.wikimedia.org`; verificado con `curl -L` que resuelve 200 `video/webm`). Cobertura: **10/12 patrones** — todos los clips son de la serie *"… - exercise demonstration video"* de **FitnessScape** (CC BY 3.0) salvo Zancada/unilateral (U.S. Army ACFT, dominio público), Locomoción/cardio (Taco Fleur/Cavemantraining, CC BY-SA 4.0) y Aislamiento (Colossus Fitness, CC BY 3.0).
+  - **Sin clip** (deuda, caen al placeholder "Video pronto"): **Core anti-extensión** (plank) y **Core anti-rotación** (russian twist/woodchop) — no se encontró un video libre adecuado en Commons.
+  - **Caveat iOS/webm:** todos los clips mapeados son `.webm`; Safari de iPhone no lo reproduce. No se encontró transcode `.mp4` libre equivalente — queda como deuda explícita; el fallback a foto + "Video pronto" cubre la degradación en iOS hasta que se resuelva.
+- **`scripts/importar-fedb.ts`** — tras resolver `patronFinal` (override del diccionario o `resolverPatron`), busca el clip genérico por patrón y completa `videoUrl` (vía `urlClip`) + `videoEsGenerico:true` en el catálogo regenerado. Resultado: **790/873** ejercicios FEDB con `videoUrl` poblado (el resto: patrones sin cobertura o sin patrón resuelto).
+- **`scripts/data/videos-genericos.test.ts`** (nuevo) — cubre el mapeo (clips esperados por patrón), los patrones sin cobertura (`undefined`, no rompe), la forma de la URL (`Special:FilePath`, sin espacios) y que todo patrón del modelo resuelva sin tirar.
+- **`src/index.css`** — `.media-badge-muted` (badge tenue "Video pronto") y `.media-credito` (texto de atribución bajo el frame); reuso de `.media-seg`/`.media-frame`/`.media-play-overlay`/`.media-play-btn`/`.media-playing` ya existentes de D12.
+- No se tocó la app de comidas familiar ni otras pantallas — solo `MediaTabs`, el tipo `Ejercicio`, el importador FEDB y los datos del catálogo (`catalogo-ejercicios.json` regenerado).
 
 ### [2026-06-11] D16 — Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión (B5–B8 + C10)
 
@@ -1042,7 +1055,7 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
 
 ### B. Riqueza de ejercicios (prioridad del owner)
 - **B1. Explicaciones más ricas:** surfacear músculos primarios/secundarios, nivel, mecánica, patrón y equipo en el detalle. *Datos FEDB ya importados → solo mostrarlos.*
-- **B2. Video de YouTube por ejercicio:** embeber el player oficial (legal) vía `videoUrl`; curar a mano los más usados (34 de casa + top FEDB). **No** hostear/descargar video.
+- ~~**B2. Video por ejercicio.**~~ ✅ **Hecho** (P43, ver Bitácora) — clip representativo por patrón vía `videoUrl` (no embed de YouTube; clips libres de Commons hotlinkeados). Pendiente real: footage propio de los 34 ejercicios de casa y curado fino del top FEDB.
 - **B3. Mini-mapa corporal** de músculos trabajados (resalta grupos con primary/secondary de FEDB).
 - **B4. Variantes / progresión-regresión** (más fácil ↔ más difícil) por ejercicio.
 - **B5. Equipo alternativo** ("sin mancuerna: banda / mochila cargada").

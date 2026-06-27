@@ -22,6 +22,7 @@ import {
   type GrupoMuscular, type Mecanica,
 } from "../src/types/models";
 import { resolverPatron } from "../src/lib/patronMovimiento";
+import { videoGenericoPorPatron, urlClip } from "./data/videos-genericos";
 
 type FEDB = {
   id: string; name: string; force: string | null; level: string;
@@ -146,11 +147,15 @@ async function main() {
     // A4: descanso por mecánica, override desde diccionario
     const descanso = t?.descansoSugeridoSeg ?? calcularDescanso(f);
 
+    // B2: video representativo por patrón, mientras no haya footage propio
+    const patronFinal = t?.patron ?? patronCalculado;
+    const clipGenerico = videoGenericoPorPatron(patronFinal);
+
     catalogo.push({
       idEjercicio: `EJ-${String(n).padStart(4, "0")}`,
       nombre: t?.nombre ?? f.name,
       modalidad: t?.modalidad ?? MODALIDAD_POR_CATEGORIA[f.category] ?? "Fuerza",
-      patron: t?.patron ?? patronCalculado,
+      patron: patronFinal,
       mecanica: f.mechanic ? MECANICA[f.mechanic] : undefined,
       fuerzaFEDB: f.force ? FEDB_FUERZA[f.force] : undefined,
       grupoMuscularPrimario: primario,
@@ -163,6 +168,8 @@ async function main() {
       erroresComunes: t?.erroresComunes ?? [],
       descansoSugeridoSeg: descanso,
       imagenes: (f.images ?? []).map((p) => IMG_BASE + p),
+      videoUrl: clipGenerico ? urlClip(clipGenerico) : undefined,
+      videoEsGenerico: clipGenerico ? true : undefined,
       sinonimos: t?.sinonimos ?? [],
       fuente: "Free Exercise DB",
       fuenteId: f.id,

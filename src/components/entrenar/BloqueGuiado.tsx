@@ -46,7 +46,7 @@ export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio
         </p>
       )}
 
-      {/* MediaTabs: Foto / Demo / Músculo */}
+      {/* MediaTabs: Demo / Músculo */}
       <MediaTabs ej={ejercicio} />
 
       {/* Dots y serie actual */}

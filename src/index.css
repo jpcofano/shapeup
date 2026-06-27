@@ -876,7 +876,7 @@
   }
 }
 
-/* ── MediaTabs (D12) ─────────────────────────────────────────────────────── */
+/* ── MediaTabs (D12, video real B2) ─────────────────────────────────────── */
 
 .media-tabs {
   display: flex;
@@ -965,6 +965,17 @@
   border-radius: 999px;
   letter-spacing: .04em;
   z-index: 1;
+}
+.media-badge-muted {
+  background: var(--card);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.media-credito {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
 }
 
 .media-playing {
