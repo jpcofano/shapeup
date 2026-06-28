@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { X, AlignJustify, Zap, RotateCcw, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Bicep } from "../components/Bicep";
 import type { Ejercicio, SerieRegistro, PrescripcionFuerza } from "../types/models";
 import { finalizarSesion } from "../data/historial";
+import { getEjercicio } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, seriesObjetivo,
@@ -19,7 +20,8 @@ const SESSION_KEY = "libre:temp";
 
 type EjDefaults = { series: number; reps: number };
 
-function defaultsParaEj(ej: Ejercicio): EjDefaults {
+/** Defaults del atajo F4 y de "Sumá ejercicio": 3 series × 10 reps. Exportado para test. */
+export function defaultsParaEj(ej: Ejercicio): EjDefaults {
   return { series: 3, reps: ej.modalidad === "Fuerza" ? 10 : 10 };
 }
 
@@ -27,16 +29,27 @@ function defaultsParaEj(ej: Ejercicio): EjDefaults {
  * Sesión libre (ad-hoc): el usuario elige ejercicios del catálogo y los
  * entrena sin una Rutina persistida. Se registra en Historial con tipo "libre".
  * Ruta: /entrenar/libre (fullscreen, sin AppShell).
+ *
+ * También sirve de atajo "Empezar este ejercicio" (F4) vía
+ * /entrenar/ejercicio/:idEjercicio — pre-carga ese único ejercicio (3×10)
+ * y entra directo a fase 2. Si el id no carga (inválido/offline), degrada
+ * al selector vacío normal.
  */
 export function EntrenarSesionLibre() {
-  const navigate      = useNavigate();
-  const { memberId }  = useAuth();
+  const navigate         = useNavigate();
+  const { memberId }     = useAuth();
+  const { idEjercicio: idEjercicioAtajo } = useParams<{ idEjercicio?: string }>();
 
   // ── Fase 1 — selector ─────────────────────────────────────────────────────
   const [ejercicios,     setEjercicios]     = useState<Ejercicio[]>([]);
   const [ejDefaults,     setEjDefaults]     = useState<EjDefaults[]>([]);
   const [pickerAbierto,  setPickerAbierto]  = useState(false);
   const [sesionIniciada, setSesionIniciada] = useState(false);
+
+  // ── Atajo F4 — pre-seed de 1 ejercicio ───────────────────────────────────
+  const [viaAtajo,      setViaAtajo]      = useState(false);
+  const [cargandoAtajo, setCargandoAtajo] = useState(!!idEjercicioAtajo);
+  const [sumarAbierto,  setSumarAbierto]  = useState(false);
 
   // ── Fase 2 — workout ──────────────────────────────────────────────────────
   const bloques = ejercicios.map((ej, i) => {
@@ -67,12 +80,48 @@ export function EntrenarSesionLibre() {
   const [logCarga,  setLogCarga]  = useState("");
   const startRef = useRef<number>(Date.now());
 
+  // Pre-seed: si entramos por /entrenar/ejercicio/:idEjercicio, cargá ese
+  // ejercicio y arrancá directo en fase 2. Sin id → no hace nada (selector normal).
+  useEffect(() => {
+    if (!idEjercicioAtajo) return;
+    let activo = true;
+    (async () => {
+      const result = await getEjercicio(idEjercicioAtajo);
+      if (activo && result.ok) {
+        setEjercicios([result.value]);
+        setEjDefaults([defaultsParaEj(result.value)]);
+        setViaAtajo(true);
+        session.reiniciar();
+        startRef.current = Date.now();
+        setSesionIniciada(true);
+      }
+      if (activo) setCargandoAtajo(false);
+    })();
+    return () => { activo = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idEjercicioAtajo]);
+
+  /** Salida (X / fin de sesión): si entramos por el atajo, volvemos al catálogo. */
+  function salir() {
+    if (viaAtajo) navigate(-1);
+    else navigate("/entrenar");
+  }
+
   // ── Handlers fase 1 ───────────────────────────────────────────────────────
 
   function agregarEjercicio(ej: Ejercicio) {
     setEjercicios((prev) => [...prev, ej]);
     setEjDefaults((prev) => [...prev, defaultsParaEj(ej)]);
     setPickerAbierto(false);
+  }
+
+  /** "Sumar otro ejercicio" desde la pantalla de fin: agrega el bloque y sigue la sesión. */
+  function sumarYContinuar(ej: Ejercicio) {
+    const nuevoIdx = ejercicios.length;
+    setEjercicios((prev) => [...prev, ej]);
+    setEjDefaults((prev) => [...prev, defaultsParaEj(ej)]);
+    setSumarAbierto(false);
+    session.irABloque(nuevoIdx);
   }
 
   function quitarEjercicio(idx: number) {
@@ -121,6 +170,18 @@ export function EntrenarSesionLibre() {
     session.completarSerie(state.bloqueActual, getLogValues());
     setLogReps("");
     setLogCarga("");
+  }
+
+  // ── Render: cargando el atajo (pre-seed de 1 ejercicio) ───────────────────
+
+  if (cargandoAtajo) {
+    return (
+      <div className="workout-screen">
+        <div className="loading-screen">
+          <div className="spinner" />
+        </div>
+      </div>
+    );
   }
 
   // ── Render: fase 1 — selector ─────────────────────────────────────────────
@@ -285,7 +346,7 @@ export function EntrenarSesionLibre() {
             style={{ width: "100%", marginTop: 8 }}
             disabled={saving}
             onClick={async () => {
-              if (!memberId) { session.reiniciar(); navigate("/entrenar"); return; }
+              if (!memberId) { session.reiniciar(); salir(); return; }
               setSaving(true);
               setSaveError(null);
               const durMin = Math.round((Date.now() - startRef.current) / 60_000);
@@ -305,10 +366,21 @@ export function EntrenarSesionLibre() {
             {saving ? "Guardando…" : "Finalizar y guardar"}
           </button>
           <button className="btn-secondary" style={{ width: "100%" }}
+            onClick={() => setSumarAbierto(true)}>
+            <Plus size={16} /> Sumar otro ejercicio
+          </button>
+          <button className="btn-secondary" style={{ width: "100%" }}
             onClick={() => session.reiniciar()}>
             Empezar de nuevo
           </button>
         </div>
+
+        {sumarAbierto && (
+          <ExercisePicker
+            onSelect={sumarYContinuar}
+            onClose={() => setSumarAbierto(false)}
+          />
+        )}
       </div>
     );
   }
@@ -323,7 +395,7 @@ export function EntrenarSesionLibre() {
   return (
     <div className="workout-screen">
       <div className="workout-header">
-        <button className="btn-icon-sm" onClick={() => navigate("/entrenar")} title="Salir">
+        <button className="btn-icon-sm" onClick={salir} title="Salir">
           <X size={18} />
         </button>
         <p className="workout-title">Sesión libre</p>

@@ -62,10 +62,24 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | D15 | Micro-interacciones: stagger cards, anillo animado, feedback de serie, tabs (hallazgo C9) | ✅ | 2026-06-10 |
 | D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ✅ | 2026-06-11 |
 | P43 (B2) | Video demo real en MediaTabs — 2 tabs (Demo/Músculo) + `videoUrl` por patrón (FEDB) | ✅ | 2026-06-27 |
+| P44 (F4) | "Empezar este ejercicio" — atajo de 1 toque a sesión de un solo ejercicio (3×10) desde el catálogo | ✅ | 2026-06-28 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-06-28] P44 (F4) — "Empezar este ejercicio": atajo a sesión de un solo ejercicio
+
+- **`src/App.tsx`** — nueva ruta fullscreen `/entrenar/ejercicio/:idEjercicio` (junto a `/entrenar/libre`), monta el mismo `EntrenarSesionLibre`.
+- **`src/routes/EntrenarSesionLibre.tsx`** — reusa el motor existente (`useEntrenarState`, `buildBloqueLibre`/`buildVirtualRutina`, `BloqueGuiado`, quick-log), sin flujo nuevo en paralelo:
+  - **Pre-seed:** `useParams().idEjercicio` → `useEffect` de montaje llama `getEjercicio(id)`; si carga, `ejercicios=[ej]`, `ejDefaults=[{series:3,reps:10}]` (mismo `defaultsParaEj`, ahora exportado para test) y `sesionIniciada=true` → entra directo a fase 2. Mientras resuelve, pantalla de carga (`.spinner`) en vez de flashear el selector vacío. Si falla (id inválido/offline) o no hay `idEjercicio`: selector normal de fase 1, sin pantalla rota.
+  - **Salida (`salir()`):** si se entró por el atajo (`viaAtajo`), el botón "X" y el flujo de guardado sin `memberId` navegan con `navigate(-1)` (vuelve al catálogo); si no, `/entrenar` como antes.
+  - **(3) "Sumar otro ejercicio"** — decisión tomada (alternativa B del prompt, la más simple): en la pantalla de fin se abre el `ExercisePicker` directamente; al elegir, `sumarYContinuar()` agrega el bloque al final de `ejercicios`/`ejDefaults` (mismo estado que ya usa fase 1) y mueve `bloqueActual` al nuevo índice (`session.irABloque`). Como `useEntrenarState` persiste el estado por `sessionKey` y no lo resetea al cambiar `rutina`, los bloques ya completados quedan intactos; `rutinaCompleta` vuelve a `false` con el bloque nuevo incompleto y la vista cae sola en "fase 2 — en curso" sobre ese bloque. No se tocó el reducer puro de `entrenarState.ts`.
+- **`src/routes/Catalogo.tsx`** — `EjercicioCard`: botón primario "Empezar este ejercicio" (ícono `Zap`, mismo patrón visual que el "Empezar" de la libre) arriba de la imagen/ficha técnica en el detalle expandido, visible sin scrollear. Navega a `/entrenar/ejercicio/${ej.idEjercicio}`. Funciona igual con `traduccion:"pendiente"` (no bloqueado).
+- **Motor con 1 solo bloque (punto 4):** verificado — `proximoBloqueIncompleto` no encuentra otro bloque tras completar el único existente, así que `bloqueActual` no se mueve y `rutinaCompleta` pasa a `true` directo (sin "siguiente ejercicio"). `BloqueGuiado` ya decía "Ejercicio 1 de 1" sin asumir plural; no hizo falta tocar copys.
+- **`src/lib/entrenarState.test.ts`** (nuevo describe) — regresión: rutina virtual de 1 bloque pre-cargado a 3×10 queda incompleta tras la 1ra/2da serie y se completa recién en la 3ra, sin mover `bloqueActual` (no hay "siguiente"). 231 tests verdes, `tsc -b` limpio.
+- **Verificado:** dev server (Vite) levanta sin errores y los módulos nuevos (`EntrenarSesionLibre.tsx`, `Catalogo.tsx`) transpilan limpio. **No se pudo probar el click-through real en navegador** (sin `chromium-cli` en este entorno + la app requiere login real de Google contra la whitelist, no automatizable sin credenciales) — pendiente de que el owner lo pruebe a mano siguiendo la Verificación del prompt 44.
+- **Pendiente (nota del prompt, no bloquea):** portar este atajo al kit (`ui_kits/shapeup`) cuando se cierre en el repo.
 
 ### [2026-06-27] P43 (B2) — Video de demostración real en MediaTabs
 

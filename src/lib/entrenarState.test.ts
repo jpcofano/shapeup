@@ -7,7 +7,7 @@ import {
   INITIAL_ENTRENAR_STATE,
   buildBloqueLibre, buildVirtualRutina, construirBloquesRegistro,
 } from "./entrenarState";
-import type { Ejercicio, Rutina } from "../types/models";
+import type { Ejercicio, PrescripcionFuerza, Rutina } from "../types/models";
 
 // ── Rutina de prueba ──────────────────────────────────────────────────────────
 const rutina: Rutina = {
@@ -286,6 +286,34 @@ describe("buildVirtualRutina", () => {
     let s = s0;
     for (let i = 0; i < 3; i++) s = completarSerie(s, vr, 0);
     expect(rutinaCompleta(s, vr)).toBe(true);
+  });
+});
+
+// ── F4: atajo "Empezar este ejercicio" — pre-seed de 1 ejercicio a 3×10 ───────
+describe("F4 — pre-seed de 1 ejercicio entra en fase 2 con 3 series", () => {
+  it("la rutina virtual de 1 solo bloque pre-cargado (3×10) banca bien: incompleta hasta la 3ra, sin 'siguiente'", () => {
+    // Mismo override que EntrenarSesionLibre.defaultsParaEj() aplica sobre buildBloqueLibre.
+    const bl = buildBloqueLibre(ejFuerza, 1);
+    const p = bl.prescripcion as PrescripcionFuerza;
+    const bloque = {
+      ...bl,
+      prescripcion: { ...p, series: 3, repsObjetivo: { value: 10, raw: "10" } } as PrescripcionFuerza,
+    };
+    const vr = buildVirtualRutina([bloque]);
+
+    expect(vr.bloques).toHaveLength(1);
+
+    let s = s0;
+    s = completarSerie(s, vr, 0, { reps: 10 });
+    expect(rutinaCompleta(s, vr)).toBe(false);
+    expect(s.bloqueActual).toBe(0); // sin bloque "siguiente": queda en el único que hay
+
+    s = completarSerie(s, vr, 0, { reps: 10 });
+    expect(rutinaCompleta(s, vr)).toBe(false);
+
+    s = completarSerie(s, vr, 0, { reps: 10 });
+    expect(rutinaCompleta(s, vr)).toBe(true); // 3ra serie → fin de sesión
+    expect(s.bloqueActual).toBe(0); // proximoBloqueIncompleto no encontró otro → se queda
   });
 });
 

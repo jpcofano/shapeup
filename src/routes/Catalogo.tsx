@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, Search, Zap } from "lucide-react";
 import type {
   Ejercicio, Modalidad, RegionMuscular, Equipo, Nivel,
 } from "../types/models";
@@ -51,6 +51,7 @@ function FichaTecnica({ ej }: { ej: Ejercicio }) {
 
 function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
   const [abierto, setAbierto] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="card" style={{ padding: 0, overflow: "hidden" }}>
@@ -88,6 +89,15 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
       {/* Detalle expandible */}
       {abierto && (
         <div className="card-detail-expand" style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 10 }}>
+          {/* CTA F4: atajo directo a la sesión guiada con este ejercicio */}
+          <button
+            className="btn-primary"
+            style={{ marginTop: 10, width: "100%" }}
+            onClick={() => navigate(`/entrenar/ejercicio/${ej.idEjercicio}`)}
+          >
+            <Zap size={18} /> Empezar este ejercicio
+          </button>
+
           {/* Imagen */}
           {ej.imagenes && ej.imagenes.length > 0 && (
             <img

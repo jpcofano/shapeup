@@ -20,8 +20,9 @@ import { ProgramaDetalle } from "./routes/ProgramaDetalle";
 
 const router = createBrowserRouter([
   // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
-  { path: "/entrenar/libre",     element: <EntrenarSesionLibre /> },
-  { path: "/entrenar/:rutinaId", element: <EntrenarSesion /> },
+  { path: "/entrenar/libre",                element: <EntrenarSesionLibre /> },
+  { path: "/entrenar/ejercicio/:idEjercicio", element: <EntrenarSesionLibre /> },
+  { path: "/entrenar/:rutinaId",            element: <EntrenarSesion /> },
 
   // ── App con AppShell ───────────────────────────────────────────────────────
   {
