@@ -3579,9 +3579,9 @@
   },
   {
     "idEjercicio": "EJ-0087",
-    "nombre": "Bent Press",
+    "nombre": "Bent press con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core anti-rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -3596,28 +3596,33 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulders by extending through the legs and hips as you raise the kettlebell towards your shoulder. The wrist should rotate as you do so. This will be your starting position.",
-      "Begin my leaning to the side opposite the kettlebell, continuing until you are able to touch the ground with your free hand, keeping your eyes on the kettlebell. As you do so, press the weight vertically be extending through the elbow, keeping your arm perpendicular to the ground.",
-      "Return to an upright position, with the kettlebell above your head. Return the kettlebell to the shoulder and repeat for the desired number of repetitions."
+      "Cargá una pesa rusa al hombro extendiendo piernas y cadera mientras la elevás hacia el hombro. La muñeca debe rotar al hacerlo. Esta es la posición inicial.",
+      "Comenzá inclinándote hacia el lado opuesto a la pesa, continuando hasta poder tocar el piso con la mano libre, manteniendo la vista en la pesa. Mientras hacés esto, presioná el peso verticalmente extendiendo el codo, manteniendo el brazo perpendicular al piso.",
+      "Volvé a la posición erguida con la pesa por encima de la cabeza. Devolvé la pesa al hombro y repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El cuerpo se inclina hacia el lado contrario mientras el brazo presiona; es un ejercicio de fuerza y técnica avanzada."
+    ],
+    "erroresComunes": [
+      "Perder de vista la pesa, desestabilizando el hombro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Press/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
-    "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "bent press",
+      "press inclinado lateral kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Bent_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0088",
@@ -8813,9 +8818,9 @@
   },
   {
     "idEjercicio": "EJ-0215",
-    "nombre": "Double Kettlebell Snatch",
+    "nombre": "Arrancada con dos pesas rusas",
     "modalidad": "Fuerza",
-    "patron": "Dominante de cadera",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -8830,25 +8835,32 @@
     "unilateral": false,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Place two kettlebells behind your feet. Bend your knees and sit back to pick up the kettlebells.",
-      "Swing the kettlebells between your legs forcefully and reverse the direction.",
-      "Drive through with your hips and lock the ketttlebells overhead in one uninterrupted motion."
+      "Colocá dos pesas rusas detrás de los pies. Flexioná las rodillas y llevá los glúteos hacia atrás para tomar las pesas.",
+      "Balanceá las pesas con fuerza entre las piernas y revertí la dirección.",
+      "Empujá con la cadera y bloqueá las pesas por encima de la cabeza en un movimiento continuo e ininterrumpido."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El movimiento debe ser continuo, sin pausa entre el balanceo y el bloqueo arriba."
+    ],
+    "erroresComunes": [
+      "Detenerse a mitad de camino, perdiendo el impulso de la cadera."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Double_Kettlebell_Snatch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Double_Kettlebell_Snatch/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "double kettlebell snatch",
+      "snatch doble kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Double_Kettlebell_Snatch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0216",
@@ -18278,35 +18290,45 @@
   },
   {
     "idEjercicio": "EJ-0441",
-    "nombre": "Lying Crossover",
+    "nombre": "Estiramiento cruzado acostado (asistido)",
     "modalidad": "Movilidad",
+    "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Abductores",
     "gruposSecundarios": [],
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Lie on your back with your legs extended.",
-      "Cross one leg over your body with the knee bent, attempting to touch the knee to the ground. Your partner should kneel beside you, holding your shoulder down with one hand and controlling the crossed leg with the other. this will be your starting position.",
-      "Attempt to raise the bent knee off of the ground as your partner prevents any actual movement.",
-      "After 10-20 seconds, relax the leg as your partner gently presses the knee towards the floor. Repeat with the other side."
+      "Acostáte boca arriba con las piernas extendidas.",
+      "Cruzá una pierna sobre el cuerpo con la rodilla flexionada, intentando tocar el piso con la rodilla. Tu compañero debe arrodillarse a tu lado, sosteniendo tu hombro hacia abajo con una mano y controlando la pierna cruzada con la otra. Esta es la posición inicial.",
+      "Intentá elevar la rodilla flexionada del piso mientras tu compañero evita cualquier movimiento real.",
+      "Después de 10-20 segundos, relajá la pierna mientras tu compañero presiona suavemente la rodilla hacia el piso. Repetí del otro lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un estiramiento FNP (facilitación neuromuscular propioceptiva): requiere un compañero que aplique resistencia y luego asista el estiramiento."
+    ],
+    "erroresComunes": [
+      "Que el compañero fuerce el estiramiento sin avisar, generando dolor o lesión."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Crossover/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Crossover/1.jpg"
     ],
-    "sinonimos": [],
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
+    "videoEsGenerico": true,
+    "sinonimos": [
+      "lying crossover stretch",
+      "estiramiento fnp cruzado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_Crossover",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0442",
@@ -18428,8 +18450,9 @@
   },
   {
     "idEjercicio": "EJ-0445",
-    "nombre": "Lying Glute",
+    "nombre": "Estiramiento de glúteo acostado (asistido)",
     "modalidad": "Movilidad",
+    "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Glúteos",
     "gruposSecundarios": [
@@ -18438,27 +18461,36 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Lie on your back with your partner kneeling beside you.",
-      "Flex the hip of one leg, raising it off of the floor. Rotate the leg so the foot is over the opposite hip, the lower leg perpendicular to your body. Your partner should hold the knee and ankle in place. This will be your starting position.",
-      "Attempt to push your leg towards your partner, who should be preventing any actual movement of the leg.",
-      "After 10-20 seconds, completely relax as your partner gently pushes the ankle and knee towards your chest. Be sure to inform your helper when the stretch is adequate to prevent injury or overstretching."
+      "Acostáte boca arriba con tu compañero arrodillado a tu lado.",
+      "Flexioná la cadera de una pierna, elevándola del piso. Rotá la pierna de modo que el pie quede sobre la cadera contraria, con la parte inferior de la pierna perpendicular al cuerpo. Tu compañero debe sostener la rodilla y el tobillo en posición. Esta es la posición inicial.",
+      "Intentá empujar la pierna hacia tu compañero, quien debe evitar cualquier movimiento real de la pierna.",
+      "Después de 10-20 segundos, relajáte completamente mientras tu compañero empuja suavemente el tobillo y la rodilla hacia tu pecho. Asegurate de avisarle a tu ayudante cuando el estiramiento sea suficiente para evitar lesiones o sobreestiramiento."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un estiramiento FNP: comunicación constante con el compañero es clave para evitar lesiones."
+    ],
+    "erroresComunes": [
+      "No avisar a tiempo cuando el estiramiento llega al límite."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Glute/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Glute/1.jpg"
     ],
-    "sinonimos": [],
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
+    "videoEsGenerico": true,
+    "sinonimos": [
+      "lying glute stretch",
+      "estiramiento fnp gluteo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_Glute",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0446",
@@ -18652,34 +18684,44 @@
   },
   {
     "idEjercicio": "EJ-0451",
-    "nombre": "Lying Prone Quadriceps",
+    "nombre": "Estiramiento de cuádriceps boca abajo (asistido)",
     "modalidad": "Movilidad",
+    "patron": "Aislamiento",
     "grupoMuscularPrimario": "Cuádriceps",
     "gruposSecundarios": [],
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Lay face down on the floor with your partner kneeling beside you. Flex one knee and raise that leg off the ground, attempting to touch your glutes with your foot. Your partner should hold the knee and ankle. This will be your starting position.",
-      "Attempt to extend your knee while your partner prevents any actual movement.",
-      "After 10-20 seconds, relax your muscles as your partner gently pushes the foot towards your glutes, further stretching the quadriceps and hip flexors.",
-      "After 10-20 seconds, switch sides."
+      "Acostáte boca abajo en el piso con tu compañero arrodillado a tu lado. Flexioná una rodilla y elevá esa pierna del piso, intentando tocar el glúteo con el pie. Tu compañero debe sostener la rodilla y el tobillo. Esta es la posición inicial.",
+      "Intentá extender la rodilla mientras tu compañero evita cualquier movimiento real.",
+      "Después de 10-20 segundos, relajá los músculos mientras tu compañero empuja suavemente el pie hacia tu glúteo, profundizando el estiramiento del cuádriceps y los flexores de cadera.",
+      "Después de 10-20 segundos, cambiá de lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un estiramiento FNP: la fase de contracción isométrica previa mejora el rango final del estiramiento."
+    ],
+    "erroresComunes": [
+      "Forzar el estiramiento sin pasar por la fase de contracción isométrica."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Prone_Quadriceps/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Prone_Quadriceps/1.jpg"
     ],
-    "sinonimos": [],
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
+    "videoEsGenerico": true,
+    "sinonimos": [
+      "lying prone quad stretch",
+      "estiramiento fnp cuadriceps"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_Prone_Quadriceps",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0452",
@@ -20565,9 +20607,9 @@
   },
   {
     "idEjercicio": "EJ-0497",
-    "nombre": "One-Arm Kettlebell Split Snatch",
+    "nombre": "Arrancada partida unilateral con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Dominante de cadera",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -20578,29 +20620,35 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Hold a kettlebell in one hand by the handle.",
-      "Squat towards the floor, and then reverse the motion, extending the hips, knees, and finally the ankles, to raise the kettlebell overhead.",
-      "After fully extending the body, descend into a lunge position to receive the weights overhead, one leg forward and one leg back. Ensure you drive through with your hips and lock the ketttlebells overhead in one uninterrupted motion.",
-      "Return to a standing position, holding the weight overhead, and bring the feet together. Lower the weight to return to the starting position."
+      "Sostené una pesa rusa del mango con una mano.",
+      "Hacé una sentadilla hacia el piso y luego revertí el movimiento, extendiendo caderas, rodillas y finalmente tobillos, para elevar la pesa por encima de la cabeza.",
+      "Después de extender completamente el cuerpo, descendé a una posición de zancada para recibir el peso arriba, con una pierna adelante y otra atrás. Asegurate de empujar con la cadera y bloquear la pesa arriba en un movimiento continuo e ininterrumpido.",
+      "Volvé a la posición de pie sosteniendo el peso arriba y juntá los pies. Bajá el peso para volver a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La posición de zancada al recibir el peso permite manejar cargas más pesadas que con los pies juntos."
+    ],
+    "erroresComunes": [
+      "No coordinar el paso de los pies con el momento de la arrancada."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Split_Snatch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Split_Snatch/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "split snatch un brazo kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Split_Snatch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0498",
@@ -20780,7 +20828,7 @@
   },
   {
     "idEjercicio": "EJ-0502",
-    "nombre": "One-Arm Overhead Kettlebell Squats",
+    "nombre": "Sentadilla overhead unilateral con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
@@ -20795,15 +20843,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Clean and press a kettlebell with one arm. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so. Press the weight overhead by extending through the elbow.This will be your starting position.",
-      "Looking straight ahead and keeping a kettlebell locked out above you, flex the knees and hips and lower your torso between your legs, keeping your head and chest up.",
-      "Pause at the bottom position for a second before rising back to the top, driving through the heels of your feet."
+      "Hacé la cargada y el press de una pesa rusa con un brazo. Cargá la pesa al hombro extendiendo piernas y cadera mientras la tirás hacia el hombro, rotando la muñeca al hacerlo. Presioná el peso por encima de la cabeza extendiendo el codo. Esta es la posición inicial.",
+      "Mirando al frente y manteniendo la pesa bloqueada por encima de vos, flexioná rodillas y caderas y bajá el torso entre las piernas, manteniendo la cabeza y el pecho arriba.",
+      "Pausá en la posición baja un segundo antes de subir de nuevo, empujando con los talones."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Exige gran movilidad de hombro y tobillo, además de estabilidad de core con la carga asimétrica."
+    ],
+    "erroresComunes": [
+      "Perder la verticalidad del brazo durante la sentadilla."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Overhead_Kettlebell_Squats/0.jpg",
@@ -20811,12 +20863,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "overhead squat un brazo kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Overhead_Kettlebell_Squats",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0503",
@@ -21436,7 +21490,7 @@
   },
   {
     "idEjercicio": "EJ-0518",
-    "nombre": "Open Palm Kettlebell Clean",
+    "nombre": "Cargada a palma abierta con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -21454,12 +21508,16 @@
     "unilateral": false,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Place one kettlebell between your feet. Clean the kettlebell by extending through the legs and hips as you raise the kettlebell towards your shoulders.",
-      "Release the kettlebell as it comes up, and let it flip so that the ball of the kettlebell lands in the palms of your hands.",
-      "Release the kettlebell out in front of you and catch the handle with both hands. Lower the kettlebell to the starting position and repeat."
+      "Colocá una pesa rusa entre los pies. Cargála extendiendo piernas y cadera mientras la elevás hacia los hombros.",
+      "Soltá la pesa mientras sube y dejá que gire de modo que la bola de la pesa caiga en las palmas de las manos.",
+      "Lanzá la pesa hacia adelante y atrapá el mango con ambas manos. Bajá la pesa a la posición inicial y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Requiere muy buena coordinación para atrapar el mango con ambas manos sin golpear el antebrazo."
+    ],
+    "erroresComunes": [
+      "Atrapar la pesa con mala posición de muñeca."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Open_Palm_Kettlebell_Clean/0.jpg",
@@ -21467,12 +21525,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "open palm kettlebell clean",
+      "cargada bimanual palma abierta"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Open_Palm_Kettlebell_Clean",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0519",
@@ -21711,9 +21772,9 @@
   },
   {
     "idEjercicio": "EJ-0525",
-    "nombre": "Overhead Triceps",
+    "nombre": "Estiramiento de tríceps sobre cabeza (asistido)",
     "modalidad": "Movilidad",
-    "patron": "Empuje vertical",
+    "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Tríceps",
     "gruposSecundarios": [
@@ -21722,28 +21783,35 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Sit upright on the floor with your partner behind you. Raise one arm straight up, and flex the elbow, attempting to touch your hand to your back. Your parner should hold your elbow and wrist. This will be your starting position.",
-      "Attempt to extend the arm straight into the air as your partner prevents you from doing actually doing so.",
-      "After 10-20 seconds, relax the arm and allow your partner to further stretch the tricep by applying gentle pressure to the wrist. Hold for 10-20 seconds, and then switch sides."
+      "Sentáte erguido en el piso con tu compañero detrás de vos. Elevá un brazo directamente hacia arriba y flexioná el codo, intentando tocar la espalda con la mano. Tu compañero debe sostener tu codo y tu muñeca. Esta es la posición inicial.",
+      "Intentá extender el brazo completamente hacia arriba mientras tu compañero evita que realmente lo hagas.",
+      "Después de 10-20 segundos, relajá el brazo y dejá que tu compañero profundice el estiramiento del tríceps aplicando presión suave en la muñeca. Sostené 10-20 segundos y cambiá de lado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un estiramiento FNP: la contracción isométrica previa permite un estiramiento más profundo y seguro."
+    ],
+    "erroresComunes": [
+      "Aplicar presión brusca sin la fase de contracción isométrica previa."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Overhead_Triceps/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Overhead_Triceps/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "overhead tricep stretch",
+      "estiramiento fnp triceps"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Overhead_Triceps",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0526",
@@ -22462,7 +22530,7 @@
   },
   {
     "idEjercicio": "EJ-0544",
-    "nombre": "Plyo Kettlebell Pushups",
+    "nombre": "Flexiones pliométricas sobre pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -22478,12 +22546,16 @@
     "unilateral": false,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Place a kettlebell on the floor. Place yourself in a pushup position, on your toes with one hand on the ground and one hand holding the kettlebell, with your elbows extended. This will be your starting position.",
-      "Begin by lowering yourself as low as you can, keeping your back straight.",
-      "Quickly and forcefully reverse direction, pushing yourself up to the other side of the kettlebell, switching hands as you do so. Continue the movement by descending and repeating the movement back and forth."
+      "Colocá una pesa rusa en el piso. Adoptá posición de flexión de brazos, sobre los dedos de los pies con una mano en el piso y la otra sosteniendo la pesa rusa, con los codos extendidos. Esta es la posición inicial.",
+      "Comenzá bajando lo más posible, manteniendo la espalda recta.",
+      "Revertí la dirección rápida y fuertemente, empujándote hacia arriba para pasar al otro lado de la pesa rusa, cambiando de mano al hacerlo. Continuá el movimiento bajando y repitiendo de un lado al otro."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El cambio de mano en el aire exige potencia explosiva y buena coordinación de hombros."
+    ],
+    "erroresComunes": [
+      "No extender completamente los codos antes del salto, perdiendo potencia."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plyo_Kettlebell_Pushups/0.jpg",
@@ -22491,12 +22563,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "plyo kettlebell push ups",
+      "flexiones explosivas con pesa rusa"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Plyo_Kettlebell_Pushups",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0545",
@@ -25800,7 +25875,7 @@
   },
   {
     "idEjercicio": "EJ-0625",
-    "nombre": "Seated Biceps",
+    "nombre": "Estiramiento de bíceps sentado (asistido)",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -25816,12 +25891,16 @@
     "unilateral": false,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Sit on the floor with your knees bent and your partner standing behind you. Extend your arms straight behind you with your palms facing each other. Your partner will hold your wrists for you. This will be the starting position.",
-      "Attempt to flex your elbows, while your partner prevents any actual movement.",
-      "After 10-20 seconds, relax your arms while your partner gently pulls your wrists up to stretch your biceps. Be sure to let your partner know when the stretch is appropriate to prevent injury or overstretching."
+      "Sentáte en el piso con las rodillas flexionadas y tu compañero parado detrás de vos. Extendé los brazos rectos detrás de vos con las palmas enfrentadas. Tu compañero sostendrá tus muñecas. Esta es la posición inicial.",
+      "Intentá flexionar los codos mientras tu compañero evita cualquier movimiento real.",
+      "Después de 10-20 segundos, relajá los brazos mientras tu compañero tira suavemente de tus muñecas hacia arriba para estirar el bíceps. Asegurate de avisarle a tu compañero cuando el estiramiento sea adecuado para evitar lesiones o sobreestiramiento."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un estiramiento FNP: comunicación clara con el compañero evita lesiones."
+    ],
+    "erroresComunes": [
+      "No comunicar a tiempo el límite del estiramiento."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Biceps/0.jpg",
@@ -25829,12 +25908,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seated bicep stretch",
+      "estiramiento fnp biceps"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Biceps",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0626",
@@ -26338,8 +26420,9 @@
   },
   {
     "idEjercicio": "EJ-0638",
-    "nombre": "Seated Front Deltoid",
+    "nombre": "Estiramiento de deltoide anterior sentado (asistido)",
     "modalidad": "Movilidad",
+    "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Hombros",
     "gruposSecundarios": [
@@ -26351,28 +26434,38 @@
     "unilateral": false,
     "nivel": "Avanzado",
     "instrucciones": [
-      "Sit upright on the floor with your legs bent, your partner standing behind you. Stick your arms straight out to your sides, with your palms facing the ground. Attempt to move them as far behind you as possible, as your assistant holds your wrists. This will be your starting position.",
-      "Keeping your elbows straight, attempt to move your arms to the front, with your partner gently restraining you to prevent any actual movement for 10-20 seconds.",
-      "Now, relax your muscles and allow your partner to gently increase the stretch on the shoulders and chest. Hold for 10 to 20 seconds."
+      "Sentáte erguido en el piso con las piernas flexionadas y tu compañero parado detrás de vos. Extendé los brazos rectos hacia los costados, con las palmas mirando hacia el piso. Intentá llevarlos lo más atrás posible mientras tu compañero sostiene tus muñecas. Esta es la posición inicial.",
+      "Manteniendo los codos rectos, intentá llevar los brazos hacia adelante, mientras tu compañero te restringe suavemente para evitar cualquier movimiento real durante 10-20 segundos.",
+      "Ahora relajá los músculos y dejá que tu compañero incremente suavemente el estiramiento de hombros y pecho. Sostené 10 a 20 segundos."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un estiramiento FNP: ideal para mejorar la movilidad de hombro tras entrenamientos de empuje."
+    ],
+    "erroresComunes": [
+      "Forzar el estiramiento sin la fase de contracción previa."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Front_Deltoid/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Front_Deltoid/1.jpg"
     ],
-    "sinonimos": [],
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
+    "videoEsGenerico": true,
+    "sinonimos": [
+      "seated front deltoid stretch",
+      "estiramiento fnp hombro anterior"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Front_Deltoid",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0639",
-    "nombre": "Seated Glute",
+    "nombre": "Estiramiento de glúteo sentado (asistido)",
     "modalidad": "Movilidad",
+    "patron": "Aislamiento",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Glúteos",
     "gruposSecundarios": [
@@ -26381,26 +26474,35 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Avanzado",
     "instrucciones": [
-      "In a seated position with your knees bent, cross one ankle over the opposite knee. Your partner will stand behind you. Now, lean forward as your partner braces your shoulders with their hands. This will be your starting position.",
-      "Attempt to push your torso back for 10-20 seconds, as your partner prevents any actual movement of your torso.",
-      "Now relax your muscles as your partner increases the stretch by gently pushing your torso forward for 10-20 seconds."
+      "En posición sentada con las rodillas flexionadas, cruzá un tobillo sobre la rodilla contraria. Tu compañero se parará detrás de vos. Ahora, inclinate hacia adelante mientras tu compañero sostiene tus hombros con las manos. Esta es la posición inicial.",
+      "Intentá empujar el torso hacia atrás durante 10-20 segundos, mientras tu compañero evita cualquier movimiento real del torso.",
+      "Ahora relajá los músculos mientras tu compañero aumenta el estiramiento empujando suavemente tu torso hacia adelante durante 10-20 segundos."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un estiramiento FNP: la posición de tobillo cruzado sobre rodilla enfoca el piriforme y el glúteo profundo."
+    ],
+    "erroresComunes": [
+      "Empujar demasiado fuerte sin escuchar el feedback de la persona estirándose."
+    ],
     "descansoSugeridoSeg": 25,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Glute/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Glute/1.jpg"
     ],
-    "sinonimos": [],
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
+    "videoEsGenerico": true,
+    "sinonimos": [
+      "seated glute stretch",
+      "estiramiento fnp gluteo sentado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Glute",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0640",
