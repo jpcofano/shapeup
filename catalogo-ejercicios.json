@@ -18336,7 +18336,7 @@
   },
   {
     "idEjercicio": "EJ-0437",
-    "nombre": "Lying Cambered Barbell Row",
+    "nombre": "Remo con barra curva acostado",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
     "mecanica": "Aislamiento",
@@ -18353,13 +18353,17 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place a cambered bar underneath an exercise bench.",
-      "Lie face down on the exercise bench and grab the bar using a palms down (pronated grip) that is wider than shoulder width. This will be your starting position.",
-      "As you exhale row the bar up as you keep the elbows close to your body to either your chest, in order to target the upper mid back, or to your stomach if targeting the lats is your goal.",
-      "After a second hold at the top, lower back down to the starting position slowly as you inhale."
+      "Colocá una barra curva debajo de un banco de ejercicios.",
+      "Acostáte boca abajo en el banco y tomá la barra con agarre pronado (palmas hacia abajo) más ancho que el ancho de hombros. Esta es la posición inicial.",
+      "Al exhalar, remá la barra hacia arriba manteniendo los codos cerca del cuerpo, hacia el pecho si querés enfocar la espalda media-alta, o hacia el abdomen si el objetivo es el dorsal.",
+      "Después de una pausa de un segundo en la parte superior, bajá lentamente a la posición inicial mientras inhalás."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La dirección del tirón (pecho o abdomen) cambia el énfasis muscular dentro del mismo ejercicio."
+    ],
+    "erroresComunes": [
+      "Abrir los codos hacia afuera durante el remo."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Cambered_Barbell_Row/0.jpg",
@@ -18367,12 +18371,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "cambered bar row",
+      "remo con barra cambada"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_Cambered_Barbell_Row",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0438",
@@ -20900,7 +20907,7 @@
   },
   {
     "idEjercicio": "EJ-0499",
-    "nombre": "One-Arm Long Bar Row",
+    "nombre": "Remo unilateral con barra larga anclada (landmine)",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
     "mecanica": "Compuesto",
@@ -20913,17 +20920,21 @@
     "equipo": [
       "Barra"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Principiante",
     "instrucciones": [
-      "Position a bar into a landmine or in a corner to keep it from moving. Load an appropriate weight onto your end.",
-      "Stand next to the bar, and take a grip with one hand close to the collar. Using your hips and legs, rise to a standing position.",
-      "Assume a bent-knee stance with your hips back and your chest up. Your arm should be extended. This will be your starting position.",
-      "Pull the weight to your side by retracting the shoulder and flexing the elbow. Do not jerk the weight or cheat during the movement.",
-      "After a brief pause, return to the starting position."
+      "Colocá una barra en un soporte landmine o en un rincón para que no se mueva. Cargá el peso adecuado en tu extremo.",
+      "Pararte junto a la barra y tomala con una mano cerca del collar. Usando las caderas y las piernas, ponete de pie.",
+      "Adoptá una postura con rodillas levemente flexionadas, caderas hacia atrás y pecho arriba. El brazo debe estar extendido. Esta es la posición inicial.",
+      "Tirá del peso hacia tu costado retrayendo el hombro y flexionando el codo. No tirones ni hagas trampa durante el movimiento.",
+      "Después de una breve pausa, volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El anclaje landmine permite un ángulo de tirón distinto al remo con barra recta."
+    ],
+    "erroresComunes": [
+      "Usar impulso del torso para tirar del peso."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Long_Bar_Row/0.jpg",
@@ -20931,12 +20942,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "landmine row un brazo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Long_Bar_Row",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0500",
@@ -22152,9 +22165,9 @@
   },
   {
     "idEjercicio": "EJ-0529",
-    "nombre": "Palms-Down Wrist Curl Over A Bench",
+    "nombre": "Curl de muñeca con barra agarre pronado sobre banco",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Antebrazos",
@@ -22165,35 +22178,41 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start out by placing a barbell on one side of a flat bench.",
-      "Kneel down on both of your knees so that your body is facing the flat bench.",
-      "Use your arms to grab the barbell with a pronated grip (palms down) and bring them up so that your forearms are resting against the flat bench. Your wrists should be hanging over the edge.",
-      "Start out by curling your wrist upwards and exhaling.",
-      "Slowly lower your wrists back down to the starting position while inhaling.",
-      "Your forearms should be stationary as your wrist is the only movement needed to perform this exercise.",
-      "Repeat for the recommended amount of repetitions."
+      "Comenzá colocando una barra a un lado de un banco plano.",
+      "Arrodilláte con ambas rodillas en el piso, de modo que tu cuerpo quede frente al banco.",
+      "Usá los brazos para tomar la barra con agarre pronado (palmas hacia abajo) y subila de modo que los antebrazos descansen sobre el banco, dejando las muñecas colgando del borde.",
+      "Comenzá curvando las muñecas hacia arriba mientras exhalás.",
+      "Bajá lentamente las muñecas a la posición inicial mientras inhalás.",
+      "Los antebrazos deben permanecer fijos; solo la muñeca debe moverse para este ejercicio.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja los extensores del antebrazo."
+    ],
+    "erroresComunes": [
+      "Mover los antebrazos durante el curl."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Down_Wrist_Curl_Over_A_Bench/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Down_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wrist curl con barra pronado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Palms-Down_Wrist_Curl_Over_A_Bench",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0530",
-    "nombre": "Palms-Up Barbell Wrist Curl Over A Bench",
+    "nombre": "Curl de muñeca con barra agarre supino sobre banco",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Antebrazos",
@@ -22204,29 +22223,35 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start out by placing a barbell on one side of a flat bench.",
-      "Kneel down on both of your knees so that your body is facing the flat bench.",
-      "Use your arms to grab the barbell with a supinated grip (palms up) and bring them up so that your forearms are resting against the flat bench. Your wrists should be hanging over the edge.",
-      "Start out by curling your wrist upwards and exhaling.",
-      "Slowly lower your wrists back down to the starting position while inhaling.",
-      "Your forearms should be stationary as your wrist is the only movement needed to perform this exercise.",
-      "Repeat for the recommended amount of repetitions."
+      "Comenzá colocando una barra a un lado de un banco plano.",
+      "Arrodilláte con ambas rodillas en el piso, de modo que tu cuerpo quede frente al banco.",
+      "Usá los brazos para tomar la barra con agarre supino (palmas hacia arriba) y subila de modo que los antebrazos descansen sobre el banco, dejando las muñecas colgando del borde.",
+      "Comenzá curvando las muñecas hacia arriba mientras exhalás.",
+      "Bajá lentamente las muñecas a la posición inicial mientras inhalás.",
+      "Los antebrazos deben permanecer fijos; solo la muñeca debe moverse para este ejercicio.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja los flexores del antebrazo, complementario a la variante con palmas abajo."
+    ],
+    "erroresComunes": [
+      "Mover los antebrazos durante el curl."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Up_Barbell_Wrist_Curl_Over_A_Bench/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Palms-Up_Barbell_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wrist curl con barra supino"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Palms-Up_Barbell_Wrist_Curl_Over_A_Bench",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0531",
@@ -23181,7 +23206,7 @@
   },
   {
     "idEjercicio": "EJ-0554",
-    "nombre": "Preacher Curl",
+    "nombre": "Curl predicador con barra EZ",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -23194,14 +23219,18 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To perform this movement you will need a preacher bench and an E-Z bar. Grab the E-Z curl bar at the close inner handle (either have someone hand you the bar which is preferable or grab the bar from the front bar rest provided by most preacher benches). The palm of your hands should be facing forward and they should be slightly tilted inwards due to the shape of the bar.",
-      "With the upper arms positioned against the preacher bench pad and the chest against it, hold the E-Z Curl Bar at shoulder length. This will be your starting position.",
-      "As you breathe in, slowly lower the bar until your upper arm is extended and the biceps is fully stretched.",
-      "As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the bar is at shoulder height. Squeeze the biceps hard and hold this position for a second.",
-      "Repeat for the recommended amount of repetitions."
+      "Para realizar este movimiento vas a necesitar un banco predicador y una barra EZ. Tomá la barra EZ por las manijas internas más cercanas (lo ideal es que alguien te la entregue, o tomala del soporte frontal que tienen la mayoría de los bancos predicador). Las palmas deben mirar hacia adelante y estar levemente inclinadas hacia adentro por la forma de la barra.",
+      "Con los brazos superiores apoyados contra la almohadilla del banco predicador y el pecho contra ella, sostené la barra EZ a la altura del hombro. Esta es la posición inicial.",
+      "Al inhalar, bajá lentamente la barra hasta que el brazo superior quede extendido y el bíceps completamente estirado.",
+      "Al exhalar, usá el bíceps para curvar el peso hacia arriba hasta la contracción completa con la barra a la altura del hombro. Apretá fuerte el bíceps y sostené esta posición un segundo.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El banco predicador elimina por completo el impulso del hombro."
+    ],
+    "erroresComunes": [
+      "Levantar el pecho del respaldo para ayudar a subir el peso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Preacher_Curl/0.jpg",
@@ -23209,12 +23238,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "preacher curl barra ez",
+      "curl predicador clasico"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Preacher_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0555",
@@ -24446,7 +24478,7 @@
   },
   {
     "idEjercicio": "EJ-0585",
-    "nombre": "Reverse Barbell Curl",
+    "nombre": "Curl inverso con barra",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -24461,13 +24493,17 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand up with your torso upright while holding a barbell at shoulder width with the elbows close to the torso. The palm of your hands should be facing down (pronated grip). This will be your starting position.",
-      "While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second as you squeeze the muscle.",
-      "Slowly begin to bring the bar back to starting position as your breathe in.",
-      "Repeat for the recommended amount of repetitions."
+      "Pararte con el torso erguido sosteniendo una barra al ancho de hombros con los codos cerca del torso. Las palmas deben mirar hacia abajo (agarre pronado). Esta es la posición inicial.",
+      "Manteniendo los brazos superiores fijos, curvá el peso mientras contraés el bíceps al exhalar. Solo deben moverse los antebrazos. Continuá el movimiento hasta la contracción completa del bíceps con la barra a la altura del hombro. Sostené la contracción un segundo apretando el músculo.",
+      "Comenzá a volver la barra a la posición inicial lentamente mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre pronado enfatiza el braquiorradial y el extensor del antebrazo."
+    ],
+    "erroresComunes": [
+      "Usar menos peso del necesario y compensar con balanceo del torso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Barbell_Curl/0.jpg",
@@ -24475,12 +24511,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "reverse curl",
+      "curl pronado con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Reverse_Barbell_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0586",
@@ -25126,7 +25165,7 @@
   },
   {
     "idEjercicio": "EJ-0602",
-    "nombre": "Rocking Standing Calf Raise",
+    "nombre": "Elevación de talones de pie con barra (con flexión de tibial)",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -25139,17 +25178,21 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack that best matches your height. Once the correct height is chosen and the bar is loaded, step under the bar and place it on the back of your shoulders (slightly below the neck).",
-      "Hold on to the bar using both arms at each side and lift it off the rack by first pushing with your legs and at the same time straightening your torso.",
-      "Step away from the rack and position your legs using a shoulder width medium stance with the toes slightly pointed out. Keep your head up at all times as looking down will get you off balance. Also maintain a straight back and keep the knees with a slight bend; never locked. This will be your starting position.",
-      "Raise your heels as you breathe out by extending your ankles as high as possible and flexing your calf. Ensure that the knee is kept stationary at all times. There should be no bending (other than the slight initial bend we created during positioning) at any time. Hold the contracted position by a second before you start to go back down.",
-      "Go back slowly to the starting position as you breathe in by lowering your heels as you bend the ankles until calves are stretched.",
-      "Now lift your toes by contracting the tibia muscles in the front of the calves as you breathe out.",
-      "Hold for a second and bring them back down as you breathe in.",
-      "Repeat for the recommended amount of repetitions."
+      "Este ejercicio se realiza mejor dentro de un rack de sentadillas por seguridad. Para comenzar, colocá la barra en un rack a la altura que mejor se adapte a tu altura. Una vez elegida la altura correcta y cargada la barra, metete debajo de ella y colocala sobre la parte posterior de los hombros (levemente debajo del cuello).",
+      "Sosteniendo la barra con ambos brazos a los costados, levantala del rack empujando con las piernas mientras enderezás el torso al mismo tiempo.",
+      "Alejate del rack y colocá las piernas en una postura media al ancho de hombros con las puntas de los pies levemente hacia afuera. Mantené la cabeza arriba en todo momento, ya que mirar hacia abajo te desequilibra. Mantené también la espalda recta y las rodillas con una leve flexión, nunca bloqueadas. Esta es la posición inicial.",
+      "Elevá los talones mientras exhalás, extendiendo los tobillos lo más alto posible y contrayendo la pantorrilla. Asegurate de que la rodilla permanezca fija en todo momento; no debe haber flexión adicional en ningún punto. Sostené la contracción un segundo antes de comenzar a bajar.",
+      "Volvé lentamente a la posición inicial mientras inhalás, bajando los talones y flexionando los tobillos hasta estirar las pantorrillas.",
+      "Ahora elevá las puntas de los pies contrayendo los músculos tibiales en la parte frontal de la pantorrilla mientras exhalás.",
+      "Sostené un segundo y volvé a bajarlos mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina elevación de talón con flexión de tibial anterior para trabajar ambos lados de la pantorrilla."
+    ],
+    "erroresComunes": [
+      "Flexionar la rodilla durante la elevación."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Rocking_Standing_Calf_Raise/0.jpg",
@@ -25157,12 +25200,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "rocking calf raise",
+      "calf raise con flexion de tibial"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Rocking_Standing_Calf_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0603",
@@ -25904,9 +25950,9 @@
   },
   {
     "idEjercicio": "EJ-0621",
-    "nombre": "Seated Barbell Twist",
+    "nombre": "Giro de torso sentado con barra",
     "modalidad": "Fuerza",
-    "patron": "Core anti-rotación",
+    "patron": "Core rotación",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -25917,26 +25963,33 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start out by sitting at the end of a flat bench with a barbell placed on top of your thighs. Your feet should be shoulder width apart from each other.",
-      "Grip the bar with your palms facing down and make sure your hands are wider than shoulder width apart from each other. Begin to lift the barbell up over your head until your arms are fully extended.",
-      "Now lower the barbell behind your head until it is resting along the base of your neck. This is the starting position.",
-      "While keeping your feet and head stationary, move your waist from side to side so that your oblique muscles feel the contraction. Only move from side to side as far as your waist will allow you to go. Stretching or moving too far can cause an injury to occur. Tip: Use a slow and controlled motion.",
-      "Remember to breathe out while twisting your body to the side and in when moving back to the starting position.",
-      "Repeat for the recommended amount of repetitions."
+      "Comenzá sentado al borde de un banco plano con una barra apoyada sobre los muslos. Los pies al ancho de hombros.",
+      "Tomá la barra con las palmas hacia abajo, separadas más que el ancho de hombros. Comenzá a levantar la barra por encima de la cabeza hasta que los brazos queden completamente extendidos.",
+      "Ahora bajá la barra detrás de la cabeza hasta que descanse sobre la base del cuello. Esta es la posición inicial.",
+      "Manteniendo los pies y la cabeza fijos, movés la cintura de un lado al otro para sentir la contracción en los oblicuos. Movete solo hasta donde tu cintura lo permita; estirarte o moverte demasiado puede provocar una lesión. Usá un movimiento lento y controlado.",
+      "Recordá exhalar al girar el cuerpo hacia el costado e inhalar al volver a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El rango de movimiento debe ser moderado; no es un ejercicio para forzar amplitud."
+    ],
+    "erroresComunes": [
+      "Forzar un rango de movimiento excesivo."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Barbell_Twist/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Barbell_Twist/1.jpg"
     ],
-    "sinonimos": [],
+    "sinonimos": [
+      "seated barbell twist",
+      "rotacion de torso sentado con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Barbell_Twist",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0622",
@@ -27092,7 +27145,7 @@
   },
   {
     "idEjercicio": "EJ-0650",
-    "nombre": "Seated Palm-Up Barbell Wrist Curl",
+    "nombre": "Curl de muñeca sentado con barra agarre supino",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -27105,14 +27158,18 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Hold a barbell with both hands and your palms facing up; hands spaced about shoulder width.",
-      "Place your feet flat on the floor, at a distance that is slightly wider than shoulder width apart.",
-      "Lean forward and place your forearms on top of your upper thighs with your palms up. Tip: Make sure that the front of the wrists lay on top of your knees. This will be your starting position.",
-      "Lower the bar as far as possible while inhaling and keeping a tight grip.",
-      "Now curl bar up as high as possible while flexing the forearms and exhaling. Hold the contraction at the top for a second and Tip: Only the wrist should move."
+      "Sostené una barra con ambas manos, palmas hacia arriba, separadas al ancho de hombros.",
+      "Colocá los pies planos en el piso, separados un poco más que el ancho de hombros.",
+      "Inclinate hacia adelante y apoyá los antebrazos sobre los muslos superiores con las palmas hacia arriba. El borde frontal de las muñecas debe quedar sobre las rodillas. Esta es la posición inicial.",
+      "Bajá la barra lo más posible mientras inhalás y mantenés un agarre firme.",
+      "Ahora curvá la barra hacia arriba lo más posible flexionando los antebrazos mientras exhalás. Sostené la contracción un segundo en la parte superior. Solo debe haber movimiento en la muñeca."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja los flexores del antebrazo con ambos brazos a la vez."
+    ],
+    "erroresComunes": [
+      "Levantar los antebrazos de los muslos durante el curl."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Palm-Up_Barbell_Wrist_Curl/0.jpg",
@@ -27120,16 +27177,18 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seated wrist curl supino"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Palm-Up_Barbell_Wrist_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0651",
-    "nombre": "Seated Palms-Down Barbell Wrist Curl",
+    "nombre": "Curl de muñeca sentado con barra agarre pronado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -27142,14 +27201,18 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Hold a barbell with both hands and your palms facing down; hands spaced about shoulder width.",
-      "Place your feet flat on the floor, at a distance that is slightly wider than shoulder width apart.",
-      "Lean forward and place your forearms on top of your upper thighs with your palms down. Tip: Make sure that the back of the wrists lay on top of your knees. This will be your starting position.",
-      "Lower the bar as far as possible while inhaling and keeping a tight grip.",
-      "Now curl bar up as high as possible while flexing the forearms and exhaling. Hold the contraction at the top for a second and Tip: Only the wrist should move."
+      "Sostené una barra con ambas manos, palmas hacia abajo, separadas al ancho de hombros.",
+      "Colocá los pies planos en el piso, separados un poco más que el ancho de hombros.",
+      "Inclinate hacia adelante y apoyá los antebrazos sobre los muslos superiores con las palmas hacia abajo. El dorso de las muñecas debe quedar sobre las rodillas. Esta es la posición inicial.",
+      "Bajá la barra lo más posible mientras inhalás y mantenés un agarre firme.",
+      "Ahora curvá la barra hacia arriba lo más posible flexionando los antebrazos mientras exhalás. Sostené la contracción un segundo en la parte superior. Solo debe haber movimiento en la muñeca."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja los extensores del antebrazo con ambos brazos a la vez."
+    ],
+    "erroresComunes": [
+      "Levantar los antebrazos de los muslos durante el curl."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Palms-Down_Barbell_Wrist_Curl/0.jpg",
@@ -27157,12 +27220,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seated wrist curl pronado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Palms-Down_Barbell_Wrist_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0652",
@@ -28957,7 +29022,7 @@
   },
   {
     "idEjercicio": "EJ-0697",
-    "nombre": "Smith Incline Shoulder Raise",
+    "nombre": "Elevación de hombros en banco inclinado con máquina Smith",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -28972,15 +29037,19 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place an incline bench underneath the smith machine. Place the barbell at a height that you can reach when lying down and your arms are almost fully extended. Once the weight you need is selected, lie down on the incline bench and make sure your shoulders are aligned right under the barbell.",
-      "Using a shoulder width pronated (palms forward) grip, lift the bar from the rack and hold it straight over you with a slight bend at the elbows. This will be your starting position.",
-      "As you breathe out, lift the bar up until your arms are fully extended. Note: The contraction should be felt around the shoulders.",
-      "After a second pause, bring the bar back down to the starting position as you breathe in.",
-      "Repeat the movement for the prescribed amount of repetitions.",
-      "When you are done, place the bar back in the rack."
+      "Colocá un banco inclinado debajo de la máquina Smith. Ajustá la barra a una altura que puedas alcanzar acostado con los brazos casi completamente extendidos. Una vez seleccionado el peso necesario, acostáte en el banco inclinado y asegurate de que los hombros queden alineados justo debajo de la barra.",
+      "Usando un agarre pronado (palmas hacia adelante) al ancho de hombros, levantá la barra del rack y sostenela en línea recta sobre vos con una leve flexión en los codos. Esta es la posición inicial.",
+      "Al exhalar, elevá la barra hasta que los brazos queden completamente extendidos. La contracción debe sentirse alrededor de los hombros.",
+      "Después de una pausa de un segundo, volvé la barra a la posición inicial mientras inhalás.",
+      "Repetí el movimiento las veces indicadas.",
+      "Al terminar, colocá la barra de vuelta en el rack."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La guía fija de la máquina Smith permite enfocarse exclusivamente en el omóplato."
+    ],
+    "erroresComunes": [
+      "Flexionar los codos durante el movimiento."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Smith_Incline_Shoulder_Raise/0.jpg",
@@ -28988,12 +29057,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "smith machine incline shoulder raise"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Smith_Incline_Shoulder_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0698",
@@ -30841,7 +30912,7 @@
   },
   {
     "idEjercicio": "EJ-0742",
-    "nombre": "Standing Barbell Calf Raise",
+    "nombre": "Elevación de talones de pie con barra",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -30854,15 +30925,19 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack that best matches your height. Once the correct height is chosen and the bar is loaded, step under the bar and place the bar on the back of your shoulders (slightly below the neck).",
-      "Hold on to the bar using both arms at each side and lift it off the rack by first pushing with your legs and at the same time straightening your torso.",
-      "Step away from the rack and position your legs using a shoulder width medium stance with the toes slightly pointed out. Keep your head up at all times as looking down will get you off balance and also maintain a straight back. The knees should be kept with a slight bend; never locked. This will be your starting position. Tip: For better range of motion you may also place the ball of your feet on a wooden block but be careful as this option requires more balance and a sturdy block.",
-      "Raise your heels as you breathe out by extending your ankles as high as possible and flexing your calf. Ensure that the knee is kept stationary at all times. There should be no bending at any time. Hold the contracted position by a second before you start to go back down.",
-      "Go back slowly to the starting position as you breathe in by lowering your heels as you bend the ankles until calves are stretched.",
-      "Repeat for the recommended amount of repetitions."
+      "Este ejercicio se realiza mejor dentro de un rack de sentadillas por seguridad. Para comenzar, colocá la barra en un rack a la altura que mejor se adapte a tu altura. Una vez elegida la altura correcta y cargada la barra, metete debajo de ella y colocala sobre la parte posterior de los hombros (levemente debajo del cuello).",
+      "Sosteniendo la barra con ambos brazos a los costados, levantala del rack empujando con las piernas mientras enderezás el torso al mismo tiempo.",
+      "Alejate del rack y colocá las piernas en una postura media al ancho de hombros con las puntas de los pies levemente hacia afuera. Mantené la cabeza arriba en todo momento y la espalda recta. Las rodillas deben mantener una leve flexión, nunca bloqueadas. Esta es la posición inicial. Para mejor rango de movimiento, podés colocar la parte delantera de los pies sobre un bloque de madera, pero tené cuidado: esta opción requiere más equilibrio y un bloque firme.",
+      "Elevá los talones mientras exhalás, extendiendo los tobillos lo más alto posible y contrayendo la pantorrilla. Asegurate de que la rodilla permanezca fija en todo momento; no debe haber flexión adicional. Sostené la contracción un segundo antes de comenzar a bajar.",
+      "Volvé lentamente a la posición inicial mientras inhalás, bajando los talones y flexionando los tobillos hasta estirar las pantorrillas.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las rodillas permanecen con una leve flexión fija; no se bloquean ni se mueven adicionalmente."
+    ],
+    "erroresComunes": [
+      "Bloquear completamente las rodillas durante el ejercicio."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Barbell_Calf_Raise/0.jpg",
@@ -30870,12 +30945,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "standing calf raise con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Barbell_Calf_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0743",
@@ -31080,9 +31157,9 @@
   },
   {
     "idEjercicio": "EJ-0748",
-    "nombre": "Standing Bradford Press",
+    "nombre": "Press Bradford de pie",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -31095,28 +31172,34 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place a loaded bar at shoulder level in a rack. With a pronated grip at shoulder width, begin with the bar racked across the front of your shoulders. This is your starting position.",
-      "Initiate the lift by extending the elbows to press the bar overhead. Avoid locking out the elbow as you move the weight behind your head.",
-      "Lower the bar down to the back of the head until your elbow forms a right angle.",
-      "Lift the bar back over your head by extending the elbows",
-      "Lower the bar down to the starting position.",
-      "Alternate in this manner until you complete the recommended amount of repetitions."
+      "Colocá una barra cargada a la altura del hombro en un rack. Con agarre pronado al ancho de hombros, comenzá con la barra apoyada en la parte frontal de los hombros. Esta es la posición inicial.",
+      "Iniciá el levantamiento extendiendo los codos para presionar la barra por encima de la cabeza. Evitá bloquear completamente el codo mientras movés el peso hacia atrás de la cabeza.",
+      "Bajá la barra hacia la parte posterior de la cabeza hasta que el codo forme un ángulo recto.",
+      "Subí la barra de nuevo por encima de la cabeza extendiendo los codos.",
+      "Bajá la barra a la posición inicial (al frente).",
+      "Alterná de esta manera hasta completar las repeticiones indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El codo nunca se bloquea completamente, manteniendo tensión constante en el deltoide."
+    ],
+    "erroresComunes": [
+      "Bloquear el codo arriba, perdiendo la tensión continua."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Bradford_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Bradford_Press/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "bradford press de pie"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Bradford_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0749",
@@ -32056,7 +32139,7 @@
   },
   {
     "idEjercicio": "EJ-0772",
-    "nombre": "Standing Military Press",
+    "nombre": "Press militar de pie con barra",
     "modalidad": "Fuerza",
     "patron": "Empuje vertical",
     "mecanica": "Compuesto",
@@ -32071,15 +32154,19 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start by placing a barbell that is about chest high on a squat rack. Once you have selected the weights, grab the barbell using a pronated (palms facing forward) grip. Make sure to grip the bar wider than shoulder width apart from each other.",
-      "Slightly bend the knees and place the barbell on your collar bone. Lift the barbell up keeping it lying on your chest. Take a step back and position your feet shoulder width apart from each other.",
-      "Once you pick up the barbell with the correct grip length, lift the bar up over your head by locking your arms. Hold at about shoulder level and slightly in front of your head. This is your starting position.",
-      "Lower the bar down to the collarbone slowly as you inhale.",
-      "Lift the bar back up to the starting position as you exhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Comenzá colocando una barra a la altura del pecho en un rack de sentadillas. Una vez elegido el peso, tomá la barra con agarre pronado (palmas hacia adelante), más ancho que el ancho de hombros.",
+      "Flexioná levemente las rodillas y colocá la barra sobre la clavícula. Levantá la barra manteniéndola apoyada en el pecho. Dá un paso atrás y colocá los pies al ancho de hombros.",
+      "Una vez que tomaste la barra con el agarre correcto, levantala por encima de la cabeza bloqueando los brazos. Sostenela a la altura del hombro y levemente al frente de la cabeza. Esta es la posición inicial.",
+      "Bajá la barra lentamente hacia la clavícula mientras inhalás.",
+      "Subí la barra de vuelta a la posición inicial mientras exhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El ejercicio base de fuerza de hombro: sin ayuda de piernas, técnica estricta."
+    ],
+    "erroresComunes": [
+      "Arquear la espalda baja para ayudar a empujar."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg",
@@ -32087,12 +32174,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "military press de pie",
+      "press militar clasico"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Military_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0773",
@@ -32263,9 +32353,9 @@
   },
   {
     "idEjercicio": "EJ-0777",
-    "nombre": "Standing Overhead Barbell Triceps Extension",
+    "nombre": "Extensión de tríceps de pie sobre cabeza con barra",
     "modalidad": "Fuerza",
-    "patron": "Empuje vertical",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Tríceps",
@@ -32278,27 +32368,34 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "To begin, stand up holding a barbell or e-z bar using a pronated grip (palms facing forward) with your hands closer than shoulder width apart from each other. Your feet should be about shoulder width apart.",
-      "Now elevate the barbell above your head until your arms are fully extended. Keep your elbows in. This will be your starting position.",
-      "Keeping your upper arms close to your head and elbows in, perpendicular to the floor, lower the resistance in a semicircular motion behind your head until your forearms touch your biceps. Tip: The upper arms should remain stationary and only the forearms should move. Breathe in as you perform this step.",
-      "Go back to the starting position by using the triceps to raise the barbell. Breathe out as you perform this step.",
-      "Repeat for the recommended amount of repetitions."
+      "Para comenzar, pararte sosteniendo una barra o barra EZ con agarre pronado (palmas hacia adelante), con las manos más cerca que el ancho de hombros. Los pies al ancho de hombros aproximadamente.",
+      "Ahora elevá la barra por encima de la cabeza hasta que los brazos queden completamente extendidos. Mantené los codos adentro. Esta es la posición inicial.",
+      "Manteniendo los brazos superiores cerca de la cabeza y los codos adentro, perpendiculares al piso, bajá la resistencia en un movimiento semicircular detrás de la cabeza hasta que los antebrazos toquen el bíceps. Los brazos superiores permanecen fijos; solo se mueven los antebrazos. Inhalá durante este paso.",
+      "Volvé a la posición inicial usando el tríceps para subir la barra. Exhalá durante este paso.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Los codos apuntan al techo y permanecen fijos en todo momento."
+    ],
+    "erroresComunes": [
+      "Abrir los codos hacia afuera al bajar."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Overhead_Barbell_Triceps_Extension/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Overhead_Barbell_Triceps_Extension/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "overhead triceps extension con barra",
+      "french press de pie"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Overhead_Barbell_Triceps_Extension",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0778",
@@ -32393,7 +32490,7 @@
   },
   {
     "idEjercicio": "EJ-0780",
-    "nombre": "Standing Palms-Up Barbell Behind The Back Wrist Curl",
+    "nombre": "Curl de muñeca de pie detrás de la espalda agarre supino",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -32406,15 +32503,19 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Start by standing straight and holding a barbell behind your glutes at arm's length while using a pronated grip (palms will be facing back away from the glutes) and having your hands shoulder width apart from each other.",
-      "You should be looking straight forward while your feet are shoulder width apart from each other. This is the starting position.",
-      "While exhaling, slowly elevate the barbell up by curling your wrist in a semi-circular motion towards the ceiling. Note: Your wrist should be the only body part moving for this exercise.",
-      "Hold the contraction for a second and lower the barbell back down to the starting position while inhaling.",
-      "Repeat for the recommended amount of repetitions.",
-      "When finished, lower the barbell down to the squat rack or the floor by bending the knees. Tip: It is easiest to either pick it up from a squat rack or have a partner hand it to you."
+      "Comenzá de pie sosteniendo una barra detrás de los glúteos a extensión de brazos, con agarre pronado (las palmas mirarán hacia atrás, alejadas de los glúteos) y las manos al ancho de hombros.",
+      "Mirá hacia adelante con los pies al ancho de hombros. Esta es la posición inicial.",
+      "Al exhalar, elevá lentamente la barra curvando la muñeca en un movimiento semicircular hacia el techo. Solo la muñeca debe moverse en este ejercicio.",
+      "Sostené la contracción un segundo y bajá la barra a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas.",
+      "Al terminar, bajá la barra al rack o al piso flexionando las rodillas. Lo más fácil es tomarla de un rack o que un compañero te la entregue."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La posición detrás de la espalda aísla aún más la muñeca sin ayuda visual."
+    ],
+    "erroresComunes": [
+      "Mover los brazos en lugar de aislar la muñeca."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl/0.jpg",
@@ -32422,12 +32523,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wrist curl detras de la espalda"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0781",
@@ -32874,7 +32977,7 @@
   },
   {
     "idEjercicio": "EJ-0792",
-    "nombre": "Stiff Leg Barbell Good Morning",
+    "nombre": "Good morning piernas rígidas con barra",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -32890,15 +32993,19 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack that best matches your height. Once the correct height is chosen and the bar is loaded, step under the bar and place the back of your shoulders (slightly below the neck) across it.",
-      "Hold on to the bar using both arms at each side and lift it off the rack by first pushing with your legs and at the same time straightening your torso.",
-      "Step away from the rack and position your legs using a shoulder width medium stance. Keep your head up at all times as looking down will get you off balance and also maintain a straight back. This will be your starting position.",
-      "Keeping your legs stationary, move your torso forward by bending at the hips while inhaling. Lower your torso until it is parallel with the floor.",
-      "Begin to raise the bar as you exhale by elevating your torso back to the starting position.",
-      "Repeat for the recommended amount of repetitions."
+      "Este ejercicio se realiza mejor dentro de un rack de sentadillas por seguridad. Para comenzar, colocá la barra en un rack a la altura que mejor se adapte a tu altura. Una vez elegida la altura correcta y cargada la barra, metete debajo de ella y colocá la parte posterior de los hombros (levemente debajo del cuello) bajo la barra.",
+      "Sosteniendo la barra con ambos brazos a los costados, levantala del rack empujando con las piernas mientras enderezás el torso al mismo tiempo.",
+      "Alejate del rack y colocá las piernas en una postura media al ancho de hombros. Mantené la cabeza arriba en todo momento, ya que mirar hacia abajo te desequilibra, y mantené la espalda recta. Esta es la posición inicial.",
+      "Manteniendo las piernas fijas, llevá el torso hacia adelante flexionando desde la cadera mientras inhalás. Bajá el torso hasta que quede paralelo al piso.",
+      "Comenzá a subir la barra mientras exhalás, elevando el torso de vuelta a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las piernas permanecen prácticamente fijas; todo el movimiento viene de la cadera."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda baja al bajar el torso."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Stiff_Leg_Barbell_Good_Morning/0.jpg",
@@ -32906,12 +33013,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "good morning con barra",
+      "stiff leg good morning"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Stiff_Leg_Barbell_Good_Morning",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0793",
@@ -33044,7 +33154,7 @@
   },
   {
     "idEjercicio": "EJ-0796",
-    "nombre": "Straight Bar Bench Mid Rows",
+    "nombre": "Remo medio en banco con barra recta",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
     "mecanica": "Compuesto",
@@ -33060,12 +33170,16 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place a loaded barbell on the end of a bench. Standing on the bench behind the bar, take a medium, pronated grip. Stand with your hips back and chest up, maintaining a neutral spine. This will be your starting position.",
-      "Row the bar to your torso by retracting the shoulder blades and flexing the elbows. Use a controlled movement with no jerking.",
-      "After a brief pause, slowly return the bar to the starting position, ensuring to go all the way down."
+      "Colocá una barra cargada en el extremo de un banco. Parado sobre el banco detrás de la barra, tomala con un agarre medio y pronado. Pararte con las caderas hacia atrás y el pecho arriba, manteniendo la columna neutra. Esta es la posición inicial.",
+      "Remá la barra hacia el torso retrayendo los omóplatos y flexionando los codos. Usá un movimiento controlado, sin tirones.",
+      "Después de una breve pausa, volvé lentamente la barra a la posición inicial, asegurándote de bajar completamente."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Pararse sobre el banco eleva la barra para un mejor ángulo de tirón."
+    ],
+    "erroresComunes": [
+      "Tirar con impulso en lugar de un movimiento controlado."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Straight_Bar_Bench_Mid_Rows/0.jpg",
@@ -33073,18 +33187,21 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "bench mid row",
+      "remo en banco con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Straight_Bar_Bench_Mid_Rows",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0797",
-    "nombre": "Straight Raises on Incline Bench",
+    "nombre": "Elevación de brazos rectos en banco inclinado",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -33097,26 +33214,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Place a bar on the ground behind the head of an incline bench.",
-      "Lay on the bench face down. With a pronated grip, pick the barbell up from the floor, keeping your arms straight. Allow the bar to hang straight down. This will be your starting position.",
-      "To begin, raise the barbell out in front of your head while keeping your arms extended.",
-      "Return to the starting position."
+      "Colocá una barra en el piso, detrás de la cabecera de un banco inclinado.",
+      "Acostáte en el banco boca abajo. Con agarre pronado, levantá la barra del piso manteniendo los brazos rectos. Dejá que la barra cuelgue derecho hacia abajo. Esta es la posición inicial.",
+      "Para comenzar, elevá la barra al frente de tu cabeza manteniendo los brazos extendidos.",
+      "Volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Los brazos permanecen completamente rectos durante todo el arco de movimiento."
+    ],
+    "erroresComunes": [
+      "Flexionar los codos para facilitar la elevación."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Straight_Raises_on_Incline_Bench/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Straight_Raises_on_Incline_Bench/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "straight arm raise incline"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Straight_Raises_on_Incline_Bench",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0798",
@@ -33697,7 +33820,7 @@
   },
   {
     "idEjercicio": "EJ-0812",
-    "nombre": "T-Bar Row with Handle",
+    "nombre": "Remo T-bar con manija",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
     "mecanica": "Compuesto",
@@ -33713,14 +33836,18 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Position a bar into a landmine or in a corner to keep it from moving. Load an appropriate weight onto your end.",
-      "Stand over the bar, and position a Double D row handle around the bar next to the collar. Using your hips and legs, rise to a standing position.",
-      "Assume a wide stance with your hips back and your chest up. Your arms should be extended. This will be your starting position.",
-      "Pull the weight to your upper abdomen by retracting the shoulder blades and flexing the elbows. Do not jerk the weight or cheat during the movement.",
-      "After a brief pause, return to the starting position."
+      "Colocá una barra en un soporte landmine o en un rincón para que no se mueva. Cargá el peso adecuado en tu extremo.",
+      "Pararte sobre la barra y colocá una manija tipo 'Double D' alrededor de la barra, junto al collar. Usando las caderas y las piernas, ponete de pie.",
+      "Adoptá una postura amplia con las caderas hacia atrás y el pecho arriba. Los brazos deben estar extendidos. Esta es la posición inicial.",
+      "Tirá del peso hacia el abdomen superior retrayendo los omóplatos y flexionando los codos. No tirones ni hagas trampa durante el movimiento.",
+      "Después de una breve pausa, volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La manija en V permite un agarre neutro más cómodo que la barra recta."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda baja al inclinarse."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/T-Bar_Row_with_Handle/0.jpg",
@@ -33728,12 +33855,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "t bar row con manija",
+      "remo en v landmine"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "T-Bar_Row_with_Handle",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0813",
@@ -34720,9 +34850,9 @@
   },
   {
     "idEjercicio": "EJ-0838",
-    "nombre": "Upright Barbell Row",
+    "nombre": "Remo al mentón con barra",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -34735,26 +34865,33 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Grasp a barbell with an overhand grip that is slightly less than shoulder width. The bar should be resting on the top of your thighs with your arms extended and a slight bend in your elbows. Your back should also be straight. This will be your starting position.",
-      "Now exhale and use the sides of your shoulders to lift the bar, raising your elbows up and to the side. Keep the bar close to your body as you raise it. Continue to lift the bar until it nearly touches your chin. Tip: Your elbows should drive the motion, and should always be higher than your forearms. Remember to keep your torso stationary and pause for a second at the top of the movement.",
-      "Lower the bar back down slowly to the starting position. Inhale as you perform this portion of the movement.",
-      "Repeat for the recommended amount of repetitions."
+      "Tomá una barra con agarre pronado levemente más cerrado que el ancho de hombros. La barra debe descansar sobre la parte superior de los muslos con los brazos extendidos y una leve flexión en los codos. La espalda también debe estar recta. Esta es la posición inicial.",
+      "Ahora exhalá y usá los laterales de los hombros para levantar la barra, elevando los codos hacia arriba y hacia los costados. Mantené la barra cerca del cuerpo al subirla. Continuá elevando la barra hasta que casi toque el mentón. El codo guía el movimiento y siempre debe quedar más alto que el antebrazo. Mantenés el torso fijo y pausás un segundo en la parte superior del movimiento.",
+      "Bajá la barra lentamente a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El codo siempre va más alto que el antebrazo durante la subida."
+    ],
+    "erroresComunes": [
+      "Subir la barra demasiado alto generando pinzamiento en el hombro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Upright_Barbell_Row/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Upright_Barbell_Row/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "upright row",
+      "remo vertical con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Upright_Barbell_Row",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0839",
@@ -35652,7 +35789,7 @@
   },
   {
     "idEjercicio": "EJ-0861",
-    "nombre": "Wide-Grip Standing Barbell Curl",
+    "nombre": "Curl de pie con barra agarre ancho",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -35665,14 +35802,18 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Stand up with your torso upright while holding a barbell at the wide outer handle. The palm of your hands should be facing forward. The elbows should be close to the torso. This will be your starting position.",
-      "While holding the upper arms stationary, curl the weights forward while contracting the biceps as you breathe out. Tip: Only the forearms should move.",
-      "Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second and squeeze the biceps hard.",
-      "Slowly begin to bring the bar back to starting position as your breathe in.",
-      "Repeat for the recommended amount of repetitions."
+      "Pararte con el torso erguido sosteniendo una barra por las manijas externas anchas. Las palmas deben mirar hacia adelante. Los codos cerca del torso. Esta es la posición inicial.",
+      "Manteniendo los brazos superiores fijos, curvá el peso hacia adelante contrayendo el bíceps mientras exhalás. Solo deben moverse los antebrazos.",
+      "Continuá el movimiento hasta que el bíceps esté completamente contraído y la barra a la altura del hombro. Sostené la contracción un segundo y apretá fuerte el bíceps.",
+      "Comenzá a volver la barra a la posición inicial lentamente mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre ancho enfatiza la cabeza corta (interna) del bíceps."
+    ],
+    "erroresComunes": [
+      "Balancear los brazos para ayudar a subir el peso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Standing_Barbell_Curl/0.jpg",
@@ -35680,12 +35821,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wide grip barbell curl"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Wide-Grip_Standing_Barbell_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0862",
@@ -35976,9 +36119,9 @@
   },
   {
     "idEjercicio": "EJ-0869",
-    "nombre": "Wrist Rotations with Straight Bar",
+    "nombre": "Rotaciones de muñeca con barra recta",
     "modalidad": "Fuerza",
-    "patron": "Core anti-rotación",
+    "patron": "Aislamiento",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Antebrazos",
@@ -35989,23 +36132,32 @@
     "unilateral": false,
     "nivel": "Principiante",
     "instrucciones": [
-      "Hold a barbell with both hands and your palms facing down; hands spaced about shoulder width. This will be your starting position.",
-      "Alternating between each of your hands, perform the movement by extending the wrist as though you were rolling up a newspaper. Continue alternating back and forth until failure.",
-      "Reverse the motion by flexing the wrist, rolling the opposite direction. Continue the alternating motion until failure."
+      "Sostené una barra con ambas manos, palmas hacia abajo, separadas al ancho de hombros. Esta es la posición inicial.",
+      "Alternando entre cada mano, ejecutá el movimiento extendiendo la muñeca como si estuvieras enrollando un diario. Seguí alternando de un lado al otro hasta el fallo.",
+      "Revertí el movimiento flexionando la muñeca, enrollando hacia el lado opuesto. Continuá el movimiento alternado hasta el fallo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Simula el movimiento de enrollar algo con las manos, trabajando ambos lados del antebrazo."
+    ],
+    "erroresComunes": [
+      "Mover el antebrazo entero en lugar de aislar la muñeca."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wrist_Rotations_with_Straight_Bar/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wrist_Rotations_with_Straight_Bar/1.jpg"
     ],
-    "sinonimos": [],
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
+    "videoEsGenerico": true,
+    "sinonimos": [
+      "wrist rotations barra",
+      "rotacion de muñeca tipo enrollado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Wrist_Rotations_with_Straight_Bar",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0870",
