@@ -159,6 +159,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 - **Lote 11 (2026-06-28):** 30 nuevas — intermediate + equipo hogareño tanda 2 (clean/jerk/press unilateral con kettlebell) · 0 warnings · traducidos 306/873
 - **Lote 12 (2026-06-28):** 10 nuevas — completa el pool intermediate + equipo hogareño (clean/jerk/row bilateral con kettlebell, curls especiales) · 0 warnings · traducidos 316/873
 - **Lote 13 (2026-06-28):** 13 nuevas — completa el pool **expert** + equipo hogareño (kettlebell avanzado: bent press, snatch, overhead squat; estiramientos FNP asistidos) · 0 warnings · traducidos 329/873 → **agotado el pool completo body only/dumbbell/bands/kettlebells en los 3 niveles**
+- **Lote 14 (2026-06-29):** 30 nuevas — primera tanda equipo **barbell** nivel beginner (press/curl/squat/row clásicos con barra) · 0 warnings · traducidos 359/873
 
 ---
 
