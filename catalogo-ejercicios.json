@@ -26322,7 +26322,7 @@
   },
   {
     "idEjercicio": "EJ-0620",
-    "nombre": "Seated Barbell Military Press",
+    "nombre": "Press militar sentado con barra",
     "modalidad": "Fuerza",
     "patron": "Empuje vertical",
     "mecanica": "Compuesto",
@@ -26337,14 +26337,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Sit on a Military Press Bench with a bar behind your head and either have a spotter give you the bar (better on the rotator cuff this way) or pick it up yourself carefully with a pronated grip (palms facing forward). Tip: Your grip should be wider than shoulder width and it should create a 90-degree angle between the forearm and the upper arm as the barbell goes down.",
-      "Once you pick up the barbell with the correct grip length, lift the bar up over your head by locking your arms. Hold at about shoulder level and slightly in front of your head. This is your starting position.",
-      "Lower the bar down to the collarbone slowly as you inhale.",
-      "Lift the bar back up to the starting position as you exhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Sentáte en un banco de press militar con la barra detrás de la cabeza y pedile a un compañero que te la entregue (es mejor para el manguito rotador) o levantala con cuidado con agarre pronado (palmas hacia adelante). Tu agarre debe ser más ancho que el ancho de hombros y debe crear un ángulo de 90° entre antebrazo y brazo superior mientras la barra baja.",
+      "Una vez que tomes la barra con el ancho de agarre correcto, levantala por encima de la cabeza bloqueando los brazos. Sostenela a la altura del hombro y levemente al frente de la cabeza. Esta es la posición inicial.",
+      "Bajá la barra lentamente hacia la clavícula mientras inhalás.",
+      "Subí la barra de vuelta a la posición inicial mientras exhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Que un compañero entregue la barra detrás de la cabeza reduce el estrés en el manguito rotador."
+    ],
+    "erroresComunes": [
+      "Levantar la barra solo desde atrás sin ayuda, generando estrés innecesario en el hombro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Barbell_Military_Press/0.jpg",
@@ -26352,12 +26356,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seated military press",
+      "press militar sentado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Barbell_Military_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0621",
@@ -26744,7 +26751,7 @@
   },
   {
     "idEjercicio": "EJ-0630",
-    "nombre": "Seated Close-Grip Concentration Barbell Curl",
+    "nombre": "Curl de concentración sentado con barra agarre cerrado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -26757,14 +26764,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Sit down on a flat bench with a barbell or E-Z Bar in front of you in between your legs. Your legs should be spread with the knees bent and the feet on the floor.",
-      "Use your arms to pick the barbell up and place the back of your upper arms on top of your inner thighs (around three and a half inches away from the front of the knee). A supinated grip closer than shoulder width is needed to perform this exercise. Tip: Your arm should be extended at arms length and the barbell should be above the floor. This will be your starting position.",
-      "While holding the upper arms stationary, curl the weights forward while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps.",
-      "Slowly begin to bring the barbell back to starting position as your breathe in. Tip: Avoid swinging motions at any time.",
-      "Repeat for the recommended amount of repetitions."
+      "Sentáte en un banco plano con una barra o barra EZ frente a vos, entre las piernas. Las piernas deben estar separadas con las rodillas flexionadas y los pies en el piso.",
+      "Usá los brazos para levantar la barra y colocá la parte posterior de los brazos superiores sobre la cara interna de los muslos (a unos 9 cm de la parte frontal de la rodilla). Se necesita un agarre supino más cerrado que el ancho de hombros para este ejercicio. El brazo debe estar extendido y la barra por encima del piso. Esta es la posición inicial.",
+      "Manteniendo los brazos superiores fijos, curvá el peso hacia adelante contrayendo el bíceps mientras exhalás. Solo deben moverse los antebrazos. Continuá el movimiento hasta que el bíceps esté completamente contraído y la barra a la altura del hombro. Sostené la contracción un segundo apretando el bíceps.",
+      "Comenzá a volver la barra a la posición inicial lentamente mientras inhalás. Evitá cualquier movimiento de balanceo.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Apoyar los brazos en los muslos internos elimina por completo el impulso del torso."
+    ],
+    "erroresComunes": [
+      "Balancear el cuerpo para ayudar a subir el peso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Close-Grip_Concentration_Barbell_Curl/0.jpg",
@@ -26772,12 +26783,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "concentration curl con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Close-Grip_Concentration_Barbell_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0631",
@@ -27169,7 +27182,7 @@
   },
   {
     "idEjercicio": "EJ-0640",
-    "nombre": "Seated Good Mornings",
+    "nombre": "Good morning sentado en cajón",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -27184,13 +27197,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Set up a box in a power rack. The pins should be set at an appropriate height. Begin by stepping under the bar and placing it across the back of the shoulders, not on top of your traps. Squeeze your shoulder blades together and rotate your elbows forward, attempting to bend the bar across your shoulders.",
-      "Remove the bar from the rack, creating a tight arch in your lower back. Keep your head facing forward. With your back, shoulders, and core tight, push your knees and butt out and you begin your descent. Sit back with your hips until you are seated on the box. This will be your starting position.",
-      "Keeping the bar tight, bend forward at the hips as much as possible. If you set the pins to what would be parallel, you not only have a safety if you fail, but know when to stop.",
-      "Pause just above the pins and reverse the motion until your torso it upright."
+      "Colocá un cajón dentro de un rack de potencia. Los pines deben ajustarse a la altura adecuada. Comenzá metiéndote debajo de la barra y colocándola en la parte posterior de los hombros, no sobre los trapecios. Apretá los omóplatos entre sí y rotá los codos hacia adelante, intentando doblar la barra sobre los hombros.",
+      "Sacá la barra del rack creando un arco firme en la espalda baja. Mantené la cabeza mirando al frente. Con la espalda, los hombros y el core firmes, empujá las rodillas y los glúteos hacia afuera y comenzá el descenso. Sentate hacia atrás con las caderas hasta quedar sentado en el cajón. Esta es la posición inicial.",
+      "Manteniendo la barra firme, inclinate hacia adelante desde la cadera lo más posible. Si ajustaste los pines a la altura paralela, tenés una red de seguridad en caso de fallar, y también sabés cuándo detenerte.",
+      "Pausá justo por encima de los pines y revertí el movimiento hasta que el torso quede erguido."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Estar sentado en el cajón ofrece una red de seguridad si fallás el levantamiento."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda baja al inclinarse hacia adelante."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Good_Mornings/0.jpg",
@@ -27198,12 +27215,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seated good morning",
+      "good morning desde caja"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Good_Mornings",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0641",
@@ -28549,9 +28569,9 @@
   },
   {
     "idEjercicio": "EJ-0675",
-    "nombre": "Single-Arm Linear Jammer",
+    "nombre": "Landmine jammer lineal unilateral",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -28562,29 +28582,36 @@
     "equipo": [
       "Barra"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Position a bar into a landmine or securely anchor it in a corner. Load the bar to an appropriate weight.",
-      "Raise the bar from the floor, taking it to your shoulders with one or both hands. Adopt a wide stance. This will be your starting position.",
-      "Perform the movement by extending the elbow, pressing the weight up. Move explosively, extending the hips and knees fully to produce maximal force.",
-      "Return to the starting position."
+      "Colocá una barra en un soporte landmine o anclala firmemente en un rincón. Cargá la barra con el peso adecuado.",
+      "Levantá la barra del piso, llevándola a la altura del hombro con una o ambas manos. Adoptá una postura amplia. Esta es la posición inicial.",
+      "Ejecutá el movimiento extendiendo el codo, presionando el peso hacia arriba. Movete explosivamente, extendiendo completamente caderas y rodillas para producir la máxima fuerza posible.",
+      "Volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La versión unilateral suma una exigencia de estabilidad de core asimétrica."
+    ],
+    "erroresComunes": [
+      "No extender completamente caderas y rodillas, perdiendo potencia."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Single-Arm_Linear_Jammer/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Single-Arm_Linear_Jammer/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "single arm jammer",
+      "jammer lineal un brazo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Single-Arm_Linear_Jammer",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0676",
@@ -30197,9 +30224,9 @@
   },
   {
     "idEjercicio": "EJ-0716",
-    "nombre": "Snatch",
+    "nombre": "Arrancada (snatch)",
     "modalidad": "Fuerza",
-    "patron": "Dominante de cadera",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Cuádriceps",
@@ -30218,35 +30245,42 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place your feet at a shoulder width stance with the barbell resting right above the connection between the toes and the rest of the foot.",
-      "With a palms facing down grip, bend at the knees and keeping the back flat grab the bar using a wider than shoulder width grip. Bring the hips down and make sure that your body drops as if you were going to sit on a chair. This will be your starting position.",
-      "Start pushing the floor as if it were a moving platform with your feet and simultaneously start lifting the barbell keeping it close to your legs.",
-      "As the bar reaches the middle of your thighs, push the floor with your legs and lift your body to a complete extension in an explosive motion.",
-      "Lift your shoulders back in a shrugging movement as you bring the bar up while lifting your elbows out to the side and keeping them above the bar for as long as possible.",
-      "Now in a very quick but powerful motion, you have to get your body under the barbell when it has reached a high enough point where it can be controlled and drop while locking your arms and holding the barbell overhead as you assume a squat position.",
-      "Finalize the movement by rising up out of the squat position to finish the lift. At the end of the lift both feet should be on line and the arms fully extended holding the barbell overhead."
+      "Colocá los pies al ancho de hombros con la barra apoyada justo encima de la unión entre los dedos del pie y el resto del pie.",
+      "Con agarre pronado, flexioná las rodillas y, manteniendo la espalda plana, tomá la barra con un agarre más ancho que el ancho de hombros. Bajá las caderas y asegurate de que el cuerpo descienda como si te fueras a sentar en una silla. Esta es la posición inicial.",
+      "Comenzá a empujar el piso con los pies como si fuera una plataforma móvil, y simultáneamente comenzá a levantar la barra manteniéndola cerca de las piernas.",
+      "Cuando la barra llegue a la mitad de los muslos, empujá el piso con las piernas y elevá el cuerpo hasta la extensión completa en un movimiento explosivo.",
+      "Elevá los hombros hacia atrás en un movimiento de encogimiento mientras subís la barra, llevando los codos hacia los costados y manteniéndolos por encima de la barra el mayor tiempo posible.",
+      "Ahora, en un movimiento muy rápido pero poderoso, tenés que meter el cuerpo debajo de la barra cuando haya alcanzado una altura suficiente para controlarla, y caer mientras bloqueás los brazos sosteniendo la barra por encima de la cabeza al adoptar una posición de sentadilla.",
+      "Finalizá el movimiento subiendo desde la posición de sentadilla para completar el levantamiento. Al final del levantamiento, ambos pies deben estar alineados y los brazos completamente extendidos sosteniendo la barra por encima de la cabeza."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El levantamiento olímpico más técnico: exige movilidad completa de tobillo, cadera y hombro."
+    ],
+    "erroresComunes": [
+      "No meterse lo suficientemente rápido debajo de la barra."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Snatch/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Snatch/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "snatch",
+      "arrancada olimpica"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Snatch",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0717",
-    "nombre": "Snatch Balance",
+    "nombre": "Balance de arrancada (snatch balance)",
     "modalidad": "Fuerza",
-    "patron": "Dominante de cadera",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Cuádriceps",
@@ -30263,30 +30297,37 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Begin with the feet in the pulling position, the bar racked across the back of the shoulders, and the hands placed in a wide snatch grip.",
-      "Pop the bar with an abrupt dip and drive of the knees, and aggressively drive under the bar, transitioning the feet into the receiving position.",
-      "Receive the bar locked out overhead near the bottom of the squat. The torso should remain vertical, lowering the hips between the legs.",
-      "Continue to descend to full depth, and return to a standing position. Carefully lower the weight."
+      "Comenzá con los pies en posición de tirón, la barra apoyada en la parte posterior de los hombros, y las manos en un agarre ancho de arrancada.",
+      "Hacé un hundimiento abrupto con las rodillas y empujá la barra hacia arriba, metiéndote agresivamente debajo de ella mientras movés los pies a la posición de recepción.",
+      "Recibí la barra bloqueada por encima de la cabeza cerca del fondo de la sentadilla. El torso debe permanecer vertical, bajando las caderas entre las piernas.",
+      "Continuá descendiendo hasta la profundidad completa, y volvé a una posición de pie. Bajá el peso con cuidado."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un ejercicio técnico para la arrancada: enseña a recibir el peso arriba en sentadilla completa con torso vertical."
+    ],
+    "erroresComunes": [
+      "Inclinar el torso hacia adelante al recibir el peso."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Snatch_Balance/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Snatch_Balance/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "snatch balance",
+      "balance de la arrancada"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Snatch_Balance",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0718",
-    "nombre": "Snatch Deadlift",
+    "nombre": "Peso muerto de arrancada (snatch deadlift)",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -30306,12 +30347,16 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "The snatch deadlift strengthens the first pull of the snatch. Begin with a wide snatch grip with the barbell placed on the platform. The feet should be directly under the hips, with the feet turned out. Squat down to the bar, keeping the back in absolute extension with the head facing forward.",
-      "Initiate the movement by driving through the heels, raising the hips. The back angle should remain the same until the bar passes the knees.",
-      "At that point, drive your hips through the bar as you lay back. Return the bar to the platform by reversing the motion."
+      "El peso muerto de arrancada fortalece el primer tirón de la arrancada. Comenzá con un agarre ancho de arrancada y la barra apoyada en el piso. Los pies deben estar directamente debajo de las caderas, con las puntas hacia afuera. Hacé sentadilla hacia la barra, manteniendo la espalda en extensión absoluta con la cabeza mirando al frente.",
+      "Iniciá el movimiento empujando a través de los talones, elevando las caderas. El ángulo de la espalda debe mantenerse igual hasta que la barra pase las rodillas.",
+      "En ese punto, empujá las caderas hacia la barra mientras te reclinás hacia atrás. Volvé la barra al piso revirtiendo el movimiento."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre ancho distingue este ejercicio del deadlift convencional, preparando el primer tirón de la arrancada."
+    ],
+    "erroresComunes": [
+      "Cambiar el ángulo de espalda a mitad del levantamiento."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Snatch_Deadlift/0.jpg",
@@ -30319,16 +30364,19 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "snatch deadlift",
+      "deadlift estilo arrancada"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Snatch_Deadlift",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0719",
-    "nombre": "Snatch Pull",
+    "nombre": "Tirón de arrancada (snatch pull)",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -30347,13 +30395,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "With a barbell on the floor close to the shins, take a wide snatch grip. Lower your hips with the weight focused on the heels, back straight, head facing forward, chest up, with your shoulders just in front of the bar. This will be your starting position.",
-      "Begin the first pull by driving through the heels, extending your knees. Your back angle should stay the same, and your arms should remain straight. Move the weight with control as you continue to above the knees.",
-      "Next comes the second pull, the main source of acceleration for the pull. As the bar approaches the mid-thigh position, begin extending through the hips. In a jumping motion, accelerate by extending the hips, knees, and ankles, using speed to move the bar upward.",
-      "There should be no need to actively pull through the arms to accelerate the weight; at the end of the second pull, the body should be fully extended, leaning slightly back. Full extension should be violent and abrupt, and ensure that you do not prolong the extension for longer than necessary."
+      "Con la barra en el piso cerca de las tibias, tomá un agarre ancho de arrancada. Bajá las caderas con el peso enfocado en los talones, espalda recta, cabeza al frente, pecho arriba, con los hombros justo por delante de la barra. Esta es la posición inicial.",
+      "Comenzá el primer tirón empujando a través de los talones, extendiendo las rodillas. El ángulo de la espalda debe mantenerse igual, y los brazos deben permanecer rectos. Movés el peso con control mientras continuás hasta por encima de las rodillas.",
+      "Luego viene el segundo tirón, la principal fuente de aceleración del tirón. Cuando la barra se acerca a la mitad del muslo, comenzá a extender la cadera. En un movimiento de salto, acelerá extendiendo cadera, rodillas y tobillos, usando velocidad para mover la barra hacia arriba.",
+      "No debería ser necesario tirar activamente con los brazos para acelerar el peso; al final del segundo tirón, el cuerpo debe estar completamente extendido, inclinado levemente hacia atrás. La extensión final debe ser violenta y abrupta; asegurate de no prolongarla más de lo necesario."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre ancho de arrancada distingue este tirón del clean pull."
+    ],
+    "erroresComunes": [
+      "Prolongar demasiado la extensión final en lugar de hacerla explosiva."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Snatch_Pull/0.jpg",
@@ -30361,16 +30413,19 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "snatch pull",
+      "tiron de arrancada olimpica"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Snatch_Pull",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0720",
-    "nombre": "Snatch Shrug",
+    "nombre": "Encogimiento de arrancada (snatch shrug)",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -30386,11 +30441,15 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Begin with a wide grip, with the bar hanging at the mid thigh position. You can use a hook or overhand grip. Your back should be straight and inclined slightly forward.",
-      "Shrug your shoulders towards your ears. While this exercise can usually by loaded with heavier weight than a snatch, avoid overloading to the point that the execution slows down."
+      "Comenzá con un agarre ancho, con la barra colgando a la altura media del muslo. Podés usar agarre de gancho o pronado. La espalda recta e inclinada levemente hacia adelante.",
+      "Encogé los hombros hacia las orejas. Aunque este ejercicio normalmente puede cargarse con más peso que una arrancada completa, evitá sobrecargar hasta el punto de que la ejecución se vuelva lenta."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre ancho lo distingue del clean shrug, enfocado en la técnica de arrancada."
+    ],
+    "erroresComunes": [
+      "Sobrecargar tanto que el movimiento se vuelve lento."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Snatch_Shrug/0.jpg",
@@ -30398,12 +30457,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "snatch shrug",
+      "shrug de arrancada olimpica"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Snatch_Shrug",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0721",
@@ -30496,7 +30558,7 @@
   },
   {
     "idEjercicio": "EJ-0723",
-    "nombre": "Speed Box Squat",
+    "nombre": "Sentadilla al cajón de velocidad",
     "modalidad": "Fuerza",
     "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
@@ -30513,14 +30575,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Attach bands to the bar that are securely anchored near the ground. You may need to choke the bands to get adequate tension.",
-      "Use a box of an appropriate height for this exercise. Load the bar to a weight that still requires effort, but isn't so heavy that speed is compromised. Typically, that will be between 50-70% of your one rep max.",
-      "Position the bar on your upper back, shoulder blades retracted, back arched and everything tight head to toe. This will be the starting position.",
-      "Unrack the bar and position yourself in front of the box. Sit back with your hips until you are seated on the box, ensuring that you descend under control and don't crash onto the surface.",
-      "Pause briefly, and explode off of the box, extending through the hips and knees."
+      "Anclá bandas a la barra, asegurándolas firmemente cerca del piso. Puede ser necesario ajustar las bandas para generar tensión adecuada.",
+      "Usá un cajón de altura adecuada para este ejercicio. Cargá la barra con un peso que aún requiera esfuerzo, pero que no sea tan pesado como para comprometer la velocidad. Normalmente eso es entre el 50% y el 70% de tu repetición máxima.",
+      "Colocá la barra sobre la espalda alta, con los omóplatos retraídos, la espalda arqueada y todo el cuerpo firme de pies a cabeza. Esta es la posición inicial.",
+      "Sacá la barra del rack y posicionate frente al cajón. Sentate hacia atrás con las caderas hasta quedar sentado en el cajón, asegurándote de descender con control y sin golpear la superficie.",
+      "Pausá brevemente, y explotá desde el cajón, extendiendo caderas y rodillas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El objetivo es la velocidad de ejecución, no la carga máxima; usá entre 50-70% de tu 1RM."
+    ],
+    "erroresComunes": [
+      "Usar demasiado peso, comprometiendo la velocidad del movimiento."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Speed_Box_Squat/0.jpg",
@@ -30528,12 +30594,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "speed box squat",
+      "box squat de velocidad"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Speed_Box_Squat",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0724",
@@ -30754,7 +30823,7 @@
   },
   {
     "idEjercicio": "EJ-0729",
-    "nombre": "Split Clean",
+    "nombre": "Cargada partida (split clean)",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -30775,15 +30844,19 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "With a barbell on the floor close to the shins, take an overhand grip just outside the legs. Lower your hips with the weight focused on the heels, back straight, head facing forward, chest up, with your shoulders just in front of the bar. This will be your starting position.",
-      "Begin the first pull by driving through the heels, extending your knees. Your back angle should stay the same, and your arms should remain straight. Move the weight with control as you continue to above the knees.",
-      "Next comes the second pull, the main source of acceleration for the clean. As the bar approaches the mid-thigh position, begin extending through the hips. In a jumping motion, accelerate by extending the hips, knees, and ankles, using speed to move the bar upward. There should be no need to actively pull through the arms to accelerate the weight; at the end of the second pull, the body should be fully extended, leaning slightly back, with the arms still extended.",
-      "As full extension is achieved, transition into the third pull by aggressively shrugging and flexing the arms with the elbows up and out. At peak extension, aggressively pull yourself down, rotating your elbows under the bar as you do so.",
-      "Receive the bar with the feet split, aggressively moving one foot forward and one foot back. The bar should be racked onto the protracted shoulders, lightly touching the throat with the hands relaxed. Continue to descend to the bottom position, which will help in the recovery.",
-      "Immediately recover by driving through the heels, keeping the torso upright and elbows up. Bring the feet together as you stand up."
+      "Con la barra en el piso cerca de las tibias, tomá un agarre pronado justo afuera de las piernas. Bajá las caderas con el peso enfocado en los talones, espalda recta, cabeza al frente, pecho arriba, con los hombros justo por delante de la barra. Esta es la posición inicial.",
+      "Comenzá el primer tirón empujando a través de los talones, extendiendo las rodillas. El ángulo de la espalda debe mantenerse igual, y los brazos deben permanecer rectos. Movés el peso con control mientras continuás hasta por encima de las rodillas.",
+      "Luego viene el segundo tirón, la principal fuente de aceleración de la cargada. Cuando la barra se acerca a la mitad del muslo, comenzá a extender la cadera. En un movimiento de salto, acelerá extendiendo cadera, rodillas y tobillos, usando velocidad para mover la barra hacia arriba. Al final del segundo tirón, el cuerpo debe estar completamente extendido, inclinado levemente hacia atrás, con los brazos todavía extendidos.",
+      "Al alcanzar la extensión completa, pasá al tercer tirón encogiendo agresivamente los hombros y flexionando los brazos con los codos hacia arriba y afuera. En el pico de la extensión, tirate hacia abajo agresivamente, rotando los codos por debajo de la barra.",
+      "Recibí la barra con los pies en posición dividida, moviendo agresivamente un pie hacia adelante y otro hacia atrás. La barra debe quedar apoyada sobre los hombros protraídos, tocando levemente la garganta con las manos relajadas. Continuá descendiendo hasta la posición baja, lo cual ayuda en la recuperación.",
+      "Recuperate inmediatamente empujando a través de los talones, manteniendo el torso erguido y los codos arriba. Juntá los pies mientras te ponés de pie."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La recepción con los pies en posición dividida (en lugar de paralelos) es la técnica clásica de cargada."
+    ],
+    "erroresComunes": [
+      "No coordinar el movimiento de los pies con el momento exacto del tirón."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Split_Clean/0.jpg",
@@ -30791,18 +30864,21 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "split clean",
+      "cargada con recepcion partida"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Split_Clean",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0730",
-    "nombre": "Split Jerk",
+    "nombre": "Envión partido (split jerk)",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Cuádriceps",
@@ -30818,26 +30894,33 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Standing with the weight racked on the front of the shoulders, begin with the dip. With your feet directly under your hips, flex the knees without moving the hips backward.",
-      "Go down only slightly, and reverse direction as powerfully as possible. Drive through the heels create as much speed and force as possible, and be sure to move your head out of the way as the bar leaves the shoulders. At this moment as the feet leave the floor, the feet must be placed into the receiving position as quickly as possible.",
-      "In the brief moment the feet are not actively driving against the platform, the athlete's effort to push the bar up will drive them down. The feet should be moved to a split stance, one foot forward, one foot back, with the knees partially bent. Receive the bar with the arms locked out overhead.",
-      "Return to a standing position, bringing the feet together."
+      "Parado con el peso apoyado en la parte frontal de los hombros, comenzá con el hundimiento. Con los pies directamente debajo de las caderas, flexioná las rodillas sin mover las caderas hacia atrás.",
+      "Bajá solo levemente, y revertí la dirección con la mayor potencia posible. Empujá a través de los talones para generar la mayor velocidad y fuerza posible, y asegurate de mover la cabeza fuera del camino mientras la barra se aleja de los hombros. En el momento en que los pies dejan el piso, deben colocarse en la posición de recepción lo más rápido posible.",
+      "En el breve momento en que los pies no están empujando activamente contra el piso, el esfuerzo del atleta por empujar la barra hacia arriba lo impulsará hacia abajo. Los pies deben moverse a una posición dividida, uno adelante y otro atrás, con las rodillas parcialmente flexionadas. Recibí la barra con los brazos bloqueados por encima de la cabeza.",
+      "Volvé a una posición de pie, juntando los pies."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La posición dividida al recibir el peso permite manejar cargas más pesadas que el push press."
+    ],
+    "erroresComunes": [
+      "No mover la cabeza a tiempo mientras la barra sube."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Split_Jerk/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Split_Jerk/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "split jerk",
+      "envion con recepcion partida"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Split_Jerk",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0731",
@@ -31062,7 +31145,7 @@
   },
   {
     "idEjercicio": "EJ-0736",
-    "nombre": "Squat with Bands",
+    "nombre": "Sentadilla con bandas",
     "modalidad": "Fuerza",
     "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
@@ -31081,13 +31164,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Set up the bands on the sleeves, secured to either band pegs, the rack, or dumbbells so that there is appropriate tension.",
-      "Begin by stepping under the bar and placing it across the back of the shoulders. Squeeze your shoulder blades together and rotate your elbows forward, attempting to bend the bar across your shoulders. Remove the bar from the rack, creating a tight arch in your lower back, and step back into position. Place your feet wide for more emphasis on the back, glutes, adductors, and hamstrings. Keep your head facing forward.",
-      "With your back, shoulders, and core tight, push your knees and butt out and you begin your descent. Sit back with your hips as much as possible. Ideally, your shins should be perpendicular to the ground. Lower bar position necessitates a greater torso lean to keep the bar over the heels. Continue until you break parallel, which is defined as the crease of the hip being in line with the top of the knee.",
-      "Keeping the weight on your heels and pushing your feet and knees out, drive upward as you lead the movement with your head. Continue upward, maintaining tightness head to toe, until you have returned to the starting position."
+      "Configurá las bandas en las mangas de la barra, asegurándolas a clavijas, al rack, o a mancuernas, de modo que haya tensión adecuada.",
+      "Comenzá metiéndote debajo de la barra y colocándola en la parte posterior de los hombros. Apretá los omóplatos entre sí y rotá los codos hacia adelante, intentando doblar la barra sobre los hombros. Sacá la barra del rack creando un arco firme en la espalda baja, y retrocedé a la posición. Colocá los pies separados para enfatizar espalda, glúteos, aductores e isquiotibiales. Mantené la cabeza mirando al frente.",
+      "Con la espalda, los hombros y el core firmes, empujá las rodillas y los glúteos hacia afuera y comenzá el descenso. Sentate hacia atrás con las caderas lo más posible. Idealmente, las tibias deben quedar perpendiculares al piso. Una posición más baja de la barra requiere mayor inclinación del torso para mantenerla sobre los talones. Continuá hasta romper la paralela, definida como el pliegue de la cadera alineado con la parte superior de la rodilla.",
+      "Manteniendo el peso en los talones y empujando los pies y las rodillas hacia afuera, impulsate hacia arriba liderando el movimiento con la cabeza. Continuá subiendo, manteniendo la tensión de pies a cabeza, hasta volver a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las bandas agregan resistencia variable: más carga cuanto más arriba estás en el recorrido."
+    ],
+    "erroresComunes": [
+      "No ajustar bien la tensión inicial de las bandas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Squat_with_Bands/0.jpg",
@@ -31095,16 +31182,19 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "squat con bandas",
+      "sentadilla con resistencia variable"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Squat_with_Bands",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0737",
-    "nombre": "Squat with Chains",
+    "nombre": "Sentadilla con cadenas",
     "modalidad": "Fuerza",
     "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
@@ -31123,13 +31213,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "To set up the chains, begin by looping the leader chain over the sleeves of the bar. The heavy chain should be attached using a snap hook. Adjust the length of the lead chain so that a few links are still on the floor at the top of the movement.",
-      "Begin by stepping under the bar and placing it across the back of the shoulders. Squeeze your shoulder blades together and rotate your elbows forward, attempting to bend the bar across your shoulders. Remove the bar from the rack, creating a tight arch in your lower back, and step back into position. Place your feet wide for more emphasis on the back, glutes, adductors, and hamstrings. Keep your head facing forward.",
-      "With your back, shoulders, and core tight, push your knees and butt out and you begin your descent. Sit back with your hips as much as possible. Ideally, your shins should be perpendicular to the ground. Lower bar position necessitates a greater torso lean to keep the bar over the heels. Continue until you break parallel, which is defined as the crease of the hip being in line with the top of the knee.",
-      "Keeping the weight on your heels and pushing your feet and knees out, drive upward as you lead the movement with your head. Continue upward, maintaining tightness head to toe, until you have returned to the starting position."
+      "Para configurar las cadenas, comenzá pasando la cadena guía por encima de las mangas de la barra. La cadena pesada debe sujetarse con un mosquetón. Ajustá la longitud de la cadena guía de modo que queden algunos eslabones en el piso en la parte superior del movimiento.",
+      "Comenzá metiéndote debajo de la barra y colocándola en la parte posterior de los hombros. Apretá los omóplatos entre sí y rotá los codos hacia adelante, intentando doblar la barra sobre los hombros. Sacá la barra del rack creando un arco firme en la espalda baja, y retrocedé a la posición. Colocá los pies separados para enfatizar espalda, glúteos, aductores e isquiotibiales. Mantené la cabeza mirando al frente.",
+      "Con la espalda, los hombros y el core firmes, empujá las rodillas y los glúteos hacia afuera y comenzá el descenso. Sentate hacia atrás con las caderas lo más posible. Idealmente, las tibias deben quedar perpendiculares al piso. Una posición más baja de la barra requiere mayor inclinación del torso para mantenerla sobre los talones. Continuá hasta romper la paralela, definida como el pliegue de la cadera alineado con la parte superior de la rodilla.",
+      "Manteniendo el peso en los talones y empujando los pies y las rodillas hacia afuera, impulsate hacia arriba liderando el movimiento con la cabeza. Continuá subiendo, manteniendo la tensión de pies a cabeza, hasta volver a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las cadenas se levantan del piso progresivamente, sumando peso efectivo cuanto más alto subís."
+    ],
+    "erroresComunes": [
+      "No ajustar bien la longitud de la cadena, perdiendo el efecto de resistencia progresiva."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Squat_with_Chains/0.jpg",
@@ -31137,16 +31231,19 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "squat con cadenas",
+      "sentadilla con resistencia progresiva"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Squat_with_Chains",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0738",
-    "nombre": "Squat with Plate Movers",
+    "nombre": "Sentadilla con desplazamiento de disco",
     "modalidad": "Fuerza",
     "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
@@ -31165,17 +31262,21 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "To begin, first set the bar on a rack to just below shoulder level. Position a weight plate on the ground a couple feet back from the rack. Once the bar is loaded, step under it and place the back of your shoulders across it.",
-      "Hold on to the bar with both hands and lift it off the rack by first pushing with your legs and at the same time straighten your torso.",
-      "Step away from the rack and adopt a wide stance with the toes slightly pointed out, with one foot on the weight plate. Keep your head up at all times. This will be your starting position.",
-      "Begin to slowly lower the bar by bending the knees and hips. Continue down until the angle between the upper leg and the calves becomes slightly less than 90-degrees.",
-      "Raise the bar as you exhale by pushing the floor with the heels of your feet as you extend the hips and knees.",
-      "At the top of the movement, side step, bringing your feet together on the opposite side of the plate.",
-      "Using your inside foot, push the weight plate, sliding it across the floor to where you were just standing.",
-      "Place your inside foot on the weight plate, adopting a wide stance for the next repetition."
+      "Para comenzar, colocá la barra en un rack justo debajo de la altura del hombro. Colocá un disco de peso en el piso a un par de pasos detrás del rack. Una vez cargada la barra, metete debajo de ella y colocá la parte posterior de los hombros bajo ella.",
+      "Sosteniendo la barra con ambas manos, levantala del rack empujando con las piernas mientras enderezás el torso al mismo tiempo.",
+      "Alejate del rack y adoptá una postura amplia con las puntas levemente hacia afuera, con un pie sobre el disco de peso. Mantené la cabeza arriba en todo momento. Esta es la posición inicial.",
+      "Comenzá a bajar la barra lentamente flexionando rodillas y caderas. Continuá bajando hasta que el ángulo entre el muslo y la pantorrilla sea levemente menor a 90°.",
+      "Subí la barra mientras exhalás, empujando el piso con los talones mientras extendés caderas y rodillas.",
+      "En la parte superior del movimiento, dá un paso lateral, juntando los pies del lado opuesto al disco.",
+      "Usando el pie interno, empujá el disco de peso, deslizándolo por el piso hacia donde estabas parado antes.",
+      "Colocá el pie interno sobre el disco de peso, adoptando una postura amplia para la siguiente repetición."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina la sentadilla con un desplazamiento lateral usando el disco como guía, sumando un componente de coordinación."
+    ],
+    "erroresComunes": [
+      "Perder el equilibrio durante el paso lateral con el peso en los hombros."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Squat_with_Plate_Movers/0.jpg",
@@ -31183,12 +31284,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "squat plate movers",
+      "sentadilla con disco deslizante"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Squat_with_Plate_Movers",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0739",
@@ -31367,9 +31471,9 @@
   },
   {
     "idEjercicio": "EJ-0743",
-    "nombre": "Standing Barbell Press Behind Neck",
+    "nombre": "Press de pie tras nuca con barra",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -31382,28 +31486,35 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "This exercise is best performed inside a squat rack for easier pick up of the bar. To begin, first set the bar on a rack that best matches your height. Once the correct height is chosen and the bar is loaded, step under the bar and place the back of your shoulders (slightly below the neck) across it.",
-      "Hold on to the bar using both arms at each side and lift it off the rack by first pushing with your legs and at the same time straightening your torso.",
-      "Step away from the rack and position your legs using a shoulder width medium stance with the toes slightly pointed out. Your back should be kept straight while performing this exercise. This will be your starting position.",
-      "Elevate the barbell overhead by fully extending your arms while breathing out.",
-      "Hold the contraction for a second and lower the barbell back down to the starting position by inhaling.",
-      "Repeat for the recommended amount of repetitions."
+      "Este ejercicio se realiza mejor dentro de un rack de sentadillas para facilitar tomar la barra. Para comenzar, colocá la barra en un rack a la altura que mejor se adapte a tu altura. Una vez elegida la altura correcta y cargada la barra, metete debajo de ella y colocá la parte posterior de los hombros (levemente debajo del cuello) bajo la barra.",
+      "Sosteniendo la barra con ambos brazos a los costados, levantala del rack empujando con las piernas mientras enderezás el torso al mismo tiempo.",
+      "Alejate del rack y colocá las piernas en una postura media al ancho de hombros con las puntas levemente hacia afuera. Mantené la espalda recta durante todo el ejercicio. Esta es la posición inicial.",
+      "Elevá la barra por encima de la cabeza extendiendo completamente los brazos mientras exhalás.",
+      "Sostené la contracción un segundo y bajá la barra a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El press tras nuca exige buena movilidad de hombro; se debe ejecutar con mucho control."
+    ],
+    "erroresComunes": [
+      "Forzar el rango de movimiento sin la movilidad de hombro adecuada."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Barbell_Press_Behind_Neck/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Barbell_Press_Behind_Neck/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "behind the neck press de pie",
+      "press tras nuca con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Barbell_Press_Behind_Neck",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0744",
@@ -32114,7 +32225,7 @@
   },
   {
     "idEjercicio": "EJ-0761",
-    "nombre": "Standing Front Barbell Raise Over Head",
+    "nombre": "Elevación frontal con barra hasta por encima de la cabeza",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -32127,14 +32238,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "To begin, stand straight with a barbell in your hands. You should grip the bar with palms facing down and a closer than shoulder width grip apart from each other.",
-      "Your feet should be shoulder width apart from each other. Your elbows should be slightly bent. This is the starting position.",
-      "Lift the barbell up until it is directly over your head while exhaling. Make sure to keep your elbows slightly bent when performing each repetition.",
-      "Once you feel the contraction, begin to lower the barbell back down to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Para comenzar, pararte derecho con una barra en las manos. Tomá la barra con las palmas hacia abajo y un agarre más cerrado que el ancho de hombros.",
+      "Los pies deben estar al ancho de hombros. Los codos deben tener una leve flexión. Esta es la posición inicial.",
+      "Elevá la barra hasta que quede directamente por encima de la cabeza mientras exhalás. Asegurate de mantener los codos con una leve flexión durante cada repetición.",
+      "Una vez que sientas la contracción, comenzá a bajar la barra de vuelta a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El rango completo hasta por encima de la cabeza exige más movilidad de hombro que una elevación frontal estándar."
+    ],
+    "erroresComunes": [
+      "Bloquear completamente los codos en lugar de mantener una leve flexión."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Front_Barbell_Raise_Over_Head/0.jpg",
@@ -32142,12 +32257,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "front raise overhead con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Standing_Front_Barbell_Raise_Over_Head",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0762",
@@ -33301,7 +33418,7 @@
   },
   {
     "idEjercicio": "EJ-0790",
-    "nombre": "Stiff-Legged Barbell Deadlift",
+    "nombre": "Peso muerto piernas rígidas con barra",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -33317,14 +33434,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Grasp a bar using an overhand grip (palms facing down). You may need some wrist wraps if using a significant amount of weight.",
-      "Stand with your torso straight and your legs spaced using a shoulder width or narrower stance. The knees should be slightly bent. This is your starting position.",
-      "Keeping the knees stationary, lower the barbell to over the top of your feet by bending at the hips while keeping your back straight. Keep moving forward as if you were going to pick something from the floor until you feel a stretch on the hamstrings. Inhale as you perform this movement.",
-      "Start bringing your torso up straight again by extending your hips until you are back at the starting position. Exhale as you perform this movement.",
-      "Repeat for the recommended amount of repetitions."
+      "Tomá una barra con agarre pronado (palmas hacia abajo). Puede que necesites muñequeras si usás bastante peso.",
+      "Pararte con el torso recto y las piernas separadas al ancho de hombros o más cerradas. Las rodillas deben estar levemente flexionadas. Esta es la posición inicial.",
+      "Manteniendo las rodillas fijas, bajá la barra hasta la altura de los pies flexionando desde la cadera mientras mantenés la espalda recta. Seguí bajando como si fueras a levantar algo del piso hasta sentir el estiramiento en los isquiotibiales. Inhalá durante este movimiento.",
+      "Comenzá a subir el torso de nuevo extendiendo las caderas hasta volver a la posición inicial. Exhalá durante este movimiento.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las rodillas permanecen con la misma leve flexión durante todo el movimiento; el rango viene de la cadera."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda baja al bajar."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Stiff-Legged_Barbell_Deadlift/0.jpg",
@@ -33332,12 +33453,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "stiff legged deadlift con barra",
+      "peso muerto rumano con barra"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Stiff-Legged_Barbell_Deadlift",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0791",
@@ -33695,7 +33819,7 @@
   },
   {
     "idEjercicio": "EJ-0799",
-    "nombre": "Sumo Deadlift",
+    "nombre": "Peso muerto sumo",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -33716,13 +33840,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Begin with a bar loaded on the ground. Approach the bar so that the bar intersects the middle of the feet. The feet should be set very wide, near the collars. Bend at the hips to grip the bar. The arms should be directly below the shoulders, inside the legs, and you can use a pronated grip, a mixed grip, or hook grip. Relax the shoulders, which in effect lengthens your arms.",
-      "Take a breath, and then lower your hips, looking forward with your head with your chest up. Drive through the floor, spreading your feet apart, with your weight on the back half of your feet. Extend through the hips and knees.",
-      "As the bar passes through the knees, lean back and drive the hips into the bar, pulling your shoulder blades together.",
-      "Return the weight to the ground by bending at the hips and controlling the weight on the way down."
+      "Comenzá con una barra cargada en el piso. Acercate a la barra de modo que quede en el medio de los pies. Los pies deben estar muy separados, cerca de los discos. Flexioná desde la cadera para agarrar la barra. Los brazos deben quedar directamente debajo de los hombros, por dentro de las piernas, y podés usar agarre pronado, mixto, o de gancho. Relajá los hombros, lo que en efecto alarga los brazos.",
+      "Tomá una bocanada de aire, y luego bajá las caderas, mirando hacia adelante con la cabeza y el pecho arriba. Empujá a través del piso, separando los pies, con el peso en la mitad posterior de los pies. Extendé caderas y rodillas.",
+      "Cuando la barra pase las rodillas, reclinate hacia atrás y empujá las caderas hacia la barra, juntando los omóplatos.",
+      "Devolvé el peso al piso flexionando desde la cadera y controlando el peso en el descenso."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La postura ancha reduce el rango de movimiento y favorece a quienes tienen torsos más largos."
+    ],
+    "erroresComunes": [
+      "Dejar que las rodillas colapsen hacia adentro por la postura ancha."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Sumo_Deadlift/0.jpg",
@@ -33730,16 +33858,19 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "sumo deadlift",
+      "peso muerto piernas separadas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Sumo_Deadlift",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0800",
-    "nombre": "Sumo Deadlift with Bands",
+    "nombre": "Peso muerto sumo con bandas",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -33760,14 +33891,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "To deadlift with short bands, simply loop them over the bar before you start, and step into them to set up. Ensure that they under the back half of your foot, directly where you are driving into the floor.",
-      "Begin with a bar loaded on the ground. Approach the bar so that the bar intersects the middle of the feet. The feet should be set very wide, near the collars. Bend at the hips to grip the bar. The arms should be directly below the shoulders, inside the legs, and you can use a pronated grip, a mixed grip, or hook grip.",
-      "Take a breath, and then lower your hips, looking forward with your head with your chest up. Drive through the floor, spreading your feet apart, with your weight on the back half of your feet. Extend through the hips and knees.",
-      "As the bar passes through the knees, lean back and drive the hips into the bar, pulling your shoulder blades together.",
-      "Return the weight to the ground by bending at the hips and controlling the weight on the way down."
+      "Para hacer deadlift con bandas cortas, simplemente pasalas por encima de la barra antes de empezar, y metete dentro de ellas para configurar. Asegurate de que queden bajo la mitad posterior del pie, justo donde estás empujando contra el piso.",
+      "Comenzá con una barra cargada en el piso. Acercate a la barra de modo que quede en el medio de los pies. Los pies deben estar muy separados, cerca de los discos. Flexioná desde la cadera para agarrar la barra. Los brazos deben quedar directamente debajo de los hombros, por dentro de las piernas, y podés usar agarre pronado, mixto, o de gancho.",
+      "Tomá una bocanada de aire, y luego bajá las caderas, mirando hacia adelante con la cabeza y el pecho arriba. Empujá a través del piso, separando los pies, con el peso en la mitad posterior de los pies. Extendé caderas y rodillas.",
+      "Cuando la barra pase las rodillas, reclinate hacia atrás y empujá las caderas hacia la barra, juntando los omóplatos.",
+      "Devolvé el peso al piso flexionando desde la cadera y controlando el peso en el descenso."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las bandas agregan resistencia adicional en el bloqueo final, donde el sumo deadlift suele ser más fácil."
+    ],
+    "erroresComunes": [
+      "No colocar las bandas exactamente bajo la mitad posterior del pie."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Sumo_Deadlift_with_Bands/0.jpg",
@@ -33775,16 +33910,18 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "sumo deadlift con bandas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Sumo_Deadlift_with_Bands",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0801",
-    "nombre": "Sumo Deadlift with Chains",
+    "nombre": "Peso muerto sumo con cadenas",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -33806,14 +33943,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "You can attach the chains to the sleeves of the bar, or just drape the middle over the bar so there is a greater weight increase as you lift. Attempt to keep the ends of the chains away from the plates so you don't hit them when you lower the weight.",
-      "Begin with a bar loaded on the ground. Approach the bar so that the bar intersects the middle of the feet. The feet should be set very wide, near the collars. Bend at the hips to grip the bar. The arms should be directly below the shoulders, inside the legs, and you can use a pronated grip, a mixed grip, or hook grip. Relax the shoulders, which in effect lengthens your arms.",
-      "Take a breath, and then lower your hips, looking forward with your head with your chest up. Drive through the floor, spreading your feet apart, with your weight on the back half of your feet. Extend through the hips and knees.",
-      "As the bar passes through the knees, lean back and drive the hips into the bar, pulling your shoulder blades together.",
-      "Return the weight to the ground by bending at the hips and controlling the weight on the way down."
+      "Podés sujetar las cadenas a las mangas de la barra, o simplemente colgar el medio sobre la barra para que haya un mayor incremento de peso al levantar. Intentá mantener los extremos de las cadenas lejos de los discos para no golpearlos al bajar el peso.",
+      "Comenzá con una barra cargada en el piso. Acercate a la barra de modo que quede en el medio de los pies. Los pies deben estar muy separados, cerca de los discos. Flexioná desde la cadera para agarrar la barra. Los brazos deben quedar directamente debajo de los hombros, por dentro de las piernas, y podés usar agarre pronado, mixto, o de gancho. Relajá los hombros, lo que en efecto alarga los brazos.",
+      "Tomá una bocanada de aire, y luego bajá las caderas, mirando hacia adelante con la cabeza y el pecho arriba. Empujá a través del piso, separando los pies, con el peso en la mitad posterior de los pies. Extendé caderas y rodillas.",
+      "Cuando la barra pase las rodillas, reclinate hacia atrás y empujá las caderas hacia la barra, juntando los omóplatos.",
+      "Devolvé el peso al piso flexionando desde la cadera y controlando el peso en el descenso."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Las cadenas suman peso progresivamente al subir, igual que en la sentadilla con cadenas."
+    ],
+    "erroresComunes": [
+      "Dejar que las cadenas golpeen los discos durante el movimiento."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Sumo_Deadlift_with_Chains/0.jpg",
@@ -33821,12 +33962,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "sumo deadlift con cadenas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Sumo_Deadlift_with_Chains",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0802",
@@ -35752,7 +35895,7 @@
   },
   {
     "idEjercicio": "EJ-0850",
-    "nombre": "Weighted Jump Squat",
+    "nombre": "Salto en sentadilla con peso",
     "modalidad": "Fuerza",
     "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
@@ -35770,13 +35913,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Position a lightly loaded barbell across the back of your shoulders. You could also use a weighted vest, sandbag, or other type of resistance for this exercise.",
-      "The weight should be light enough that it doesn't slow you down significantly. Your feet should be just outside of shoulder width with your head and chest up. This will be your starting position.",
-      "Using a countermovement, squat partially down and immediately reverse your direction to explode off of the ground, extending through your hips, knees, and ankles. Maintain good posture throughout the jump.",
-      "As you return to the ground, absorb the impact through your legs."
+      "Colocá una barra con poca carga en la parte posterior de los hombros. También podés usar un chaleco con peso, una bolsa de arena u otro tipo de resistencia para este ejercicio.",
+      "El peso debe ser suficientemente liviano para que no te frene significativamente. Los pies deben estar levemente más separados que el ancho de hombros, con la cabeza y el pecho arriba. Esta es la posición inicial.",
+      "Usando un contramovimiento, hacé una sentadilla parcial y revertí inmediatamente la dirección para explotar desde el piso, extendiendo caderas, rodillas y tobillos. Mantené una buena postura durante todo el salto.",
+      "Al volver al piso, absorbé el impacto con las piernas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El peso debe ser liviano; el objetivo es la potencia, no la carga máxima."
+    ],
+    "erroresComunes": [
+      "Usar demasiado peso, comprometiendo la velocidad del salto."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Weighted_Jump_Squat/0.jpg",
@@ -35784,12 +35931,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "jump squat con barra",
+      "salto en sentadilla cargado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Weighted_Jump_Squat",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0851",
@@ -35949,7 +36099,7 @@
   },
   {
     "idEjercicio": "EJ-0855",
-    "nombre": "Wide-Grip Barbell Bench Press",
+    "nombre": "Press de banca con agarre ancho",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -35965,13 +36115,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie back on a flat bench with feet firm on the floor. Using a wide, pronated (palms forward) grip that is around 3 inches away from shoulder width (for each hand), lift the bar from the rack and hold it straight over you with your arms locked. The bar will be perpendicular to the torso and the floor. This will be your starting position.",
-      "As you breathe in, come down slowly until you feel the bar on your middle chest.",
-      "After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up.",
-      "Repeat the movement for the prescribed amount of repetitions."
+      "Acostáte en un banco plano con los pies firmes en el piso. Usando un agarre ancho y pronado (palmas hacia adelante) que esté unos 7 cm más ancho que el hombro de cada lado, levantá la barra del rack y sostenela en línea recta sobre vos con los brazos bloqueados. La barra debe quedar perpendicular al torso y al piso. Esta es la posición inicial.",
+      "Mientras inhalás, bajá lentamente hasta sentir la barra en el centro del pecho.",
+      "Después de una pausa de un segundo, volvé la barra a la posición inicial mientras exhalás y empujás con los músculos del pecho. Bloqueá los brazos y apretá el pecho en la posición contraída, sostené un segundo y comenzá a bajar lentamente de nuevo. Debería llevar al menos el doble de tiempo bajar que subir.",
+      "Repetí el movimiento las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre ancho enfatiza la parte exterior del pectoral, reduciendo el rango de movimiento del hombro."
+    ],
+    "erroresComunes": [
+      "Usar un agarre demasiado ancho que genere dolor en el hombro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Barbell_Bench_Press/0.jpg",
@@ -35979,16 +36133,19 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wide grip bench press",
+      "press de pecho agarre ancho"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Wide-Grip_Barbell_Bench_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0856",
-    "nombre": "Wide-Grip Decline Barbell Bench Press",
+    "nombre": "Press decline con agarre ancho",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -36004,13 +36161,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie back on a decline bench with the feet securely locked at the front of the bench. Using a wide, pronated (palms forward) grip that is around 3 inches away from shoulder width (for each hand), lift the bar from the rack and hold it straight over you with your arms locked. The bar will be perpendicular to the torso and the floor. This will be your starting position.",
-      "As you breathe in, come down slowly until you feel the bar on your lower chest.",
-      "After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up.",
-      "Repeat the movement for the prescribed amount of repetitions."
+      "Acostáte en un banco decline con los pies firmemente trabados en el extremo del banco. Usando un agarre ancho y pronado (palmas hacia adelante) que esté unos 7 cm más ancho que el hombro de cada lado, levantá la barra del rack y sostenela en línea recta sobre vos con los brazos bloqueados. La barra debe quedar perpendicular al torso y al piso. Esta es la posición inicial.",
+      "Mientras inhalás, bajá lentamente hasta sentir la barra en la parte inferior del pecho.",
+      "Después de una pausa de un segundo, volvé la barra a la posición inicial mientras exhalás y empujás con los músculos del pecho. Bloqueá los brazos y apretá el pecho en la posición contraída, sostené un segundo y comenzá a bajar lentamente de nuevo. Debería llevar al menos el doble de tiempo bajar que subir.",
+      "Repetí el movimiento las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina el ángulo decline con el agarre ancho para maximizar el énfasis en la parte inferior y exterior del pectoral."
+    ],
+    "erroresComunes": [
+      "Levantar la barra del rack sin ayuda en este ángulo difícil."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Decline_Barbell_Bench_Press/0.jpg",
@@ -36018,18 +36179,20 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wide grip decline bench press"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Wide-Grip_Decline_Barbell_Bench_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0857",
-    "nombre": "Wide-Grip Decline Barbell Pullover",
+    "nombre": "Pullover decline con barra agarre ancho",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Aislamiento",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Pecho",
@@ -36043,28 +36206,34 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie down on a decline bench with both legs securely locked in position. Reach for the barbell behind the head using a pronated grip (palms facing out). Make sure to grab the barbell wider than shoulder width apart for this exercise. Slowly lift the barbell up from the floor by using your arms.",
-      "When positioned properly, your arms should be fully extended and perpendicular to the floor. This is the starting position.",
-      "Begin by moving the barbell back down in a semicircular motion as if you were going to place it on the floor, but instead, stop when the arms are parallel to the floor. Tip: Keep the arms fully extended at all times. The movement should only happen at the shoulder joint. Inhale as you perform this portion of the movement.",
-      "Now bring the barbell up while exhaling until you are back at the starting position. Remember to keep full control of the barbell at all times.",
-      "Repeat the movement for the prescribed amount of repetitions of your training program.",
-      "When finished with your set, slowly lower the barbell back down until it is level with your head and release it."
+      "Acostáte en un banco decline con ambas piernas firmemente trabadas en posición. Alcanzá la barra detrás de la cabeza con agarre pronado (palmas hacia afuera). Asegurate de tomar la barra más ancha que el ancho de hombros para este ejercicio. Levantá lentamente la barra del piso usando los brazos.",
+      "Cuando estés bien posicionado, los brazos deben quedar completamente extendidos y perpendiculares al piso. Esta es la posición inicial.",
+      "Comenzá moviendo la barra hacia abajo en un movimiento semicircular como si la fueras a colocar en el piso, pero en lugar de eso, detenete cuando los brazos queden paralelos al piso. Mantenés los brazos completamente extendidos en todo momento. El movimiento debe ocurrir solo en la articulación del hombro. Inhalá durante esta parte del movimiento.",
+      "Ahora subí la barra mientras exhalás hasta volver a la posición inicial. Recordá mantener el control total de la barra en todo momento.",
+      "Repetí el movimiento las veces indicadas de tu programa de entrenamiento.",
+      "Cuando termines la serie, bajá lentamente la barra hasta que quede al nivel de la cabeza y soltala."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre ancho amplía el estiramiento del dorsal y el pectoral comparado con la versión estándar."
+    ],
+    "erroresComunes": [
+      "Flexionar los codos durante el recorrido, perdiendo tensión en hombros y dorsal."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Decline_Barbell_Pullover/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Decline_Barbell_Pullover/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "decline pullover agarre ancho"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Wide-Grip_Decline_Barbell_Pullover",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0858",
@@ -36243,7 +36412,7 @@
   },
   {
     "idEjercicio": "EJ-0862",
-    "nombre": "Wide Stance Barbell Squat",
+    "nombre": "Sentadilla con postura amplia",
     "modalidad": "Fuerza",
     "patron": "Dominante de rodilla",
     "mecanica": "Compuesto",
@@ -36261,15 +36430,19 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack that best matches your height. Once the correct height is chosen and the bar is loaded, step under the bar and place the back of your shoulders (slightly below the neck) across it.",
-      "Hold on to the bar using both arms at each side and lift it off the rack by first pushing with your legs and at the same time straightening your torso.",
-      "Step away from the rack and position your legs using a wider-than-shoulder-width stance with the toes slightly pointed out. Keep your head up at all times as looking down will get you off balance, and also maintain a straight back. This will be your starting position.",
-      "Begin to slowly lower the bar by bending the knees as you maintain a straight posture with the head up. Continue down until the angle between the upper leg and the calves becomes slightly less than 90-degrees (which is the point in which the upper legs are below parallel to the floor). Inhale as you perform this portion of the movement. Tip: If you performed the exercise correctly, the front of the knees should make an imaginary straight line with the toes that is perpendicular to the front. If your knees are past that imaginary line (if they are past your toes) then you are placing undue stress on the knee and the exercise has been performed incorrectly.",
-      "Begin to raise the bar as you exhale by pushing the floor with the heel of your foot as you straighten the legs again and go back to the starting position.",
-      "Repeat for the recommended amount of repetitions."
+      "Este ejercicio se realiza mejor dentro de un rack de sentadillas por seguridad. Para comenzar, colocá la barra en un rack a la altura que mejor se adapte a tu altura. Una vez elegida la altura correcta y cargada la barra, metete debajo de ella y colocá la parte posterior de los hombros (levemente debajo del cuello) bajo la barra.",
+      "Sosteniendo la barra con ambos brazos a los costados, levantala del rack empujando con las piernas mientras enderezás el torso al mismo tiempo.",
+      "Alejate del rack y colocá las piernas en una postura más ancha que el ancho de hombros, con las puntas levemente hacia afuera. Mantené la cabeza arriba en todo momento (mirar hacia abajo te desequilibra) y la espalda recta. Esta es la posición inicial.",
+      "Comenzá a bajar la barra lentamente flexionando las rodillas mientras mantenés la postura recta y la cabeza arriba. Continuá bajando hasta que el ángulo entre el muslo y la pantorrilla sea levemente menor a 90° (el punto en que los muslos quedan por debajo de paralelo al piso). Inhalá durante esta parte. Si la ejecución es correcta, el frente de las rodillas debe formar una línea recta imaginaria con los dedos de los pies, perpendicular al frente. Si las rodillas sobrepasan esa línea, estás generando estrés innecesario en la rodilla.",
+      "Comenzá a subir la barra mientras exhalás, empujando el piso con el talón mientras extendés las piernas y volvés a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La postura amplia recluta más glúteos, aductores e isquiotibiales que la postura media."
+    ],
+    "erroresComunes": [
+      "Dejar que las rodillas colapsen hacia adentro por la postura ancha."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide_Stance_Barbell_Squat/0.jpg",
@@ -36277,18 +36450,21 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wide stance squat",
+      "sentadilla pies separados"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Wide_Stance_Barbell_Squat",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0863",
-    "nombre": "Wide Stance Stiff Legs",
+    "nombre": "Piernas rígidas con postura amplia",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Isquios",
@@ -36303,24 +36479,31 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Begin with a barbell loaded on the floor. Adopt a wide stance, and then bend at the hips to grab the bar. Your hips should be as far back as possible, and your legs nearly straight. Keep your back straight, and your head and chest up. This will be your starting position.",
-      "Begin the movement be engaging the hips, driving them forward as you allow the arms to hang straight. Continue until you are standing straight up, and then slowly return the weight to the starting position. For successive reps, the weight need not touch the floor."
+      "Comenzá con una barra cargada en el piso. Adoptá una postura amplia, y flexioná desde la cadera para agarrar la barra. Las caderas deben estar lo más atrás posible, y las piernas casi rectas. Mantené la espalda recta, y la cabeza y el pecho arriba. Esta es la posición inicial.",
+      "Comenzá el movimiento activando la cadera, empujándola hacia adelante mientras dejás que los brazos cuelguen rectos. Continuá hasta quedar completamente de pie, y luego volvé lentamente el peso a la posición inicial. Para repeticiones sucesivas, el peso no necesita tocar el piso."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La postura amplia y las piernas casi rectas enfatizan fuertemente los isquiotibiales y los aductores."
+    ],
+    "erroresComunes": [
+      "Flexionar las rodillas en lugar de mantenerlas casi rectas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide_Stance_Stiff_Legs/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide_Stance_Stiff_Legs/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wide stance stiff legs",
+      "stiff leg postura amplia"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Wide_Stance_Stiff_Legs",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0864",

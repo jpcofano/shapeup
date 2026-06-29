@@ -163,6 +163,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 - **Lote 15 (2026-06-29):** 23 nuevas — completa el pool **barbell beginner** (wrist curls, T-bar row, military press, good morning) · 0 warnings · traducidos 382/873
 - **Lote 16 (2026-06-29):** 30 nuevas — primera tanda **barbell intermediate** (clean, deadlift, box squat, good morning, powerlifting) · 1 fix de pasos (Clean) · warnings 0 · traducidos 412/873
 - **Lote 17 (2026-06-29):** 30 nuevas — barbell intermediate tanda 2 (halterofilia avanzada: hang clean, power clean 24 pasos, snatch, jerk, rack pulls) · 0 warnings · traducidos 442/873
+- **Lote 18 (2026-06-29):** 27 nuevas — completa el pool **barbell intermediate** (split clean/jerk, sumo deadlift, squat con bandas/cadenas, wide grip) · 0 warnings · traducidos 469/873
 
 ---
 
