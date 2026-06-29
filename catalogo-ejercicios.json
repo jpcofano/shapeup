@@ -15465,7 +15465,7 @@
   },
   {
     "idEjercicio": "EJ-0372",
-    "nombre": "Kettlebell Arnold Press",
+    "nombre": "Press Arnold con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Empuje vertical",
     "mecanica": "Compuesto",
@@ -15477,15 +15477,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulder by extending through the legs and hips as you raise the kettlebell towards your shoulder. The palm should be facing inward.",
-      "Looking straight ahead, press the kettlebell out and overhead, rotating your wrist so that your palm faces forward at the top of the motion.",
-      "Return the kettlebell to the starting position, with the palm facing in."
+      "Hacé la cargada de la pesa rusa al hombro extendiendo piernas y cadera mientras la elevás hacia el hombro. La palma debe quedar mirando hacia adentro.",
+      "Mirando al frente, presioná la pesa hacia afuera y por encima de la cabeza, rotando la muñeca para que la palma quede mirando hacia adelante en la parte superior del movimiento.",
+      "Volvé la pesa a la posición inicial, con la palma mirando hacia adentro."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La rotación de muñeca durante el press activa el deltoide desde distintos ángulos."
+    ],
+    "erroresComunes": [
+      "No rotar la muñeca, perdiendo el beneficio del press Arnold."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Arnold_Press/0.jpg",
@@ -15493,16 +15497,18 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "arnold press kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Arnold_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0373",
-    "nombre": "Kettlebell Dead Clean",
+    "nombre": "Cargada muerta con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -15518,15 +15524,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place kettlebell between your feet. To get in the starting position, push your butt back and look straight ahead.",
-      "Clean the kettlebell to your shoulder. Clean the kettlebell to your shoulders by extending through the legs and hips as you raise the kettlebell towards your shoulder. The wrist should rotate as you do so.",
-      "Lower the kettlebell, keeping the hamstrings loaded by keeping your back straight and your butt out."
+      "Colocá la pesa rusa entre los pies. Para la posición inicial, llevá los glúteos hacia atrás y mirá al frente.",
+      "Cargá la pesa al hombro extendiendo piernas y cadera mientras la elevás hacia el hombro. La muñeca debe rotar al hacerlo.",
+      "Bajá la pesa, manteniendo tensión en los isquiotibiales con la espalda recta y los glúteos hacia atrás."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Cada repetición comienza desde el piso, sin el impulso de un balanceo previo."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda baja al bajar la pesa al piso."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Dead_Clean/0.jpg",
@@ -15534,12 +15544,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "dead clean kettlebell",
+      "cargada desde el piso"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Dead_Clean",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0374",
@@ -15584,7 +15597,7 @@
   },
   {
     "idEjercicio": "EJ-0375",
-    "nombre": "Kettlebell Hang Clean",
+    "nombre": "Cargada colgante con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -15600,15 +15613,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place kettlebell between your feet. To get in the starting position, push your butt back and look straight ahead.",
-      "Clean kettlebell to your shoulder. Clean the kettlebell to your shoulders by extending through the legs and hips as you raise the kettlebell towards your shoulder. The wrist should rotate as you do so.",
-      "Lower kettlebell to a hanging position between your legs while keeping the hamstrings loaded. Keep your head up at all times."
+      "Colocá la pesa rusa entre los pies. Para la posición inicial, llevá los glúteos hacia atrás y mirá al frente.",
+      "Cargá la pesa al hombro extendiendo piernas y cadera mientras la elevás hacia el hombro. La muñeca debe rotar al hacerlo.",
+      "Bajá la pesa a una posición colgante entre las piernas, manteniendo tensión en los isquiotibiales. Mantenés la cabeza arriba en todo momento."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La pesa no toca el piso entre repeticiones; queda colgando entre las piernas."
+    ],
+    "erroresComunes": [
+      "Bajar la mirada al piso durante la cargada."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Hang_Clean/0.jpg",
@@ -15616,12 +15633,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "hang clean kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Hang_Clean",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0376",
@@ -15671,9 +15690,9 @@
   },
   {
     "idEjercicio": "EJ-0377",
-    "nombre": "Kettlebell Pass Between The Legs",
+    "nombre": "Pasada de pesa rusa entre las piernas",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Core anti-rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Core",
@@ -15688,24 +15707,29 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place one kettlebell between your legs and take a comfortable stance. Bend over by pushing your butt out and keeping your back flat.",
-      "Pick up a kettlebell and pass it to your other hand between your legs, in the fashion of a \"W\". Go back and forth for several repetitions."
+      "Colocá una pesa rusa entre las piernas y adoptá una postura cómoda. Inclinate llevando los glúteos hacia atrás y manteniendo la espalda recta.",
+      "Tomá la pesa rusa y pasala a la otra mano por entre las piernas, en forma de 'W'. Seguí alternando de mano por varias repeticiones."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La espalda permanece recta durante todo el movimiento; la potencia viene de la cadera, no de la espalda."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda al inclinarse."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Pass_Between_The_Legs/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Pass_Between_The_Legs/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
-    "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "figure 8 kettlebell",
+      "pasada entre piernas"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Pass_Between_The_Legs",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0378",
@@ -15800,9 +15824,9 @@
   },
   {
     "idEjercicio": "EJ-0380",
-    "nombre": "Kettlebell Seated Press",
+    "nombre": "Press sentado con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -15812,34 +15836,40 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Sit on the floor and spread your legs out comfortably.",
-      "Clean one kettlebell to your shoulder.",
-      "Press the kettlebell up and out until it is locked out overhead. Return to the starting position."
+      "Sentáte en el piso y separá las piernas cómodamente.",
+      "Cargá una pesa rusa al hombro.",
+      "Presioná la pesa hacia arriba y afuera hasta bloquearla por encima de la cabeza. Volvé a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Estar sentado elimina la ayuda de las piernas, exigiendo más fuerza pura de hombro."
+    ],
+    "erroresComunes": [
+      "Inclinar el torso hacia el costado para compensar."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Seated_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Seated_Press/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seated kettlebell press"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Seated_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0381",
-    "nombre": "Kettlebell Seesaw Press",
+    "nombre": "Press alternado tipo sube y baja con pesas rusas",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -15849,28 +15879,35 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Clean two kettlebells two your shoulders.",
-      "Press one kettlebell.",
-      "Lower the kettlebell and immediately press the other kettlebell. Make sure to do the same amount of reps on both sides."
+      "Cargá dos pesas rusas a los hombros.",
+      "Presioná una pesa.",
+      "Bajá esa pesa e inmediatamente presioná la otra. Asegurate de hacer la misma cantidad de repeticiones en ambos lados."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El brazo que baja y el que sube se alternan sin pausa, como un sube y baja."
+    ],
+    "erroresComunes": [
+      "Hacer más repeticiones de un lado que del otro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Seesaw_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Seesaw_Press/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seesaw press",
+      "press sube y baja kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Seesaw_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0382",
@@ -15965,9 +16002,9 @@
   },
   {
     "idEjercicio": "EJ-0384",
-    "nombre": "Kettlebell Turkish Get-Up (Lunge style)",
+    "nombre": "Levantada turca estilo zancada con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Dominante de rodilla",
+    "patron": "Core anti-rotación",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -15980,28 +16017,33 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie on your back on the floor and press a kettlebell to the top position by extending the elbow. Bend the knee on the same side as the kettlebell.",
-      "Keeping the kettlebell locked out at all times, pivot to the opposite side and use your non- working arm to assist you in driving forward to the lunge position. Using your free hand, push yourself to a seated position, then progressing to one knee.",
-      "While looking up at the kettlebell, slowly stand up. Reverse the motion back to the starting position and repeat."
+      "Acostáte boca arriba en el piso y presioná una pesa rusa hasta la posición superior extendiendo el codo. Flexioná la rodilla del mismo lado que la pesa.",
+      "Manteniendo la pesa bloqueada en todo momento, girá hacia el lado opuesto y usá el brazo que no trabaja para ayudarte a impulsarte hacia adelante hasta la posición de zancada. Con la mano libre, empujate hasta quedar sentado y luego progresá hasta apoyar una rodilla.",
+      "Mirando hacia la pesa, parate lentamente. Revertí el movimiento para volver a la posición inicial y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La mirada permanece fija en la pesa elevada durante toda la secuencia."
+    ],
+    "erroresComunes": [
+      "Perder de vista la pesa, desestabilizando el hombro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Turkish_Get-Up_Lunge_style/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Turkish_Get-Up_Lunge_style/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
-    "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "turkish get up zancada",
+      "get up lunge style"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Kettlebell_Turkish_Get-Up_Lunge_style",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0385",
@@ -16952,7 +16994,7 @@
   },
   {
     "idEjercicio": "EJ-0408",
-    "nombre": "Leg-Over Floor Press",
+    "nombre": "Press de piso con pierna cruzada",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -16965,15 +17007,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie on the floor with one kettlebell in place on your chest, holding it by the handle. Extend leg on working side over leg on non-working side.Your free arm can be extended out to your side for support.",
-      "Press the kettlebll into a locked out position.",
-      "Lower the weight until the elbow touches the ground, keeping the kettlebell above the elbow. Repeat for the desired number of repetitions."
+      "Acostáte en el piso con una pesa rusa apoyada en el pecho, sostenida del mango. Extendé la pierna del lado que trabaja por encima de la pierna del lado contrario. El brazo libre puede extenderse hacia el costado para mayor apoyo.",
+      "Presioná la pesa rusa hasta bloquearla arriba.",
+      "Bajá el peso hasta que el codo toque el piso, manteniendo la pesa por encima del codo. Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Cruzar la pierna desestabiliza la cadera, exigiendo mayor control del core durante el press."
+    ],
+    "erroresComunes": [
+      "Dejar que la cadera rote sin control."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg-Over_Floor_Press/0.jpg",
@@ -16981,12 +17027,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "leg over floor press"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Leg-Over_Floor_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0409",
@@ -17920,9 +17968,9 @@
   },
   {
     "idEjercicio": "EJ-0433",
-    "nombre": "Lunge Pass Through",
+    "nombre": "Zancada con pasada de pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Dominante de rodilla",
+    "patron": "Zancada / unilateral",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Isquios",
@@ -17934,30 +17982,37 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Stand with your torso upright holding a kettlebell in your right hand. This will be your starting position.",
-      "Step forward with your left foot and lower your upper body down by flexing the hip and the knee, keeping the torso upright. Lower your back knee until it nearly touches the ground.",
-      "As you lunge, pass the kettlebell under your front leg to your opposite hand.",
-      "Pressing through the heel of your foot, return to the starting position.",
-      "Repeat the movement for the recommended amount of repetitions, alternating legs."
+      "Pararte con el torso erguido sosteniendo una pesa rusa en la mano derecha. Esta es la posición inicial.",
+      "Dá un paso adelante con el pie izquierdo y bajá el cuerpo flexionando la cadera y la rodilla, manteniendo el torso erguido. Bajá la rodilla trasera hasta que casi toque el piso.",
+      "Mientras estás en la zancada, pasá la pesa rusa por debajo de la pierna delantera hacia la mano contraria.",
+      "Empujando con el talón del pie delantero, volvé a la posición inicial.",
+      "Repetí el movimiento las veces indicadas, alternando piernas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La pasada de la pesa exige estabilidad de core durante la transición de la zancada."
+    ],
+    "erroresComunes": [
+      "Perder el equilibrio al pasar la pesa por debajo de la pierna."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lunge_Pass_Through/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lunge_Pass_Through/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Squat_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Strength_Training_Circuit-_Forward_Lunge.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "lunge pass through",
+      "zancada con pasamano kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lunge_Pass_Through",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0434",
@@ -18255,7 +18310,7 @@
   },
   {
     "idEjercicio": "EJ-0442",
-    "nombre": "Lying Dumbbell Tricep Extension",
+    "nombre": "Extensión de tríceps acostado con mancuernas",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -18271,13 +18326,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie on a flat bench while holding two dumbbells directly in front of you. Your arms should be fully extended at a 90-degree angle from your torso and the floor. The palms should be facing in and the elbows should be tucked in. This is the starting position.",
-      "As you breathe in and you keep the upper arms stationary with the elbows in, slowly lower the weight until the dumbbells are near your ears.",
-      "At that point, while keeping the elbows in and the upper arms stationary, use the triceps to bring the weight back up to the starting position as you breathe out.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte en un banco plano sosteniendo dos mancuernas directamente frente a vos. Los brazos deben estar completamente extendidos formando un ángulo de 90° con el torso y el piso. Las palmas miran hacia adentro y los codos están pegados al cuerpo. Esta es la posición inicial.",
+      "Al inhalar, mientras mantenés los brazos superiores fijos con los codos adentro, bajá lentamente el peso hasta que las mancuernas queden cerca de las orejas.",
+      "En ese punto, manteniendo los codos adentro y los brazos superiores fijos, usá el tríceps para devolver el peso a la posición inicial mientras exhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Los brazos superiores permanecen completamente fijos durante todo el recorrido."
+    ],
+    "erroresComunes": [
+      "Abrir los codos hacia afuera al bajar."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Dumbbell_Tricep_Extension/0.jpg",
@@ -18285,12 +18344,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "lying tricep extension",
+      "skull crusher acostado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_Dumbbell_Tricep_Extension",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0443",
@@ -18547,7 +18609,7 @@
   },
   {
     "idEjercicio": "EJ-0450",
-    "nombre": "Lying One-Arm Lateral Raise",
+    "nombre": "Elevación lateral unilateral acostado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -18557,17 +18619,21 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "While holding a dumbbell in one hand, lay with your chest down on a flat bench. The other hand can be used to hold to the leg of the bench for stability.",
-      "Position the palm of the hand that is holding the dumbbell in a neutral manner (palms facing your torso) as you keep the arm extended with the elbow slightly bent. This will be your starting position.",
-      "Now raise the arm with the dumbbell to the side until your elbow is at shoulder height and your arm is roughly parallel to the floor as you exhale. Tip: Maintain your arm perpendicular to the torso while keeping your arm extended throughout the movement. Also, keep the contraction at the top for a second.",
-      "Slowly lower the dumbbell to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions."
+      "Sosteniendo una mancuerna en una mano, acostáte con el pecho hacia abajo sobre un banco plano. La otra mano puede sostenerse de la pata del banco para mayor estabilidad.",
+      "Colocá la palma de la mano que sostiene la mancuerna en posición neutra (mirando hacia el torso) mientras mantenés el brazo extendido con una leve flexión de codo. Esta es la posición inicial.",
+      "Elevá el brazo con la mancuerna hacia el costado hasta que el codo quede a la altura del hombro y el brazo casi paralelo al piso, mientras exhalás. Mantenés el brazo perpendicular al torso y siempre extendido. Sostené la contracción un segundo en la parte superior.",
+      "Bajá lentamente la mancuerna a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Acostado en banco plano (sin inclinación) reduce aún más el impulso del torso."
+    ],
+    "erroresComunes": [
+      "Flexionar el codo excesivamente durante la elevación."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_One-Arm_Lateral_Raise/0.jpg",
@@ -18575,12 +18641,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "lying lateral raise un brazo"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_One-Arm_Lateral_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0451",
@@ -18615,7 +18683,7 @@
   },
   {
     "idEjercicio": "EJ-0452",
-    "nombre": "Lying Rear Delt Raise",
+    "nombre": "Elevación posterior acostado en banco plano",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -18628,14 +18696,18 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "While holding a dumbbell in each hand, lay with your chest down on a flat bench.",
-      "Position the palms of the hands in a neutral manner (palms facing your torso) as you keep the arms extended with the elbows slightly bent. This will be your starting position.",
-      "Now raise the arms to the side until your elbows are at shoulder height and your arms are roughly parallel to the floor as you exhale. Tip: Maintain your arms perpendicular to the torso while keeping them extended throughout the movement. Also, keep the contraction at the top for a second.",
-      "Slowly lower the dumbbells to the starting position as you inhale.",
-      "Repeat for the recommended amount of repetitions and then switch to the other arm."
+      "Sosteniendo una mancuerna en cada mano, acostáte con el pecho hacia abajo sobre un banco plano.",
+      "Colocá las palmas de las manos en posición neutra (mirando hacia el torso) mientras mantenés los brazos extendidos con una leve flexión de codo. Esta es la posición inicial.",
+      "Elevá los brazos hacia los costados hasta que los codos queden a la altura del hombro y los brazos casi paralelos al piso, mientras exhalás. Mantenés los brazos perpendiculares al torso y siempre extendidos. Sostené la contracción un segundo en la parte superior.",
+      "Bajá lentamente las mancuernas a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas y luego cambiá al otro brazo."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El banco plano (sin inclinación) reduce el impulso del torso al máximo."
+    ],
+    "erroresComunes": [
+      "Despegar el pecho del banco para ayudar a subir el peso."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Rear_Delt_Raise/0.jpg",
@@ -18643,12 +18715,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "lying rear delt raise",
+      "pajaro en banco plano"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Lying_Rear_Delt_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0453",
@@ -19081,9 +19156,9 @@
   },
   {
     "idEjercicio": "EJ-0464",
-    "nombre": "Middle Back Shrug",
+    "nombre": "Encogimiento de espalda media (retracción escapular)",
     "modalidad": "Fuerza",
-    "patron": "Aislamiento",
+    "patron": "Tracción horizontal",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Espalda media",
@@ -19094,26 +19169,33 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie facedown on an incline bench while holding a dumbbell in each hand. Your arms should be fully extended hanging down and pointing towards the floor. The palms of your hands should be facing each other. This will be your starting position.",
-      "As you exhale, squeeze your shoulder blades together and hold the contraction for a full second. Tip: This movement is just like the reverse action of a hug, or trying to perform rear laterals as if you had no arms.",
-      "As you inhale go back to the starting position.",
-      "Repeat for the recommended amount of repetitions."
+      "Acostáte boca abajo en un banco inclinado sosteniendo una mancuerna en cada mano. Los brazos deben estar completamente extendidos colgando hacia el piso. Las palmas se miran entre sí. Esta es la posición inicial.",
+      "Al exhalar, apretá los omóplatos entre sí y sostené la contracción un segundo completo. Este movimiento es como la acción inversa de un abrazo, o como hacer un rear lateral pero sin usar los brazos.",
+      "Al inhalar, volvé a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El movimiento ocurre solo en los omóplatos; los brazos permanecen rectos y pasivos."
+    ],
+    "erroresComunes": [
+      "Flexionar los codos para ayudar al movimiento."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Middle_Back_Shrug/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Middle_Back_Shrug/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "middle back shrug",
+      "retraccion escapular acostado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Middle_Back_Shrug",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0465",
@@ -19532,9 +19614,9 @@
   },
   {
     "idEjercicio": "EJ-0475",
-    "nombre": "Natural Glute Ham Raise",
+    "nombre": "Glute ham raise natural",
     "modalidad": "Fuerza",
-    "patron": "Tracción horizontal",
+    "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Isquios",
@@ -19549,26 +19631,34 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Using the leg pad of a lat pulldown machine or a preacher bench, position yourself so that your ankles are under the pads, knees on the seat, and you are facing away from the machine. You should be upright and maintaining good posture.",
-      "This will be your starting position. Lower yourself under control until your knees are almost completely straight.",
-      "Remaining in control, raise yourself back up to the starting position.",
-      "If you are unable to complete a rep, use a band, a partner, or push off of a box to aid in completing a repetition."
+      "Usando la almohadilla de piernas de una máquina de jalón al pecho o un banco predicador, posicionate de modo que los tobillos queden bajo las almohadillas, las rodillas sobre el asiento, mirando hacia el lado contrario de la máquina. Mantené una buena postura erguida.",
+      "Esta es la posición inicial. Bajá el cuerpo de forma controlada hasta que las rodillas queden casi completamente extendidas.",
+      "Manteniendo el control, subí de vuelta a la posición inicial.",
+      "Si no podés completar una repetición, usá una banda, un compañero, o empujate desde una caja para asistir el movimiento."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Es un ejercicio muy exigente para isquiotibiales; está bien necesitar asistencia al principio."
+    ],
+    "erroresComunes": [
+      "Bajar sin control, cayendo de golpe."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Natural_Glute_Ham_Raise/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Natural_Glute_Ham_Raise/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "nordic curl",
+      "natural glute ham raise",
+      "ghr natural"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Natural_Glute_Ham_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0476",
@@ -20023,7 +20113,7 @@
   },
   {
     "idEjercicio": "EJ-0487",
-    "nombre": "One-Arm Kettlebell Clean",
+    "nombre": "Cargada unilateral con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -20038,15 +20128,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place a kettlebell between your feet. As you bend down to grab the kettlebell, push your butt back and keep your eyes looking forward.",
-      "Clean the kettlebell to your shoulders by extending through the legs and hips as you raise the kettlebell towards your shoulder. The wrist should rotate as you do so.",
-      "Return the weight to the starting position."
+      "Colocá una pesa rusa entre los pies. Al inclinarte para tomarla, llevá los glúteos hacia atrás y mantené la vista al frente.",
+      "Cargá la pesa al hombro extendiendo piernas y cadera mientras la elevás hacia el hombro. La muñeca debe rotar al hacerlo.",
+      "Volvé el peso a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La potencia viene de la extensión de piernas y cadera, no de tirar con el brazo."
+    ],
+    "erroresComunes": [
+      "Tirar la pesa con el brazo en lugar de impulsarla con las piernas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Clean/0.jpg",
@@ -20054,18 +20148,21 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "one arm kettlebell clean",
+      "cargada un brazo kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Clean",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0488",
-    "nombre": "One-Arm Kettlebell Clean and Jerk",
+    "nombre": "Cargada y envión unilateral con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Dominante de cadera",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -20073,35 +20170,42 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Hold a kettlebell by the handle.",
-      "Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward.",
-      "Dip your body by bending the knees, keeping your torso upright.",
-      "Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight.",
-      "Receive the weight overhead by returning to a squat position underneath the weight.",
-      "Keeping the weight overhead, return to a standing position. Lower the weight to the floor to perform the next repetition."
+      "Sostené una pesa rusa del mango.",
+      "Cargá la pesa al hombro extendiendo piernas y cadera mientras la tirás hacia el hombro. Rotá la muñeca al hacerlo, de modo que la palma quede mirando hacia adelante.",
+      "Hacé una semi-flexión del cuerpo doblando las rodillas, manteniendo el torso erguido.",
+      "Revertí inmediatamente la dirección, empujando con los talones, generando impulso como si saltaras. Al hacerlo, presioná la pesa por encima de la cabeza hasta bloquear el brazo, usando el impulso del cuerpo para mover el peso.",
+      "Recibí el peso arriba volviendo a una posición de sentadilla por debajo del peso.",
+      "Manteniendo el peso arriba, volvé a la posición de pie. Bajá el peso al piso para realizar la siguiente repetición."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina la cargada y el envión en una sola repetición fluida."
+    ],
+    "erroresComunes": [
+      "No recibir el peso en sentadilla, forzando el hombro."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Clean_and_Jerk/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Clean_and_Jerk/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "clean and jerk un brazo",
+      "cargada y envion kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Clean_and_Jerk",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0489",
-    "nombre": "One-Arm Kettlebell Floor Press",
+    "nombre": "Press de piso unilateral con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -20113,15 +20217,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie on the floor holding a kettlebell with one hand, with your upper arm supported by the floor. The palm should be facing in.",
-      "Press the kettlebell straight up toward the ceiling, rotating your wrist.",
-      "Lower the kettlebell back to the starting position and repeat."
+      "Acostáte en el piso sosteniendo una pesa rusa con una mano, con el brazo superior apoyado en el piso. La palma debe mirar hacia adentro.",
+      "Presioná la pesa rusa directamente hacia el techo, rotando la muñeca.",
+      "Bajá la pesa de vuelta a la posición inicial y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El piso limita el rango de movimiento, protegiendo el hombro en la parte baja."
+    ],
+    "erroresComunes": [
+      "Perder el control de la pesa al extender el brazo."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Floor_Press/0.jpg",
@@ -20129,18 +20237,20 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "one arm kettlebell floor press"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Floor_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0490",
-    "nombre": "One-Arm Kettlebell Jerk",
+    "nombre": "Envión unilateral con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -20152,33 +20262,40 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Hold a kettlebell by the handle. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position.",
-      "Dip your body by bending the knees, keeping your torso upright.",
-      "Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight. Receive the weight overhead by returning to a squat position underneath the weight. Keeping the weight overhead, return to a standing position.",
-      "Lower the weight to perform the next repetition."
+      "Sostené una pesa rusa del mango. Cargála al hombro extendiendo piernas y cadera mientras la tirás hacia el hombro. Rotá la muñeca al hacerlo, de modo que la palma quede mirando hacia adelante. Esta es la posición inicial.",
+      "Hacé una semi-flexión del cuerpo doblando las rodillas, manteniendo el torso erguido.",
+      "Revertí inmediatamente la dirección, empujando con los talones, generando impulso como si saltaras. Al hacerlo, presioná la pesa por encima de la cabeza hasta bloquear el brazo, usando el impulso del cuerpo para mover el peso. Recibí el peso arriba volviendo a una posición de sentadilla por debajo del peso. Manteniendo el peso arriba, volvé a la posición de pie.",
+      "Bajá el peso para realizar la siguiente repetición."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El impulso de piernas y cadera hace la mayor parte del trabajo, no solo el brazo."
+    ],
+    "erroresComunes": [
+      "Presionar solo con el brazo sin usar el impulso de las piernas."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Jerk/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Jerk/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "one arm kettlebell jerk",
+      "envion un brazo kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Jerk",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0491",
-    "nombre": "One-Arm Kettlebell Military Press To The Side",
+    "nombre": "Press militar unilateral con pesa rusa hacia el costado",
     "modalidad": "Fuerza",
     "patron": "Empuje vertical",
     "mecanica": "Compuesto",
@@ -20190,15 +20307,19 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces inward. This will be your starting position.",
-      "Look at the kettlebell and press it up and out until it is locked out overhead.",
-      "Lower the kettlebell back to your shoulder under control and repeat. Make sure to contract your lat, butt, and stomach forcefully for added stability and strength."
+      "Cargá la pesa rusa al hombro extendiendo piernas y cadera mientras la tirás hacia el hombro. Rotá la muñeca de modo que la palma quede mirando hacia adentro. Esta es la posición inicial.",
+      "Mirá hacia la pesa y presionala hacia arriba y afuera hasta bloquearla por encima de la cabeza.",
+      "Bajá la pesa de vuelta al hombro de forma controlada y repetí. Asegurate de contraer el dorsal, el glúteo y el abdomen con fuerza para mayor estabilidad y potencia."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Contraer dorsal, glúteo y abdomen estabiliza el press unilateral."
+    ],
+    "erroresComunes": [
+      "Inclinar el torso hacia el lado contrario al presionar."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Military_Press_To_The_Side/0.jpg",
@@ -20206,18 +20327,20 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "military press kettlebell al costado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Military_Press_To_The_Side",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0492",
-    "nombre": "One-Arm Kettlebell Para Press",
+    "nombre": "Para press unilateral con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -20227,28 +20350,34 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position.",
-      "Hold the kettlebell with the elbow out to the side, and press it up and out until it is locked out overhead.",
-      "Lower the kettlebell back to your shoulder under control and repeat. Make sure to contract your lat, butt, and stomach forcefully for added stability and strength."
+      "Cargá la pesa rusa al hombro extendiendo piernas y cadera mientras la tirás hacia el hombro. Rotá la muñeca de modo que la palma quede mirando hacia adelante. Esta es la posición inicial.",
+      "Sosteniendo la pesa con el codo hacia el costado, presionala hacia arriba y afuera hasta bloquearla por encima de la cabeza.",
+      "Bajá la pesa de vuelta al hombro de forma controlada y repetí. Asegurate de contraer el dorsal, el glúteo y el abdomen con fuerza para mayor estabilidad y potencia."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El codo hacia el costado distingue este press del military press tradicional."
+    ],
+    "erroresComunes": [
+      "Perder la estabilidad del core durante el press."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Para_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Para_Press/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "para press kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Para_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0493",
@@ -20297,7 +20426,7 @@
   },
   {
     "idEjercicio": "EJ-0494",
-    "nombre": "One-Arm Kettlebell Row",
+    "nombre": "Remo unilateral con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
     "mecanica": "Compuesto",
@@ -20310,13 +20439,17 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place a kettlebell in front of your feet. Bend your knees slightly and then push your butt out as much as possible as you bend over to get in the starting position. Grab the kettlebell and pull it to your stomach, retracting your shoulder blade and flexing the elbow. Keep your back straight. Lower and repeat."
+      "Colocá una pesa rusa frente a los pies. Flexioná levemente las rodillas y llevá los glúteos hacia atrás lo más posible al inclinarte para llegar a la posición inicial. Tomá la pesa y llevala hacia el abdomen, retrayendo el omóplato y flexionando el codo. Mantené la espalda recta. Bajá y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La espalda permanece recta durante todo el remo; el movimiento es del omóplato y el codo."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda al inclinarse."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Row/0.jpg",
@@ -20324,12 +20457,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "one arm kettlebell row"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Row",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0495",
@@ -20382,9 +20517,9 @@
   },
   {
     "idEjercicio": "EJ-0496",
-    "nombre": "One-Arm Kettlebell Split Jerk",
+    "nombre": "Envión partido unilateral con pesa rusa",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -20397,30 +20532,36 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Hold a kettlebell by the handle. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position.",
-      "Dip your body by bending the knees, keeping your torso upright.",
-      "Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight.",
-      "Receive the weight overhead by returning to a squat position underneath the weight, positioning one leg in front of you and one leg behind you.",
-      "Keeping the weight overhead, return to a standing position and bring your feet together. Lower the weight to perform the next repetition."
+      "Sostené una pesa rusa del mango. Cargála al hombro extendiendo piernas y cadera mientras la tirás hacia el hombro. Rotá la muñeca de modo que la palma quede mirando hacia adelante. Esta es la posición inicial.",
+      "Hacé una semi-flexión del cuerpo doblando las rodillas, manteniendo el torso erguido.",
+      "Revertí inmediatamente la dirección, empujando con los talones, generando impulso como si saltaras. Al hacerlo, presioná la pesa por encima de la cabeza hasta bloquear el brazo, usando el impulso del cuerpo para mover el peso.",
+      "Recibí el peso arriba volviendo a una posición de sentadilla por debajo del peso, colocando una pierna adelante y otra atrás.",
+      "Manteniendo el peso arriba, volvé a la posición de pie juntando los pies. Bajá el peso para realizar la siguiente repetición."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La posición de zancada al recibir el peso permite mover cargas más pesadas que el envión con pies juntos."
+    ],
+    "erroresComunes": [
+      "No coordinar el paso de los pies con el momento del envión."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Split_Jerk/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Split_Jerk/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "split jerk un brazo kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Kettlebell_Split_Jerk",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0497",
@@ -20591,7 +20732,7 @@
   },
   {
     "idEjercicio": "EJ-0501",
-    "nombre": "One-Arm Open Palm Kettlebell Clean",
+    "nombre": "Cargada a palma abierta unilateral con pesa rusa",
     "modalidad": "Fuerza",
     "patron": "Dominante de cadera",
     "mecanica": "Compuesto",
@@ -20607,16 +20748,20 @@
     "equipo": [
       "Kettlebell"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place one kettlebell between your feet.",
-      "Grab the handle with one hand and raise the kettlebell rapidly, let it flip so that the ball of the kettlebell lands in the palm of your hand.",
-      "Throw the kettlebell out in front of you and catch the handle with one hand.",
-      "Take the kettlebell to the floor and repeat. Make sure to work both arms."
+      "Colocá una pesa rusa entre los pies.",
+      "Tomá el mango con una mano y elevá la pesa rápidamente, dejando que gire de modo que la bola de la pesa caiga en la palma de la mano.",
+      "Lanzá la pesa hacia adelante y atrapá el mango con una mano.",
+      "Llevá la pesa al piso y repetí. Asegurate de trabajar ambos brazos."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Requiere buena coordinación mano-ojo para atrapar el mango con precisión."
+    ],
+    "erroresComunes": [
+      "Atrapar la pesa con la muñeca en mala posición, generando golpes en el antebrazo."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Open_Palm_Kettlebell_Clean/0.jpg",
@@ -20624,12 +20769,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "open palm clean kettlebell"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "One-Arm_Open_Palm_Kettlebell_Clean",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0502",
@@ -23089,7 +23236,7 @@
   },
   {
     "idEjercicio": "EJ-0562",
-    "nombre": "Push-Ups - Close Triceps Position",
+    "nombre": "Flexiones con agarre cerrado (énfasis en tríceps)",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -23105,13 +23252,17 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Lie on the floor face down and place your hands closer than shoulder width for a close hand position. Make sure that you are holding your torso up at arms' length.",
-      "Lower yourself until your chest almost touches the floor as you inhale.",
-      "Using your triceps and some of your pectoral muscles, press your upper body back up to the starting position and squeeze your chest. Breathe out as you perform this step.",
-      "After a second pause at the contracted position, repeat the movement for the prescribed amount of repetitions."
+      "Acostáte boca abajo en el piso y colocá las manos más cerca que el ancho de hombros, en posición cerrada. Asegurate de sostener el torso a extensión de brazos.",
+      "Bajá el cuerpo hasta que el pecho casi toque el piso mientras inhalás.",
+      "Usando el tríceps y parte del pectoral, empujá el torso hacia arriba a la posición inicial apretando el pecho. Exhalá durante este paso.",
+      "Después de una pausa de un segundo en la posición contraída, repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El agarre cerrado desplaza más trabajo hacia el tríceps que el push-up estándar."
+    ],
+    "erroresComunes": [
+      "Abrir los codos hacia afuera en lugar de mantenerlos cerca del cuerpo."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push-Ups_-_Close_Triceps_Position/0.jpg",
@@ -23119,12 +23270,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "push up agarre cerrado",
+      "flexion triceps cerrada"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Push-Ups_-_Close_Triceps_Position",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0563",
@@ -24223,9 +24377,9 @@
   },
   {
     "idEjercicio": "EJ-0590",
-    "nombre": "Reverse Flyes With External Rotation",
+    "nombre": "Aperturas posteriores con rotación externa",
     "modalidad": "Fuerza",
-    "patron": "Core anti-rotación",
+    "patron": "Tracción horizontal",
     "mecanica": "Aislamiento",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Hombros",
@@ -24236,27 +24390,35 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "To begin, lie down on an incline bench set at a 30-degree angle with the chest and stomach pressing against the incline.",
-      "Have the dumbbells in each hand with the palms facing down to the floor. Your arms should be in front of you so that they are perpendicular to the angle of the bench. Tip: Your elbows should have a slight bend. The legs should be stationary while applying pressure with the ball of your toes (your heels should not be touching the floor). This is the starting position.",
-      "Maintaining the slight bend of the elbows, move the weights out and away from each other in an arc motion while exhaling.",
-      "As you lift the weight, your wrist should externally rotate by 90-degrees so that you go from a palms down (pronated) grip to a palms facing each other (neutral) grip. Tip: Try to squeeze your shoulder blades together to get the best results from this exercise.",
-      "The arms should be elevated until they are level with the head.",
-      "Feel the contraction and slowly lower the weights back down to the starting position while inhaling.",
-      "Repeat for the recommended amount of repetitions."
+      "Para comenzar, acostáte en un banco inclinado a 30° con el pecho y el abdomen presionando contra el respaldo.",
+      "Sostené las mancuernas en cada mano con las palmas mirando hacia el piso. Los brazos deben estar al frente, perpendiculares al ángulo del banco, con una leve flexión de codo. Las piernas permanecen fijas, apoyando la presión sobre la punta de los pies (los talones no tocan el piso). Esta es la posición inicial.",
+      "Manteniendo la leve flexión de codo, separá los pesos uno del otro en un movimiento de arco mientras exhalás.",
+      "Al elevar el peso, la muñeca debe rotar externamente 90° pasando de un agarre pronado (palmas abajo) a uno neutro (palmas enfrentadas). Intentá apretar los omóplatos entre sí para mejores resultados.",
+      "Los brazos deben elevarse hasta quedar a la altura de la cabeza.",
+      "Sentí la contracción y bajá lentamente los pesos a la posición inicial mientras inhalás.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "La rotación de muñeca durante la elevación suma trabajo del manguito rotador al ejercicio."
+    ],
+    "erroresComunes": [
+      "No rotar la muñeca, convirtiéndolo en un reverse flye simple."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Flyes_With_External_Rotation/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Reverse_Flyes_With_External_Rotation/1.jpg"
     ],
-    "sinonimos": [],
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bent-over_row_-_exercise_demonstration_video.webm",
+    "videoEsGenerico": true,
+    "sinonimos": [
+      "reverse flye con rotacion externa"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Reverse_Flyes_With_External_Rotation",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0591",
@@ -25549,7 +25711,7 @@
   },
   {
     "idEjercicio": "EJ-0623",
-    "nombre": "Seated Bent-Over Rear Delt Raise",
+    "nombre": "Elevación posterior sentado e inclinado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -25562,15 +25724,19 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Place a couple of dumbbells looking forward in front of a flat bench.",
-      "Sit on the end of the bench with your legs together and the dumbbells behind your calves.",
-      "Bend at the waist while keeping the back straight in order to pick up the dumbbells. The palms of your hands should be facing each other as you pick them. This will be your starting position.",
-      "Keeping your torso forward and stationary, and the arms slightly bent at the elbows, lift the dumbbells straight to the side until both arms are parallel to the floor. Exhale as you lift the weights. (Note: avoid swinging the torso or bringing the arms back as opposed to the side.)",
-      "After a one second contraction at the top, slowly lower the dumbbells back to the starting position.",
-      "Repeat for the recommended amount of repetitions."
+      "Colocá un par de mancuernas mirando hacia adelante, frente a un banco plano.",
+      "Sentáte al borde del banco con las piernas juntas y las mancuernas detrás de las pantorrillas.",
+      "Doblate desde la cintura manteniendo la espalda recta para levantar las mancuernas. Las palmas deben mirarse entre sí al tomarlas. Esta es la posición inicial.",
+      "Manteniendo el torso inclinado hacia adelante y fijo, y los brazos con una leve flexión de codo, elevá las mancuernas directamente hacia los costados hasta que ambos brazos queden paralelos al piso. Exhalá al subir los pesos. Evitá balancear el torso o llevar los brazos hacia atrás en lugar de hacia el costado.",
+      "Después de una contracción de un segundo en la parte superior, bajá lentamente las mancuernas a la posición inicial.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "El torso permanece inclinado y fijo durante todo el ejercicio."
+    ],
+    "erroresComunes": [
+      "Enderezar el torso al subir los pesos."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Bent-Over_Rear_Delt_Raise/0.jpg",
@@ -25578,16 +25744,19 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "seated rear delt raise",
+      "pajaro sentado inclinado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Bent-Over_Rear_Delt_Raise",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0624",
-    "nombre": "Seated Bent-Over Two-Arm Dumbbell Triceps Extension",
+    "nombre": "Extensión de tríceps bilateral sentado e inclinado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -25600,15 +25769,19 @@
     "unilateral": false,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Sit down at the end of a flat bench with a dumbbell in both arms using a neutral grip (palms of the hand facing you).",
-      "Bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Make sure that you keep the head up.",
-      "The upper arms with the dumbbells should be close to the torso and aligned with it (lifted up until they are parallel to the floor while the forearms are pointing towards the floor as the hands hold the weights). Tip: There should be a 90-degree angle between the forearms and the upper arm. This is your starting position.",
-      "Keeping the upper arms stationary, use the triceps to lift the weight as you exhale until the forearms are parallel to the floor and the whole arm is extended. Like many other arm exercises, only the forearm moves.",
-      "After a second contraction at the top, slowly lower the dumbbells back to the starting position as you inhale.",
-      "Repeat the movement for the prescribed amount of repetitions."
+      "Sentáte al borde de un banco plano con una mancuerna en cada mano, agarre neutro (palmas hacia vos).",
+      "Flexioná levemente las rodillas y llevá el torso hacia adelante doblándote desde la cintura, manteniendo la espalda recta hasta casi paralela al piso. Mantené la cabeza arriba.",
+      "Los brazos superiores con las mancuernas deben estar cerca del torso y alineados con él (elevados hasta quedar paralelos al piso, con los antebrazos apuntando hacia abajo mientras las manos sostienen los pesos). Debe haber un ángulo de 90° entre antebrazos y brazos superiores. Esta es la posición inicial.",
+      "Manteniendo los brazos superiores fijos, usá el tríceps para levantar el peso mientras exhalás hasta que los antebrazos queden paralelos al piso y los brazos completamente extendidos. Solo se mueven los antebrazos.",
+      "Después de un segundo de contracción en la parte superior, bajá lentamente las mancuernas a la posición inicial mientras inhalás.",
+      "Repetí el movimiento las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabajar ambos brazos a la vez exige más estabilidad de la espalda baja que la versión unilateral."
+    ],
+    "erroresComunes": [
+      "Redondear la espalda al inclinarse hacia adelante."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension/0.jpg",
@@ -25616,12 +25789,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "triceps extension sentado dos brazos"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0625",
@@ -26450,7 +26625,7 @@
   },
   {
     "idEjercicio": "EJ-0646",
-    "nombre": "Seated One-Arm Dumbbell Palms-Down Wrist Curl",
+    "nombre": "Curl de muñeca unilateral sentado agarre pronado",
     "modalidad": "Fuerza",
     "patron": "Aislamiento",
     "mecanica": "Aislamiento",
@@ -26460,18 +26635,22 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Sit on a flat bench with a dumbbell in your right hand.",
-      "Place your feet flat on the floor, at a distance that is slightly wider than shoulder width apart.",
-      "Lean forward and place your right forearm on top of your upper right thigh with your palm down. Tip: Make sure that the back of the wrist lies on top of your knees. This will be your starting position.",
-      "Lower the dumbbell as far as possible as you keep a tight grip on the dumbbell. Inhale as you perform this movement.",
-      "Now curl the dumbbell as high as possible as you contract the forearms and as you exhale. Keep the contraction for a second before you lower again. Tip: The only movement should happen at the wrist.",
-      "Perform for the recommended amount of repetitions, switch arms and repeat the movement."
+      "Sentáte en un banco plano con una mancuerna en la mano derecha.",
+      "Colocá los pies planos en el piso, separados un poco más que el ancho de hombros.",
+      "Inclinate hacia adelante y apoyá el antebrazo derecho sobre el muslo derecho con la palma hacia abajo. El dorso de la muñeca debe quedar justo sobre la rodilla. Esta es la posición inicial.",
+      "Bajá la mancuerna lo más posible manteniendo un agarre firme. Inhalá durante este movimiento.",
+      "Ahora curvá la mancuerna lo más alto posible contrayendo el antebrazo mientras exhalás. Sostené la contracción un segundo antes de bajar de nuevo. Solo debe haber movimiento en la muñeca.",
+      "Repetí las veces indicadas, cambiá de brazo y repetí."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Trabaja los extensores del antebrazo, complementario a la variante con palma hacia arriba."
+    ],
+    "erroresComunes": [
+      "Levantar el antebrazo del muslo durante el curl."
+    ],
     "descansoSugeridoSeg": 70,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_One-Arm_Dumbbell_Palms-Down_Wrist_Curl/0.jpg",
@@ -26479,12 +26658,14 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Video_of_EZ_Bar_Curl_and_Straight_Bar_Curl.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "wrist curl sentado un brazo pronado"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Seated_One-Arm_Dumbbell_Palms-Down_Wrist_Curl",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0647",
@@ -26811,9 +26992,9 @@
   },
   {
     "idEjercicio": "EJ-0655",
-    "nombre": "See-Saw Press (Alternating Side Press)",
+    "nombre": "Press alternado tipo sube y baja lateral con mancuernas",
     "modalidad": "Fuerza",
-    "patron": "Empuje horizontal",
+    "patron": "Empuje vertical",
     "mecanica": "Compuesto",
     "fuerzaFEDB": "empuje",
     "grupoMuscularPrimario": "Hombros",
@@ -26824,30 +27005,37 @@
     "equipo": [
       "Mancuernas"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Grab a dumbbell with each hand and stand up erect.",
-      "Clean (lift) the dumbbells to the chest/shoulder level and then rotate your wrists so that your palms are facing towards you as if you were getting ready to perform an Arnold Press. This will be your starting position.",
-      "Now start extending your left arm overhead as you rotate the wrist so that the palm of your hand faces forward as you go up. Your elbows should come out also as you lift the weight. Simultaneously, you will also be bending from your hip to your opposite side. Tip: If you perform the exercise correctly, is should look as if you are trying to reach for something overhead on the right hand side of your body, but with your left arm. Breathe out as you perform this movement.",
-      "Once you reach the top position breathe in. Then, with the weight fully extended overhead and you bent over to your right hand side, begin the movement to the left side.",
-      "Repeat for the recommended amount of repetitions."
+      "Tomá una mancuerna en cada mano y pararte erguido.",
+      "Subí (cargá) las mancuernas a la altura del pecho/hombro y rotá las muñecas para que las palmas queden mirando hacia vos, como preparándote para un press Arnold. Esta es la posición inicial.",
+      "Comenzá a extender el brazo izquierdo por encima de la cabeza rotando la muñeca para que la palma quede mirando hacia adelante al subir. Los codos también deben abrirse al levantar el peso. Simultáneamente, doblate desde la cadera hacia el lado contrario. Si lo hacés correctamente, debería parecer que estás alcanzando algo arriba del lado derecho del cuerpo, pero con el brazo izquierdo. Exhalá durante este movimiento.",
+      "Al llegar a la posición superior, inhalá. Luego, con el peso completamente extendido arriba y el torso inclinado hacia la derecha, comenzá el movimiento hacia el lado izquierdo.",
+      "Repetí las veces indicadas."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Combina press unilateral con flexión lateral del torso, como un movimiento de 'sube y baja'."
+    ],
+    "erroresComunes": [
+      "Perder el equilibrio al inclinarse lateralmente con el peso arriba."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/See-Saw_Press_Alternating_Side_Press/0.jpg",
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/See-Saw_Press_Alternating_Side_Press/1.jpg"
     ],
-    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
+    "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Shoulder_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "see saw press",
+      "press alternado lateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "See-Saw_Press_Alternating_Side_Press",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0656",
@@ -27623,7 +27811,7 @@
   },
   {
     "idEjercicio": "EJ-0676",
-    "nombre": "Single-Arm Push-Up",
+    "nombre": "Flexión a un brazo",
     "modalidad": "Fuerza",
     "patron": "Empuje horizontal",
     "mecanica": "Compuesto",
@@ -27636,16 +27824,20 @@
     "equipo": [
       "Peso corporal"
     ],
-    "unilateral": false,
+    "unilateral": true,
     "nivel": "Intermedio",
     "instrucciones": [
-      "Begin laying prone on the ground. Move yourself into a position supporting your weight on your toes and one arm. Your working arm should be placed directly under the shoulder, fully extended. Your legs should be extended, and for this movement you may need a wider base, placing your feet further apart than in a normal push-up.",
-      "Maintain good posture, and place your free hand behind your back. This will be your starting position.",
-      "Lower yourself by allowing the elbow to flex until you touch the ground.",
-      "Descend slowly, and reverse direction be extending the arm to return to the starting position."
+      "Comenzá en posición prona en el piso. Posicionate sosteniendo el peso del cuerpo sobre los dedos de los pies y un brazo. El brazo que trabaja debe colocarse directamente debajo del hombro, completamente extendido. Las piernas extendidas; para este movimiento podés necesitar una base más ancha, separando los pies más que en una flexión normal.",
+      "Mantené una buena postura y colocá la mano libre detrás de la espalda. Esta es la posición inicial.",
+      "Bajá el cuerpo dejando que el codo se flexione hasta tocar el piso.",
+      "Descendé lentamente y revertí la dirección extendiendo el brazo para volver a la posición inicial."
     ],
-    "puntosClave": [],
-    "erroresComunes": [],
+    "puntosClave": [
+      "Separar más los pies amplía la base de apoyo y facilita el equilibrio en este ejercicio avanzado."
+    ],
+    "erroresComunes": [
+      "Dejar que la cadera rote hacia el lado del brazo libre."
+    ],
     "descansoSugeridoSeg": 105,
     "imagenes": [
       "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Single-Arm_Push-Up/0.jpg",
@@ -27653,12 +27845,15 @@
     ],
     "videoUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Bench_press_-_exercise_demonstration_video.webm",
     "videoEsGenerico": true,
-    "sinonimos": [],
+    "sinonimos": [
+      "single arm push up",
+      "flexion unilateral"
+    ],
     "fuente": "Free Exercise DB",
     "fuenteId": "Single-Arm_Push-Up",
     "fuenteUrl": "https://github.com/yuhonas/free-exercise-db",
     "origen": "import",
-    "traduccion": "pendiente"
+    "traduccion": "ok"
   },
   {
     "idEjercicio": "EJ-0677",
