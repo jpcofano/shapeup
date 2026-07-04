@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   detectarTipoCsv, parsearPeso, parsearEjercicio, parsearSueno, derivarZona,
-  detectarTiposMetrica, parsearMetricas,
+  detectarTiposMetrica, parsearMetricas, epochToMs,
   minArr, maxArr, avgArr, sumArr, lastArr, idMetrica,
 } from "./samsungHealth";
 
@@ -319,4 +319,76 @@ describe("derivarZona", () => {
   it("Z4 para FC 140", () => expect(derivarZona(140, zonas)).toBe("Z4"));
   it("Z5 para FC 160", () => expect(derivarZona(160, zonas)).toBe("Z5"));
   it("undefined sin zonas", () => expect(derivarZona(130, undefined)).toBeUndefined());
+});
+
+// ── epochToMs ─────────────────────────────────────────────────────────────────
+
+describe("epochToMs", () => {
+  it("parsea epoch ms como string", () => {
+    expect(epochToMs("1710488400000")).toBe(1710488400000);
+  });
+
+  it("parsea datetime local sin offset (trata como UTC)", () => {
+    // "2024-03-15 11:00:00.000" → 1710500400000 UTC
+    const ms = epochToMs("2024-03-15 11:00:00.000");
+    expect(typeof ms).toBe("number");
+    expect(ms).not.toBeNaN();
+  });
+
+  it("parsea datetime local con offset UTC-0300 y ajusta correctamente", () => {
+    // "2024-03-15 08:00:00.000" hora local con offset -3h → real UTC = 08:00 + 3h = 11:00 UTC
+    const ms = epochToMs("2024-03-15 08:00:00.000", "UTC-0300");
+    const esperado = epochToMs("2024-03-15 11:00:00.000"); // sin offset = UTC directo
+    expect(ms).toBe(esperado);
+  });
+
+  it("parsea datetime local con offset UTC+0530", () => {
+    // "2024-03-15 16:30:00.000" hora local con +05:30 → UTC = 16:30 - 5:30 = 11:00 UTC
+    const ms = epochToMs("2024-03-15 16:30:00.000", "UTC+0530");
+    const esperado = epochToMs("2024-03-15 11:00:00.000");
+    expect(ms).toBe(esperado);
+  });
+
+  it("devuelve undefined para string vacío", () => {
+    expect(epochToMs("")).toBeUndefined();
+  });
+
+  it("devuelve undefined para string inválido", () => {
+    expect(epochToMs("no-es-fecha")).toBeUndefined();
+  });
+});
+
+// ── parsearEjercicio — campos privados ────────────────────────────────────────
+
+const EXERCISE_CSV_CON_TIMESTAMPS = `com.samsung.shealth.exercise,6000007,15
+datauuid,com.samsung.shealth.exercise.start_time,com.samsung.shealth.exercise.time_offset,com.samsung.shealth.exercise.exercise_type,title,com.samsung.shealth.exercise.duration,com.samsung.shealth.exercise.calorie,com.samsung.shealth.exercise.mean_heart_rate,com.samsung.shealth.exercise.max_heart_rate,com.samsung.shealth.exercise.min_heart_rate,com.samsung.shealth.exercise.custom_id
+uuid-ts-001,1710488400000,UTC-0300,1001,ShapeUp,3600000,400,145,175,85,mq1mz4gd_gq
+uuid-ts-002,1710574800000,UTC-0300,11,Caminata,1800000,180,115,140,,`;
+
+describe("parsearEjercicio — campos privados", () => {
+  const { items } = parsearEjercicio(EXERCISE_CSV_CON_TIMESTAMPS, "juanpablo");
+
+  it("conserva _startMs derivado del epoch", () => {
+    expect(items[0]._startMs).toBe(1710488400000);
+  });
+
+  it("deriva _endMs = _startMs + duration", () => {
+    expect(items[0]._endMs).toBe(1710488400000 + 3600000);
+  });
+
+  it("conserva _customId cuando viene", () => {
+    expect(items[0]._customId).toBe("mq1mz4gd_gq");
+  });
+
+  it("conserva _fcMin cuando viene", () => {
+    expect(items[0]._fcMin).toBe(85);
+  });
+
+  it("_customId es undefined cuando no viene", () => {
+    expect(items[1]._customId).toBeUndefined();
+  });
+
+  it("_fcMin es undefined cuando no viene", () => {
+    expect(items[1]._fcMin).toBeUndefined();
+  });
 });

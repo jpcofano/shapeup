@@ -105,6 +105,37 @@ function col(row: Record<string, string>, suffix: string): string {
 // ── Helpers de tiempo ─────────────────────────────────────────────────────────
 
 /**
+ * Convierte epoch en ms + time_offset a epoch ms numérico.
+ * Soporta los mismos dos formatos que epochToDate:
+ *   - epoch ms como string numérico ("1703001600000")
+ *   - datetime local "YYYY-MM-DD HH:MM:SS.mmm" (Samsung 2024+): requiere offset
+ *     para reconstruir el epoch UTC real.
+ */
+export function epochToMs(value: string, offset?: string): number | undefined {
+  if (!value) return undefined;
+  // Formato nuevo: "YYYY-MM-DD HH:MM:SS[.mmm]" — hora local
+  if (/^\d{4}-\d{2}-\d{2} /.test(value)) {
+    // YYYY-MM-DD HH:MM:SS.mmm → posición 19 = ".", 20-22 = ms
+    const ms = value.slice(20, 23) || "000";
+    const isoStr = `${value.slice(0, 10)}T${value.slice(11, 19)}.${ms.padEnd(3, "0")}Z`;
+    const asUtc = Date.parse(isoStr);
+    if (isNaN(asUtc)) return undefined;
+    if (offset) {
+      const m = offset.match(/([+-])(\d{2}):?(\d{2})/);
+      if (m) {
+        const sign = m[1] === "+" ? 1 : -1;
+        const offMs = sign * (parseInt(m[2]) * 60 + parseInt(m[3])) * 60_000;
+        return asUtc - offMs; // local_as_utc → real UTC epoch
+      }
+    }
+    return asUtc;
+  }
+  // Formato viejo: epoch en ms como string numérico
+  const n = parseInt(value, 10);
+  return isNaN(n) ? undefined : n;
+}
+
+/**
  * Convierte epoch en ms + time_offset a "YYYY-MM-DD" local.
  * time_offset: "UTC-0300", "UTC+0530", "+0300", "-0300"
  *
@@ -245,20 +276,32 @@ export function parsearPeso(
  * Derive `zonaPrincipal` comparando FC media vs zonas del perfil del miembro.
  * Idempotente por `datauuid`.
  */
+export type EjercicioItem = CardioInput & {
+  _uuid: string;
+  /** Epoch ms de inicio (para construir SesionSamsung en nivel biométrico). */
+  _startMs?: number;
+  /** Epoch ms de fin (inicio + duration). */
+  _endMs?: number;
+  /** custom_id de Samsung (para matchBiometrico). */
+  _customId?: string;
+  /** FC mínima de la sesión. */
+  _fcMin?: number;
+};
+
 export function parsearEjercicio(
   text: string,
   miembro: MiembroId,
   zonasFC?: Partial<Record<ZonaFC, { min: number; max: number }>>,
-): ParseResult<CardioInput & { _uuid: string }> {
+): ParseResult<EjercicioItem> {
   const filas  = parseSamsungCsv(text);
-  const items: (CardioInput & { _uuid: string })[] = [];
+  const items: EjercicioItem[] = [];
   const errors: string[] = [];
 
   for (const f of filas) {
     const uuid     = col(f, "datauuid");
-    const startMs  = col(f, "start_time");
-    const offset   = col(f, "time_offset");
-    const fecha    = epochToDate(startMs, offset);
+    const startRaw = col(f, "start_time");
+    const offset   = col(f, "time_offset") || undefined;
+    const fecha    = epochToDate(startRaw, offset);
 
     if (!fecha) { errors.push(`Fila sin fecha (uuid=${uuid || "?"})`); continue; }
 
@@ -269,8 +312,17 @@ export function parsearEjercicio(
     const fcMedia   = numOpt(col(f, "mean_heart_rate"));
     const actividad = resolverActividad(col(f, "exercise_type"), col(f, "title"));
 
+    const startMs  = epochToMs(startRaw, offset);
+    const endMs    = startMs != null && durMs != null ? startMs + durMs : undefined;
+    const customId = col(f, "custom_id") || undefined;
+    const fcMin    = numOpt(col(f, "min_heart_rate"));
+
     items.push(stripUndef({
       _uuid:        uuid,
+      _startMs:     startMs,
+      _endMs:       endMs,
+      _customId:    customId,
+      _fcMin:       fcMin,
       miembro,
       fecha,
       actividad,
@@ -284,7 +336,7 @@ export function parsearEjercicio(
       fcMaxima:     numOpt(col(f, "max_heart_rate")),
       zonaPrincipal: fcMedia != null ? derivarZona(fcMedia, zonasFC) : undefined,
       fuente:       "samsung-health-csv" as const,
-    }));
+    }) as EjercicioItem);
   }
   return { items, errors };
 }

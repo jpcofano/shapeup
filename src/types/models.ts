@@ -209,6 +209,7 @@ export interface Ejercicio {
 
   // ── Media (FEDB hospeda imágenes vía raw.githubusercontent) ──
   imagenes?: string[];             // URLs
+  videoYoutubeId?: string;         // ID de YouTube (11 chars). Si existe → demo EXACTA, máxima precedencia.
   videoUrl?: string;
   videoEsGenerico?: boolean;       // true: clip representativo por patrón, no footage propio del ejercicio
 
@@ -461,6 +462,10 @@ export interface Historial {
   rpe: number | null;
   tonelajeKg: number | null;
   totalSeriesHechas: number | null;
+
+  /** ADR #019: ventana de la sesión completa (epoch ms), sellada en finalizarSesion. */
+  inicioMs?: number;
+  finMs?: number;
 
   bloques: BloqueRegistro[];
 

@@ -225,3 +225,27 @@ export function calcularCacheRutina(
 }
 
 export type { BloqueEjercicio };
+
+// ─── ADR #019: ventana de la sesión completa ─────────────────────────────────
+
+import type { BloqueRegistro } from "../types/models";
+
+/**
+ * Deriva la ventana (inicioMs / finMs) de una sesión a partir de sus bloques.
+ * Toma el mínimo de `serie.inicioMs` y el máximo de `serie.finMs` de todas
+ * las series de todos los bloques. Devuelve los campos que existan (ambos,
+ * uno, o ninguno si no hay timestamps).
+ */
+export function ventanaDeBloques(
+  bloques: BloqueRegistro[],
+): { inicioMs?: number; finMs?: number } {
+  let inicio: number | undefined;
+  let fin: number | undefined;
+  for (const bloque of bloques) {
+    for (const serie of bloque.series) {
+      if (serie.inicioMs != null) inicio = inicio == null ? serie.inicioMs : Math.min(inicio, serie.inicioMs);
+      if (serie.finMs    != null) fin    = fin    == null ? serie.finMs    : Math.max(fin,    serie.finMs);
+    }
+  }
+  return { inicioMs: inicio, finMs: fin };
+}

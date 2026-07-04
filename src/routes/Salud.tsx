@@ -23,6 +23,7 @@ import {
 } from "../import/samsungZip";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialMiembro } from "../data/historial";
+import { enriquecerTrasImport } from "../lib/enriquecerImport";
 import { useAuth } from "../auth/useAuth";
 
 type Tab = "composicion" | "cardio" | "sueno" | "progreso";
@@ -195,7 +196,27 @@ export function Salud() {
       const importados = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.importados : 0), 0);
       const omitidos   = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.omitidos   : 0), 0);
       const firstErr   = [r1, r2, r3, r4].find((r) => !r.ok) as { ok: false; error: string } | undefined;
-      setImportMsg(importados === 0 && firstErr ? `Error: ${firstErr.error}` : fmtImportMsg(importados, omitidos, "desde ZIP"));
+
+      let msgBase = importados === 0 && firstErr ? `Error: ${firstErr.error}` : fmtImportMsg(importados, omitidos, "desde ZIP");
+
+      // Enriquecimiento biométrico post-import (solo si el ZIP tiene sesiones con timestamps)
+      if (z.sesionesSamsung.length > 0) {
+        const enrRes = await enriquecerTrasImport(memberId as MiembroId, z);
+        if (enrRes.ok) {
+          const { matcheadas, porCustomId, porVentana, sinMatch, omitidas } = enrRes.value;
+          if (matcheadas > 0 || sinMatch > 0 || omitidas > 0) {
+            const partes: string[] = [];
+            if (matcheadas > 0) partes.push(`${matcheadas} sesión${matcheadas !== 1 ? "es" : ""} matcheada${matcheadas !== 1 ? "s" : ""} (${porCustomId} por custom-id, ${porVentana} por ventana)`);
+            if (sinMatch    > 0) partes.push(`${sinMatch} sin match`);
+            if (omitidas    > 0) partes.push(`${omitidas} ya estaban enriquecidas`);
+            msgBase += ` · ${partes.join(" · ")}`;
+          }
+        } else {
+          msgBase += ` ⚠ Enriquecimiento: ${enrRes.error}`;
+        }
+      }
+
+      setImportMsg(msgBase);
       const [fm, fc, fs] = await Promise.all([getMediciones(memberId), getSesionesCardio(memberId), getRegistrosSueno(memberId)]);
       if (fm.ok) setMediciones(fm.value);
       if (fc.ok) setCardio(fc.value);

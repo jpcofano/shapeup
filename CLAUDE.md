@@ -25,28 +25,16 @@ Objetivo del owner: **no importar todo indiscriminadamente**; matchear los entre
 hechos en la app con los datos de salud, enriquecer el historial y las rutinas analizando
 esos datos, y simplificar la pantalla de Salud para mostrar solo lo relevante.
 
-### S1 — Enriquecimiento post-import (la última milla del match)
-1. `data/historial.ts`: nueva `enriquecerHistorial(idHist, biometria, bloques?)`
-   (updateDoc simple; escribe solo docs del miembro, consistente con ADR #014).
-2. Nuevo `lib/enriquecerImport.ts`: **puro** en su núcleo. Toma `ZipExtraccion` +
-   `Historial[]` del miembro y por cada Historial sin `biometria`:
-   - deriva la ventana `{inicioMs, finMs}` desde las series (mín/máx de
-     `SerieRegistro.inicioMs/finMs`), con fallback a `fechaRealizada` ± `duracionRealMin`;
-   - `elegirSesionSamsung()` contra las candidatas del ZIP (custom-id primero,
-     ventana como fallback — ya implementado en `lib/matchBiometrico.ts`);
-   - `construirBiometriaSesion()`; si hay curva `liveData[datauuid]`, enriquece cada
-     serie con `enriquecerSerie()` (granularidad "serie");
-   - devuelve `{ matcheadas, porCustomId, porVentana, sinMatch, updates[] }`.
-   La persistencia (aplicar `updates[]` vía `enriquecerHistorial`) va en una función
-   orquestadora aparte.
-3. `Salud.tsx` → `handleZip`: si `nivel === "biometrico"`, tras confirmar el import correr
-   el enriquecimiento y mostrar el resumen: "5 sesiones matcheadas (3 por custom-id,
-   2 por ventana)". No matchear nada silenciosamente: el feedback es parte de la feature.
-4. `finalizarSesion`: guardar `inicioMs`/`finMs` **a nivel Historial** (derivados de las
-   series al cierre), para que futuros matches no recalculen (ADR #019).
-5. **Import selectivo** (ADR #020): en el preview del ZIP, por defecto se importan solo
-   las sesiones de cardio de Samsung que (a) solapan con historial de la app o (b) son
-   actividades VR/cardio conocidas del catálogo; toggle "importar todo" disponible.
+### S1 — Enriquecimiento post-import (la última milla del match) ✅ P46 (2026-07-04)
+1. ✅ `data/historial.ts`: `enriquecerHistorial(idHist, biometria, bloques?)` — updateDoc simple.
+2. ✅ `lib/enriquecerImport.ts`: núcleo puro. `ventanaDeHistorial`, `calcularEnriquecimiento`,
+   `enriquecerTrasImport`. 16 tests. No muta entrada, no duplica datauuid.
+3. ✅ `Salud.tsx` → `confirmarImport`: si `sesionesSamsung.length > 0` corre enriquecimiento
+   y muestra resumen "X matcheadas (Y por custom-id, Z por ventana)". Fallo no cancela import.
+4. ✅ `finalizarSesion`: guarda `inicioMs`/`finMs` desde `ventanaDeBloques` (ADR #019).
+5. ⬜ **Import selectivo (ADR #020) — PENDIENTE, va en prompt 47**: en el preview del ZIP,
+   por defecto solo cardio que (a) solapa con historial de la app o (b) es actividad VR/cardio
+   conocida; toggle "importar todo" disponible.
 
 ### S2 — Salud: mostrar lo relevante
 1. Nueva tab **"Resumen"** como default en `/salud`, usando `getMetricasSalud` (hoy sin

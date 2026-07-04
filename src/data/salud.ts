@@ -187,12 +187,15 @@ export async function importarMedicionesIdempotente(
 }
 
 export async function importarCardioIdempotente(
-  items: (Omit<SesionCardio, "idCardio" | "fechaCreacion"> & { _uuid?: string })[],
+  items: (Omit<SesionCardio, "idCardio" | "fechaCreacion"> & {
+    _uuid?: string; _startMs?: number; _endMs?: number; _customId?: string; _fcMin?: number;
+  })[],
 ): Promise<Result<ImportResult>> {
   try {
     const results = await Promise.allSettled(
       items.map((item) => {
-        const { _uuid, ...data } = item;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _uuid, _startMs, _endMs, _customId, _fcMin, ...data } = item;
         const id = _uuid ? `CAR-${_uuid}` : `CAR-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         return setDoc(
           doc(db, "cardio", id),

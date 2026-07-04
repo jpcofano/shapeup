@@ -63,10 +63,27 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | D16 | Pulido visual: Home métrica única, Historial card, Salud composición, scrim sesión, FAB (hallazgos B5–B8, C10) | ✅ | 2026-06-11 |
 | P43 (B2) | Video demo real en MediaTabs — 2 tabs (Demo/Músculo) + `videoUrl` por patrón (FEDB) | ✅ | 2026-06-27 |
 | P44 (F4) | "Empezar este ejercicio" — atajo de 1 toque a sesión de un solo ejercicio (3×10) desde el catálogo | ✅ | 2026-06-28 |
+| **Serie S — Integración de salud** | | | |
+| P46 (S1) | Enriquecimiento biométrico post-import: conecta la última milla del match Samsung ↔ historial (ADRs #019 #021) | ✅ | 2026-07-04 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-07-04] P46 (S1) — Enriquecimiento biométrico post-import
+
+- **`src/import/samsungHealth.ts`** — nuevo helper exportado `epochToMs(value, offset?)`: soporta epoch ms como string y formato datetime local `"YYYY-MM-DD HH:MM:SS.mmm"` (Samsung 2024+) con ajuste de offset. `parsearEjercicio` suma campos privados `_startMs`, `_endMs` (inicio+duración), `_customId` (de `custom_id` del CSV) y `_fcMin` (de `min_heart_rate`); tipo de retorno exportado como `EjercicioItem`.
+- **`src/data/salud.ts`** — `importarCardioIdempotente` hace destructuring y descarta `_startMs/_endMs/_customId/_fcMin` (no se escriben a Firestore).
+- **`src/import/samsungZip.ts`** — `ZipExtraccion` suma `sesionesSamsung: SesionSamsung[]` (construido desde items de ejercicio con `_startMs/_endMs` válidos). Reemplaza el paso 5b anterior (que buscaba `datauuid` inexistente) por la construcción correcta y usa `datauuid` para leer `live_data.json`.
+- **`src/types/models.ts`** — `Historial` suma `inicioMs?: number` y `finMs?: number` (ADR #019).
+- **`src/lib/metricas.ts`** — nueva función exportada `ventanaDeBloques(bloques)`: mín de `serie.inicioMs` / máx de `serie.finMs` en todos los bloques.
+- **`src/data/historial.ts`** — importa `updateDoc`; `finalizarSesion` llama `ventanaDeBloques` y escribe `inicioMs/finMs` si ambos existen (ADR #019). Nueva función `enriquecerHistorial(idHist, biometria, bloques?)`: `updateDoc` simple, sin transacción.
+- **`src/lib/enriquecerImport.ts`** (nuevo) — núcleo puro ADR #009:
+  - `ventanaDeHistorial(h)`: prioridad sellado ADR #019 → derivado de series → fallback `fechaRealizada ± duracionRealMin`.
+  - `calcularEnriquecimiento(historial, extraccion, perfil)`: procesa en orden cronológico, omite `granularidad:"serie"` (ADR #021), mejora `granularidad:"sesion"` si llega curva fina, no muta entrada, asigna datauuid 1:1.
+  - `enriquecerTrasImport(miembro, extraccion)`: orquestador que lee Firestore y aplica los updates con `Promise.allSettled`.
+- **`src/routes/Salud.tsx`** — `confirmarImport` llama `enriquecerTrasImport` si `z.sesionesSamsung.length > 0` y agrega al mensaje: "5 sesiones matcheadas (3 por custom-id, 2 por ventana) · 1 sin match"; fallo del enriquecimiento no cancela el import.
+- **Tests** — `src/import/samsungHealth.test.ts`: 12 tests nuevos (epochToMs + parsearEjercicio campos privados). `src/lib/enriquecerImport.test.ts` (nuevo): 16 tests (ventanaDeBloques, ventanaDeHistorial, calcularEnriquecimiento). **Total: 295 tests verdes**, `tsc -b` limpio.
 
 ### [2026-06-28] P44 (F4) — "Empezar este ejercicio": atajo a sesión de un solo ejercicio
 

@@ -24,6 +24,7 @@ import {
   type MedicionInput, type CardioInput, type SuenoInput,
 } from "./samsungHealth";
 import { parsearLiveData, type LiveDataPoint } from "./samsungLiveData";
+import type { SesionSamsung } from "../lib/matchBiometrico";
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
 
@@ -40,6 +41,8 @@ export interface ZipExtraccion {
   liveData:        Record<string, LiveDataPoint[]>;
   /** custom_id de la sesión ShapeUp (solo nivel "biometrico"). */
   shapeUpCustomId: string | undefined;
+  /** Sesiones de ejercicio con timestamps, para el match biométrico (nivel "biometrico"; [] en otros niveles). */
+  sesionesSamsung: SesionSamsung[];
   errors:     string[];
   csvsLeidos: string[];
   /** Diagnóstico: qué archivos CSV se encontraron en el ZIP por tipo conocido. */
@@ -123,7 +126,7 @@ export async function extraerDesdeZip(
 ): Promise<ZipExtraccion> {
   const result: ZipExtraccion = {
     mediciones: [], cardio: [], sueno: [], metricas: [],
-    liveData: {}, shapeUpCustomId: undefined,
+    liveData: {}, shapeUpCustomId: undefined, sesionesSamsung: [],
     errors: [], csvsLeidos: [], csvsPorTipo: {}, otrosCSVs: [],
   };
 
@@ -247,7 +250,7 @@ export async function extraerDesdeZip(
 
   progress(70, "Terminado CSVs…");
 
-  // ── 5. Biometría: custom_id + live_data.json ──────────────────────────────
+  // ── 5. Biometría: custom_id + sesionesSamsung + live_data.json ───────────
   if (nivel === "biometrico") {
     // 5a. Buscar custom_id de ShapeUp
     for (const path of customExercisePath) {
@@ -261,15 +264,29 @@ export async function extraerDesdeZip(
     }
     progress(75, "Identificando sesiones ShapeUp…");
 
-    // 5b. Leer las curvas de FC de las sesiones que coinciden con ShapeUp
-    //     (filtradas por custom_id si se encontró; si no, todas las del ejercicio)
-    const datauuidsShapeUp = result.cardio
-      .map((c) => (c as { datauuid?: string }).datauuid)
-      .filter((d): d is string => !!d && !!liveDataIndex[d]);
+    // 5b. Construir SesionSamsung[] desde los items de ejercicio parseados
+    type EjItem = CardioInput & { _uuid: string; _startMs?: number; _endMs?: number; _customId?: string; _fcMin?: number };
+    result.sesionesSamsung = (result.cardio as EjItem[])
+      .filter((c) => c._startMs != null && c._endMs != null)
+      .map((c) => ({
+        datauuid: c._uuid,
+        startMs:  c._startMs!,
+        endMs:    c._endMs!,
+        customId: c._customId,
+        fcMedia:  c.fcPromedio,
+        fcMax:    c.fcMaxima,
+        fcMin:    c._fcMin,
+        kcal:     c.kcal,
+      }));
 
-    const total = datauuidsShapeUp.length;
+    // 5c. Leer curvas de FC (live_data.json) para sesiones con datauuid en el índice
+    const datauuidsConCurva = result.sesionesSamsung
+      .map((s) => s.datauuid)
+      .filter((d) => !!liveDataIndex[d]);
+
+    const total = datauuidsConCurva.length;
     let done = 0;
-    for (const uuid of datauuidsShapeUp) {
+    for (const uuid of datauuidsConCurva) {
       const path = liveDataIndex[uuid];
       try {
         const text = await zip.files[path].async("text");
