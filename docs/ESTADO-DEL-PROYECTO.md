@@ -22,7 +22,8 @@ forma de trabajo de "Comida Familiar".
 
 ## Estado funcional — COMPLETO
 - E0–E6 + fix multiusuario (ADR #014) + importador de salud + ingesta completa de métricas (P22).
-- **Tests: 142 unitarios + 38 de reglas = 180 verdes.** `tsc -b` limpio.
+- Match biométrico (P23) y importador zip-first (P24) aplicados: `inicioMs/finMs` en `SerieRegistro`, nivel "biometrico" operativo, pipeline `matchBiometrico.ts` completo.
+- **Tests: 267 unitarios verdes** (suite `firestore.rules.test.ts` requiere emulador; skip sin emulador). `tsc -b` limpio.
 
 ## Datos sembrados
 - Ejercicios: `EJ-0001+` (873 FEDB) · `EJ-8001..8034` (34 propios) · `EJ-9001..9010` (10 VR).
@@ -44,17 +45,14 @@ forma de trabajo de "Comida Familiar".
 - Detalle del mapeo: `docs/SAMSUNG-HEALTH-MAPEO.md`.
 
 ## Prompts (`docs/prompts/`)
-- **01–22 ✅ aplicados por Code** (último: P22, ingesta completa de salud, 180 tests).
-- **P23** (match biométrico FC por serie) — escrito, **pendiente de aplicar**.
-- **P24** (importador zip-first) — escrito, **pendiente de aplicar**.
+- **01–24 ✅ aplicados por Code** (último: P24, importador zip-first + match biométrico completo, 267 tests).
 - `BRIEF-para-design.md` — brief de diseño.
 
 ## Pendientes (orden sugerido)
-1. **Design** — logo + identidad + escala de zonas FC, después Home y el flujo de Entrenar.
-2. **Aplicar P23 y P24** (Code) — *después* de Design, porque P23 toca `EntrenarSesion` (timestamp por serie).
+1. **Serie S — Integración de salud** (Code) — Plan y decisiones: ver `CLAUDE.md` (serie S, ADRs #019–#022).
+2. **Design** — logo + identidad + escala de zonas FC, después Home y el flujo de Entrenar.
 3. **PWA** (`vite-plugin-pwa`) — definir; se cruza con los íconos de Design.
-4. **Motor de recomendaciones** — señales confirmadas (P22); implementación futura, idealmente Cloud Function.
-5. **Traducciones FEDB** — track en paralelo.
+4. **Traducciones FEDB** — track en paralelo.
 
 ## Futuro / ideas registradas
 - **Sync de salud verdaderamente automático:** hoy la importación es manual (exportar de Samsung →
@@ -64,12 +62,16 @@ forma de trabajo de "Comida Familiar".
 - Expansión de mancuernas: discos sueltos de hierro fundido para sumar a los handles existentes.
 
 ## ADRs clave
-- #014 contadores fuera de la tx de cierre (fix multiusuario).
 - #009 funciones puras sin `firebase.ts`.
 - #010 rangos de IDs reservados.
 - #013 catálogo via tabs.
+- #014 contadores fuera de la tx de cierre (fix multiusuario).
 - #015 repo público hasta terminar (decisión del owner).
 - #016 métricas de salud diarias (no crudas) por costo Spark.
+- #019 `Historial.inicioMs/finMs` sellados en `finalizarSesion`.
+- #020 import selectivo por defecto (solo cardio que matchea historial).
+- #021 enriquecimiento biométrico post-hoc e idempotente.
+- #022 recomendaciones client-side, puras y explicables.
 
 ## Cómo retomar
 - Mismo Proyecto (memoria + repo sincronizado). Sincronizá el repo o adjuntá este archivo + `docs/`.
