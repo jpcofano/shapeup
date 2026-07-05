@@ -25,26 +25,31 @@ Objetivo del owner: **no importar todo indiscriminadamente**; matchear los entre
 hechos en la app con los datos de salud, enriquecer el historial y las rutinas analizando
 esos datos, y simplificar la pantalla de Salud para mostrar solo lo relevante.
 
-### S1 — Enriquecimiento post-import (la última milla del match) ✅ P46 (2026-07-04)
+### S1 — Enriquecimiento post-import (la última milla del match) ✅ completo (P46+P47, 2026-07-04)
 1. ✅ `data/historial.ts`: `enriquecerHistorial(idHist, biometria, bloques?)` — updateDoc simple.
 2. ✅ `lib/enriquecerImport.ts`: núcleo puro. `ventanaDeHistorial`, `calcularEnriquecimiento`,
    `enriquecerTrasImport`. 16 tests. No muta entrada, no duplica datauuid.
 3. ✅ `Salud.tsx` → `confirmarImport`: si `sesionesSamsung.length > 0` corre enriquecimiento
    y muestra resumen "X matcheadas (Y por custom-id, Z por ventana)". Fallo no cancela import.
 4. ✅ `finalizarSesion`: guarda `inicioMs`/`finMs` desde `ventanaDeBloques` (ADR #019).
-5. ⬜ **Import selectivo (ADR #020) — PENDIENTE, va en prompt 47**: en el preview del ZIP,
-   por defecto solo cardio que (a) solapa con historial de la app o (b) es actividad VR/cardio
-   conocida; toggle "importar todo" disponible.
+5. ✅ **Import selectivo (ADR #020) — P47**: `lib/importSelectivo.ts` puro. Reglas:
+   "shapeup" → "historial" → "vr" → "actividad". Toggle opt-in en preview (ZIP + CSV).
+   `ACTIVIDADES_SIEMPRE_RELEVANTES` exportada y editable. 19 tests.
 
-### S2 — Salud: mostrar lo relevante
-1. Nueva tab **"Resumen"** como default en `/salud`, usando `getMetricasSalud` (hoy sin
-   uso en UI): 4–5 señales con tendencia 7 días vs baseline 28 días — FC en reposo,
-   sueño, HRV (si hay), peso, pasos. Flecha de tendencia + semáforo. Sin listas crudas.
-2. Contexto en `HistorialDetalle`: junto a la biometría de la sesión, sueño de la noche
-   anterior y FC en reposo del día.
-3. `CardioTab`: separar "sesiones de la app (matcheadas)" del cardio suelto.
-4. Refactor: extraer cada tab de `Salud.tsx` (1000+ líneas) a componentes en
-   `src/components/salud/`. Sin cambios de comportamiento.
+**Flujo de prueba de S1 (P48):**
+`npm run limpiar:salud -- --miembro=juanpablo --confirmar [--limpiar-biometria]`
+→ importar ZIP real nivel biométrico → validar resumen de matcheo en la UI.
+`scripts/limpiar-salud.ts`: depura solo salud; nunca toca historial/sesiones/rutinas.
+
+### S2 — Salud: mostrar lo relevante ✅ completo (P49, 2026-07-04)
+1. ✅ `lib/resumenSalud.ts`: `calcularResumenSalud` + `senalPeor`. 36 tests.
+   **Umbrales exportados aquí** — S3 los importa (fuente única de verdad).
+2. ✅ Tab `"resumen"` como default en `/salud`: cards con sparkline 14d, flecha de
+   tendencia, semáforo (tokens), motivo explicable, tap navega a tab de detalle.
+3. ✅ `HistorialDetalle`: bloque "Contexto del día" (sueño noche anterior + FC en reposo).
+4. ✅ `CardioTab`: badge "vinculada a entrenamiento" + vinculadas ordenadas primero.
+5. ✅ Refactor: `ComposicionTab`, `CardioTab`, `SuenoTab`, `ProgresoTab`, `ImportPanel`
+   en `src/components/salud/`. `Salud.tsx` → contenedor delgado con estado compartido.
 
 ### S3 — Motor de recomendaciones + rutinas nuevas
 1. `lib/recomendaciones.ts` **puro**: reglas de umbral "métrica de hoy vs mediana 28 días"
@@ -69,9 +74,9 @@ Ver "Roadmap" abajo.
 ## ADRs de la serie S
 - **ADR #019** — `Historial.inicioMs/finMs` a nivel sesión, sellados en `finalizarSesion`
   desde las series. Motivo: el match por ventana no debe depender de recalcular.
-- **ADR #020** — Import selectivo por defecto: solo cardio que matchea historial o
+- **ADR #020** ✅ — Import selectivo por defecto: solo cardio que matchea historial o
   actividades conocidas; "importar todo" es opt-in. Motivo: pedido explícito del owner
-  ("no se trata de importar todo") + costo Spark.
+  ("no se trata de importar todo") + costo Spark. Implementado en P47.
 - **ADR #021** — El enriquecimiento biométrico es **post-hoc e idempotente**: re-importar
   el mismo ZIP no duplica ni pisa biometría con datos peores (si el Historial ya tiene
   `granularidad: "serie"`, no se degrada a "sesion").

@@ -65,10 +65,44 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P44 (F4) | "Empezar este ejercicio" — atajo de 1 toque a sesión de un solo ejercicio (3×10) desde el catálogo | ✅ | 2026-06-28 |
 | **Serie S — Integración de salud** | | | |
 | P46 (S1) | Enriquecimiento biométrico post-import: conecta la última milla del match Samsung ↔ historial (ADRs #019 #021) | ✅ | 2026-07-04 |
+| P47 (S1b) | Import selectivo de cardio por relevancia (ADR #020): filtro puro + toggle en preview | ✅ | 2026-07-04 |
+| P48 (S1-prep) | Script `limpiar-salud.ts`: depura módulo de salud antes de probar S1 | ✅ | 2026-07-04 |
+| P49 (S2) | Tab Resumen con señales y tendencias + contexto del día en HistorialDetalle + refactor tabs + cardio vinculado | ✅ | 2026-07-04 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-07-04] P49 (S2) — Tab Resumen + contexto del día + refactor tabs
+
+- **`src/lib/resumenSalud.ts`** (nuevo) — núcleo puro ADR #009/#022: `calcularResumenSalud(metricas, sueno, mediciones, hoy)` → `SenalSalud[]`. Señales: fc-reposo (umbral absoluto ±bpm), sueno (umbral absoluto h, independiente de baseline), hrv (umbral relativo %, si no hay datos no se lista), pasos (umbral relativo %, solo atencion), peso (sin semáforo). Baseline = mediana días 8–35 hacia atrás; < 7 datos → sin-datos. `senalPeor` exportado para badge de tab y S3. Todos los umbrales exportados como constantes para que S3 los reutilice (fuente única de verdad).
+- **`src/lib/resumenSalud.test.ts`** (nuevo) — 36 tests sin Firebase: baseline/mediana, umbrales exactos de frontera (+4.9/+5.0 bpm, etc.), sueño independiente del baseline, hrv ausente no listado, peso siempre ok, senalPeor, serie14d cronológica.
+- **`src/components/salud/ResumenTab.tsx`** (nuevo) — cards por señal con sparkline 14d, flecha de tendencia, punto de color por estado (tokens), motivo como texto secundario; tap navega a tab de detalle. Estado vacío con mensaje de importar desde Samsung Health.
+- **`src/components/salud/ComposicionTab.tsx`** (nuevo, extraído sin cambios).
+- **`src/components/salud/CardioTab.tsx`** (nuevo, extraído + badge "vinculada a entrenamiento" con Set de datauuidSamsung; vinculadas ordenadas primero).
+- **`src/components/salud/SuenoTab.tsx`** (nuevo, extraído sin cambios).
+- **`src/components/salud/ProgresoTab.tsx`** (nuevo, extraído; recibe `historial: Historial[]` como prop en lugar de cargar Firestore).
+- **`src/components/salud/ImportPanel.tsx`** (nuevo) — `ImportPreview`, `ManualForm`, tipos `PreviewState`/`CardioEx` extraídos de `Salud.tsx`.
+- **`src/routes/Salud.tsx`** — refactorizado como contenedor: estado compartido `metricas` + `historial` nuevos (cargados con Promise.all junto a med/cardio/sueno); tab default `"resumen"`; orden Resumen·Composición·Cardio·Sueño·Progreso; tras import ZIP también refresca `metricas`; usa los 6 nuevos componentes.
+- **`src/routes/HistorialDetalle.tsx`** — bloque "Contexto del día" (sueño noche anterior + FC en reposo del día) si existe alguno; carga lazy tras cargar la entrada del historial; no renderiza si ninguno tiene dato.
+- **Verificado:** `tsc -b` limpio · 345 tests verdes.
+
+### [2026-07-04] P48 (S1-prep) — Script limpiar-salud.ts
+
+- **`scripts/limpiar-salud.ts`** (nuevo) — depura `/mediciones`, `/cardio`, `/sueno`, `/metricas-salud` de un miembro. Nunca toca `/historial`, `/sesiones`, `/rutinas`, `/programas`, `/ejercicios` ni `/config`. Flags: `--miembro=<id>` (o `--todos`), `--confirmar` (sin él: dry-run), `--incluir-manual`, `--colecciones=a,b`, `--limpiar-biometria` (limpia campo `biometria` y campos `fcPico/fcFinSerie/recuperacionBpm` de series en `/historial`, sin tocar `inicioMs/finMs`). Filtro de fuente en memoria (evita índices compuestos). Batches de ≤500. Progreso por consola; errores por batch no abortan el resto.
+- **`package.json`** — alias `"limpiar:salud": "npx tsx scripts/limpiar-salud.ts"`.
+- **`docs/SEEDS.md`** — sección "Mantenimiento: limpiar:salud" con flags, ejemplos y flujo de prueba de S1.
+- **Verificado:** dry-run conecta a Firestore real (juanpablo: 251 mediciones, 2488 cardio, 2020 sueno, 3902 metricas-salud); `tsc -b` limpio.
+
+### [2026-07-04] P47 (S1b) — Import selectivo de cardio por relevancia
+
+- **`src/lib/matchBiometrico.ts`** — `TOLERANCIA_MS` pasa a ser `export const` (antes `const`); sin cambio de valor ni comportamiento.
+- **`src/lib/importSelectivo.ts`** (nuevo) — núcleo puro ADR #009:
+  - `filtrarCardioRelevante<T>(cardio, historial, shapeUpCustomIds)`: clasifica cada item en `relevantes` (con `_motivo`) o `descartadas`. Orden de evaluación: "shapeup" → "historial" → "vr" → "actividad". No muta la entrada.
+  - `ACTIVIDADES_SIEMPRE_RELEVANTES`: constante exportada con las 5 actividades iniciales; editable sin tocar la lógica.
+  - Regla "historial": usa `ventanaDeHistorial` (de `enriquecerImport`) y `TOLERANCIA_MS` (de `matchBiometrico`) para el solapamiento con timestamps; fallback por `fecha === fechaRealizada` si la sesión no trae `_startMs/_endMs`.
+- **`src/routes/Salud.tsx`** — estado nuevo `importarTodoCardio` (toggle, false por defecto). En `handleZip`: llama `getHistorialMiembro` + `filtrarCardioRelevante` y guarda `filtroCardio` en el preview. En `handleFile` (exercise): mismo filtro con `shapeUpCustomIds=[]`. En `confirmarImport`: usa `filtroCardio.relevantes` (strip `_motivo`) o todo el cardio según el toggle; el mensaje final incluye `· N filtrados (no relevantes)` cuando aplica. `ImportPreview` recibe `importarTodoCardio` + `onToggleCardio` y muestra el resumen por motivo ("5 ShapeUp, 4 matchean tu historial…") + checkbox opt-in "Importar todo el cardio (N)".
+- **Tests** — `src/lib/importSelectivo.test.ts` (nuevo): 19 tests (reglas ShapeUp/historial/VR/actividad, prioridad, no mutación, completitud, strippeo de `_motivo`). **Total: 317 tests verdes**, `tsc -b` limpio.
 
 ### [2026-07-04] P46 (S1) — Enriquecimiento biométrico post-import
 

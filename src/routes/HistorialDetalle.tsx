@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import type { Historial } from "../types/models";
+import type { Historial, RegistroSueno, MetricaSalud, MiembroId } from "../types/models";
 import { getHistorialEntry } from "../data/historial";
+import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
   return `${d}/${m}/${y}`;
+}
+
+function diaAnterior(fecha: string): string {
+  const d = new Date(fecha + "T12:00:00");
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
 }
 
 export function HistorialDetalle() {
@@ -15,13 +22,31 @@ export function HistorialDetalle() {
   const [h, setH]  = useState<Historial | null>(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
+  const [suenoAnterior, setSuenoAnterior] = useState<RegistroSueno | null>(null);
+  const [fcDia,         setFcDia]         = useState<MetricaSalud | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    getHistorialEntry(id).then((r) => {
-      if (r.ok) setH(r.value);
-      else      setError(r.error);
+    getHistorialEntry(id).then(async (r) => {
+      if (!r.ok) { setError(r.error); setLoading(false); return; }
+      setH(r.value);
       setLoading(false);
+
+      // Carga contexto del día: sueño noche anterior + FC en reposo del día
+      const entry = r.value;
+      const noche = diaAnterior(entry.fechaRealizada);
+      const [sRes, fRes] = await Promise.all([
+        getRegistrosSueno(entry.miembro as MiembroId),
+        getMetricasSalud(entry.miembro as MiembroId, "fc-reposo"),
+      ]);
+      if (sRes.ok) {
+        const reg = sRes.value.find((s) => s.fecha === noche && s.horas != null && s.horas > 0);
+        if (reg) setSuenoAnterior(reg);
+      }
+      if (fRes.ok) {
+        const met = fRes.value.find((m) => m.fecha === entry.fechaRealizada);
+        if (met) setFcDia(met);
+      }
     });
   }, [id]);
 
@@ -52,7 +77,7 @@ export function HistorialDetalle() {
         </p>
       </div>
 
-      {/* Stats — valores tabulares */}
+      {/* Stats */}
       <div className="card">
         <div className="stats-row" style={{ flexWrap: "wrap", gap: 20 }}>
           {h.duracionRealMin != null && (
@@ -107,7 +132,7 @@ export function HistorialDetalle() {
         })}
       </div>
 
-      {/* Biometría de Samsung Health (si fue enriquecida) */}
+      {/* Biometría de Samsung Health */}
       {h.biometria && (
         <div className="card">
           <p className="section-title" style={{ marginBottom: 10 }}>FC Samsung Health</p>
@@ -145,6 +170,35 @@ export function HistorialDetalle() {
               </span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Contexto del día: sueño noche anterior + FC en reposo */}
+      {(suenoAnterior || fcDia) && (
+        <div className="card">
+          <p className="section-title" style={{ marginBottom: 8 }}>Contexto del día</p>
+          <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+            {suenoAnterior && suenoAnterior.horas != null && (
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 18 }}>
+                  {suenoAnterior.horas.toFixed(1)} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>h</span>
+                </p>
+                <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>
+                  sueño noche anterior
+                </p>
+              </div>
+            )}
+            {fcDia && (
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 18 }}>
+                  {Math.round(fcDia.valor)} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>bpm</span>
+                </p>
+                <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>
+                  FC en reposo
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
