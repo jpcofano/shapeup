@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShapeUp — Prototipo · theming en vivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&family=Hanken+Grotesk:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="home-redux.css">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: #202127; display: flex; align-items: center; justify-content: center; padding: 24px 0; box-sizing: border-box; }
+  .stage { transform-origin: center center; }
+  [data-screen] { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  [data-screen][hidden] { display: none; }
+  .phone[hidden] { display: none; }
+  .nav-it[data-nav] { cursor: pointer; }
+  a { color: #8b90ff; } a:hover { color: #b3b6ff; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="phone dir-a" id="ph-a" data-mode="dark" data-accent="ion" data-screen-label="Prototipo A" hidden>
+    <div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+    <div class="screen" data-screen="home"><div class="a-top"><div><h1 class="a-hola">Dale, Juan<span class="acc">.</span></h1><div class="a-dia"><i data-lucide="zap"></i> Día 3 de 4 · esta semana</div></div><div class="a-avatar">JP</div></div>
+<div class="a-ring"><svg width="176" height="176" viewBox="0 0 176 176"><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(7 88 88)"></circle><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(97 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(187 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(277 88 88)"></circle></svg><div class="a-ring-c"><div class="a-ring-num">2<small>/4</small></div><div class="a-ring-lab">sesiones</div></div></div>
+<section class="a-hero"><svg class="a-hero-mark" viewBox="0 0 120 120" fill="none"><g stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"><path d="M30 60 L60 33 L90 60"></path><path d="M30 87 L60 60 L90 87"></path></g></svg><div class="a-hero-tag"><i data-lucide="moon"></i> Hoy · miércoles</div><h2 class="a-hero-title">Día de descanso</h2><p class="a-hero-msg">Recuperá. La recuperación también es parte del entrenamiento.</p><button class="a-btn2"><i data-lucide="zap"></i> Entrenar igual</button></section>
+<div class="a-metrics"><div class="a-metric"><span class="l">Volumen</span><span class="v">3.960</span><span class="a-delta">kg semana</span></div><div class="a-metric"><span class="l">Peso</span><span class="v">84.6</span><span class="a-delta down">−0.4 kg</span></div><div class="a-metric"><span class="l">Racha</span><span class="v"><i data-lucide="flame"></i>3</span><span class="a-delta">semanas</span></div></div>
+<section class="a-mob"><div class="a-mob-h"><span class="a-mob-t">Movilidad y recuperación</span><span class="a-mob-n">2/7</span></div><div class="a-days"><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>L</span></div><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>M</span></div><div class="a-day today"><span class="c"><i data-lucide="activity"></i></span><span>X</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>J</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>V</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>S</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>D</span></div></div></section></div>
+    <div class="screen" data-screen="config" hidden><div class="a-top"><div><h1 class="a-hola" style="font-size:23px;">Configuración</h1><div class="a-dia"><i data-lucide="palette"></i> Apariencia y cuenta</div></div><div class="a-avatar">JP</div></div>
+<section class="a-mob" style="margin-top:2px;"><div class="a-mob-t" style="margin-bottom:11px;">Tema</div><div class="cfg-seg"><button data-set-mode="light" class="">Claro</button><button data-set-mode="dark" class="on">Oscuro</button><button data-set-mode="system" class="">Sistema</button></div>
+<div class="a-mob-t" style="margin:16px 0 10px;">Acento</div><div class="cfg-sws"><button class="cfg-sw sw-ion on" data-set-accent="ion" title="ion"><span class="dot"></span></button><button class="cfg-sw sw-volt" data-set-accent="volt" title="volt"><span class="dot"></span></button><button class="cfg-sw sw-blaze" data-set-accent="blaze" title="blaze"><span class="dot"></span></button><button class="cfg-sw sw-indigo" data-set-accent="indigo" title="indigo"><span class="dot"></span></button><button class="cfg-sw sw-pulse" data-set-accent="pulse" title="pulse"><span class="dot"></span></button></div>
+<div class="cfg-preview"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--track)" stroke-width="6"></circle><g transform="rotate(-90 22 22)"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="53 107"></circle></g></svg><button class="a-btn1" style="padding:9px 13px;">Entrenar</button><span class="plab">Preview</span></div></section>
+<section class="a-mob" style="padding-top:4px;padding-bottom:4px;"><div class="cfg-row"><span>Unidades</span><span class="sub">kg · km <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Notificaciones</span><span class="sub">Activadas <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Datos de salud</span><span class="sub">Conectado <i data-lucide="chevron-right"></i></span></div></section></div>
+    <div data-navslot="a"></div>
+  </div>
+  <div class="phone dir-c v21" id="ph-c" data-mode="dark" data-accent="volt" data-screen-label="Prototipo B v2">
+    <div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+    <div class="screen" data-screen="home"><div class="c-top"><div><h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1><div class="c-dia">Día 3 de 4 · esta semana</div></div><div class="c-avatar">JP</div></div>
+<div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200"><defs><linearGradient id="pg-21" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--accent);"></stop><stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop></linearGradient></defs><circle class="tr" cx="100" cy="100" r="82"></circle><g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#pg-21)" stroke-dasharray="257.6 515.2"></circle></g></svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+<section class="c-card pattern"><p class="c-lab">Hoy · miércoles</p><h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2><p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p><button class="c-btn2">Entrenar igual</button></section>
+<div class="c-metrics"><div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div><div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos"><i data-lucide="trending-down"></i>−0.4 kg</span></div><div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div></div>
+<section class="c-card c-mob"><div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div><div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div></section></div>
+    <div class="screen" data-screen="config" hidden><div class="c-top"><div><h1 class="c-hola">Configuración</h1><div class="c-dia">Apariencia y cuenta</div></div><div class="c-avatar">JP</div></div>
+<section class="c-card"><p class="c-lab">Tema</p><div class="cfg-seg"><button data-set-mode="light" class="">Claro</button><button data-set-mode="dark" class="on">Oscuro</button><button data-set-mode="system" class="">Sistema</button></div>
+<p class="c-lab" style="margin:16px 0 10px;">Acento</p><div class="cfg-sws"><button class="cfg-sw sw-ion" data-set-accent="ion" title="ion"><span class="dot"></span></button><button class="cfg-sw sw-volt on" data-set-accent="volt" title="volt"><span class="dot"></span></button><button class="cfg-sw sw-blaze" data-set-accent="blaze" title="blaze"><span class="dot"></span></button><button class="cfg-sw sw-indigo" data-set-accent="indigo" title="indigo"><span class="dot"></span></button><button class="cfg-sw sw-pulse" data-set-accent="pulse" title="pulse"><span class="dot"></span></button></div>
+<div class="cfg-preview"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--track)" stroke-width="6"></circle><g transform="rotate(-90 22 22)"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="53 107"></circle></g></svg><button class="c-btn1" style="padding:9px 14px;">Entrenar</button><span class="plab">Preview</span></div></section>
+<section class="c-card" style="margin-top:12px;padding-top:5px;padding-bottom:5px;"><div class="cfg-row"><span>Unidades</span><span class="sub">kg · km <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Notificaciones</span><span class="sub">Activadas <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Datos de salud</span><span class="sub">Conectado <i data-lucide="chevron-right"></i></span></div></section></div>
+    <div data-navslot="c"></div>
+  </div>
+</div>
+
+<div class="proto-sw" data-screen-label="Switcher de evaluación">
+  <h4>Switcher</h4>
+  <p class="note">Solo para evaluación — no es parte del producto.</p>
+  <div class="grp">Dirección</div>
+  <div class="row"><button data-dir="a">A · Pulso</button><button data-dir="c" class="on">B v2</button></div>
+  <div class="grp">Modo</div>
+  <div class="row" id="sw-mode"><button data-m="light">Claro</button><button data-m="dark" class="on">Oscuro</button><button data-m="system">Sistema</button></div>
+  <div class="grp">Acento</div>
+  <div class="dots" id="sw-acc"></div>
+</div>
+
+<script>
+var ACCENTS = { ion:["#22d3ee","#0e7490"], volt:["#4ade80","#15803d"], blaze:["#ff7a45","#c2410c"], indigo:["#8b90ff","#4f46e5"], pulse:["#ff4d79","#be185c"] };
+var NAVS = { a: "<nav class=\"a-nav\"><div class=\"nav-it on\" data-nav=\"Inicio\"><i data-lucide=\"house\"></i><span>Inicio</span></div><div class=\"nav-it\" data-nav=\"Rutinas\"><i data-lucide=\"library\"></i><span>Rutinas</span></div><div class=\"nav-it\" data-nav=\"Entrenar\"><i data-lucide=\"zap\"></i><span>Entrenar</span></div><div class=\"nav-it\" data-nav=\"Historial\"><i data-lucide=\"history\"></i><span>Historial</span></div><div class=\"nav-it\" data-nav=\"Salud\"><i data-lucide=\"heart\"></i><span>Salud</span></div><div class=\"nav-it\" data-nav=\"Perfil\"><i data-lucide=\"user\"></i><span>Perfil</span></div></nav>", c: "<nav class=\"c-nav\"><div class=\"nav-it on\" data-nav=\"Inicio\"><span class=\"ic\"><i data-lucide=\"house\"></i></span><span>Inicio</span></div><div class=\"nav-it\" data-nav=\"Rutinas\"><span class=\"ic\"><i data-lucide=\"library\"></i></span><span>Rutinas</span></div><div class=\"nav-it\" data-nav=\"Entrenar\"><span class=\"ic\"><i data-lucide=\"zap\"></i></span><span>Entrenar</span></div><div class=\"nav-it\" data-nav=\"Historial\"><span class=\"ic\"><i data-lucide=\"history\"></i></span><span>Historial</span></div><div class=\"nav-it\" data-nav=\"Salud\"><span class=\"ic\"><i data-lucide=\"heart\"></i></span><span>Salud</span></div><div class=\"nav-it\" data-nav=\"Perfil\"><span class=\"ic\"><i data-lucide=\"user\"></i></span><span>Perfil</span></div></nav>" };
+document.querySelectorAll('[data-navslot]').forEach(function(slot){ slot.outerHTML = NAVS[slot.getAttribute('data-navslot')]; });
+
+var KEY = 'shapeup-proto-theme-v1';
+var state = { dir: 'c', mode: 'dark', accent: 'volt', screen: 'home' };
+try { Object.assign(state, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e) {}
+
+var mq = window.matchMedia('(prefers-color-scheme: dark)');
+function effMode() { return state.mode === 'system' ? (mq.matches ? 'dark' : 'light') : state.mode; }
+
+function apply() {
+  ['ph-a','ph-c'].forEach(function(id){
+    var ph = document.getElementById(id);
+    ph.hidden = (id === 'ph-' + state.dir) ? false : true;
+    ph.setAttribute('data-mode', effMode());
+    ph.setAttribute('data-accent', state.accent);
+    ph.querySelectorAll('[data-screen]').forEach(function(s){ s.hidden = s.getAttribute('data-screen') !== state.screen; });
+    ph.querySelectorAll('.nav-it[data-nav]').forEach(function(n){
+      var nav = n.getAttribute('data-nav');
+      var on = (state.screen === 'config' && nav === 'Perfil') || (state.screen === 'home' && nav === 'Inicio');
+      n.classList.toggle('on', on);
+    });
+    ph.querySelectorAll('[data-set-mode]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-set-mode') === state.mode); });
+    ph.querySelectorAll('[data-set-accent]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-set-accent') === state.accent); });
+  });
+  document.querySelectorAll('.proto-sw [data-dir]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-dir') === state.dir); });
+  document.querySelectorAll('#sw-mode [data-m]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-m') === state.mode); });
+  document.querySelectorAll('#sw-acc [data-a]').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-a') === state.accent);
+    b.firstChild.style.background = ACCENTS[b.getAttribute('data-a')][effMode() === 'dark' ? 0 : 1];
+  });
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+var dots = Object.keys(ACCENTS).map(function(a){ return '<button data-a="' + a + '" title="' + a + '"><span></span></button>'; }).join('');
+document.getElementById('sw-acc').innerHTML = dots;
+
+document.addEventListener('click', function(e){
+  var t;
+  if ((t = e.target.closest('[data-dir]'))) { state.dir = t.getAttribute('data-dir'); }
+  else if ((t = e.target.closest('#sw-mode [data-m]'))) { state.mode = t.getAttribute('data-m'); }
+  else if ((t = e.target.closest('#sw-acc [data-a]'))) { state.accent = t.getAttribute('data-a'); }
+  else if ((t = e.target.closest('[data-set-mode]'))) { state.mode = t.getAttribute('data-set-mode'); }
+  else if ((t = e.target.closest('[data-set-accent]'))) { state.accent = t.getAttribute('data-set-accent'); }
+  else if ((t = e.target.closest('.nav-it[data-nav]'))) {
+    var nav = t.getAttribute('data-nav');
+    if (nav === 'Perfil') state.screen = 'config';
+    else if (nav === 'Inicio') state.screen = 'home';
+  }
+  else return;
+  apply();
+});
+mq.addEventListener('change', function(){ if (state.mode === 'system') apply(); });
+
+function fit() {
+  var s = Math.min(1, (window.innerHeight - 48) / 844, (window.innerWidth - 48) / 390);
+  document.getElementById('stage').style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fit);
+
+apply(); fit(); lucide.createIcons();
+</script>
+</body>
+</html>

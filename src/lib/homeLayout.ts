@@ -1,4 +1,6 @@
-export type HomeLayout = "aurora" | "stadium" | "clasico";
+export type HomeLayout = "aurora" | "stadium" | "clasico" | "pulse" | "premium";
+
+const LAYOUTS: readonly HomeLayout[] = ["aurora", "stadium", "clasico", "pulse", "premium"];
 
 const LS_KEY = "su-home-by-member";
 
@@ -6,7 +8,7 @@ export function getHomeLayout(memberId: string): HomeLayout {
   try {
     const map = JSON.parse(localStorage.getItem(LS_KEY) ?? "{}") as Record<string, string>;
     const l = map[memberId];
-    if (l === "aurora" || l === "stadium" || l === "clasico") return l;
+    if ((LAYOUTS as string[]).includes(l)) return l as HomeLayout;
   } catch { /* */ }
   return "aurora";
 }

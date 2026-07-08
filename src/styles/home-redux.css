@@ -1,0 +1,181 @@
+/* ============================================================================
+   ShapeUp — home-redux.css (P53)
+   Tokens + componentes de las 2 direcciones nuevas de Home: "Pulse" (.dir-a) y
+   "Premium" (.dir-c .v21). Portado de docs/home-redux/design_handoff_theming/.
+
+   Alcance local: estos tokens viven en un wrapper <div class="dir-a|dir-c v21"
+   data-mode="…" data-accent="…"> que envuelve SOLO el contenido de Home cuando
+   el layout elegido es pulse/premium. No tocan :root. Por cascada, las clases
+   genéricas del proyecto (.card, .btn-primary, .btn-secondary, .t-label) heredan
+   estos valores automáticamente — por eso dir-c alias --card/--card2 a
+   --surface/--surface2 (el handoff usa nombres distintos para B v2).
+   ============================================================================ */
+
+/* ── Acentos · pares duales (dark / light AA) — propios de Pulse/Premium,       *
+ *   NO son los mismos que los 8 temas globales de tokens.css                   */
+[data-accent="ion"]    { --acc-d: #22d3ee; --acc-l: #0e7490; }
+[data-accent="volt"]   { --acc-d: #4ade80; --acc-l: #15803d; }
+[data-accent="blaze"]  { --acc-d: #ff7a45; --acc-l: #c2410c; }
+[data-accent="indigo"] { --acc-d: #8b90ff; --acc-l: #4f46e5; }
+[data-accent="pulse"]  { --acc-d: #ff4d79; --acc-l: #be185c; }
+
+[data-mode="dark"] {
+  --accent:     var(--acc-d);
+  --on-accent:  #0b0f14;
+  --accent-dim: color-mix(in srgb, var(--acc-d) 14%, transparent);
+}
+[data-mode="light"] {
+  --accent:     var(--acc-l);
+  --on-accent:  #ffffff;
+  --accent-dim: color-mix(in srgb, var(--acc-l) 10%, transparent);
+}
+
+/* ── Dirección A · "Pulse" — enérgica / deportiva ─────────────────────────── */
+.dir-a { font-family: "Archivo", var(--font-sans); }
+.dir-a[data-mode="dark"]  { --bg: #0a0c10; --card: #14171d; --card2: #1a1e26; --border: #252b36; --fg: #f4f6fa; --muted: #909aa9; --track: #232935; }
+.dir-a[data-mode="light"] { --bg: #eceef1; --card: #ffffff; --card2: #f4f5f8; --border: #dfe2e8; --fg: #14171c; --muted: #5c6570; --track: #dde0e6; }
+
+.a-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.a-hola { margin: 0; font-weight: 900; font-style: italic; font-size: 27px; line-height: 1; letter-spacing: -0.005em; text-transform: uppercase; }
+.a-dia { margin-top: 8px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+.a-dia svg { width: 12px; height: 12px; color: var(--accent); }
+.a-avatar { width: 38px; height: 38px; border-radius: 12px; background: var(--accent-dim); color: var(--accent); display: grid; place-items: center; font-weight: 800; font-size: 13px; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); flex-shrink: 0; }
+
+/* anillo segmentado: 1 segmento = 1 sesión */
+.a-ring { position: relative; width: 176px; height: 176px; margin: 4px auto 16px; }
+.a-ring svg { display: block; transform: rotate(-90deg); }
+.a-ring .seg { stroke: var(--track); fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke 0.2s ease; }
+.a-ring .seg.on { stroke: var(--accent); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent)); }
+.a-ring-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.a-ring-num { font-weight: 900; font-style: italic; font-size: 38px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--fg); }
+.a-ring-num small { font-size: 20px; font-weight: 800; color: var(--muted); }
+.a-ring-lab { font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+/* tarjeta hero del día: lavado de acento */
+.a-hero { position: relative; border-radius: 20px; padding: 18px 18px 16px; overflow: hidden; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--card)) 0%, var(--card) 62%); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); }
+.a-hero-mark { position: absolute; right: -16px; top: -12px; width: 112px; height: 112px; color: var(--accent); opacity: 0.1; pointer-events: none; }
+.a-hero-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 6px; margin-bottom: 9px; }
+.a-hero-tag svg { width: 13px; height: 13px; }
+.a-hero-title { margin: 0 0 6px; font-weight: 900; font-style: italic; text-transform: uppercase; font-size: 24px; line-height: 1.02; letter-spacing: -0.01em; color: var(--fg); }
+.a-hero-msg { margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted); max-width: 270px; }
+
+.a-btn1, .a-btn2 { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; font: 800 12px "Archivo", sans-serif; text-transform: uppercase; letter-spacing: 0.06em; }
+.a-btn1 { padding: 12px 18px; border-radius: 12px; background: var(--accent); color: var(--on-accent); transition: opacity 0.15s ease, transform 0.1s ease; }
+.a-btn1:hover { opacity: 0.88; }
+.a-btn1:active { transform: scale(0.97); }
+.a-btn2 { padding: 11px 16px; border-radius: 12px; background: transparent; border: 1.5px solid color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent); transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease; }
+.a-btn2:hover { background: var(--accent-dim); border-color: var(--accent); }
+.a-btn2:active { transform: scale(0.97); }
+.a-btn1 svg, .a-btn2 svg { width: 15px; height: 15px; }
+
+/* métricas */
+.a-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.a-metric { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 12px 11px; display: flex; flex-direction: column; gap: 4px; transition: border-color 0.15s ease; }
+.a-metric:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.a-metric .l { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.a-metric .v { font-weight: 800; font-style: italic; font-size: 21px; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; color: var(--fg); }
+.a-metric .v svg { width: 16px; height: 16px; color: var(--accent); }
+.a-delta { font-size: 10.5px; font-weight: 800; color: var(--muted); }
+.a-delta.down { color: var(--accent); }
+
+/* módulo semanal */
+.a-mob { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 14px 13px; }
+.a-mob-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.a-mob-t { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.a-mob-n { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
+.a-days { display: flex; justify-content: space-between; }
+.a-day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); }
+.a-day .c { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; border: 1.5px solid var(--border); color: var(--muted); transition: border-color 0.15s ease; }
+.a-day .c svg { width: 15px; height: 15px; }
+.a-day.done .c { background: var(--accent-dim); border-color: transparent; color: var(--accent); }
+.a-day.today .c { border-color: var(--accent); color: var(--accent); }
+.a-day.today { color: var(--fg); }
+
+/* ── Dirección B v2.1 · "Premium" — minimalista / premium contemporáneo ─────── */
+.dir-c { font-family: "Hanken Grotesk", var(--font-sans); --r-card: 24px 24px 24px 4px; --r-el: 12px 12px 12px 4px; --r-chip: 11px 11px 11px 4px; }
+.dir-c[data-mode="dark"]  { --bg: #0f1012; --surface: #17181c; --surface2: #1f2127; --border: #26282f; --fg: #f2f3f5; --muted: #90949d; --track: #25272d; --pos: #34d399; --neg: #f87171; --card: var(--surface); --card2: var(--surface2); }
+.dir-c[data-mode="light"] { --bg: #f1f1f3; --surface: #ffffff; --surface2: #f5f5f7; --border: #d7d7de; --fg: #151619; --muted: #5f636c; --track: #e5e5e9; --pos: #067647; --neg: #b42318; --card: var(--surface); --card2: var(--surface2); }
+
+.c-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.c-hola { margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; color: var(--fg); }
+.c-dia { margin-top: 5px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.c-avatar { width: 38px; height: 38px; border-radius: var(--r-el); background: var(--surface2); border: 1px solid var(--border); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+
+/* anillo héroe: grueso, gradiente dentro del acento, glow en dark */
+.c-ring { position: relative; width: 200px; height: 200px; margin: 2px auto 16px; }
+.c-ring .tr { fill: none; stroke: var(--track); stroke-width: 14; }
+.c-ring .pr { fill: none; stroke-width: 14; stroke-linecap: round; }
+.dir-c[data-mode="dark"] .c-ring .pr { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 40%, transparent)); }
+.c-ring-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.c-ring-num { font-size: 42px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; color: var(--fg); }
+.c-ring-num .den { font-size: 20px; font-weight: 600; color: var(--muted); }
+.c-ring-sub { font-size: 11.5px; font-weight: 500; color: var(--muted); }
+
+/* superficie base + micropatrón chevron (v2.1) */
+.c-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 18px 20px 17px; }
+.dir-c[data-mode="light"] .c-card, .dir-c[data-mode="light"] .c-metric { box-shadow: 0 1px 2px rgba(20,20,25,0.05), 0 12px 28px rgba(20,20,25,0.09); }
+.dir-c[data-mode="dark"] .c-card.pattern { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M5 19 L15 11 L25 19' fill='none' stroke='%23ffffff' stroke-opacity='0.06' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.dir-c[data-mode="light"] .c-card.pattern { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M5 19 L15 11 L25 19' fill='none' stroke='%23000000' stroke-opacity='0.05' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.c-lab { margin: 0 0 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.c-title { margin: 0 0 5px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 9px; color: var(--fg); }
+.c-title svg { width: 19px; height: 19px; }
+.c-msg { margin: 0 0 14px; font-size: 13.5px; line-height: 1.55; color: var(--muted); max-width: 280px; }
+.duo svg { fill: var(--accent-dim); color: var(--accent); }
+
+/* botones */
+.c-btn1, .c-btn2 { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border-radius: var(--r-el); }
+.c-btn1 { padding: 12px 20px; border: none; background: var(--accent); color: var(--on-accent); font: 700 13.5px "Hanken Grotesk", sans-serif; letter-spacing: 0.01em; transition: filter 0.15s ease, transform 0.1s ease; }
+.c-btn1:hover { filter: brightness(1.07); }
+.c-btn1:active { transform: scale(0.97); }
+.c-btn2 { padding: 11px 18px; background: transparent; border: 1px solid var(--border); color: var(--fg); font: 600 13.5px "Hanken Grotesk", sans-serif; transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease; }
+.c-btn2:hover { border-color: color-mix(in srgb, var(--fg) 35%, var(--border)); background: var(--surface2); }
+.c-btn2:active { transform: scale(0.97); }
+.c-btn1 svg, .c-btn2 svg { width: 15px; height: 15px; }
+
+/* métrica como componente: contenedor + label + valor + delta */
+.c-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.c-metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 12px 12px 11px; display: flex; flex-direction: column; gap: 5px; }
+.c-metric .l { font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.c-metric .v { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 5px; color: var(--fg); }
+.c-metric .v small { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.c-metric .v svg { width: 16px; height: 16px; }
+.c-mdelta { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.c-mdelta svg { width: 11px; height: 11px; }
+.c-mdelta.pos { color: var(--pos); background: color-mix(in srgb, var(--pos) 12%, transparent); }
+.c-mdelta.neg { color: var(--neg); background: color-mix(in srgb, var(--neg) 12%, transparent); }
+.c-mdelta.mut { color: var(--muted); background: var(--surface2); }
+
+/* módulo semanal */
+.c-mob { padding: 15px 18px 13px; }
+.c-mob-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.c-mob-n { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--fg); }
+.c-days { display: flex; justify-content: space-between; }
+.c-day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 9.5px; font-weight: 600; color: var(--muted); }
+.c-day .k { width: 34px; height: 34px; border-radius: var(--r-chip); display: grid; place-items: center; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+.c-day .k svg { width: 15px; height: 15px; }
+.c-day.done .k { background: var(--accent-dim); border-color: transparent; color: var(--accent); }
+.c-day.today .k { background: var(--surface); border: 1.5px solid var(--fg); color: var(--fg); }
+.c-day.today { color: var(--fg); font-weight: 700; }
+
+.pd { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+
+/* ════════ Configuración — controles de Apariencia (ambas direcciones) ═══════ */
+.cfg-seg { display: flex; gap: 4px; padding: 4px; background: var(--card2, var(--surface2)); border-radius: 12px; }
+.dir-c .cfg-seg { border-radius: var(--r-el); }
+.cfg-seg button { flex: 1; padding: 9px 0; border: none; background: transparent; color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 700; border-radius: 9px; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+.dir-c .cfg-seg button { border-radius: 9px 9px 9px 3px; }
+.dir-a .cfg-seg button { text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; font-weight: 800; }
+.cfg-seg button.on { background: var(--card, var(--surface)); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+.cfg-sws { display: flex; gap: 10px; }
+.cfg-sw { width: 42px; height: 42px; border: 2px solid transparent; padding: 3px; background: transparent; cursor: pointer; border-radius: 14px; transition: border-color 0.15s ease; }
+.dir-c .cfg-sw { border-radius: 12px 12px 12px 4px; }
+.cfg-sw .dot { width: 100%; height: 100%; border-radius: 8px; display: block; }
+.dir-c .cfg-sw .dot { border-radius: 7px 7px 7px 3px; }
+.cfg-sw.on { border-color: var(--fg); }
+.cfg-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; font-weight: 600; color: var(--fg); }
+.cfg-row:last-child { border-bottom: none; }
+.cfg-row .sub { color: var(--muted); font-weight: 500; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+.cfg-row .sub svg { width: 15px; height: 15px; }
+.cfg-preview { margin-top: 14px; padding: 13px 14px; border-radius: 14px; display: flex; align-items: center; gap: 14px; background: var(--card2, var(--surface2)); }
+.dir-c .cfg-preview { border-radius: 14px 14px 14px 4px; }
+.cfg-preview .plab { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-left: auto; }

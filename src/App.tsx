@@ -17,12 +17,14 @@ import { RutinaDetalle } from "./routes/RutinaDetalle";
 import { RutinaForm } from "./routes/RutinaForm";
 import { EjercicioForm } from "./routes/EjercicioForm";
 import { ProgramaDetalle } from "./routes/ProgramaDetalle";
+import { QaHomeRedux } from "./routes/QaHomeRedux";
 
 const router = createBrowserRouter([
   // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
   { path: "/entrenar/libre",                element: <EntrenarSesionLibre /> },
   { path: "/entrenar/ejercicio/:idEjercicio", element: <EntrenarSesionLibre /> },
   { path: "/entrenar/:rutinaId",            element: <EntrenarSesion /> },
+  { path: "/qa/home-redux",                 element: <QaHomeRedux /> },
 
   // ── App con AppShell ───────────────────────────────────────────────────────
   {
@@ -49,6 +51,11 @@ const router = createBrowserRouter([
 
 export default function App() {
   const { user, memberId, loading } = useAuth();
+
+  // QA de theming (P53): datos mock, sin info de usuario → no requiere login.
+  if (window.location.pathname === "/qa/home-redux") {
+    return <RouterProvider router={router} />;
+  }
 
   if (loading) {
     return (
