@@ -34,7 +34,7 @@ export interface SesionApp {
 }
 
 /** Tolerancia de solapamiento (5 min) para el fallback por ventana. */
-const TOLERANCIA_MS = 5 * 60 * 1000;
+export const TOLERANCIA_MS = 5 * 60 * 1000;
 
 /**
  * De las candidatas Samsung, elige la que más solapa con la sesión de la app.
