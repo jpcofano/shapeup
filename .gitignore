@@ -22,6 +22,8 @@ service-account.json
 scripts/data/familia.local.json
 # TypeScript incremental build
 .tsc-out/
+# Reportes de auditoría — datos de salud personales, repo público (S-audit, P53)
+docs/auditorias/
 # Editor / OS
 .DS_Store
 .vscode/*

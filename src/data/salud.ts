@@ -197,11 +197,10 @@ export async function importarCardioIdempotente(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { _uuid, _startMs, _endMs, _customId, _fcMin, ...data } = item;
         const id = _uuid ? `CAR-${_uuid}` : `CAR-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        return setDoc(
-          doc(db, "cardio", id),
-          { ...data, idCardio: id, fechaCreacion: serverTimestamp() },
-          { merge: false },
-        );
+        const payload = { ...data, idCardio: id, fechaCreacion: serverTimestamp() } as Record<string, unknown>;
+        if (_startMs != null) payload.inicioMs = _startMs;
+        if (_endMs   != null) payload.finMs    = _endMs;
+        return setDoc(doc(db, "cardio", id), payload, { merge: false });
       }),
     );
     const importados = results.filter((r) => r.status === "fulfilled").length;

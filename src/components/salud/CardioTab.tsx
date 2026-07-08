@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { SesionCardio, Historial } from "../../types/models";
 
 const ZONA_META: { key: string; label: string }[] = [
@@ -6,6 +7,11 @@ const ZONA_META: { key: string; label: string }[] = [
   { key: "z3", label: "Z3 aeróbico"     },
   { key: "z4", label: "Z4 umbral"       },
   { key: "z5", label: "Z5 máximo"       },
+];
+
+const MESES_ES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
 function ZonaChip({ zona }: { zona: string }) {
@@ -21,7 +27,49 @@ function ZonaChip({ zona }: { zona: string }) {
   );
 }
 
+function mesLabel(yyyyMm: string): string {
+  const [y, m] = yyyyMm.split("-");
+  return `${MESES_ES[parseInt(m, 10) - 1]} ${y}`;
+}
+
+function horaInicio(ms: number): string {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+interface MesGroup {
+  mes: string; // "YYYY-MM"
+  items: SesionCardio[];
+}
+
+function agruparPorMes(
+  cardio: SesionCardio[],
+  vinculadasIds: Set<string>,
+): MesGroup[] {
+  // Mapa mes → sesiones
+  const byMes = new Map<string, SesionCardio[]>();
+  for (const c of cardio) {
+    const mes = c.fecha.slice(0, 7); // "YYYY-MM"
+    const arr = byMes.get(mes) ?? [];
+    arr.push(c);
+    byMes.set(mes, arr);
+  }
+  // Ordenar sesiones dentro del mes: vinculadas primero, luego desc por fecha
+  const groups: MesGroup[] = [];
+  for (const [mes, items] of byMes) {
+    const vinc = items.filter((c) => vinculadasIds.has(c.idCardio));
+    const noVinc = items.filter((c) => !vinculadasIds.has(c.idCardio));
+    groups.push({ mes, items: [...vinc, ...noVinc] });
+  }
+  // Ordenar grupos desc por mes
+  return groups.sort((a, b) => b.mes.localeCompare(a.mes));
+}
+
+const MESES_POR_PAG = 3;
+
 export function CardioTab({ cardio, historial }: { cardio: SesionCardio[]; historial: Historial[] }) {
+  const [mesesVisibles, setMesesVisibles] = useState(MESES_POR_PAG);
+
   if (cardio.length === 0) {
     return (
       <div className="empty-state">
@@ -30,18 +78,12 @@ export function CardioTab({ cardio, historial }: { cardio: SesionCardio[]; histo
     );
   }
 
-  // Set de idCardio referenciados por algún historial (para badge "vinculada").
-  // idCardio = "CAR-{datauuidSamsung}", datauuidSamsung es el UUID crudo.
   const vinculadasIds = new Set<string>(
     historial
       .filter((h) => h.biometria?.datauuidSamsung)
       .map((h) => `CAR-${h.biometria!.datauuidSamsung}`),
   );
-
-  // Vinculadas primero, luego el resto.
-  const vinculadas   = cardio.filter((c) => vinculadasIds.has(c.idCardio));
-  const noVinculadas = cardio.filter((c) => !vinculadasIds.has(c.idCardio));
-  const ordenado     = [...vinculadas, ...noVinculadas];
+  const totalVinculadas = cardio.filter((c) => vinculadasIds.has(c.idCardio)).length;
 
   // Distribución de tiempo por zona FC
   const minPorZona: Record<string, number> = {};
@@ -52,6 +94,10 @@ export function CardioTab({ cardio, historial }: { cardio: SesionCardio[]; histo
     minPorZona[k] = (minPorZona[k] ?? 0) + c.duracionMin;
     totalMin += c.duracionMin;
   }
+
+  const grupos = agruparPorMes(cardio, vinculadasIds);
+  const gruposVisibles = grupos.slice(0, mesesVisibles);
+  const hayMas = grupos.length > mesesVisibles;
 
   return (
     <>
@@ -99,40 +145,65 @@ export function CardioTab({ cardio, historial }: { cardio: SesionCardio[]; histo
           </div>
         )}
 
-        <p className="section-title" style={{ marginBottom: 10 }}>Sesiones ({cardio.length})</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {ordenado.slice(0, 30).map((c) => {
-            const esVinculada = vinculadasIds.has(c.idCardio);
-            return (
-              <div key={c.idCardio} style={{ fontSize: 13 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {c.actividad}
-                    </strong>
-                    {esVinculada && (
-                      <span style={{
-                        fontSize: 10, fontWeight: 600, color: "var(--accent)",
-                        display: "inline-block", marginTop: 2,
-                      }}>
-                        vinculada a entrenamiento
-                      </span>
-                    )}
+        <p className="section-title" style={{ marginBottom: 10 }}>
+          SESIONES ({cardio.length}
+          {totalVinculadas > 0 && ` · ${totalVinculadas} vinculadas`})
+        </p>
+
+        {gruposVisibles.map(({ mes, items }) => (
+          <div key={mes} style={{ marginBottom: 16 }}>
+            <p style={{
+              margin: "0 0 8px", fontSize: 11, fontWeight: 700,
+              color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em",
+            }}>
+              {mesLabel(mes)}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {items.map((c) => {
+                const esVinculada = vinculadasIds.has(c.idCardio);
+                return (
+                  <div key={c.idCardio} style={{ fontSize: 13 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {c.actividad}
+                        </strong>
+                        {esVinculada && (
+                          <span style={{
+                            fontSize: 10, fontWeight: 600, color: "var(--accent)",
+                            display: "inline-block", marginTop: 2,
+                          }}>
+                            vinculada a entrenamiento
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                        {c.zonaPrincipal && <ZonaChip zona={c.zonaPrincipal} />}
+                        <span style={{ color: "var(--muted)", fontSize: 12 }}>{c.fecha.slice(8)}</span>
+                      </div>
+                    </div>
+                    <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 3 }}>
+                      {c.inicioMs   != null && `${horaInicio(c.inicioMs)} · `}
+                      {c.duracionMin != null && `${Math.round(c.duracionMin)} min`}
+                      {c.kcal       != null && ` · ${Math.round(c.kcal)} kcal`}
+                      {c.fcPromedio != null && ` · FC ${Math.round(c.fcPromedio)} bpm`}
+                    </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                    {c.zonaPrincipal && <ZonaChip zona={c.zonaPrincipal} />}
-                    <span style={{ color: "var(--muted)", fontSize: 12 }}>{c.fecha}</span>
-                  </div>
-                </div>
-                <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 3 }}>
-                  {c.duracionMin != null && `${c.duracionMin} min`}
-                  {c.kcal        != null && ` · ${c.kcal} kcal`}
-                  {c.fcPromedio  != null && ` · FC ~${c.fcPromedio}`}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {hayMas && (
+          <button
+            className="btn-secondary"
+            style={{ width: "100%", marginTop: 4, fontSize: 13 }}
+            onClick={() => setMesesVisibles((v) => v + MESES_POR_PAG)}
+          >
+            Ver más ({grupos.length - mesesVisibles} {grupos.length - mesesVisibles === 1 ? "mes" : "meses"} más)
+          </button>
+        )}
       </div>
     </>
   );
