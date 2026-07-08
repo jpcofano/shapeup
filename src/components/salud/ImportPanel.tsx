@@ -55,6 +55,11 @@ export function ImportPreview({
             Tipo: <strong style={{ color: "var(--fg)" }}>{TIPO_LABELS[tipo] ?? tipo}</strong> · {totalItems} registros
             {parsedErrors.length > 0 && ` · ${parsedErrors.length} advertencias`}
           </p>
+          {tipo === "zip" && (
+            <p style={{ fontSize: 12, color: "var(--accent)", margin: "0 0 8px", fontWeight: 600 }}>
+              Se importan tus métricas diarias y se matchean tus entrenamientos
+            </p>
+          )}
 
           {previewRows.length > 0 && (
             <div style={{ overflowX: "auto", marginBottom: 12 }}>

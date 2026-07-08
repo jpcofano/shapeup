@@ -1,4 +1,5 @@
 import type { MetricaSalud, RegistroSueno, MedicionCorporal } from "../types/models";
+import { consolidarNoches, promedioNoches } from "./sueno";
 
 export type EstadoSenal = "ok" | "atencion" | "alerta" | "sin-datos";
 
@@ -122,15 +123,14 @@ export function calcularResumenSalud(
     }
   }
 
-  // ── Sueño ───────────────────────────────────────────────────────────────────
+  // ── Sueño (consolidado por noche) ──────────────────────────────────────────
   {
-    const items = sueno
-      .filter((r) => r.horas != null && r.horas > 0)
-      .map((r) => ({ fecha: r.fecha, valor: r.horas! }))
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-    if (items.length > 0) {
-      const actual   = promedioUltimosN(items, 3);
+    const noches = consolidarNoches(sueno); // una entrada por fecha, suma noche+siestas
+    if (noches.length > 0) {
+      // promedioNoches requiere ≥ 3 noches; aquí usamos 3 recientes
+      const actual   = promedioNoches(noches, 3);
+      // Para baseline y serie14d usamos los horasTotal como items fecha/valor
+      const items    = noches.map((n) => ({ fecha: n.fecha, valor: n.horasTotal }));
       const baseline = calcBaseline(items, hoy);
       const s14      = calcSerie14d(items, hoy);
       const deltaPct = actual != null && baseline != null
@@ -139,24 +139,38 @@ export function calcularResumenSalud(
       let estado: EstadoSenal;
       let motivo: string | undefined;
       if (actual == null) {
+        // Menos de 3 noches → sin-datos (pero mostramos la última si hay)
+        const ultimaVal = noches[0]?.horasTotal;
         estado = "sin-datos";
+        senales.push({
+          clave: "sueno",
+          valorActual: ultimaVal != null ? +ultimaVal.toFixed(1) : undefined,
+          unidad: "h", estado, serie14d: s14,
+        });
       } else if (actual < UMBRAL_SUENO_ALERTA_H) {
         estado = "alerta";
         motivo = `Promedio ${actual.toFixed(1)} h/noche (últimas noches)`;
+        senales.push({
+          clave: "sueno", valorActual: +actual.toFixed(1), unidad: "h",
+          baseline: baseline != null ? +baseline.toFixed(1) : undefined,
+          deltaPct, estado, motivo, serie14d: s14,
+        });
       } else if (actual < UMBRAL_SUENO_ATENCION_H) {
         estado = "atencion";
         motivo = `Promedio ${actual.toFixed(1)} h/noche (últimas noches)`;
+        senales.push({
+          clave: "sueno", valorActual: +actual.toFixed(1), unidad: "h",
+          baseline: baseline != null ? +baseline.toFixed(1) : undefined,
+          deltaPct, estado, motivo, serie14d: s14,
+        });
       } else {
         estado = "ok";
+        senales.push({
+          clave: "sueno", valorActual: +actual.toFixed(1), unidad: "h",
+          baseline: baseline != null ? +baseline.toFixed(1) : undefined,
+          deltaPct, estado, serie14d: s14,
+        });
       }
-
-      senales.push({
-        clave: "sueno",
-        valorActual: actual != null ? +actual.toFixed(1) : undefined,
-        unidad: "h",
-        baseline: baseline != null ? +baseline.toFixed(1) : undefined,
-        deltaPct, estado, motivo, serie14d: s14,
-      });
     }
   }
 

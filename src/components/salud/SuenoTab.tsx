@@ -1,6 +1,7 @@
 import { Sparkline } from "../Sparkline";
 import { MiniChart } from "../MiniChart";
 import type { RegistroSueno } from "../../types/models";
+import { consolidarNoches, promedioNoches } from "../../lib/sueno";
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -11,10 +12,16 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
-  const conHoras = sueno.filter((r) => r.horas != null && r.horas > 0);
+function addDays(fecha: string, n: number): string {
+  const d = new Date(fecha + "T12:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
 
-  if (conHoras.length === 0) {
+export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
+  const noches = consolidarNoches(sueno);
+
+  if (noches.length === 0) {
     return (
       <div className="empty-state">
         <p>Sin datos de sueño. Importá un ZIP de Samsung Health.</p>
@@ -22,22 +29,26 @@ export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
     );
   }
 
-  const ultimas7 = conHoras.slice(0, 7);
-  const avg = ultimas7.reduce((s, r) => s + r.horas!, 0) / ultimas7.length;
+  const ultima = noches[0];
+  const prom7  = promedioNoches(noches, 7);
 
-  const byDay = new Map<string, number>();
-  for (const r of conHoras) {
-    byDay.set(r.fecha, Math.max(byDay.get(r.fecha) ?? 0, r.horas!));
-  }
-  const chartData = Array.from(byDay.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-14)
-    .map(([fecha, horas]) => ({ label: fecha.slice(5), value: horas }));
+  // Noches con dato en los últimos 30 días
+  const hace30 = addDays(noches[0].fecha, -30);
+  const nochesUlt30 = noches.filter((n) => n.fecha >= hace30).length;
 
-  const sparkData = Array.from(byDay.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-14)
-    .map(([, h]) => h);
+  // Gráfico: últimas 14 fechas con dato
+  const chartData = noches.slice(0, 14)
+    .reverse()
+    .map((n) => ({ label: n.fecha.slice(5), value: n.horasTotal }));
+
+  const sparkData = chartData.map((d) => d.value);
+
+  // Rango de la última noche
+  const rangoUltima = ultima.horaAcostarse && ultima.horaLevantarse
+    ? `${ultima.horaAcostarse} → ${ultima.horaLevantarse}`
+    : ultima.horaAcostarse
+    ? `desde ${ultima.horaAcostarse}`
+    : undefined;
 
   return (
     <>
@@ -45,9 +56,11 @@ export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
           <div>
             <p style={{ margin: 0, fontWeight: 800, fontSize: 32, letterSpacing: "-.03em", lineHeight: 1 }}>
-              {conHoras[0].horas!.toFixed(1)} <span style={{ fontSize: 16, fontWeight: 600, color: "var(--muted)" }}>h</span>
+              {ultima.horasTotal.toFixed(1)} <span style={{ fontSize: 16, fontWeight: 600, color: "var(--muted)" }}>h</span>
             </p>
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>última noche</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
+              última noche{rangoUltima ? ` · ${rangoUltima}` : ""}
+            </p>
           </div>
           {sparkData.length >= 2 && (
             <div style={{ flex: 1, maxWidth: 120 }}>
@@ -56,8 +69,8 @@ export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
           )}
         </div>
         <div className="stats-row">
-          <Stat value={`${avg.toFixed(1)} h`} label="promedio 7 noches" />
-          <Stat value={String(conHoras.length)} label="registros" />
+          {prom7 != null && <Stat value={`${prom7} h`} label="promedio 7 noches" />}
+          <Stat value={String(nochesUlt30)} label="noches (últ. 30 días)" />
         </div>
         {chartData.length > 2 && (
           <div style={{ marginTop: 12 }}>
@@ -66,17 +79,30 @@ export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
         )}
       </div>
       <div className="card">
-        <p className="section-title" style={{ marginBottom: 10 }}>Historial ({conHoras.length})</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {conHoras.slice(0, 20).map((s) => (
-            <div key={s.idSueno} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-              <span style={{ color: "var(--muted)" }}>{s.fecha}</span>
-              <span>
-                {s.horas != null && `${s.horas.toFixed(1)} h`}
-                {s.horaAcostarse && ` · acostó ${s.horaAcostarse}`}
-              </span>
-            </div>
-          ))}
+        <p className="section-title" style={{ marginBottom: 10 }}>Historial</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {noches.slice(0, 30).map((n) => {
+            const rango = n.horaAcostarse && n.horaLevantarse
+              ? `${n.horaAcostarse} → ${n.horaLevantarse}`
+              : n.horaAcostarse ? `desde ${n.horaAcostarse}` : undefined;
+            return (
+              <div key={n.fecha}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "var(--muted)" }}>{n.fecha}</span>
+                  <span>
+                    {n.horasTotal.toFixed(1)} h
+                    {rango && <span style={{ color: "var(--muted)" }}> · {rango}</span>}
+                    {n.tramos > 1 && <span style={{ color: "var(--muted)" }}> · {n.tramos} tramos</span>}
+                  </span>
+                </div>
+                {n.horasSiesta != null && (
+                  <p style={{ margin: "1px 0 0 0", fontSize: 11, color: "var(--muted)" }}>
+                    incl. siesta {n.horasSiesta.toFixed(1)} h
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </>

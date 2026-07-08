@@ -210,7 +210,7 @@ export function derivarZona(
 }
 
 // ── Tipos de ejercicio Samsung Health ─────────────────────────────────────────
-// Subconjunto de los más comunes. El resto cae en "Actividad".
+// Subconjunto de los más comunes. El resto cae en "Otro (N)".
 const EXERCISE_TYPE: Record<string, string> = {
   "11": "Caminata",  "12": "Carrera",        "13": "Ciclismo",
   "14": "Natación",  "15": "Ciclismo indoor", "28": "Aeróbico",
@@ -221,9 +221,29 @@ const EXERCISE_TYPE: Record<string, string> = {
   "10005": "Bailando",
 };
 
-function resolverActividad(typeCode: string, title: string): string {
+/**
+ * Resuelve el nombre de una actividad de Samsung Health.
+ * Prioridad: título libre → tipo mapeado → custom (ShapeUp / nombre del índice) → fallback.
+ * - type 0 (custom) + customId en shapeUpCustomIds → "ShapeUp"
+ * - type 0 + customId con nombre en customNameMap → ese nombre
+ * - type 0 sin nada útil → "Personalizado"
+ * - tipo desconocido → "Otro (N)"
+ */
+function resolverActividad(
+  typeCode: string,
+  title: string,
+  customId?: string,
+  shapeUpCustomIds?: Set<string>,
+  customNameMap?: Map<string, string>,
+): string {
   if (title && title.trim() && title !== "-") return title.trim();
-  return EXERCISE_TYPE[typeCode.trim()] ?? (typeCode ? `Tipo ${typeCode}` : "Actividad");
+  const code = typeCode.trim();
+  if (code === "0") {
+    if (customId && shapeUpCustomIds?.has(customId)) return "ShapeUp";
+    if (customId && customNameMap?.has(customId)) return customNameMap.get(customId)!;
+    return "Personalizado";
+  }
+  return EXERCISE_TYPE[code] ?? (code ? `Otro (${code})` : "Actividad");
 }
 
 // ── Parsers públicos ──────────────────────────────────────────────────────────
@@ -292,6 +312,8 @@ export function parsearEjercicio(
   text: string,
   miembro: MiembroId,
   zonasFC?: Partial<Record<ZonaFC, { min: number; max: number }>>,
+  shapeUpCustomIds?: Set<string>,
+  customNameMap?: Map<string, string>,
 ): ParseResult<EjercicioItem> {
   const filas  = parseSamsungCsv(text);
   const items: EjercicioItem[] = [];
@@ -310,11 +332,11 @@ export function parsearEjercicio(
     const distM     = numOpt(col(f, "distance"));  // metros
     const distKm    = distM != null ? parseFloat((distM / 1000).toFixed(2)) : undefined;
     const fcMedia   = numOpt(col(f, "mean_heart_rate"));
-    const actividad = resolverActividad(col(f, "exercise_type"), col(f, "title"));
+    const customId  = col(f, "custom_id") || undefined;
+    const actividad = resolverActividad(col(f, "exercise_type"), col(f, "title"), customId, shapeUpCustomIds, customNameMap);
 
     const startMs  = epochToMs(startRaw, offset);
     const endMs    = startMs != null && durMs != null ? startMs + durMs : undefined;
-    const customId = col(f, "custom_id") || undefined;
     const fcMin    = numOpt(col(f, "min_heart_rate"));
 
     items.push(stripUndef({
@@ -345,6 +367,7 @@ export function parsearEjercicio(
  * Parsea un CSV `com.samsung.shealth.sleep` → `SuenoInput[]`.
  * sleep_duration viene en minutos → convertir a horas.
  * Idempotente por `datauuid`.
+ * Pobla inicioMs/finMs/horaLevantarse para que consolidarNoches() funcione correctamente.
  */
 export function parsearSueno(
   text: string,
@@ -356,10 +379,11 @@ export function parsearSueno(
 
   for (const f of filas) {
     const uuid       = col(f, "datauuid");
-    const startMs    = col(f, "start_time");
-    const bedMs      = col(f, "original_bed_time") || startMs;
+    const startRaw   = col(f, "start_time");
+    const endRaw     = col(f, "end_time");
+    const bedRaw     = col(f, "original_bed_time") || startRaw;
     const offset     = col(f, "time_offset");
-    const fecha      = epochToDate(startMs, offset);
+    const fecha      = epochToDate(startRaw, offset);
 
     if (!fecha) { errors.push(`Fila sin fecha (uuid=${uuid || "?"})`); continue; }
 
@@ -369,16 +393,27 @@ export function parsearSueno(
       errors.push(`Fila sin duración omitida (uuid=${uuid || "?"})`);
       continue;
     }
-    const horas      = parseFloat((sleepMin / 60).toFixed(2));
-    const acostarse  = epochToTime(bedMs, offset) || undefined;
+    const horas          = parseFloat((sleepMin / 60).toFixed(2));
+    const acostarse      = epochToTime(bedRaw, offset) || undefined;
+    const inicioMs       = epochToMs(bedRaw, offset);
+    // end_time → hora de levantarse; si no hay, estimar desde inicio + duración
+    const finMsCalc      = endRaw
+      ? epochToMs(endRaw, offset)
+      : (inicioMs != null ? inicioMs + sleepMin * 60_000 : undefined);
+    const horaLevantarse = endRaw
+      ? (epochToTime(endRaw, offset) || undefined)
+      : (finMsCalc != null ? epochToTime(String(finMsCalc), offset) || undefined : undefined);
 
     items.push(stripUndef({
-      _uuid:          uuid,
+      _uuid:           uuid,
       miembro,
       fecha,
       horas,
-      horaAcostarse:  acostarse,
-      fuente:         "samsung-health-csv" as const,
+      horaAcostarse:   acostarse,
+      horaLevantarse,
+      inicioMs,
+      finMs:           finMsCalc,
+      fuente:          "samsung-health-csv" as const,
     }));
   }
   return { items, errors };

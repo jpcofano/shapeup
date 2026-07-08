@@ -319,6 +319,37 @@ describe("senalPeor", () => {
   });
 });
 
+// ── Sueño — consolidación de tramos (caso real P51/P52) ───────────────────────
+
+describe("sueno — tramos partidos consolidados correctamente", () => {
+  it("3 tramos del mismo día (3.6+1.3+1.2h) dan ~6.1h total → atencion (no alerta falsa)", () => {
+    // El bug original: promediar tramos como noches → avg((3.6+1.3+1.2)/3) = 2.03h → alerta falsa
+    // El fix: consolidarNoches agrupa en 1 noche de 6.1h → atencion (5.5-6.5h)
+    const reciente = [
+      mkSueno(offsetDate(HOY, -1), 3.6),
+      mkSueno(offsetDate(HOY, -1), 1.3),
+      mkSueno(offsetDate(HOY, -1), 1.2),
+      mkSueno(offsetDate(HOY, -2), 7.0),
+      mkSueno(offsetDate(HOY, -3), 7.5),
+    ];
+    const senales = calcularResumenSalud([], [...reciente, ...baselineSueno(7.5)], [], HOY);
+    const s = senales.find((s) => s.clave === "sueno")!;
+    // promedio de las últimas 3 noches consolidadas:
+    // noche HOY-1: 3.6+1.3+1.2 = 6.1h, HOY-2: 7.0h, HOY-3: 7.5h → avg ≈ 6.87h → ok
+    expect(s.estado).toBe("ok");
+    expect(s.valorActual).toBeGreaterThan(6.0);
+  });
+
+  it("un tramo de 3.6h solo no da suficiente para baseline → sin-datos con valorActual", () => {
+    const sueno = [mkSueno(offsetDate(HOY, -1), 3.6)];
+    const senales = calcularResumenSalud([], sueno, [], HOY);
+    const s = senales.find((s) => s.clave === "sueno")!;
+    // Solo 1 noche → promedioNoches(1, 3) = undefined → sin-datos
+    expect(s.estado).toBe("sin-datos");
+    expect(s.valorActual).toBeCloseTo(3.6, 1);
+  });
+});
+
 // ── serie14d ─────────────────────────────────────────────────────────────────
 
 describe("serie14d", () => {

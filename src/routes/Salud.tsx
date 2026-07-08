@@ -22,7 +22,6 @@ import {
 } from "../import/samsungHealth";
 import {
   extraerDesdeZip,
-  type ZipImportNivel,
 } from "../import/samsungZip";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialMiembro } from "../data/historial";
@@ -38,7 +37,6 @@ import { ImportPreview, ManualForm } from "../components/salud/ImportPanel";
 import type { PreviewState, CardioEx } from "../components/salud/ImportPanel";
 
 type Tab = "resumen" | "composicion" | "cardio" | "sueno" | "progreso";
-type ImportMode = "basico" | "completo";
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
@@ -57,8 +55,6 @@ export function Salud() {
   const [showManual,        setShowManual]        = useState(false);
   const [importMsg,         setImportMsg]         = useState<string | null>(null);
   const [preview,           setPreview]           = useState<PreviewState | null>(null);
-  const [importMode,        setImportMode]        = useState<ImportMode>("basico");
-  const [zipNivel,          setZipNivel]          = useState<ZipImportNivel>("basico");
   const [zipProgress,       setZipProgress]       = useState<number | null>(null);
   const [zipMsg,            setZipMsg]            = useState<string>("");
   const [importarTodoCardio,setImportarTodoCardio]= useState(false);
@@ -95,7 +91,7 @@ export function Salud() {
     const zonasFC = perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined;
 
     const result = await extraerDesdeZip(
-      file, memberId as MiembroId, zipNivel, zonasFC,
+      file, memberId as MiembroId, "biometrico", zonasFC,
       (pct, msg) => { setZipProgress(pct); setZipMsg(msg); },
     );
     setZipProgress(null);
@@ -136,7 +132,7 @@ export function Salud() {
     setImportarTodoCardio(false);
     const tipo = detectarTipoCsv(file.name);
 
-    if (tipo === "unknown" || importMode === "completo") {
+    if (tipo === "unknown") {
       const metaMeta = detectarTiposMetrica(file.name);
       if (metaMeta) {
         const text = await file.text();
@@ -147,10 +143,8 @@ export function Salud() {
         setPreview({ tipo: "metricas" as SamsungCsvType, file, parsedItems: r.items, parsedErrors: r.errors, previewRows });
         return;
       }
-      if (tipo === "unknown") {
-        setImportMsg("No reconocí el archivo. Esperaba weight, exercise, sleep o un CSV de métricas genéricas.");
-        return;
-      }
+      setImportMsg("No reconocí el archivo. Esperaba weight, exercise, sleep o un CSV de métricas genéricas.");
+      return;
     }
     const text = await file.text();
 
@@ -318,18 +312,7 @@ export function Salud() {
       <div className="page-header">
         <h1 className="page-title">Salud</h1>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <select
-            value={zipNivel}
-            onChange={(e) => setZipNivel(e.target.value as ZipImportNivel)}
-            style={{ fontSize: 11, background: "var(--card)", color: "var(--muted)", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", padding: "2px 6px", cursor: "pointer" }}
-            title="Nivel de importación"
-          >
-            <option value="basico">Básico</option>
-            <option value="completo">Completo</option>
-            <option value="biometrico">Con biometría</option>
-          </select>
-
-          <button className="btn-icon-sm" title="Importar ZIP de Samsung Health (recomendado)" onClick={() => zipRef.current?.click()}>
+          <button className="btn-icon-sm" title="Importar ZIP de Samsung Health" onClick={() => zipRef.current?.click()}>
             <Upload size={18} />
           </button>
 

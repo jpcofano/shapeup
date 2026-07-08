@@ -1,20 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import type { Historial, RegistroSueno, MetricaSalud, MiembroId } from "../types/models";
+import type { Historial, MetricaSalud, MiembroId } from "../types/models";
 import { getHistorialEntry } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
+import { consolidarNoches } from "../lib/sueno";
+import type { NocheSueno } from "../lib/sueno";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
   return `${d}/${m}/${y}`;
 }
 
-function diaAnterior(fecha: string): string {
-  const d = new Date(fecha + "T12:00:00");
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
-}
 
 export function HistorialDetalle() {
   const { id }     = useParams<{ id: string }>();
@@ -22,8 +19,8 @@ export function HistorialDetalle() {
   const [h, setH]  = useState<Historial | null>(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
-  const [suenoAnterior, setSuenoAnterior] = useState<RegistroSueno | null>(null);
-  const [fcDia,         setFcDia]         = useState<MetricaSalud | null>(null);
+  const [nocheAnterior, setNocheAnterior] = useState<NocheSueno | null>(null);
+  const [fcDia,          setFcDia]        = useState<MetricaSalud | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -32,16 +29,17 @@ export function HistorialDetalle() {
       setH(r.value);
       setLoading(false);
 
-      // Carga contexto del día: sueño noche anterior + FC en reposo del día
+      // Carga contexto del día: sueño noche anterior consolidada + FC en reposo del día
       const entry = r.value;
-      const noche = diaAnterior(entry.fechaRealizada);
       const [sRes, fRes] = await Promise.all([
         getRegistrosSueno(entry.miembro as MiembroId),
         getMetricasSalud(entry.miembro as MiembroId, "fc-reposo"),
       ]);
       if (sRes.ok) {
-        const reg = sRes.value.find((s) => s.fecha === noche && s.horas != null && s.horas > 0);
-        if (reg) setSuenoAnterior(reg);
+        // NocheSueno.fecha = mañana del día en que te levantaste = fecha de la sesión
+        const noches = consolidarNoches(sRes.value);
+        const noche = noches.find((n) => n.fecha === entry.fechaRealizada);
+        if (noche) setNocheAnterior(noche);
       }
       if (fRes.ok) {
         const met = fRes.value.find((m) => m.fecha === entry.fechaRealizada);
@@ -173,19 +171,24 @@ export function HistorialDetalle() {
         </div>
       )}
 
-      {/* Contexto del día: sueño noche anterior + FC en reposo */}
-      {(suenoAnterior || fcDia) && (
+      {/* Contexto del día: sueño noche anterior consolidada + FC en reposo */}
+      {(nocheAnterior || fcDia) && (
         <div className="card">
           <p className="section-title" style={{ marginBottom: 8 }}>Contexto del día</p>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-            {suenoAnterior && suenoAnterior.horas != null && (
+            {nocheAnterior && (
               <div>
                 <p style={{ margin: 0, fontWeight: 700, fontSize: 18 }}>
-                  {suenoAnterior.horas.toFixed(1)} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>h</span>
+                  {nocheAnterior.horasTotal.toFixed(1)} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>h</span>
                 </p>
                 <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>
                   sueño noche anterior
                 </p>
+                {nocheAnterior.horaAcostarse && nocheAnterior.horaLevantarse && (
+                  <p style={{ margin: "1px 0 0", fontSize: 11, color: "var(--muted)" }}>
+                    {nocheAnterior.horaAcostarse} → {nocheAnterior.horaLevantarse}
+                  </p>
+                )}
               </div>
             )}
             {fcDia && (
