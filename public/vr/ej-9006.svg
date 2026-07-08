@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- OhShape: pared con hueco + silueta de pose -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <rect x="60" y="60" width="280" height="180" fill="#9aa4b2"/>
+  <g fill="#1e2130">
+    <circle cx="200" cy="110" r="22"/>
+    <path d="M 200 130 L 200 190 M 200 145 L 150 110 M 200 145 L 260 100 M 200 190 L 165 240 M 200 190 L 235 240"
+      stroke="#1e2130" stroke-width="20" stroke-linecap="round" fill="none"/>
+  </g>
+  <g fill="#22d3ee">
+    <circle cx="200" cy="110" r="16"/>
+  </g>
+</svg>

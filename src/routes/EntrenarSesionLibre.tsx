@@ -13,6 +13,8 @@ import {
 import { useEntrenarState } from "../hooks/useEntrenarState";
 import { ExercisePicker } from "../components/rutina/ExercisePicker";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
+import { SerieTimer } from "../components/entrenar/SerieTimer";
+import { TiempoTotal } from "../components/entrenar/TiempoTotal";
 import { BloqueGuiado } from "../components/entrenar/BloqueGuiado";
 import { BloqueScroll } from "../components/entrenar/BloqueScroll";
 
@@ -100,6 +102,13 @@ export function EntrenarSesionLibre() {
     return () => { activo = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idEjercicioAtajo]);
+
+  // Sella el inicio del cronómetro de trabajo al montar y al cambiar de bloque.
+  useEffect(() => {
+    if (!virtualRutina) return;
+    session.asegurarInicioSerie(state.bloqueActual);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.bloqueActual, virtualRutina]);
 
   /** Salida (X / fin de sesión): si entramos por el atajo, volvemos al catálogo. */
   function salir() {
@@ -399,6 +408,7 @@ export function EntrenarSesionLibre() {
           <X size={18} />
         </button>
         <p className="workout-title">Sesión libre</p>
+        <TiempoTotal startMs={startRef.current} estimadoMin={virtualRutina.duracionEstimadaMin} />
         <button className="btn-icon-sm" onClick={session.toggleModo}
           title={state.modoVista === "guiada" ? "Modo scroll" : "Modo guiado"}>
           {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
@@ -431,6 +441,13 @@ export function EntrenarSesionLibre() {
               onSkip={session.saltarDescanso}
               onAjustar={session.ajustarDescanso}
             />
+            {!state.descanso && (
+              <SerieTimer
+                state={state}
+                rutina={virtualRutina}
+                onAjustar={(d) => session.ajustarTrabajo(state.bloqueActual, d)}
+              />
+            )}
             {!state.descanso && (
               <BloqueGuiado
                 bloque={blq}

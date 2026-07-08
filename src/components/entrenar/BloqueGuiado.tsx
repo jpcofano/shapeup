@@ -39,6 +39,13 @@ export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio
       {/* Nombre */}
       <h2 className="bloque-nombre-grande">{bloque.nombreEjercicio}</h2>
 
+      {/* Chip de juego VR sugerido */}
+      {bloque.prescripcion.modalidad === "Cardio" && bloque.prescripcion.juegoSugerido && (
+        <span className="badge badge-accent" style={{ alignSelf: "flex-start" }}>
+          🎮 {bloque.prescripcion.juegoSugerido}
+        </span>
+      )}
+
       {/* Contexto compacto: músculo primario + primer equipo */}
       {ejercicio && (
         <p style={{ margin: 0, fontSize: 12, color: "var(--muted)", lineHeight: 1.4 }}>

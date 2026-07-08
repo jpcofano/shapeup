@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Creed: dos guantes de boxeo cruzados -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <g fill="#22d3ee" transform="translate(160,150) rotate(-18)">
+    <ellipse cx="0" cy="0" rx="46" ry="40"/>
+    <ellipse cx="-34" cy="-14" rx="15" ry="13"/>
+    <rect x="-16" y="34" width="40" height="28" rx="10"/>
+  </g>
+  <g fill="#9aa4b2" transform="translate(250,150) rotate(18)">
+    <ellipse cx="0" cy="0" rx="46" ry="40"/>
+    <ellipse cx="34" cy="-14" rx="15" ry="13"/>
+    <rect x="-24" y="34" width="40" height="28" rx="10"/>
+  </g>
+</svg>

@@ -6,8 +6,11 @@ import {
   proximoBloqueIncompleto, descansoRestanteMs,
   INITIAL_ENTRENAR_STATE,
   buildBloqueLibre, buildVirtualRutina, construirBloquesRegistro,
+  valorPrefillSerie,
+  trabajoObjetivoSeg, trabajoRestanteMs, asegurarInicioSerie, ajustarTrabajo,
+  objetivoSerieLabel,
 } from "./entrenarState";
-import type { Ejercicio, PrescripcionFuerza, Rutina } from "../types/models";
+import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
 
 // ── Rutina de prueba ──────────────────────────────────────────────────────────
 const rutina: Rutina = {
@@ -317,6 +320,81 @@ describe("F4 — pre-seed de 1 ejercicio entra en fase 2 con 3 series", () => {
   });
 });
 
+// ── valorPrefillSerie + persistencia de ultimoLog ─────────────────────────────
+
+const rutinaConCarga: Rutina = {
+  ...rutina,
+  bloques: [
+    {
+      orden: 1,
+      idEjercicio: "EJ-0001",
+      nombreEjercicio: "Curl de bíceps",
+      modalidad: "Fuerza",
+      prescripcion: {
+        modalidad: "Fuerza", series: 3,
+        repsObjetivo: { value: 12, raw: "12" },
+        cargaKg: 8,
+        descansoSeg: 45,
+      },
+    },
+    rutina.bloques[1],
+  ],
+};
+
+describe("valorPrefillSerie", () => {
+  it("devuelve defaults de prescripción si no hay ultimoLog", () => {
+    const prefill = valorPrefillSerie(rutinaConCarga, 0, s0);
+    expect(prefill).toEqual({ reps: 12, cargaKg: 8 });
+  });
+
+  it("omite reps si value = 0 (AMRAP / máx)", () => {
+    const rutinaMáx: Rutina = {
+      ...rutina,
+      bloques: [{
+        ...rutina.bloques[0],
+        prescripcion: { modalidad: "Fuerza", series: 3, repsObjetivo: { value: 0, raw: "máx" }, descansoSeg: 60 },
+      }, rutina.bloques[1]],
+    };
+    const prefill = valorPrefillSerie(rutinaMáx, 0, s0);
+    expect(prefill.reps).toBeUndefined();
+  });
+
+  it("devuelve {} para bloque no-Fuerza", () => {
+    const rutinaISO: Rutina = {
+      ...rutina,
+      bloques: [{
+        orden: 1,
+        idEjercicio: "EJ-ISO",
+        nombreEjercicio: "Plancha lateral",
+        modalidad: "Isométrico",
+        prescripcion: { modalidad: "Isométrico", series: 3, duracionHoldSeg: 30, porLado: true, descansoSeg: 30 },
+      }],
+    };
+    expect(valorPrefillSerie(rutinaISO, 0, s0)).toEqual({});
+  });
+
+  it("usa ultimoLog si ya hay un registro previo (herencia de serie)", () => {
+    const s = completarSerie(s0, rutinaConCarga, 0, { reps: 11, cargaKg: 9 });
+    const prefill = valorPrefillSerie(rutinaConCarga, 0, s);
+    expect(prefill).toEqual({ reps: 11, cargaKg: 9 });
+  });
+
+  it("el ultimoLog persiste tras múltiples series y hereda a la siguiente", () => {
+    let s = completarSerie(s0, rutinaConCarga, 0, { reps: 10, cargaKg: 8.5 });
+    s = completarSerie(s, rutinaConCarga, 0, { reps: 9 }); // cambia reps, mantiene cargaKg anterior
+    const prefill = valorPrefillSerie(rutinaConCarga, 0, s);
+    expect(prefill.reps).toBe(9);
+    expect(prefill.cargaKg).toBe(8.5); // heredado de la primera serie
+  });
+
+  it("el ultimoLog del bloque 0 no afecta al bloque 1", () => {
+    const s = completarSerie(s0, rutinaConCarga, 0, { reps: 11, cargaKg: 9 });
+    const prefill1 = valorPrefillSerie(rutinaConCarga, 1, s);
+    // bloque 1 tiene prescripción sin cargaKg y reps 10
+    expect(prefill1).toEqual({ reps: 10 });
+  });
+});
+
 describe("construirBloquesRegistro con rutina virtual", () => {
   it("arma BloqueRegistro a partir del estado", () => {
     const bloques = [buildBloqueLibre(ejFuerza, 1)];
@@ -327,5 +405,116 @@ describe("construirBloquesRegistro con rutina virtual", () => {
     expect(reg).toHaveLength(1);
     expect(reg[0].idEjercicio).toBe("EJ-TEST-F");
     expect(reg[0].series[0]).toMatchObject({ serie: 1, completada: true, reps: 8, cargaKg: 40 });
+  });
+});
+
+// ── Cronómetro de trabajo (P51 — VR series/timers) ────────────────────────────
+
+const cardioIntervalos: PrescripcionCardio = {
+  modalidad: "Cardio", formato: "Intervalos",
+  rondas: 5, trabajoSeg: 240, descansoSeg: 90, juegoSugerido: "Creed",
+};
+
+const rutinaVR: Rutina = {
+  ...rutina,
+  bloques: [
+    { orden: 1, idEjercicio: "EJ-9004", nombreEjercicio: "Creed (VR)", modalidad: "Cardio", prescripcion: cardioIntervalos },
+    rutina.bloques[1],
+  ],
+};
+
+describe("trabajoObjetivoSeg", () => {
+  it("Cardio Intervalos → trabajoSeg", () => {
+    expect(trabajoObjetivoSeg(cardioIntervalos)).toBe(240);
+  });
+
+  it("Cardio Intervalos sin trabajoSeg → null", () => {
+    expect(trabajoObjetivoSeg({ modalidad: "Cardio", formato: "Intervalos" })).toBeNull();
+  });
+
+  it("Cardio Continuo con duracionMin → *60", () => {
+    expect(trabajoObjetivoSeg({ modalidad: "Cardio", formato: "Continuo", duracionMin: 20 })).toBe(1200);
+  });
+
+  it("Cardio Continuo sin duracionMin → null", () => {
+    expect(trabajoObjetivoSeg({ modalidad: "Cardio", formato: "Continuo" })).toBeNull();
+  });
+
+  it("Isométrico → duracionHoldSeg", () => {
+    expect(trabajoObjetivoSeg({ modalidad: "Isométrico", series: 3, duracionHoldSeg: 30, porLado: false, descansoSeg: 30 })).toBe(30);
+  });
+
+  it("Fuerza → null (sin cuenta regresiva de trabajo)", () => {
+    expect(trabajoObjetivoSeg(rutina.bloques[0].prescripcion)).toBeNull();
+  });
+
+  it("Movilidad → null", () => {
+    expect(trabajoObjetivoSeg({ modalidad: "Movilidad", rondas: 3, porLado: false, descansoSeg: 20 })).toBeNull();
+  });
+});
+
+describe("trabajoRestanteMs", () => {
+  it("null si el bloque actual no tiene trabajo cronometrable", () => {
+    const s = { ...s0, bloqueActual: 1 }; // bloque 1 = Fuerza
+    expect(trabajoRestanteMs(s, rutinaVR)).toBeNull();
+  });
+
+  it("null si no hay serieInicioMs para el bloque", () => {
+    expect(trabajoRestanteMs(s0, rutinaVR)).toBeNull();
+  });
+
+  it("resto correcto mientras no venció", () => {
+    const now = 1_000_000;
+    const s = { ...s0, serieInicioMs: { 0: now } };
+    expect(trabajoRestanteMs(s, rutinaVR, now + 100_000)).toBe(140_000); // 240s - 100s
+  });
+
+  it("0 cuando el objetivo venció", () => {
+    const now = 1_000_000;
+    const s = { ...s0, serieInicioMs: { 0: now } };
+    expect(trabajoRestanteMs(s, rutinaVR, now + 500_000)).toBe(0);
+  });
+});
+
+describe("asegurarInicioSerie", () => {
+  it("setea serieInicioMs si no existía y no hay descanso", () => {
+    const s = asegurarInicioSerie(s0, 0, 5000);
+    expect(s.serieInicioMs[0]).toBe(5000);
+  });
+
+  it("no pisa un inicio ya sellado (volver atrás no reinicia el reloj)", () => {
+    const s0conInicio = { ...s0, serieInicioMs: { 0: 1000 } };
+    const s = asegurarInicioSerie(s0conInicio, 0, 5000);
+    expect(s.serieInicioMs[0]).toBe(1000);
+  });
+
+  it("no setea si hay descanso activo", () => {
+    const sConDescanso = { ...s0, descanso: { bloqueIdx: 0, startMs: 0, durMs: 60_000 } };
+    const s = asegurarInicioSerie(sConDescanso, 0, 5000);
+    expect(s.serieInicioMs[0]).toBeUndefined();
+  });
+});
+
+describe("ajustarTrabajo", () => {
+  it("no-op si el bloque no arrancó", () => {
+    const s = ajustarTrabajo(s0, 0, 30);
+    expect(s).toBe(s0);
+  });
+
+  it("corre el inicio hacia adelante (extiende el restante)", () => {
+    const sConInicio = { ...s0, serieInicioMs: { 0: 1000 } };
+    const s = ajustarTrabajo(sConInicio, 0, 30);
+    expect(s.serieInicioMs[0]).toBe(1000 + 30_000);
+  });
+});
+
+describe("objetivoSerieLabel — Cardio Intervalos con juegoSugerido", () => {
+  it("formatea minutos de juego + descanso", () => {
+    expect(objetivoSerieLabel(cardioIntervalos)).toBe("4 min de juego · 90 s de descanso");
+  });
+
+  it("sin juegoSugerido mantiene el label genérico", () => {
+    const p: PrescripcionCardio = { modalidad: "Cardio", formato: "Intervalos", rondas: 5, trabajoSeg: 30, descansoSeg: 15 };
+    expect(objetivoSerieLabel(p)).toBe("30 s fuerte / 15 s suave");
   });
 });

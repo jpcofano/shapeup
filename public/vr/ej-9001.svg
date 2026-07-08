@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Pistol Whip: pistola estilizada + esquives (líneas de impacto) -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <g stroke="#9aa4b2" stroke-width="6" stroke-linecap="round">
+    <line x1="290" y1="90" x2="315" y2="70"/>
+    <line x1="300" y1="115" x2="330" y2="110"/>
+    <line x1="295" y1="140" x2="322" y2="150"/>
+  </g>
+  <g fill="#22d3ee">
+    <rect x="150" y="138" width="140" height="24" rx="8"/>
+    <polygon points="150,150 100,150 92,166 150,166"/>
+    <polygon points="150,162 178,162 168,235 145,235"/>
+  </g>
+  <circle cx="163" cy="180" r="14" fill="none" stroke="#9aa4b2" stroke-width="7"/>
+</svg>

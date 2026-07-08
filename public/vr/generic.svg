@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#1e2130"/>
+  <!-- Visor VR genérico -->
+  <path d="M 130 120 Q 130 100 150 100 L 250 100 Q 270 100 270 120 L 270 180 Q 270 200 250 200 L 220 200 Q 210 200 205 190 L 200 180 L 195 190 Q 190 200 180 200 L 150 200 Q 130 200 130 180 Z" fill="#9aa4b2"/>
+  <circle cx="172" cy="150" r="26" fill="#1e2130"/>
+  <circle cx="228" cy="150" r="26" fill="#1e2130"/>
+  <circle cx="172" cy="150" r="15" fill="#22d3ee"/>
+  <circle cx="228" cy="150" r="15" fill="#22d3ee"/>
+  <path d="M 130 130 Q 90 130 90 150 Q 90 170 130 170" fill="none" stroke="#9aa4b2" stroke-width="10" stroke-linecap="round"/>
+  <path d="M 270 130 Q 310 130 310 150 Q 310 170 270 170" fill="none" stroke="#9aa4b2" stroke-width="10" stroke-linecap="round"/>
+</svg>

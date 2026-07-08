@@ -37,6 +37,8 @@ export interface EntrenarState {
   descanso: DescansoActivo | null;            // cronómetro de descanso en curso
   /** Epoch ms cuando empieza la serie actual de cada bloque (set al saltarDescanso). */
   serieInicioMs: Record<number, number>;
+  /** Último reps/carga ingresado por bloque (prefill de la próxima serie). */
+  ultimoLog: Record<number, { reps?: number; cargaKg?: number }>;
 }
 
 export const INITIAL_ENTRENAR_STATE: EntrenarState = {
@@ -46,6 +48,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   registro: {},
   descanso: null,
   serieInicioMs: {},
+  ultimoLog: {},
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -62,6 +65,32 @@ export function descansoSeg(p: Prescripcion): number {
     case "Movilidad":   return p.descansoSeg;
     case "Cardio":      return p.formato === "Intervalos" ? (p.descansoSeg ?? 0) : 0;
   }
+}
+
+/**
+ * Valores por defecto para el log rápido de la serie siguiente.
+ * Orden de prioridad: último registrado > prescripción > vacío.
+ * Solo aplica a bloques de modalidad Fuerza.
+ */
+export function valorPrefillSerie(
+  rutina: Rutina,
+  idx: number,
+  state: EntrenarState,
+): { reps?: number; cargaKg?: number } {
+  const bloque = rutina.bloques[idx];
+  if (!bloque || bloque.prescripcion.modalidad !== "Fuerza") return {};
+  const previo = state.ultimoLog[idx];
+  if (previo) return previo;
+  const p = bloque.prescripcion;
+  return {
+    ...(p.repsObjetivo.value > 0 ? { reps: p.repsObjetivo.value } : {}),
+    ...(p.cargaKg != null        ? { cargaKg: p.cargaKg }         : {}),
+  };
+}
+
+/** "N min" si `seg` es múltiplo de 60, si no "N s". Para labels legibles. */
+function fmtTrabajo(seg: number): string {
+  return seg % 60 === 0 ? `${seg / 60} min` : `${seg} s`;
 }
 
 /** Texto del objetivo de la serie actual, para mostrar en el modo guiado. */
@@ -82,11 +111,53 @@ export function objetivoSerieLabel(p: Prescripcion): string {
         ? `${p.duracionHoldSeg} s${p.porLado ? " por lado" : ""}`
         : `${p.repsObjetivo?.raw ?? "—"} reps${p.porLado ? " por lado" : ""}`;
     case "Cardio":
-      return p.formato === "Intervalos"
-        ? `${p.trabajoSeg ?? 0} s fuerte / ${p.descansoSeg ?? 0} s suave`
-        : p.duracionMin != null ? `${p.duracionMin} min`
+      if (p.formato === "Intervalos") {
+        if (p.juegoSugerido) {
+          return `${fmtTrabajo(p.trabajoSeg ?? 0)} de juego · ${p.descansoSeg ?? 0} s de descanso`;
+        }
+        return `${p.trabajoSeg ?? 0} s fuerte / ${p.descansoSeg ?? 0} s suave`;
+      }
+      return p.duracionMin != null ? `${p.duracionMin} min`
         : p.distanciaKm != null ? `${p.distanciaKm} km` : "cardio";
   }
+}
+
+/**
+ * Segundos de trabajo cronometrable de una serie según modalidad.
+ * `null` cuando la modalidad no tiene cuenta regresiva de trabajo (Fuerza,
+ * Movilidad) o cuando la prescripción no trae el dato necesario.
+ */
+export function trabajoObjetivoSeg(p: Prescripcion): number | null {
+  switch (p.modalidad) {
+    case "Cardio":
+      return p.formato === "Intervalos"
+        ? p.trabajoSeg ?? null
+        : p.duracionMin != null ? p.duracionMin * 60 : null;
+    case "Isométrico":
+      return p.duracionHoldSeg;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Milisegundos restantes de trabajo del bloque actual (`state.bloqueActual`).
+ * `null` si el bloque no tiene trabajo cronometrable o todavía no arrancó
+ * (sin `serieInicioMs`). `0` si el objetivo ya venció.
+ */
+export function trabajoRestanteMs(
+  state: EntrenarState,
+  rutina: Rutina,
+  ahoraMs: number = Date.now(),
+): number | null {
+  const idx = state.bloqueActual;
+  const bloque = rutina.bloques[idx];
+  if (!bloque) return null;
+  const objetivo = trabajoObjetivoSeg(bloque.prescripcion);
+  if (objetivo == null) return null;
+  const inicio = state.serieInicioMs[idx];
+  if (inicio == null) return null;
+  return Math.max(0, inicio + objetivo * 1000 - ahoraMs);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -175,11 +246,21 @@ export function completarSerie(
   const serieInicioMs = { ...state.serieInicioMs };
   delete serieInicioMs[idx];
 
+  // Actualizar ultimoLog[idx] con los valores registrados (para prefill de la próxima serie)
+  const prevLog = state.ultimoLog[idx] ?? {};
+  const nuevoLog = {
+    ...(reg?.reps    != null ? { reps:    reg.reps }    : prevLog.reps    != null ? { reps:    prevLog.reps }    : {}),
+    ...(reg?.cargaKg != null ? { cargaKg: reg.cargaKg } : prevLog.cargaKg != null ? { cargaKg: prevLog.cargaKg } : {}),
+  };
+
   const next: EntrenarState = {
     ...state,
     seriesHechas: { ...state.seriesHechas, [idx]: hechas },
     registro: { ...state.registro, [idx]: nuevoRegistro },
     serieInicioMs,
+    ultimoLog: Object.keys(nuevoLog).length > 0
+      ? { ...state.ultimoLog, [idx]: nuevoLog }
+      : state.ultimoLog,
   };
 
   if (hechas < objetivo) {
@@ -229,6 +310,36 @@ export function ajustarDescanso(state: EntrenarState, deltaSeg: number): Entrena
   if (!state.descanso) return state;
   const durMs = Math.max(0, state.descanso.durMs + deltaSeg * 1000);
   return { ...state, descanso: { ...state.descanso, durMs } };
+}
+
+/**
+ * Sella el inicio de la serie del bloque `idx` si todavía no lo tiene (y no
+ * hay descanso en curso). Llamar al montar la sesión y al cambiar de bloque:
+ * hoy `serieInicioMs` solo se setea al salir del descanso, así que la
+ * primera serie de la sesión (o de un bloque al que se entra directo) queda
+ * sin inicio. No pisa un inicio ya sellado (volver atrás con los dots no
+ * reinicia el reloj de trabajo).
+ */
+export function asegurarInicioSerie(
+  state: EntrenarState,
+  idx: number,
+  now: number = Date.now(),
+): EntrenarState {
+  if (state.descanso) return state;
+  if (state.serieInicioMs[idx] != null) return state;
+  return { ...state, serieInicioMs: { ...state.serieInicioMs, [idx]: now } };
+}
+
+/**
+ * Extender/recortar el cronómetro de trabajo en curso del bloque `idx`
+ * (delta en segundos, +/-). Espejo de `ajustarDescanso`: como el objetivo
+ * de trabajo sale de la prescripción (no del estado), "sumar tiempo" es
+ * correr el inicio sellado hacia adelante. No-op si el bloque no arrancó.
+ */
+export function ajustarTrabajo(state: EntrenarState, idx: number, deltaSeg: number): EntrenarState {
+  const inicio = state.serieInicioMs[idx];
+  if (inicio == null) return state;
+  return { ...state, serieInicioMs: { ...state.serieInicioMs, [idx]: inicio + deltaSeg * 1000 } };
 }
 
 /** Ir a un bloque puntual (tap en el dot de progreso). */

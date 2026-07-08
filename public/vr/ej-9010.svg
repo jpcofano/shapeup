@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Beat the Beats: guante + esquives laterales + nota -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <g fill="#22d3ee">
+    <ellipse cx="180" cy="150" rx="46" ry="40"/>
+    <ellipse cx="142" cy="138" rx="15" ry="13"/>
+    <rect x="160" y="182" width="40" height="28" rx="10"/>
+  </g>
+  <g fill="none" stroke="#9aa4b2" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="260,110 290,130 260,150"/>
+    <polyline points="260,150 290,170 260,190"/>
+  </g>
+  <g fill="#f5f7fa">
+    <circle cx="300" cy="205" r="11"/>
+    <rect x="309" y="165" width="5" height="42"/>
+  </g>
+</svg>

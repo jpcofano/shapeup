@@ -6,6 +6,8 @@ import {
   deshacerSerie as _deshacerSerie,
   saltarDescanso as _saltarDescanso,
   ajustarDescanso as _ajustarDescanso,
+  asegurarInicioSerie as _asegurarInicioSerie,
+  ajustarTrabajo as _ajustarTrabajo,
   irABloque as _irABloque,
   siguienteBloque as _siguienteBloque,
   anteriorBloque as _anteriorBloque,
@@ -54,6 +56,12 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
     },
     ajustarDescanso(deltaSeg: number) {
       dispatch((s) => _ajustarDescanso(s, deltaSeg));
+    },
+    asegurarInicioSerie(idx: number) {
+      dispatch((s) => _asegurarInicioSerie(s, idx));
+    },
+    ajustarTrabajo(idx: number, deltaSeg: number) {
+      dispatch((s) => _ajustarTrabajo(s, idx, deltaSeg));
     },
     irABloque(idx: number) {
       dispatch((s) => _irABloque(s, idx));

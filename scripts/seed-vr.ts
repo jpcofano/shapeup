@@ -280,6 +280,10 @@ function aEjercicio(j: EjVR): Record<string, unknown> {
     puntosClave: j.puntosClave,
     erroresComunes: j.erroresComunes,
     descansoSugeridoSeg: 0,           // cardio continuo: el descanso lo define la prescripción
+    // Ilustración SVG original (P51) — el owner puede pisar esto con URLs de
+    // sus propios screenshots editando `imagenes` a mano; no hay arte oficial
+    // de los juegos acá por copyright.
+    imagenes: [`/vr/${j.idEjercicio.toLowerCase()}.svg`],
     sinonimos: j.sinonimos,
     fuente: "Plan ShapeUp",
     fuenteId: canon(j.nombre).replace(/ /g, "-"),

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Racket Fury: paleta de ping pong + pelota -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <g transform="translate(170,150) rotate(-30)">
+    <ellipse cx="0" cy="-40" rx="44" ry="52" fill="#22d3ee"/>
+    <rect x="-8" y="10" width="16" height="80" rx="8" fill="#9aa4b2"/>
+  </g>
+  <circle cx="290" cy="90" r="16" fill="#f5f7fa"/>
+  <g stroke="#9aa4b2" stroke-width="4" stroke-linecap="round">
+    <line x1="255" y1="120" x2="235" y2="140"/>
+    <line x1="265" y1="130" x2="248" y2="152"/>
+  </g>
+</svg>

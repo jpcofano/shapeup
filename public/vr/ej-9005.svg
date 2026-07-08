@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Synth Riders: rieles de ritmo + notas -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <path d="M 60 110 Q 140 70 200 110 T 340 110" fill="none" stroke="#9aa4b2" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 60 190 Q 140 230 200 190 T 340 190" fill="none" stroke="#9aa4b2" stroke-width="8" stroke-linecap="round"/>
+  <g fill="#22d3ee">
+    <circle cx="150" cy="105" r="13"/>
+    <rect x="160" y="60" width="5" height="48"/>
+    <circle cx="260" cy="195" r="13"/>
+    <rect x="270" y="150" width="5" height="48"/>
+  </g>
+</svg>

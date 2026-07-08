@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- PowerBeatsVR: guante + piernas en sentadilla -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <g fill="#9aa4b2">
+    <path d="M 160 230 L 145 160 Q 145 145 165 145 L 235 145 Q 255 145 255 160 L 240 230 Z"/>
+  </g>
+  <g fill="#22d3ee">
+    <ellipse cx="200" cy="110" rx="46" ry="40"/>
+    <ellipse cx="240" cy="98" rx="15" ry="13"/>
+    <rect x="182" y="142" width="36" height="26" rx="10"/>
+  </g>
+</svg>

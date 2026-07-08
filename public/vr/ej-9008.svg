@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Kayak VR: casco de kayak + remo cruzado + agua -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <path d="M 80 170 Q 200 130 320 170 Q 200 190 80 170 Z" fill="#22d3ee"/>
+  <g stroke="#9aa4b2" stroke-width="9" stroke-linecap="round">
+    <line x1="130" y1="110" x2="270" y2="200"/>
+  </g>
+  <g fill="#9aa4b2">
+    <ellipse cx="126" cy="106" rx="20" ry="10" transform="rotate(35 126 106)"/>
+    <ellipse cx="274" cy="204" rx="20" ry="10" transform="rotate(35 274 204)"/>
+  </g>
+  <g stroke="#f5f7fa" stroke-width="4" fill="none" opacity="0.5">
+    <path d="M 60 210 Q 120 220 180 210 T 300 210"/>
+    <path d="M 70 225 Q 130 235 190 225 T 310 225"/>
+  </g>
+</svg>

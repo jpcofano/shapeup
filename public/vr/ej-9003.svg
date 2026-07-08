@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <!-- Les Mills Bodycombat: guante de boxeo + patada -->
+  <rect width="400" height="300" fill="#1e2130"/>
+  <g fill="#22d3ee">
+    <ellipse cx="140" cy="150" rx="46" ry="40"/>
+    <ellipse cx="102" cy="140" rx="16" ry="14"/>
+    <rect x="118" y="182" width="44" height="30" rx="10"/>
+  </g>
+  <g fill="none" stroke="#9aa4b2" stroke-width="16" stroke-linecap="round">
+    <path d="M 250 200 Q 270 150 240 120"/>
+    <path d="M 240 120 L 300 100"/>
+  </g>
+</svg>

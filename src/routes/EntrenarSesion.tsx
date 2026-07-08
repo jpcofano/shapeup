@@ -9,20 +9,17 @@ import { finalizarSesion } from "../data/historial";
 import { crearSesion, iniciarSesion } from "../data/sesiones";
 import { useAuth } from "../auth/useAuth";
 import {
-  rutinaCompleta, seriesObjetivo,
+  rutinaCompleta, seriesObjetivo, valorPrefillSerie,
 } from "../lib/entrenarState";
 import { useEntrenarState } from "../hooks/useEntrenarState";
+import { useWakeLock } from "../hooks/useWakeLock";
+import { unlockAudio } from "../lib/audioAlert";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
+import { SerieTimer } from "../components/entrenar/SerieTimer";
+import { TiempoTotal } from "../components/entrenar/TiempoTotal";
 import { BloqueGuiado } from "../components/entrenar/BloqueGuiado";
 import { BloqueScroll } from "../components/entrenar/BloqueScroll";
-
-function lunesDeSemana(hoy: Date): string {
-  const dia = hoy.getDay();
-  const diff = dia === 0 ? -6 : 1 - dia;
-  const d = new Date(hoy);
-  d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
-}
+import { lunesDeSemana, ymdLocal } from "../lib/semana";
 
 /**
  * Pantalla de entrenamiento — fullscreen, fuera del AppShell.
@@ -55,6 +52,12 @@ export function EntrenarSesion() {
   const session    = useEntrenarState(sessionKey, rutina);
   const state      = session.state;
 
+  // Mantener pantalla encendida durante toda la sesión
+  useWakeLock(!loading && !!rutina);
+
+  // Bloque actual (declarado acá, después de state, para que el useEffect de prefill pueda usarlo)
+  const blq = rutina?.bloques[state.bloqueActual];
+
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
@@ -67,6 +70,27 @@ export function EntrenarSesion() {
     ro.observe(el);
     return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
   }, [state.descanso, state.bloqueActual]);
+
+  // Prefill log rápido desde la prescripción / último valor registrado al cambiar de bloque
+  useEffect(() => {
+    if (!rutina || !blq || blq.modalidad !== "Fuerza") {
+      setLogReps(""); setLogCarga(""); return;
+    }
+    const { reps, cargaKg } = valorPrefillSerie(rutina, state.bloqueActual, state);
+    setLogReps(reps != null ? String(reps) : "");
+    setLogCarga(cargaKg != null ? String(cargaKg) : "");
+  // state.ultimoLog cambia al completar una serie pero NO queremos re-setear los
+  // inputs (el usuario puede estar editando); solo re-seeda al cambiar de bloque.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.bloqueActual, blq?.idEjercicio, rutina]);
+
+  // Sella el inicio del cronómetro de trabajo al montar y al cambiar de bloque
+  // (serie 1 de la sesión no tenía inicio hasta ahora; ver ADR de P51).
+  useEffect(() => {
+    if (!rutina) return;
+    session.asegurarInicioSerie(state.bloqueActual);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.bloqueActual, rutina]);
 
   // Cargar rutina, pre-fetch ejercicios y crear sesión en Firestore
   useEffect(() => {
@@ -87,10 +111,10 @@ export function EntrenarSesion() {
       setCatalogo(map);
 
       // Crear sesión real (Programada → En curso) para que finalizarSesion la cierre
-      const hoy    = new Date();
-      const lunes  = lunesDeSemana(hoy);
+      const hoy     = new Date();
+      const lunes   = lunesDeSemana(hoy);
       const domingo = new Date(hoy); domingo.setDate(hoy.getDate() + (7 - (hoy.getDay() || 7)));
-      const semanaFin = domingo.toISOString().slice(0, 10);
+      const semanaFin = ymdLocal(domingo);
       const sesRes = await crearSesion({
         miembro: memberId, rutinaId, nombreRutina: rutina.nombre,
         tipoSeleccion: "rutina", semanaInicio: lunes, semanaFin,
@@ -190,7 +214,6 @@ export function EntrenarSesion() {
   }
 
   // ── Bloque actual ─────────────────────────────────────────────────────────
-  const blq      = rutina.bloques[state.bloqueActual];
   const ejercicio = blq ? catalogo.get(blq.idEjercicio) : undefined;
 
   // Valores para el log rápido
@@ -206,19 +229,21 @@ export function EntrenarSesion() {
     setSeriePulsing(true);
     window.setTimeout(() => setSeriePulsing(false), 220);
     session.completarSerie(state.bloqueActual, getLogValues());
-    setLogReps("");
-    setLogCarga("");
+    // No reset: los valores quedan para la próxima serie del mismo bloque
+    // (herencia). El useEffect los actualiza solo al cambiar de bloque.
   }
 
   // ── Render modo guiado ────────────────────────────────────────────────────
   return (
-    <div className="workout-screen">
+    // onPointerDown desbloquea el AudioContext en el primer toque del usuario
+    <div className="workout-screen" onPointerDown={unlockAudio}>
       {/* Header */}
       <div className="workout-header">
         <button className="btn-icon-sm" onClick={() => navigate("/entrenar")} title="Salir">
           <X size={18} />
         </button>
         <p className="workout-title">{rutina.nombre}</p>
+        <TiempoTotal startMs={startRef.current} estimadoMin={rutina.duracionEstimadaMin} />
         <button
           className="btn-icon-sm"
           onClick={session.toggleModo}
@@ -258,6 +283,15 @@ export function EntrenarSesion() {
                 onSkip={session.saltarDescanso}
                 onAjustar={session.ajustarDescanso}
               />
+
+              {/* Cronómetro de trabajo (cardio en intervalos / isométrico) */}
+              {!state.descanso && (
+                <SerieTimer
+                  state={state}
+                  rutina={rutina}
+                  onAjustar={(d) => session.ajustarTrabajo(state.bloqueActual, d)}
+                />
+              )}
 
               {/* Bloque actual */}
               {!state.descanso && (

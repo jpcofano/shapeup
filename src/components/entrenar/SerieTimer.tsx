@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { EntrenarState } from "../../lib/entrenarState";
-import { descansoRestanteMs } from "../../lib/entrenarState";
+import { trabajoRestanteMs } from "../../lib/entrenarState";
+import type { Rutina } from "../../types/models";
 import { playAlarma, playTic } from "../../lib/audioAlert";
 
 interface Props {
   state:     EntrenarState;
-  onSkip:    () => void;
-  onAjustar: (delta: number) => void;
+  rutina:    Rutina;
+  onAjustar: (deltaSeg: number) => void;
 }
 
 function fmt(ms: number): string {
@@ -16,12 +17,21 @@ function fmt(ms: number): string {
   return `${min}:${String(sec).padStart(2, "0")}`;
 }
 
-export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
-  const [remaining, setRemaining] = useState(() => descansoRestanteMs(state));
+/**
+ * Cronómetro de trabajo de la serie en curso — espejo de `DescansoTimer`
+ * (Web Audio + Notification + descartar timers vencidos al montar), pero
+ * cuenta regresiva de `trabajoRestanteMs` en vez de descanso. El beep NO
+ * completa la serie (en VR el visor está puesto; el registro es manual).
+ * Se renderiza `null` si el bloque actual no tiene trabajo cronometrable.
+ */
+export function SerieTimer({ state, rutina, onAjustar }: Props) {
+  const [remaining, setRemaining] = useState(() => trabajoRestanteMs(state, rutina) ?? 0);
   const [flashing,  setFlashing]  = useState(false);
   const beeped      = useRef(false);
   const lastTickSec = useRef<number | null>(null);
   const flashTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const inicioMs = state.serieInicioMs[state.bloqueActual];
 
   useEffect(() => {
     if ("Notification" in window && Notification.permission === "default") {
@@ -30,15 +40,15 @@ export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!state.descanso) return;
+    if (inicioMs == null) return;
     beeped.current      = false;
     lastTickSec.current = null;
+    setRemaining(trabajoRestanteMs(state, rutina) ?? 0);
 
     const id = setInterval(() => {
-      const rem = descansoRestanteMs(state);
+      const rem = trabajoRestanteMs(state, rutina) ?? 0;
       setRemaining(rem);
 
-      // Tic de cuenta regresiva (últimos 3 s)
       if (rem > 0) {
         const sec = Math.ceil(rem / 1000);
         if (sec <= 3 && sec !== lastTickSec.current) {
@@ -62,26 +72,26 @@ export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
       clearInterval(id);
       if (flashTimer.current) clearTimeout(flashTimer.current);
     };
-  }, [state.descanso]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inicioMs, state.bloqueActual]);
 
-  if (!state.descanso) return null;
+  const objetivo = trabajoRestanteMs(state, rutina);
+  if (objetivo == null) return null;
 
   const urgent = remaining <= 5000;
+  const serieNum = (state.seriesHechas[state.bloqueActual] ?? 0) + 1;
 
   return (
     <>
       {flashing && <div className="descanso-flash-overlay" aria-hidden />}
-      <div className="descanso-card">
-        <span className="descanso-label">Descanso</span>
+      <div className="serie-timer-card">
+        <span className="serie-timer-label">Serie {serieNum}</span>
         <span className={`timer-big${urgent ? " urgent" : ""}`}>
           {fmt(remaining)}
         </span>
         <div className="descanso-actions">
           <button className="btn-secondary" style={{ flex: 1 }} onClick={() => onAjustar(30)}>
             +30 s
-          </button>
-          <button className="btn-primary" style={{ flex: 1 }} onClick={onSkip}>
-            Saltar
           </button>
         </div>
       </div>
@@ -91,6 +101,6 @@ export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
 
 function notify() {
   if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("¡A entrenar!", { body: "Descanso terminado.", silent: true });
+    new Notification("¡Tiempo!", { body: "Marcá la serie cuando termines.", silent: true });
   }
 }
