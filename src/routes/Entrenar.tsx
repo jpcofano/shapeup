@@ -9,14 +9,7 @@ import { getHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
-
-function lunesDeSemana(): string {
-  const hoy = new Date();
-  const dia = hoy.getDay();
-  const diff = dia === 0 ? -6 : 1 - dia;
-  hoy.setDate(hoy.getDate() + diff);
-  return hoy.toISOString().slice(0, 10);
-}
+import { lunesDeSemana } from "../lib/semana";
 
 /** Chooser de 3 puertas: próxima sesión · elegir rutina · libre (próximamente). */
 export function Entrenar() {
