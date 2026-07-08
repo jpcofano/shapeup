@@ -513,6 +513,8 @@ export interface SesionCardio {
   sensacion?: number;              // 1–5
   fuente: FuenteDato;
   notas?: string;
+  inicioMs?: number;                // epoch ms inicio de la sesión (import Samsung Health)
+  finMs?: number;                   // epoch ms fin de la sesión
   fechaCreacion?: FirestoreTimestamp;
 }
 
@@ -521,7 +523,10 @@ export interface RegistroSueno {
   miembro: MiembroId;
   fecha: string;
   horas?: number;
-  horaAcostarse?: string;          // "01:00"
+  horaAcostarse?: string;          // "HH:MM" — inicio del tramo
+  horaLevantarse?: string;         // "HH:MM" — fin del tramo
+  inicioMs?: number;               // epoch ms inicio del tramo (para consolidarNoches)
+  finMs?: number;                  // epoch ms fin del tramo
   fuente: FuenteDato;
 }
 
@@ -579,6 +584,7 @@ export interface Recomendacion {
   basadoEn: SenalSalud[];          // qué señales la dispararon
   accionSugerida?: {
     idRutina?: string;
+    idPrograma?: string;           // para deload y acciones que apuntan a un programa
     idEjercicio?: string;
     cambio?: string;               // descripción del ajuste propuesto
   };
