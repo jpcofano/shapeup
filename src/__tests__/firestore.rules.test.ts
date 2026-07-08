@@ -5,7 +5,7 @@ import {
   initializeTestEnvironment, assertFails, assertSucceeds,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -147,6 +147,44 @@ describe("finalizar sesion (miembro no-owner)", () => {
   });
   it("no-miembro no puede escribir historial aunque tenga formato válido", () =>
     assertFails(setDoc(doc(stranger().firestore(), "historial", "H-str-001"), { miembro: "sofia" })));
+});
+
+// ── Borrado de historial/sesiones (E45) ───────────────────────────────────────
+
+describe("borrado de historial y sesiones", () => {
+  it("un miembro borra su propio historial", async () => {
+    const ctx = as("maria");
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "historial", "H-maria-borrar"), { miembro: "maria" }));
+    return assertSucceeds(deleteDoc(doc(ctx.firestore(), "historial", "H-maria-borrar")));
+  });
+  it("un miembro borra su propia sesión", async () => {
+    const ctx = as("federico");
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "sesiones", "SES-fed-borrar"), { miembro: "federico" }));
+    return assertSucceeds(deleteDoc(doc(ctx.firestore(), "sesiones", "SES-fed-borrar")));
+  });
+  it("un miembro borra media de su propio historial", async () => {
+    const ctx = as("sofia");
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "historial", "H-sofia-borrar", "media", "M-1"), { url: "x" }));
+    return assertSucceeds(deleteDoc(doc(ctx.firestore(), "historial", "H-sofia-borrar", "media", "M-1")));
+  });
+  it("no-miembro no puede borrar historial ajeno", async () => {
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "historial", "H-stranger-test"), { miembro: "maria" }));
+    return assertFails(deleteDoc(doc(stranger().firestore(), "historial", "H-stranger-test")));
+  });
+  it("un miembro no puede borrar el historial de otro", async () => {
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "historial", "H-maria-ajeno"), { miembro: "maria" }));
+    return assertFails(deleteDoc(doc(as("sofia").firestore(), "historial", "H-maria-ajeno")));
+  });
+  it("un miembro no puede borrar la sesión de otro", async () => {
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "sesiones", "SES-fed-ajena"), { miembro: "federico" }));
+    return assertFails(deleteDoc(doc(as("maria").firestore(), "sesiones", "SES-fed-ajena")));
+  });
 });
 
 // ── Login (resolución memberId via get() interno) ─────────────────────────────

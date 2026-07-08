@@ -32,14 +32,21 @@ service cloud.firestore {
       allow write: if isOwner();
     }
 
-    // Rutinas, programas y sesiones: cualquier miembro (la visibilidad filtra en la app).
+    // Rutinas, programas: cualquier miembro (la visibilidad filtra en la app).
     match /rutinas/{id}   { allow read, write: if isFamilyMember(); }
     match /programas/{id} { allow read, write: if isFamilyMember(); }
-    match /sesiones/{id}  { allow read, write: if isFamilyMember(); }
+
+    // Sesiones: cualquier miembro crea/actualiza; el borrado es solo de lo propio.
+    match /sesiones/{id} {
+      allow read, create, update: if isFamilyMember();
+      allow delete: if isFamilyMember() && resource.data.miembro == resolveMemberId();
+    }
 
     // Historial (log real) con media opcional (fotos/notas del entrenamiento).
+    // El borrado es solo de lo propio (un miembro no puede borrar el historial de otro).
     match /historial/{id} {
-      allow read, write: if isFamilyMember();
+      allow read, create, update: if isFamilyMember();
+      allow delete: if isFamilyMember() && resource.data.miembro == resolveMemberId();
       match /media/{mediaId} { allow read, write: if isFamilyMember(); }
     }
 

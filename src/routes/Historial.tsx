@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TabBar } from "../components/TabBar";
-import { Trophy } from "lucide-react";
+import { Trophy, Trash2 } from "lucide-react";
 import type { Historial } from "../types/models";
-import { getHistorialMiembro } from "../data/historial";
+import { getHistorialMiembro, borrarSesionHistorial, borrarHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { Bicep } from "../components/Bicep";
 import { Sparkline } from "../components/Sparkline";
@@ -15,7 +15,12 @@ function formatFecha(s: string): string {
 
 // ── Tab Sesiones ──────────────────────────────────────────────────────────────
 
-function SesionesList({ entries, navigate }: { entries: Historial[]; navigate: (to: string) => void }) {
+function SesionesList({ entries, navigate, editMode, onDeleteOne }: {
+  entries: Historial[];
+  navigate: (to: string) => void;
+  editMode: boolean;
+  onDeleteOne: (idHist: string) => void;
+}) {
   if (entries.length === 0) {
     return (
       <div className="empty-state">
@@ -30,7 +35,7 @@ function SesionesList({ entries, navigate }: { entries: Historial[]; navigate: (
           key={h.idHist}
           className="rutina-card"
           style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
-          onClick={() => navigate(`/historial/${h.idHist}`)}
+          onClick={() => { if (!editMode) navigate(`/historial/${h.idHist}`); }}
         >
           <span style={{
             width: 38, height: 38, borderRadius: 10,
@@ -57,8 +62,55 @@ function SesionesList({ entries, navigate }: { entries: Historial[]; navigate: (
               {h.tipo === "libre" && <span className="badge badge-muted">Libre</span>}
             </div>
           </div>
+          {editMode && (
+            <button
+              className="btn-icon-sm danger"
+              style={{ flexShrink: 0 }}
+              onClick={(e) => { e.stopPropagation(); onDeleteOne(h.idHist); }}
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ── Hoja de confirmación ────────────────────────────────────────────────────────
+
+function ConfirmBorrarSheet({ titulo, onConfirm, onCancel, busy }: {
+  titulo: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  busy: boolean;
+}) {
+  return (
+    <div className="modal-backdrop" onClick={onCancel}>
+      <div className="modal-sheet" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header"><span>{titulo}</span></div>
+        <div style={{ padding: 16 }}>
+          <p style={{ margin: "0 0 6px", fontSize: 13, color: "var(--danger)", fontWeight: 600 }}>
+            No se puede deshacer.
+          </p>
+          <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--muted)" }}>
+            Tus rutinas y ejercicios no se tocan.
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn-secondary" style={{ flex: 1 }} onClick={onCancel} disabled={busy}>
+              Cancelar
+            </button>
+            <button
+              className="btn-primary"
+              style={{ flex: 1, background: "var(--danger)" }}
+              onClick={onConfirm}
+              disabled={busy}
+            >
+              {busy ? "Borrando…" : "Borrar"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -183,6 +235,11 @@ export function Historial() {
   const [error,   setError]   = useState<string | null>(null);
   const [tab,     setTab]     = useState<"sesiones" | "progreso">("sesiones");
 
+  const [editMode, setEditMode] = useState(false);
+  const [confirm,  setConfirm]  = useState<{ tipo: "uno"; idHist: string } | { tipo: "todo" } | null>(null);
+  const [borrando, setBorrando] = useState(false);
+  const [errorBorrado, setErrorBorrado] = useState<string | null>(null);
+
   useEffect(() => {
     if (!memberId) return;
     getHistorialMiembro(memberId).then((r) => {
@@ -192,22 +249,72 @@ export function Historial() {
     });
   }, [memberId]);
 
+  async function confirmarBorrado() {
+    if (!confirm || !memberId) return;
+    setBorrando(true);
+    setErrorBorrado(null);
+
+    if (confirm.tipo === "uno") {
+      const r = await borrarSesionHistorial(confirm.idHist);
+      if (r.ok) setEntries((prev) => prev.filter((h) => h.idHist !== confirm.idHist));
+      else      setErrorBorrado(r.error);
+    } else {
+      const r = await borrarHistorialMiembro(memberId);
+      if (r.ok) { setEntries([]); setEditMode(false); }
+      else      setErrorBorrado(r.error);
+    }
+
+    setBorrando(false);
+    setConfirm(null);
+  }
+
   return (
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">Historial</h1>
+        {tab === "sesiones" && entries.length > 0 && (
+          <button className="btn-icon-sm" onClick={() => setEditMode((v) => !v)}>
+            {editMode ? "Listo" : <Trash2 size={18} />}
+          </button>
+        )}
       </div>
 
       <TabBar tabs={HIST_TABS} active={tab} onChange={setTab} style={{ marginBottom: 8 }} />
 
       {loading && <div className="empty-state"><div className="spinner" /></div>}
       {error   && <p className="inline-error">{error}</p>}
+      {errorBorrado && <p className="inline-error">{errorBorrado}</p>}
 
       {!loading && !error && tab === "sesiones" && (
-        <SesionesList entries={entries} navigate={navigate} />
+        <>
+          <SesionesList
+            entries={entries}
+            navigate={navigate}
+            editMode={editMode}
+            onDeleteOne={(idHist) => setConfirm({ tipo: "uno", idHist })}
+          />
+          {editMode && entries.length > 0 && (
+            <button
+              className="btn-secondary"
+              style={{ marginTop: 12, color: "var(--danger)" }}
+              onClick={() => setConfirm({ tipo: "todo" })}
+            >
+              Borrar todo el historial
+            </button>
+          )}
+        </>
       )}
       {!loading && !error && tab === "progreso" && (
         <ProgresoTab entries={entries} />
+      )}
+
+      {confirm && (
+        <ConfirmBorrarSheet
+          titulo={confirm.tipo === "uno" ? "Borrar sesión" : "Borrar todo el historial"}
+          busy={borrando}
+          onCancel={() => setConfirm(null)}
+          onConfirm={confirmarBorrado}
+        />
       )}
     </div>
   );
