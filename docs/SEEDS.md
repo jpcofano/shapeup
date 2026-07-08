@@ -117,3 +117,21 @@ npm run limpiar:salud -- --todos --confirmar
 1. `npm run limpiar:salud -- --miembro=juanpablo --confirmar [--limpiar-biometria]`
 2. Importar el ZIP real nivel biométrico desde la UI.
 3. Validar el resumen de matcheo ("X matcheadas, Y por custom-id, Z por ventana").
+
+---
+
+## Mantenimiento: `rematch:salud`
+
+Re-corre el match biométrico **sin volver a subir el ZIP**, usando `inicioMs`/`finMs` que ya están persistidos en `/cardio` (S-audit-b, P54). Sirve para diagnosticar o reparar historiales que no matchearon durante el import (auditoría S-fix, P55). Sin curvas de FC (no se persisten): la biometría siempre sale con `granularidad: "sesion"`.
+
+```bash
+# Dry-run: imprime el diagnóstico por Historial (matcheó/no, por qué nivel, Δinicio)
+npm run rematch:salud -- --miembro=juanpablo
+
+# Persiste el match con enriquecerHistorial
+npm run rematch:salud -- --miembro=juanpablo --confirmar
+```
+
+**Flags:**
+- `--miembro=<id>` — Obligatorio. IDs válidos: juanpablo, maria, sofia, federico.
+- `--confirmar` — Sin este flag es dry-run: solo imprime el diagnóstico, no escribe.

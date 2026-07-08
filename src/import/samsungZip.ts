@@ -21,7 +21,7 @@ import type { PerfilMiembro } from "../types/models";
 import {
   detectarTipoCsv, detectarTiposMetrica,
   parsearPeso, parsearEjercicio, parsearSueno, parsearMetricas,
-  type MedicionInput, type CardioInput, type SuenoInput,
+  type MedicionInput, type CardioInput, type SuenoInput, type SamsungCsvType,
 } from "./samsungHealth";
 import { parsearLiveData, type LiveDataPoint } from "./samsungLiveData";
 import type { SesionSamsung } from "../lib/matchBiometrico";
@@ -49,6 +49,12 @@ export interface ZipExtraccion {
   csvsPorTipo: Record<string, string>;
   /** CSVs en el ZIP que no se reconocieron (para detectar nuevos formatos). */
   otrosCSVs: string[];
+  /**
+   * Inventario completo: cada archivo relevante del export → qué parser lo tomó,
+   * o "sin parser" si no se reconoció. Diagnóstico para las métricas en cero
+   * (S-fix, P55): con esto se ve qué archivos trae realmente el export del owner.
+   */
+  inventario: { archivo: string; parser: string }[];
 }
 
 // ── Constantes ────────────────────────────────────────────────────────────────
@@ -135,7 +141,7 @@ export async function extraerDesdeZip(
   const result: ZipExtraccion = {
     mediciones: [], cardio: [], sueno: [], metricas: [],
     liveData: {}, shapeUpCustomId: undefined, sesionesSamsung: [],
-    errors: [], csvsLeidos: [], csvsPorTipo: {}, otrosCSVs: [],
+    errors: [], csvsLeidos: [], csvsPorTipo: {}, otrosCSVs: [], inventario: [],
   };
 
   const progress = (pct: number, msg: string) => onProgress?.(pct, msg);
@@ -165,6 +171,10 @@ export async function extraerDesdeZip(
   const csvPorTipo: Record<string, string> = {};   // tipo → path (último ganador)
   const customExercisePath: string[] = [];
   const liveDataIndex: Record<string, string> = {}; // datauuid → path en zip
+  const TIPO_LABEL: Record<Exclude<SamsungCsvType, "unknown">, string> = {
+    weight: "peso", exercise: "cardio", sleep: "sueño",
+  };
+  let liveDataJsonCount = 0;
 
   for (const path of allPaths) {
     const filename = path.split("/").pop() ?? "";
@@ -173,6 +183,7 @@ export async function extraerDesdeZip(
     // CSV de custom_exercise (para encontrar custom_id de ShapeUp)
     if (lower.includes(CUSTOM_EXERCISE_KEY) && lower.endsWith(".csv")) {
       customExercisePath.push(path);
+      result.inventario.push({ archivo: filename, parser: "índice de ejercicios custom (ShapeUp)" });
       continue;
     }
 
@@ -181,23 +192,34 @@ export async function extraerDesdeZip(
       const tipo = detectarTipoCsv(filename);
       if (tipo !== "unknown") {
         csvPorTipo[tipo] = path;
+        result.inventario.push({ archivo: filename, parser: TIPO_LABEL[tipo] });
         continue;
       }
       // Métricas genéricas (también CSV)
       const tipoMeta = detectarTiposMetrica(filename);
       if (tipoMeta) {
         csvPorTipo[`meta:${filename}`] = path;
+        result.inventario.push({ archivo: filename, parser: `métricas: ${tipoMeta.tipos.join(", ")}` });
         continue;
       }
       // CSV no reconocido — guardarlo para diagnóstico
       result.otrosCSVs.push(filename);
+      result.inventario.push({ archivo: filename, parser: "sin parser" });
     }
 
     // live_data.json (nivel biometrico)
     if (nivel === "biometrico" && path.includes(LIVE_DATA_DIR) && lower.endsWith(LIVE_DATA_SUFFIX)) {
       const uuid = datauuidDeRuta(path);
       if (uuid) liveDataIndex[uuid] = path;
+      liveDataJsonCount++;
     }
+  }
+
+  if (liveDataJsonCount > 0) {
+    result.inventario.push({
+      archivo: `${LIVE_DATA_DIR}**/*${LIVE_DATA_SUFFIX} (${liveDataJsonCount} archivos)`,
+      parser: "curvas FC (biométrico)",
+    });
   }
 
   // Guardar diagnóstico: qué archivos encontramos para cada tipo conocido

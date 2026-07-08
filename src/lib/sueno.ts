@@ -34,22 +34,30 @@ function horaAMin(hora: string): number {
 }
 
 /**
+ * Offset fijo de Argentina (UTC-3, sin horario de verano desde 2009).
+ * BUG (S-fix, P55, auditoría P53): antes se leía la hora con getUTCHours()
+ * directo sobre inicioMs, asumiendo que ya venía "corregido" a hora local.
+ * En realidad `epochToMs` (samsungHealth.ts) devuelve un epoch real (UTC
+ * verdadero) cuando el CSV trae `time_offset` — leer sus horas UTC da la
+ * hora de Argentina +3, corriendo el corte de las 15:00 y, en el peor caso,
+ * la fecha asignada un día. Restamos el offset antes de leer hora/fecha.
+ */
+const OFFSET_ARGENTINA_MS = 3 * 60 * 60 * 1000;
+
+/**
  * Asigna un tramo de sueño a la fecha de la mañana correspondiente.
  * Regla principal (con inicioMs): tramo pertenece a la noche de D
- * si arranca entre las 15:00 de D−1 y las 14:59 de D.
+ * si arranca entre las 15:00 de D−1 y las 14:59 de D (hora de Argentina).
  * Regla legacy (sin inicioMs): por horaAcostarse.
  */
 function asignarNoche(registro: RegistroSueno): string {
   if (registro.inicioMs != null) {
-    // Convertir epoch ms a hora local (usamos UTC+0 ya que el epoch fue corregido)
-    const d = new Date(registro.inicioMs);
-    const h = d.getUTCHours();
-    const min = d.getUTCMinutes();
-    const horaMin = h * 60 + min;
-    const fechaInicioStr = d.toISOString().slice(0, 10); // YYYY-MM-DD del inicio
-    // Arranca entre 00:00 y 14:59 → mañana de ese mismo día
+    const local = new Date(registro.inicioMs - OFFSET_ARGENTINA_MS);
+    const horaMin = local.getUTCHours() * 60 + local.getUTCMinutes();
+    const fechaInicioStr = local.toISOString().slice(0, 10); // YYYY-MM-DD local del inicio
+    // Arranca entre 00:00 y 14:59 (local) → mañana de ese mismo día
     if (horaMin < 15 * 60) return fechaInicioStr;
-    // Arranca entre 15:00 y 23:59 → mañana del día siguiente
+    // Arranca entre 15:00 y 23:59 (local) → mañana del día siguiente
     return addDays(fechaInicioStr, 1);
   }
 
@@ -140,4 +148,16 @@ export function promedioNoches(noches: NocheSueno[], n: number): number | undefi
   if (chunk.length < 3) return undefined;
   const sum = chunk.reduce((s, n) => s + n.horasTotal, 0);
   return parseFloat((sum / chunk.length).toFixed(1));
+}
+
+/**
+ * Cuenta cuántas `noches` tienen fecha dentro de los últimos `dias` días,
+ * anclado en `hoy` ("YYYY-MM-DD"). Fuente única de verdad — la usan tanto
+ * la auditoría (`scripts/auditoria-salud.ts`) como `SuenoTab.tsx`, que antes
+ * calculaban esto cada uno por su cuenta con criterios distintos (uno
+ * anclado en `hoy` real, el otro en `noches[0].fecha`) y podían divergir.
+ */
+export function nochesEnVentana(noches: NocheSueno[], hoy: string, dias: number): number {
+  const desde = addDays(hoy, -dias);
+  return noches.filter((n) => n.fecha >= desde && n.fecha <= hoy).length;
 }

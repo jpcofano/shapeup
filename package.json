@@ -25,7 +25,8 @@
     "seed:perfiles": "npx tsx scripts/seed-perfiles.ts",
     "seed:salud-rutinas": "npx tsx scripts/seed-salud-rutinas.ts",
     "limpiar:salud": "npx tsx scripts/limpiar-salud.ts",
-    "auditoria:salud": "npx tsx scripts/auditoria-salud.ts"
+    "auditoria:salud": "npx tsx scripts/auditoria-salud.ts",
+    "rematch:salud": "npx tsx scripts/rematch-salud.ts"
   },
   "dependencies": {
     "firebase": "^11.0.0",

@@ -6,7 +6,11 @@
 //    1. "shapeup"   — _customId en shapeUpCustomIds (sesión propia marcada en el reloj)
 //    2. "historial" — ventana [_startMs, _endMs] solapa ±TOLERANCIA_MS con algún Historial
 //    3. "vr"        — esVR === true (entrenamiento VR de la familia)
-//    4. "actividad" — actividad figura en ACTIVIDADES_SIEMPRE_RELEVANTES
+//    4. "actividad" — actividad figura en ACTIVIDADES_SIEMPRE_RELEVANTES Y
+//                     duracionMin ≥ DURACION_MIN_ACTIVIDAD_MIN (S-fix, P55: guarda
+//                     extra tras el bug de mapeo que etiquetaba caminatas de 1 min
+//                     como "HIIT" — una caminata de 1 min jamás es entrenamiento,
+//                     se llame como se llame)
 //
 //  ADR #009: lógica pura, sin Firebase.
 // ════════════════════════════════════════════════════════════════════════════
@@ -35,10 +39,13 @@ export interface FiltroCardio<T> {
 export const ACTIVIDADES_SIEMPRE_RELEVANTES: string[] = [
   "Body Combat",
   "Aeróbico",           // código 28 en EXERCISE_TYPE
-  "HIIT",               // código 1001
+  "HIIT",                // nombre libre/custom — el código 1001 es Caminata, no HIIT (S-fix, P55)
   "Entrenamiento en circuito",
   "Entrenamiento de fuerza",
 ];
+
+/** Duración mínima (minutos) para que la regla "actividad" aplique (S-fix, P55). */
+export const DURACION_MIN_ACTIVIDAD_MIN = 10;
 
 // ── Función principal ──────────────────────────────────────────────────────
 
@@ -98,8 +105,11 @@ function clasificar<
     return "vr";
   }
 
-  // Regla 4: Actividad siempre relevante
-  if (ACTIVIDADES_SIEMPRE_RELEVANTES.includes(c.actividad)) {
+  // Regla 4: Actividad siempre relevante — pero nunca por debajo del piso de duración
+  if (
+    ACTIVIDADES_SIEMPRE_RELEVANTES.includes(c.actividad) &&
+    c.duracionMin != null && c.duracionMin >= DURACION_MIN_ACTIVIDAD_MIN
+  ) {
     return "actividad";
   }
 

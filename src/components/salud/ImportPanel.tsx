@@ -118,6 +118,24 @@ export function ImportPreview({
                   {preview.zipData.otrosCSVs.length > 5 && ` … +${preview.zipData.otrosCSVs.length - 5}`}
                 </p>
               )}
+              {preview.zipData.inventario.length > 0 && (
+                <details style={{ marginTop: 6 }}>
+                  <summary style={{ fontSize: 11, color: "var(--muted)", cursor: "pointer" }}>
+                    Ver detalle del archivo ({preview.zipData.inventario.length})
+                  </summary>
+                  <div style={{ marginTop: 4, maxHeight: 160, overflowY: "auto" }}>
+                    {preview.zipData.inventario.map((i, idx) => (
+                      <p key={idx} style={{
+                        fontSize: 10.5, margin: "1px 0", display: "flex", justifyContent: "space-between", gap: 8,
+                        color: i.parser === "sin parser" ? "var(--warning)" : "var(--muted)",
+                      }}>
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{i.archivo}</span>
+                        <span style={{ flexShrink: 0 }}>{i.parser}</span>
+                      </p>
+                    ))}
+                  </div>
+                </details>
+              )}
             </div>
           )}
 

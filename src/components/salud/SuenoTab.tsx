@@ -1,7 +1,8 @@
 import { Sparkline } from "../Sparkline";
 import { MiniChart } from "../MiniChart";
 import type { RegistroSueno } from "../../types/models";
-import { consolidarNoches, promedioNoches } from "../../lib/sueno";
+import { consolidarNoches, promedioNoches, nochesEnVentana } from "../../lib/sueno";
+import { ymdLocal } from "../../lib/semana";
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -10,12 +11,6 @@ function Stat({ value, label }: { value: string; label: string }) {
       <span className="stat-label">{label}</span>
     </div>
   );
-}
-
-function addDays(fecha: string, n: number): string {
-  const d = new Date(fecha + "T12:00:00");
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
 }
 
 export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
@@ -32,9 +27,8 @@ export function SuenoTab({ sueno }: { sueno: RegistroSueno[] }) {
   const ultima = noches[0];
   const prom7  = promedioNoches(noches, 7);
 
-  // Noches con dato en los últimos 30 días
-  const hace30 = addDays(noches[0].fecha, -30);
-  const nochesUlt30 = noches.filter((n) => n.fecha >= hace30).length;
+  // Noches con dato en los últimos 30 días (anclado en hoy real, no en la última noche)
+  const nochesUlt30 = nochesEnVentana(noches, ymdLocal(), 30);
 
   // Gráfico: últimas 14 fechas con dato
   const chartData = noches.slice(0, 14)

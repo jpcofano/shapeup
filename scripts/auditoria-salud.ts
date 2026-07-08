@@ -13,6 +13,7 @@
 //  Uso:
 //    npx tsx scripts/auditoria-salud.ts                    # miembro=juanpablo
 //    npx tsx scripts/auditoria-salud.ts --miembro=maria
+//    npx tsx scripts/auditoria-salud.ts --zip=./export.zip # + sección G: inventario del ZIP
 // ════════════════════════════════════════════════════════════════════════════
 
 import { initializeApp, cert } from "firebase-admin/app";
@@ -25,9 +26,10 @@ import { TIPOS_METRICA } from "../src/types/models";
 import type {
   Historial, SesionCardio, MetricaSalud, RegistroSueno, MedicionCorporal, TipoMetrica,
 } from "../src/types/models";
-import { consolidarNoches, promedioNoches } from "../src/lib/sueno";
+import { consolidarNoches, promedioNoches, nochesEnVentana } from "../src/lib/sueno";
 import { calcularResumenSalud, senalPeor, MIN_DATOS_BASELINE } from "../src/lib/resumenSalud";
 import { calcularRecomendacion } from "../src/lib/recomendaciones";
+import { extraerDesdeZip } from "../src/import/samsungZip";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
@@ -50,6 +52,7 @@ if (!(MIEMBROS_VALIDOS as readonly string[]).includes(miembroFlag)) {
   process.exit(1);
 }
 const miembro = miembroFlag as Miembro;
+const zipFlag = argValor("zip");
 
 // ── Init Firebase Admin ───────────────────────────────────────────────────────
 let serviceAccount: unknown;
@@ -297,9 +300,7 @@ function seccionD(sueno: RegistroSueno[], hoy: string): string[] {
   L.push(`- registros crudos: ${sueno.length}`);
   L.push(`- noches consolidadas: ${noches.length}`);
 
-  const desde30 = addDays(hoy, -30);
-  const nochesUlt30 = noches.filter((n) => n.fecha >= desde30 && n.fecha <= hoy);
-  L.push(`- noches con dato en últimos 30 días: ${nochesUlt30.length}/30`);
+  L.push(`- noches con dato en últimos 30 días: ${nochesEnVentana(noches, hoy, 30)}/30`);
 
   const p7  = promedioNoches(noches, 7);
   const p28 = promedioNoches(noches, 28);
@@ -373,6 +374,43 @@ function seccionF(
   return L;
 }
 
+// ── Sección G: Inventario del ZIP (opcional, --zip=<ruta>) ────────────────────
+
+/**
+ * Lee el ZIP del filesystem y corre extraerDesdeZip para diagnosticar qué
+ * archivos trae el export y qué parser (si alguno) los toma. No bloqueante:
+ * si algo falla, la sección lo dice y el resto de la auditoría sigue normal.
+ */
+async function seccionG(rutaZip: string): Promise<string[]> {
+  const L: string[] = [];
+  L.push("## G. Inventario del ZIP\n");
+  try {
+    const buffer = readFileSync(rutaZip);
+    const nombre = rutaZip.split(/[/\\]/).pop() ?? rutaZip;
+    const file   = new File([buffer], nombre);
+    const extraccion = await extraerDesdeZip(file, miembro, "biometrico");
+
+    if (extraccion.errors.length > 0) {
+      L.push(`_Errores durante la extracción:_ ${extraccion.errors.slice(0, 5).join("; ")}\n`);
+    }
+    if (extraccion.inventario.length === 0) {
+      L.push("_No se encontraron archivos reconocibles._\n");
+      return L;
+    }
+    L.push(`- total de archivos inventariados: ${extraccion.inventario.length}`);
+    const sinParser = extraccion.inventario.filter((i) => i.parser === "sin parser");
+    L.push(`- sin parser: ${sinParser.length}`);
+    L.push("");
+    L.push("| archivo | parser |");
+    L.push("|---|---|");
+    for (const i of extraccion.inventario) L.push(`| ${i.archivo} | ${i.parser} |`);
+    L.push("");
+  } catch (e) {
+    L.push(`_No se pudo procesar el ZIP: ${e instanceof Error ? e.message : String(e)}_\n`);
+  }
+  return L;
+}
+
 // ── Runner ────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -405,6 +443,7 @@ async function main(): Promise<void> {
   L.push(...seccionD(sueno, hoy));
   L.push(...seccionE(mediciones));
   L.push(...seccionF(metricas, sueno, mediciones, historial, hoy));
+  if (zipFlag) L.push(...await seccionG(zipFlag));
 
   const contenido = L.join("\n");
   console.log(contenido);

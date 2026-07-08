@@ -208,56 +208,67 @@ export function Salud() {
 
     if (preview.tipo === "zip" && preview.zipData) {
       const z = preview.zipData;
-      let cardioParaImportar = z.cardio as Parameters<typeof importarCardioIdempotente>[0];
-      let cardioFiltrados = 0;
-      if (preview.filtroCardio && !importarTodoCardio) {
-        const { relevantes, descartadas } = preview.filtroCardio;
-        cardioParaImportar = relevantes.map(({ _motivo: _, ...rest }) => rest) as typeof cardioParaImportar;
-        cardioFiltrados = descartadas.length;
-      }
-
-      const [r1, r2, r3, r4] = await Promise.all([
-        z.mediciones.length       > 0 ? importarMedicionesIdempotente(z.mediciones as Parameters<typeof importarMedicionesIdempotente>[0]) : EMPTY_OK,
-        cardioParaImportar.length > 0 ? importarCardioIdempotente(cardioParaImportar)                                                       : EMPTY_OK,
-        z.sueno.length            > 0 ? importarSueno(z.sueno as Parameters<typeof importarSueno>[0])                                       : EMPTY_OK,
-        z.metricas.length         > 0 ? importarMetricas(z.metricas)                                                                         : EMPTY_OK,
-      ]);
-      const importados = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.importados : 0), 0);
-      const omitidos   = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.omitidos   : 0), 0);
-      const firstErr   = [r1, r2, r3, r4].find((r) => !r.ok) as { ok: false; error: string } | undefined;
-
-      const filtradosPart = cardioFiltrados > 0 ? ` · ${cardioFiltrados} filtrados (no relevantes)` : "";
-      let msgBase = importados === 0 && firstErr
-        ? `Error: ${firstErr.error}`
-        : fmtImportMsg(importados, omitidos, `${filtradosPart} desde ZIP`);
-
-      if (z.sesionesSamsung.length > 0) {
-        const enrRes = await enriquecerTrasImport(memberId as MiembroId, z);
-        if (enrRes.ok) {
-          const { matcheadas, porCustomId, porVentana, sinMatch, omitidas } = enrRes.value;
-          if (matcheadas > 0 || sinMatch > 0 || omitidas > 0) {
-            const partes: string[] = [];
-            if (matcheadas > 0) partes.push(`${matcheadas} sesión${matcheadas !== 1 ? "es" : ""} matcheada${matcheadas !== 1 ? "s" : ""} (${porCustomId} por custom-id, ${porVentana} por ventana)`);
-            if (sinMatch    > 0) partes.push(`${sinMatch} sin match`);
-            if (omitidas    > 0) partes.push(`${omitidas} ya estaban enriquecidas`);
-            msgBase += ` · ${partes.join(" · ")}`;
-          }
-        } else {
-          msgBase += ` ⚠ Enriquecimiento: ${enrRes.error}`;
+      try {
+        let cardioParaImportar = z.cardio as Parameters<typeof importarCardioIdempotente>[0];
+        let cardioFiltrados = 0;
+        if (preview.filtroCardio && !importarTodoCardio) {
+          const { relevantes, descartadas } = preview.filtroCardio;
+          cardioParaImportar = relevantes.map(({ _motivo: _, ...rest }) => rest) as typeof cardioParaImportar;
+          cardioFiltrados = descartadas.length;
         }
-      }
 
-      setImportMsg(msgBase);
-      const [fm, fc, fs, fmet] = await Promise.all([
-        getMediciones(memberId),
-        getSesionesCardio(memberId),
-        getRegistrosSueno(memberId),
-        getMetricasSalud(memberId as MiembroId),
-      ]);
-      if (fm.ok)   setMediciones(fm.value);
-      if (fc.ok)   setCardio(fc.value);
-      if (fs.ok)   setSueno(fs.value);
-      if (fmet.ok) setMetricas(fmet.value);
+        const [r1, r2, r3, r4] = await Promise.all([
+          z.mediciones.length       > 0 ? importarMedicionesIdempotente(z.mediciones as Parameters<typeof importarMedicionesIdempotente>[0]) : EMPTY_OK,
+          cardioParaImportar.length > 0 ? importarCardioIdempotente(cardioParaImportar)                                                       : EMPTY_OK,
+          z.sueno.length            > 0 ? importarSueno(z.sueno as Parameters<typeof importarSueno>[0])                                       : EMPTY_OK,
+          z.metricas.length         > 0 ? importarMetricas(z.metricas)                                                                         : EMPTY_OK,
+        ]);
+        const importados = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.importados : 0), 0);
+        const omitidos   = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.omitidos   : 0), 0);
+        const firstErr   = [r1, r2, r3, r4].find((r) => !r.ok) as { ok: false; error: string } | undefined;
+
+        const filtradosPart = cardioFiltrados > 0 ? ` · ${cardioFiltrados} filtrados (no relevantes)` : "";
+        let msgBase = importados === 0 && firstErr
+          ? `Error: ${firstErr.error}`
+          : fmtImportMsg(importados, omitidos, `${filtradosPart} desde ZIP`);
+
+        // El resultado del enriquecimiento SIEMPRE se suma al mensaje — nunca desaparece
+        // en silencio, ni cuando no hay candidatas, ni cuando la llamada tira (S-fix, P55).
+        try {
+          if (z.sesionesSamsung.length > 0) {
+            const enrRes = await enriquecerTrasImport(memberId as MiembroId, z);
+            if (enrRes.ok) {
+              const { matcheadas, porCustomId, porVentana, sinMatch, omitidas } = enrRes.value;
+              const evaluadas = matcheadas + sinMatch + omitidas;
+              const partes: string[] = [];
+              if (matcheadas > 0) partes.push(`${matcheadas} matcheada${matcheadas !== 1 ? "s" : ""} (${porCustomId} por custom-id, ${porVentana} por ventana)`);
+              if (sinMatch    > 0) partes.push(`${sinMatch} sin match`);
+              if (omitidas    > 0) partes.push(`${omitidas} ya estaban enriquecidas`);
+              msgBase += ` · ${evaluadas} sesión${evaluadas !== 1 ? "es" : ""} evaluada${evaluadas !== 1 ? "s" : ""}${partes.length > 0 ? `: ${partes.join(" · ")}` : ""}`;
+            } else {
+              msgBase += ` ⚠ Enriquecimiento: ${enrRes.error}`;
+            }
+          } else {
+            msgBase += " · 0 sesiones con hora de inicio/fin para matchear";
+          }
+        } catch (e) {
+          msgBase += ` ⚠ Enriquecimiento: error inesperado (${e instanceof Error ? e.message : String(e)})`;
+        }
+
+        setImportMsg(msgBase);
+        const [fm, fc, fs, fmet] = await Promise.all([
+          getMediciones(memberId),
+          getSesionesCardio(memberId),
+          getRegistrosSueno(memberId),
+          getMetricasSalud(memberId as MiembroId),
+        ]);
+        if (fm.ok)   setMediciones(fm.value);
+        if (fc.ok)   setCardio(fc.value);
+        if (fs.ok)   setSueno(fs.value);
+        if (fmet.ok) setMetricas(fmet.value);
+      } catch (e) {
+        setImportMsg(`❌ Error inesperado al importar: ${e instanceof Error ? e.message : String(e)}`);
+      }
       return;
     }
 

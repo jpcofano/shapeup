@@ -144,25 +144,45 @@ describe("Regla 3 — VR", () => {
 // ── Regla 4: Allowlist de actividades ─────────────────────────────────────────
 
 describe("Regla 4 — Allowlist de actividades", () => {
-  it("es relevante si la actividad figura en ACTIVIDADES_SIEMPRE_RELEVANTES", () => {
+  it("es relevante si la actividad figura en ACTIVIDADES_SIEMPRE_RELEVANTES y dura ≥10 min", () => {
     for (const act of ACTIVIDADES_SIEMPRE_RELEVANTES) {
-      const items = [cardio({ actividad: act, _startMs: 999_000_000, _endMs: 999_100_000 })];
+      const items = [cardio({ actividad: act, duracionMin: 15, _startMs: 999_000_000, _endMs: 999_100_000 })];
       const { relevantes } = filtrarCardioRelevante(items, [], []);
       expect(relevantes[0]._motivo, `${act} debería ser relevante`).toBe("actividad");
     }
   });
 
   it("no es relevante para una actividad no incluida", () => {
-    const items = [cardio({ actividad: "Yoga", _startMs: 999_000_000, _endMs: 999_100_000 })];
+    const items = [cardio({ actividad: "Yoga", duracionMin: 15, _startMs: 999_000_000, _endMs: 999_100_000 })];
     const { descartadas } = filtrarCardioRelevante(items, [], []);
     expect(descartadas).toHaveLength(1);
   });
 
   it("el match es case-sensitive (nombre exacto de resolverActividad)", () => {
     // "HIIT" ✓ pero "hiit" ✗
-    const items = [cardio({ actividad: "hiit", _startMs: 999_000_000, _endMs: 999_100_000 })];
+    const items = [cardio({ actividad: "hiit", duracionMin: 15, _startMs: 999_000_000, _endMs: 999_100_000 })];
     const { descartadas } = filtrarCardioRelevante(items, [], []);
     expect(descartadas).toHaveLength(1);
+  });
+
+  // S-fix (P55): guarda de duración — regresión del bug "1969 caminatas de 1 min etiquetadas HIIT"
+  it("NO es relevante si dura menos de 10 min, aunque la actividad esté en la allowlist", () => {
+    const items = [cardio({ actividad: "HIIT", duracionMin: 1, _startMs: 999_000_000, _endMs: 999_100_000 })];
+    const { descartadas, relevantes } = filtrarCardioRelevante(items, [], []);
+    expect(relevantes).toHaveLength(0);
+    expect(descartadas).toHaveLength(1);
+  });
+
+  it("NO es relevante si duracionMin es undefined, aunque la actividad esté en la allowlist", () => {
+    const items = [cardio({ actividad: "HIIT", _startMs: 999_000_000, _endMs: 999_100_000 })];
+    const { descartadas } = filtrarCardioRelevante(items, [], []);
+    expect(descartadas).toHaveLength(1);
+  });
+
+  it("SÍ es relevante justo en el piso de 10 min", () => {
+    const items = [cardio({ actividad: "HIIT", duracionMin: 10, _startMs: 999_000_000, _endMs: 999_100_000 })];
+    const { relevantes } = filtrarCardioRelevante(items, [], []);
+    expect(relevantes).toHaveLength(1);
   });
 });
 
@@ -193,6 +213,7 @@ describe("Prioridad de motivos", () => {
     const items = [cardio({
       esVR: true,
       actividad: "HIIT",
+      duracionMin: 15,
       _startMs: 999_000_000,
       _endMs: 999_100_000,
     })];
@@ -236,7 +257,7 @@ describe("No mutación y completitud", () => {
 
 describe("Strippeo de _motivo (patrón del consumidor)", () => {
   it("destructuring elimina _motivo del item antes de persistir", () => {
-    const items = [cardio({ actividad: "HIIT" })];
+    const items = [cardio({ actividad: "HIIT", duracionMin: 15 })];
     const { relevantes } = filtrarCardioRelevante(items, [], []);
     const [{ _motivo, ...sinMotivo }] = relevantes;
     expect(_motivo as MotivoRelevancia).toBe("actividad");

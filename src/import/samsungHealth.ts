@@ -211,14 +211,26 @@ export function derivarZona(
 
 // ── Tipos de ejercicio Samsung Health ─────────────────────────────────────────
 // Subconjunto de los más comunes. El resto cae en "Otro (N)".
+//
+// BUG (S-fix, P55, auditoría P53): "1001" estaba mapeado a "HIIT" y "1002" a
+// "Entrenamiento" — códigos inventados, nunca verificados contra un export real.
+// 1001 es el código estándar de Samsung Health para CAMINATA auto-detectada:
+// eso etiquetaba como "HIIT" 1969/1975 filas de cardio (caminatas de 1-16 min),
+// que en cascada pasaban el filtro selectivo porque "HIIT" está en
+// ACTIVIDADES_SIEMPRE_RELEVANTES (lib/importSelectivo.ts). Corregido a los
+// códigos confirmados por el owner contra su export real; el resto de la
+// tabla (códigos de 2 dígitos) no está verificado — si algún día se confirma
+// que también está mal, corregir acá, nunca "acomodar" aguas abajo.
 const EXERCISE_TYPE: Record<string, string> = {
   "11": "Caminata",  "12": "Carrera",        "13": "Ciclismo",
   "14": "Natación",  "15": "Ciclismo indoor", "28": "Aeróbico",
   "29": "Fitness",   "30": "Baile",           "39": "Fútbol",
   "44": "Básquet",   "45": "Tenis",           "53": "Yoga",
   "56": "Escalada",  "58": "Esquí",           "68": "Kayak",
-  "1001": "HIIT",    "1002": "Entrenamiento", "1003": "Pesas",
-  "10005": "Bailando",
+  "1001": "Caminata",   // confirmado: código estándar Samsung de auto-detección
+  "1002": "Carrera",    // confirmado
+  "11007": "Ciclismo",  // confirmado
+  "13001": "Senderismo", // confirmado
 };
 
 /**

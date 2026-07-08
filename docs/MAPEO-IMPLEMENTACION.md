@@ -72,10 +72,81 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P51 (S2b) | Fixes de prueba real: `resolverActividad` tipo 0→"ShapeUp", CardioTab legible (redondeo, zona, meses, "ver más"), versión en Perfil | ✅ | 2026-07-06 |
 | P52 (S2c) | Sueño consolidado por noche (`consolidarNoches`), import único siempre biométrico, SuenoTab una fila por noche | ✅ | 2026-07-06 |
 | P51b (VR) | VR como intervalos: series + cronómetro de trabajo + tiempo total + ilustraciones SVG (ADR #024) | ✅ | 2026-07-07 |
+| P53 (S-audit) | `scripts/auditoria-salud.ts`: auditoría read-only de cobertura/calidad de datos de salud | ✅ | 2026-07-08 |
+| P54 (S-audit-b) | Persistir `inicioMs`/`finMs` de sesión en `/cardio`, hallazgo de la auditoría | ✅ | 2026-07-08 |
+| P55 (S-fix) | Mapeo de actividades (bug HIIT falso), `rematch-salud.ts`, inventario del ZIP, fix noches 0/30 | ✅ | 2026-07-08 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-07-08] P55 (S-fix) — Mapeo de actividades, re-match sin ZIP, inventario e higiene
+
+> Prompt `docs/prompts/55-s-fix-mapeo-rematch-inventario.md`. Origen: auditoría
+> real del owner sobre P53 — 4 hallazgos independientes, cada uno con su causa
+> raíz propia (nada se "acomodó" aguas abajo).
+
+1. **Mapeo de actividades (bug raíz):** `src/import/samsungHealth.ts` —
+   `EXERCISE_TYPE["1001"]` estaba mapeado a `"HIIT"` (inventado, nunca
+   verificado). 1001 es el código estándar de Samsung Health para **Caminata**
+   auto-detectada → 1969/1975 filas de cardio (caminatas de 1-16 min) salían
+   como "HIIT" y en cascada pasaban el filtro selectivo porque "HIIT" está en
+   `ACTIVIDADES_SIEMPRE_RELEVANTES`. Corregido a los códigos confirmados por
+   el owner: `1001`→Caminata, `1002`→Carrera, `11007`→Ciclismo,
+   `13001`→Senderismo (se sacaron `1003`/`10005`, nunca verificados). `src/lib/importSelectivo.ts`
+   suma una guarda de duración: la regla "actividad" ahora exige
+   `duracionMin >= DURACION_MIN_ACTIVIDAD_MIN` (10 min) — una caminata de 1
+   min no es entrenamiento aunque el nombre coincida con la allowlist.
+2. **`scripts/rematch-salud.ts`** (nuevo) — re-corre el match biométrico sin
+   ZIP, contra `/cardio` (que ya persiste `inicioMs`/`finMs` desde P54).
+   Construye `SesionSamsung[]` desde los docs de cardio (`datauuid` del
+   `idCardio`, `customId` sintético `"__shapeup__"` para las sesiones
+   `actividad==="ShapeUp"`), reusa `elegirSesionSamsung`/`ventanaDeHistorial`/
+   `calcularEnriquecimiento` **sin tocarlos**. Dry-run imprime diagnóstico por
+   Historial (matcheó/no, por qué nivel, Δinicio en min); `--confirmar`
+   persiste con `granularidad: "sesion"` (sin curvas, no están guardadas).
+   Alias `npm run rematch:salud`.
+3. **Enriquecimiento invisible en el import:** `src/routes/Salud.tsx` →
+   `confirmarImport` — el bloque de enriquecimiento solo corría si
+   `sesionesSamsung.length > 0` y, si `enriquecerTrasImport` tiraba, la
+   excepción quedaba sin capturar: `setImportMsg` (después en la función)
+   nunca se ejecutaba y el resumen entero desaparecía en silencio. Ahora:
+   try/catch alrededor de todo el flujo de import y otro específico del
+   enriquecimiento; el resumen **siempre** suma una línea de matcheo (incluye
+   el caso "0 sesiones con hora de inicio/fin para matchear" y el error
+   textual si algo tira) — nunca queda en blanco.
+4. **Inventario del ZIP:** `src/import/samsungZip.ts` — `ZipExtraccion` suma
+   `inventario: {archivo, parser}[]`, construido en el mismo loop que ya
+   arma `csvsPorTipo`/`otrosCSVs` (weight/exercise/sleep → su parser;
+   `meta:*` → `"métricas: <tipos>"`; custom_exercise → índice ShapeUp; no
+   reconocido → `"sin parser"`; los `live_data.json` se agregan en una sola
+   fila con el conteo). `ImportPanel.tsx` lo muestra plegado (`<details>`,
+   "Ver detalle del archivo"). `auditoria-salud.ts` suma sección G opcional
+   (`--zip=<ruta>`, lee el ZIP con `fs` + `File` de Node, no bloqueante si
+   falla). No se agregaron parsers nuevos para las métricas en cero —
+   diagnóstico primero, a propósito.
+5. **Bug "0/30 noches en últimos 30 días":** `src/lib/sueno.ts` →
+   `asignarNoche` leía `getUTCHours()` directo sobre `inicioMs`, asumiendo
+   que ya venía "corregido" a hora local — pero `epochToMs` devuelve un
+   epoch UTC real cuando el CSV trae `time_offset`, así que esas horas
+   estaban leyendo Argentina+3, corriendo el corte de las 15:00 (tramos entre
+   12:00 y 14:59 hora local se corrían un día de más). Fix: resta
+   `OFFSET_ARGENTINA_MS` (3h fijas, sin horario de verano) antes de leer
+   hora/fecha. Nueva función `nochesEnVentana(noches, hoy, dias)` — fuente
+   única de verdad para "noches en los últimos N días", reemplaza el cálculo
+   duplicado (y con criterios distintos) que tenían `auditoria-salud.ts`
+   (anclado en `hoy` real) y `SuenoTab.tsx` (anclado en `noches[0].fecha`).
+6. **Tests:** 12 nuevos — `samsungHealth.test.ts` (mapeo 1001/1002/11007/13001,
+   caso real 16min/1.12km no sale HIIT), `importSelectivo.test.ts` (guarda de
+   duración: <10min descarta, exactamente 10min pasa, sin duracionMin
+   descarta), `sueno.test.ts` (franja 12:00-14:59 no se corre, 23:00 sí se
+   corre, `nochesEnVentana` con el caso exacto de la auditoría → 5/30).
+   **Total: 434 tests verdes.**
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (434 tests, +12
+  nuevos). `scripts/rematch-salud.ts` y la sección G de la auditoría no se
+  pudieron probar contra Firestore real en este entorno (sin
+  `service-account.json`) — quedan para que el owner los corra siguiendo el
+  flujo del prompt.
 
 ### [2026-07-08] P54 (S-audit-b) — Persistir inicio/fin de sesión en `/cardio`
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { consolidarNoches, promedioNoches } from "./sueno";
+import { consolidarNoches, promedioNoches, nochesEnVentana } from "./sueno";
 import type { RegistroSueno } from "../types/models";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -136,17 +136,66 @@ describe("consolidarNoches — legacy sin inicioMs", () => {
 // ── consolidarNoches — con inicioMs ──────────────────────────────────────────
 
 describe("consolidarNoches — con inicioMs (regla principal)", () => {
-  it("inicio a las 00:10 UTC → noche de esa misma fecha", () => {
-    // inicioMs en UTC = 00:10 del día D → hora local -3 sería 21:10 del D-1,
-    // pero la lógica usa UTC directo del epoch ms
+  it("inicio a las 00:10 hora Argentina (03:10 UTC) → noche de esa misma fecha", () => {
     const inicioMs = new Date("2026-07-03T03:10:00.000Z").getTime(); // 00:10 ART = 03:10 UTC
     const s: RegistroSueno = {
       idSueno: "x", miembro: "juanpablo", fecha: "2026-07-03",
       horas: 6.0, inicioMs, fuente: "samsung-health-csv",
     };
     const noches = consolidarNoches([s]);
-    // 03:10 UTC = 0*60+10 minutos < 15*60 → fecha del UTC ("2026-07-03") → esa fecha
+    // 00:10 hora Argentina < 15:00 → fecha local del inicio, sin correr al día siguiente
     expect(noches[0].fecha).toBe("2026-07-03");
+  });
+
+  // S-fix (P55): regresión del bug "corrimiento de noche" — antes se leía la hora
+  // en UTC directo sobre un epoch ya corregido a UTC real, corriendo el corte de
+  // las 15:00 en +3h. Esta franja (12:00–14:59 hora Argentina) es la que quedaba
+  // mal clasificada: caía del lado "≥15:00" y se corría un día de más.
+  it("inicio a las 13:00 hora Argentina (16:00 UTC) → NO se corre al día siguiente", () => {
+    const inicioMs = new Date("2026-07-03T16:00:00.000Z").getTime(); // 13:00 ART = 16:00 UTC
+    const s: RegistroSueno = {
+      idSueno: "x", miembro: "juanpablo", fecha: "2026-07-03",
+      horas: 3.5, inicioMs, fuente: "samsung-health-csv",
+    };
+    const noches = consolidarNoches([s]);
+    expect(noches[0].fecha).toBe("2026-07-03");
+  });
+
+  it("inicio a las 23:00 hora Argentina (02:00 UTC del día siguiente) → mañana del día siguiente", () => {
+    const inicioMs = new Date("2026-07-04T02:00:00.000Z").getTime(); // 23:00 ART (jul 3) = 02:00 UTC (jul 4)
+    const s: RegistroSueno = {
+      idSueno: "x", miembro: "juanpablo", fecha: "2026-07-03",
+      horas: 7.0, inicioMs, fuente: "samsung-health-csv",
+    };
+    const noches = consolidarNoches([s]);
+    expect(noches[0].fecha).toBe("2026-07-04");
+  });
+});
+
+// ── nochesEnVentana ───────────────────────────────────────────────────────────
+
+describe("nochesEnVentana", () => {
+  it("caso real de la auditoría: noches 2026-07-01..05, hoy 2026-07-08 → 5/30, no 0/30", () => {
+    const noches = [
+      { fecha: "2026-07-05", horasTotal: 7.2, horasNoche: 7.2, tramos: 1 },
+      { fecha: "2026-07-04", horasTotal: 8.0, horasNoche: 8.0, tramos: 1 },
+      { fecha: "2026-07-03", horasTotal: 6.5, horasNoche: 6.5, tramos: 1 },
+      { fecha: "2026-07-02", horasTotal: 7.5, horasNoche: 7.5, tramos: 1 },
+      { fecha: "2026-07-01", horasTotal: 7.0, horasNoche: 7.0, tramos: 1 },
+    ];
+    expect(nochesEnVentana(noches, "2026-07-08", 30)).toBe(5);
+  });
+
+  it("no cuenta noches fuera de la ventana", () => {
+    const noches = [
+      { fecha: "2026-05-01", horasTotal: 7, horasNoche: 7, tramos: 1 },
+      { fecha: "2026-07-05", horasTotal: 7, horasNoche: 7, tramos: 1 },
+    ];
+    expect(nochesEnVentana(noches, "2026-07-08", 30)).toBe(1);
+  });
+
+  it("sin noches → 0", () => {
+    expect(nochesEnVentana([], "2026-07-08", 30)).toBe(0);
   });
 });
 

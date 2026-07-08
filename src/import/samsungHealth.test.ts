@@ -122,13 +122,35 @@ describe("parsearEjercicio", () => {
   it("sin errores",    () => expect(errors).toHaveLength(0));
 
   it("usa el título libre si está presente", () => expect(items[0].actividad).toBe("Caminata matutina"));
-  it("resuelve code 1001 como HIIT cuando no hay título",  () => expect(items[1].actividad).toBe("HIIT"));
+  it("resuelve code 1001 como Caminata cuando no hay título",  () => expect(items[1].actividad).toBe("Caminata"));
 
   it("convierte duración de ms a min (1800000ms → 30min)", () => expect(items[0].duracionMin).toBe(30));
   it("convierte distancia de m a km (3200m → 3.2km)",      () => expect(items[0].distanciaKm).toBe(3.2));
 
   it("deriva zonaPrincipal Z2 para FC 115 con zonas dadas", () => expect(items[0].zonaPrincipal).toBe("Z2"));
   it("deriva zonaPrincipal Z4 para FC 142",                  () => expect(items[1].zonaPrincipal).toBe("Z4"));
+});
+
+// ── Mapeo de exercise_type (S-fix, P55) — regresión del bug "HIIT" falso ──────
+
+describe("resolverActividad — mapeo de exercise_type corregido", () => {
+  const CSV_AUDITORIA = `com.samsung.shealth.exercise,6000007,15
+datauuid,com.samsung.shealth.exercise.start_time,com.samsung.shealth.exercise.time_offset,com.samsung.shealth.exercise.exercise_type,title,com.samsung.shealth.exercise.duration,com.samsung.shealth.exercise.calorie,com.samsung.shealth.exercise.mean_heart_rate,com.samsung.shealth.exercise.max_heart_rate,com.samsung.shealth.exercise.distance
+uuid-audit-001,1710488400000,UTC-0300,1001,,960000,180,110,120,1120
+uuid-audit-002,1710574800000,UTC-0300,1002,,1800000,220,140,160,4000
+uuid-audit-003,1710661200000,UTC-0300,11007,,3600000,300,125,145,25000
+uuid-audit-004,1710747600000,UTC-0300,13001,,5400000,450,130,150,8000`;
+  const { items } = parsearEjercicio(CSV_AUDITORIA, "juanpablo");
+
+  it("código 1001 (16 min, 1.12 km, auto-detectado) resuelve Caminata, no HIIT", () => {
+    expect(items[0].actividad).toBe("Caminata");
+    expect(items[0].actividad).not.toBe("HIIT");
+    expect(items[0].duracionMin).toBe(16);
+    expect(items[0].distanciaKm).toBe(1.12);
+  });
+  it("código 1002 → Carrera",     () => expect(items[1].actividad).toBe("Carrera"));
+  it("código 11007 → Ciclismo",   () => expect(items[2].actividad).toBe("Ciclismo"));
+  it("código 13001 → Senderismo", () => expect(items[3].actividad).toBe("Senderismo"));
 });
 
 // ── parsearSueno ──────────────────────────────────────────────────────────────
@@ -280,7 +302,7 @@ describe("parsearEjercicio — formato datetime string (Samsung Health 2024+)", 
   });
   it("actividad resuelta correctamente", () => {
     expect(items[0].actividad).toBe("Caminata matutina");
-    expect(items[1].actividad).toBe("HIIT");
+    expect(items[1].actividad).toBe("Caminata");
   });
 });
 
