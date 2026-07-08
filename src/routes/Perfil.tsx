@@ -9,6 +9,18 @@ import { useTheme, type ThemeName } from "../contexts/ThemeProvider";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { MIEMBRO_IDS, type MiembroId } from "../types/models";
 import { getHomeLayout, setHomeLayout, type HomeLayout } from "../lib/homeLayout";
+import {
+  getHomeReduxPrefs, setHomeReduxModo, setHomeReduxAcento, resolverModo,
+  type HomeReduxModo, type HomeReduxAcento,
+} from "../lib/homeReduxPrefs";
+
+const REDUX_ACENTOS: { name: HomeReduxAcento; dark: string; light: string; label: string }[] = [
+  { name: "ion",    dark: "#22d3ee", light: "#0e7490", label: "Ion"    },
+  { name: "volt",   dark: "#4ade80", light: "#15803d", label: "Volt"   },
+  { name: "blaze",  dark: "#ff7a45", light: "#c2410c", label: "Blaze"  },
+  { name: "indigo", dark: "#8b90ff", light: "#4f46e5", label: "Indigo" },
+  { name: "pulse",  dark: "#ff4d79", light: "#be185c", label: "Pulse"  },
+];
 
 const NOMBRES: Record<MiembroId, string> = {
   juanpablo: "Juan Pablo", maria: "María", sofia: "Sofía", federico: "Federico",
@@ -32,10 +44,15 @@ export function Perfil() {
   const [color,    setColor]      = useState<string | undefined>(undefined);
   const [objetivos, setObjetivos] = useState<string[]>([]);
   const [homeLayout, setHomeLayoutState] = useState<HomeLayout>("aurora");
+  const [reduxModo,   setReduxModoState]   = useState<HomeReduxModo>("system");
+  const [reduxAcento, setReduxAcentoState] = useState<HomeReduxAcento>("ion");
 
   useEffect(() => {
     if (!memberId) return;
     setHomeLayoutState(getHomeLayout(memberId));
+    const prefs = getHomeReduxPrefs(memberId);
+    setReduxModoState(prefs.modo);
+    setReduxAcentoState(prefs.acento);
     getPerfiles().then((r) => {
       if (!r.ok) return;
       const perfil = r.value[memberId];
@@ -49,6 +66,23 @@ export function Perfil() {
     setHomeLayoutState(l);
     setHomeLayout(memberId, l);
   }
+
+  function handleReduxModo(m: HomeReduxModo) {
+    if (!memberId) return;
+    setReduxModoState(m);
+    setHomeReduxModo(memberId, m);
+  }
+
+  function handleReduxAcento(a: HomeReduxAcento) {
+    if (!memberId) return;
+    setReduxAcentoState(a);
+    setHomeReduxAcento(memberId, a);
+  }
+
+  const reduxDireccionClass = homeLayout === "pulse" ? "dir-a" : "dir-c v21";
+  const reduxModoEfectivo = resolverModo(reduxModo);
+  const reduxAcentoObj = REDUX_ACENTOS.find((a) => a.name === reduxAcento)!;
+  const reduxAcentoHex = reduxModoEfectivo === "dark" ? reduxAcentoObj.dark : reduxAcentoObj.light;
 
   const nombre = memberId ? NOMBRES[memberId as MiembroId] : (user?.displayName ?? "");
 
@@ -139,6 +173,8 @@ export function Perfil() {
               { id: "aurora",  label: "Aurora",   desc: "Anillo de progreso + glass card" },
               { id: "stadium", label: "Stadium",  desc: "Marquesina grande + tira de stats" },
               { id: "clasico", label: "Clásico",  desc: "Tarjetas simples y limpias" },
+              { id: "pulse",   label: "Pulse",    desc: "Enérgico · anillo segmentado, claro/oscuro/sistema" },
+              { id: "premium", label: "Premium",  desc: "Minimalista contemporáneo · claro/oscuro/sistema" },
             ] as { id: HomeLayout; label: string; desc: string }[]).map((opt) => {
               const active = homeLayout === opt.id;
               return (
@@ -167,6 +203,56 @@ export function Perfil() {
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Apariencia (Pulse/Premium) ───────────────────────────────────── */}
+      {memberId && (homeLayout === "pulse" || homeLayout === "premium") && (
+        <div className={reduxDireccionClass} data-mode={reduxModoEfectivo} data-accent={reduxAcento}>
+          <div className="c-card" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <p className="section-title" style={{ margin: 0, color: "var(--fg)" }}>Apariencia</p>
+            <p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--muted)" }}>
+              Solo para {NOMBRES[memberId as MiembroId]} · layout {homeLayout === "pulse" ? "Pulse" : "Premium"}
+            </p>
+
+            <div className="cfg-seg">
+              {([
+                { id: "light",  label: "Claro"   },
+                { id: "dark",   label: "Oscuro"  },
+                { id: "system", label: "Sistema" },
+              ] as { id: HomeReduxModo; label: string }[]).map((m) => (
+                <button key={m.id} className={reduxModo === m.id ? "on" : ""} onClick={() => handleReduxModo(m.id)}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="cfg-sws" style={{ marginTop: 14 }}>
+              {REDUX_ACENTOS.map((a) => (
+                <button
+                  key={a.name}
+                  className={`cfg-sw ${reduxAcento === a.name ? "on" : ""}`}
+                  title={a.label}
+                  onClick={() => handleReduxAcento(a.name)}
+                >
+                  <span className="dot" style={{ background: reduxModoEfectivo === "dark" ? a.dark : a.light }} />
+                </button>
+              ))}
+            </div>
+
+            <div className="cfg-preview">
+              <svg width={44} height={44} viewBox="0 0 44 44">
+                <circle cx={22} cy={22} r={17} fill="none" stroke="var(--track)" strokeWidth={6} />
+                <g transform="rotate(-90 22 22)">
+                  <circle cx={22} cy={22} r={17} fill="none" stroke={reduxAcentoHex} strokeWidth={6} strokeLinecap="round" strokeDasharray="53 107" />
+                </g>
+              </svg>
+              <button className={homeLayout === "pulse" ? "a-btn1" : "c-btn1"} style={{ padding: "9px 14px" }}>
+                Entrenar
+              </button>
+              <span className="plab">Preview</span>
+            </div>
           </div>
         </div>
       )}
@@ -230,6 +316,11 @@ export function Perfil() {
       <button className="btn-secondary" onClick={() => signOut(auth)}>
         Cerrar sesión
       </button>
+
+      {/* ── Versión del build (diagnóstico de PWA cacheada) ─────────────── */}
+      <p style={{ textAlign: "center", fontSize: 10, color: "var(--muted)", margin: "4px 0 0", opacity: 0.5 }}>
+        v{__APP_VERSION__} · {__BUILD_DATE__}
+      </p>
     </div>
   );
 }
