@@ -1,20 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Zap, Flame, Check, Moon } from "lucide-react";
-import type { Programa, Historial, MedicionCorporal } from "../types/models";
+import { Zap, Flame, Check, Moon, AlertTriangle, Lightbulb, Info } from "lucide-react";
+import type { Programa, Historial, MedicionCorporal, MetricaSalud, RegistroSueno, Recomendacion } from "../types/models";
 import type { MiembroId } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialMiembro } from "../data/historial";
-import { getMediciones } from "../data/salud";
+import { getMediciones, getMetricasSalud, getRegistrosSueno } from "../data/salud";
+import { calcularResumenSalud } from "../lib/resumenSalud";
+import { calcularRecomendacion } from "../lib/recomendaciones";
 import { useAuth } from "../auth/useAuth";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { WeekStrip } from "../components/WeekStrip";
 import { ShapeUpMark, ShapeUpWordmark } from "../components/Brand";
 import { VistaSemanal } from "../components/VistaSemanal";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
+import { lunesDeSemana, ymdLocal } from "../lib/semana";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
 import { getHomeLayout, type HomeLayout } from "../lib/homeLayout";
+import { calcularWeekChips } from "../lib/weekChips";
+import { getHomeReduxPrefs, resolverModo } from "../lib/homeReduxPrefs";
+import { HomeReduxContent, type HomeReduxData, type HomeReduxButton } from "../components/homeRedux/HomeReduxContent";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -24,13 +30,10 @@ const DIA_SEMANA_IDX: Partial<Record<string, number>> = {
 const PRIMER_NOMBRE: Record<MiembroId, string> = {
   juanpablo: "Juan Pablo", maria: "María", sofia: "Sofía", federico: "Federico",
 };
+const DIAS_LARGOS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
-function lunesDeSemana(): string {
-  const hoy = new Date();
-  const dia = hoy.getDay();
-  const diff = dia === 0 ? -6 : 1 - dia;
-  hoy.setDate(hoy.getDate() + diff);
-  return hoy.toISOString().slice(0, 10);
+function iniciales(nombre: string): string {
+  return nombre.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 }
 
 function diasEntrenamiento(programa: Programa): number[] {
@@ -43,8 +46,8 @@ function diasEntrenamiento(programa: Programa): number[] {
 function calcRacha(hist: Historial[], semanaActual: string): number {
   const porSemana = new Set(hist.map((h) => h.semanaInicio));
   let racha = 0;
-  const d = new Date(semanaActual + "T12:00:00");
-  while (porSemana.has(d.toISOString().slice(0, 10))) {
+  const d = new Date(semanaActual + "T00:00:00");
+  while (porSemana.has(ymdLocal(d))) {
     racha++;
     d.setDate(d.getDate() - 7);
   }
@@ -53,6 +56,46 @@ function calcRacha(hist: Historial[], semanaActual: string): number {
 
 function fmtKg(kg: number): string {
   return kg >= 1000 ? `${(kg / 1000).toFixed(1)}k` : String(Math.round(kg));
+}
+
+// ── RecCard ───────────────────────────────────────────────────────────────────
+
+function RecCard({ rec, onDescartar, onVerRutina }: {
+  rec: Recomendacion;
+  onDescartar: () => void;
+  onVerRutina: () => void;
+}) {
+  const color = rec.severidad === "importante" ? "var(--danger)"
+    : rec.severidad === "sugerencia"  ? "var(--warning)"
+    : "var(--info)";
+  const Icon = rec.severidad === "importante" ? AlertTriangle
+    : rec.severidad === "sugerencia"  ? Lightbulb
+    : Info;
+  const tieneAccion = !!(rec.accionSugerida?.idRutina ?? rec.accionSugerida?.idPrograma);
+  return (
+    <div className="card" style={{ padding: "12px 14px" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+        <Icon size={16} color={color} style={{ flexShrink: 0, marginTop: 2 }} strokeWidth={2} />
+        <p style={{ margin: 0, fontSize: 13, flex: 1, color: "var(--fg)", lineHeight: 1.4 }}>
+          {rec.mensaje}
+        </p>
+        <button
+          onClick={onDescartar}
+          style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0, lineHeight: 1, fontSize: 14 }}
+          aria-label="Descartar recomendación"
+        >✕</button>
+      </div>
+      {tieneAccion && (
+        <button
+          className="btn-secondary"
+          style={{ marginTop: 8, fontSize: 12, padding: "5px 12px" }}
+          onClick={onVerRutina}
+        >
+          Ver rutina
+        </button>
+      )}
+    </div>
+  );
 }
 
 // ── ProgressRing ──────────────────────────────────────────────────────────────
@@ -186,20 +229,42 @@ export function Home() {
   const [numSemana,  setNumSemana]  = useState<number | null>(null);
   const [lastMed,    setLastMed]    = useState<MedicionCorporal | null>(null);
   const [prevMed,    setPrevMed]    = useState<MedicionCorporal | null>(null);
+  const [recomendacion, setRecomendacion] = useState<Recomendacion | null>(null);
+  const [recDescartada, setRecDescartada] = useState(false);
+  const [estaSemana, setEstaSemana] = useState<Historial[]>([]);
 
   const semanaRef = useRef(lunesDeSemana());
+
+  const [reduxModo,   setReduxModo]   = useState<"light" | "dark">("dark");
+  const [reduxAcento, setReduxAcento] = useState("ion");
 
   useEffect(() => {
     if (!memberId) return;
     setLayout(getHomeLayout(memberId));
+    const prefs = getHomeReduxPrefs(memberId);
+    setReduxModo(resolverModo(prefs.modo));
+    setReduxAcento(prefs.acento);
     getPerfiles().then((r) => { if (r.ok) setColor(r.value[memberId as MiembroId]?.color); });
 
+    // Verificar descarte del día (localStorage)
+    const dismissKey = `rec-descartada-${memberId}-${ymdLocal()}`;
+    if (localStorage.getItem(dismissKey) === "1") setRecDescartada(true);
+
     const semanaInicio = semanaRef.current;
+    // Cargamos salud solo si el miembro tiene datos importados (evitar 2 queries vacías por visita)
+    const loadSalud = sessionStorage.getItem(`su-${memberId}`) !== "0";
+
     Promise.all([
       getProgramaActivo(memberId as MiembroId),
       getHistorialMiembro(memberId as MiembroId),
       getMediciones(memberId as MiembroId),
-    ]).then(([progR, histR, medR]) => {
+      loadSalud
+        ? getMetricasSalud(memberId as MiembroId)
+        : Promise.resolve({ ok: true as const, value: [] as MetricaSalud[] }),
+      loadSalud
+        ? getRegistrosSueno(memberId as MiembroId)
+        : Promise.resolve({ ok: true as const, value: [] as RegistroSueno[] }),
+    ]).then(([progR, histR, medR, metR, sueR]) => {
       if (histR.ok) {
         const hist = histR.value;
         const esta = hist.filter((h) => h.semanaInicio === semanaInicio);
@@ -208,6 +273,7 @@ export function Home() {
         const obj  = prog ? prog.dias.filter((d) => d.tipo !== "descanso").length : 0;
 
         setSesHechas(esta.length);
+        setEstaSemana(esta);
         setSesObj(obj);
         setVolumen(esta.reduce((s, h) => s + (h.tonelajeKg ?? 0), 0));
         setRacha(calcRacha(hist, semanaInicio));
@@ -228,6 +294,19 @@ export function Home() {
           setProxima(null);
           setHoy(null);
         }
+
+        // Motor de recomendaciones (usa historial ya cargado)
+        const metricas  = metR.ok ? metR.value : [];
+        const sueno     = sueR.ok ? sueR.value : [];
+        const mediciones = medR.ok ? medR.value : [];
+        const tieneDatos = metricas.length > 0 || sueno.length > 0;
+        if (loadSalud) sessionStorage.setItem(`su-${memberId}`, tieneDatos ? "1" : "0");
+        if (tieneDatos) {
+          const hoy = ymdLocal();
+          const senales = calcularResumenSalud(metricas, sueno, mediciones, hoy);
+          const rec = calcularRecomendacion(senales, hist, hoy, memberId as MiembroId);
+          setRecomendacion(rec);
+        }
       }
 
       if (medR.ok && medR.value.length > 0) {
@@ -240,6 +319,18 @@ export function Home() {
   }, [memberId]);
 
   const primerNombre  = memberId ? PRIMER_NOMBRE[memberId as MiembroId] : "";
+
+  function descartar() {
+    if (memberId) localStorage.setItem(`rec-descartada-${memberId}-${ymdLocal()}`, "1");
+    setRecDescartada(true);
+  }
+
+  function navegarAccion(rec: Recomendacion) {
+    if (rec.accionSugerida?.idRutina)   navigate(`/biblioteca/${rec.accionSugerida.idRutina}`);
+    else if (rec.accionSugerida?.idPrograma) navigate(`/programa/${rec.accionSugerida.idPrograma}`);
+  }
+
+  const recVisible = !recDescartada && recomendacion !== null ? recomendacion : null;
   const semanaCompleta = proxima === null && sesObj > 0;
 
   const subtitulo = semanaCompleta
@@ -268,6 +359,75 @@ export function Home() {
 
   const canStart = hoy?.tipo === "rutina" ? !hoy.yaHecha : !!proxima?.dia.idRutina;
 
+  // ── Pulse / Premium layouts (P53 — home-redux) ───────────────────────────
+  if (!loading && (layout === "pulse" || layout === "premium")) {
+    const direccion = layout === "pulse" ? "pulse" as const : "premium" as const;
+    const nombreDiaHoy = DIAS_LARGOS[jsDayToNum(new Date().getDay())];
+    const heroIcon = semanaCompleta ? Check : hoy?.tipo === "descanso" ? Moon : sesionNombre ? Zap : Moon;
+    const heroTag = semanaCompleta
+      ? "Esta semana"
+      : hoy?.tipo === "descanso"
+      ? `Hoy · ${nombreDiaHoy}`
+      : hoy?.tipo === "rutina"
+      ? (hoy.yaHecha ? "Ya entrenaste hoy" : "Hoy toca")
+      : proxima
+      ? `Próxima sesión · Día ${proxima.indice} de ${proxima.total}`
+      : "Sin programa";
+    const heroTitle = semanaCompleta
+      ? "¡Semana completa!"
+      : hoy?.tipo === "descanso"
+      ? "Día de descanso"
+      : sesionNombre ?? "No hay un programa activo";
+    const heroMsg = semanaCompleta
+      ? "Descansá o elegí otra rutina para seguir."
+      : hoy?.tipo === "descanso"
+      ? "Recuperá. La recuperación también es parte del entrenamiento."
+      : !sesionNombre
+      ? "Elegí un programa en Biblioteca."
+      : undefined;
+    const heroButtons: HomeReduxButton[] = semanaCompleta
+      ? [{ label: "Elegir otra rutina", variant: "secondary", onClick: () => navigate("/entrenar") }]
+      : hoy?.tipo === "descanso"
+      ? [{ label: "Entrenar igual", variant: "secondary", onClick: () => navigate("/entrenar") }]
+      : sesionNombre
+      ? (canStart ? [{ label: "Empezar", variant: "primary", icon: Zap, onClick: () => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`) }] : [])
+      : [{ label: "Ver programas", variant: "secondary", onClick: () => navigate("/biblioteca") }];
+
+    const data: HomeReduxData = {
+      primerNombre,
+      avatarIniciales: iniciales(primerNombre),
+      sesHechas,
+      sesObj: sesObj > 0 ? sesObj : 1,
+      diaLabel: semanaCompleta
+        ? "¡Semana completa!"
+        : sesObj > 0
+        ? `Día ${sesHechas} de ${sesObj} · esta semana`
+        : "Sin programa activo",
+      hero: { icon: heroIcon, tag: heroTag, title: heroTitle, message: heroMsg, buttons: heroButtons },
+      metrics: {
+        volumen: volumen > 0 ? fmtKg(volumen) : "—",
+        volumenSub: "kg semana",
+        peso: hasPeso ? {
+          valor: `${lastMed!.pesoKg}`,
+          delta: pesoDelta !== null ? `${pesoDelta > 0 ? "+" : ""}${pesoDelta.toFixed(1)} kg` : null,
+          deltaFavorable: pesoDelta !== null && pesoDelta < 0,
+        } : null,
+        racha,
+      },
+      weekLabel: "Tu semana",
+      weekChips: calcularWeekChips(estaSemana, semanaRef.current, ymdLocal()),
+    };
+
+    return (
+      <div className={`page ${direccion === "pulse" ? "dir-a" : "dir-c v21"}`} data-mode={reduxModo} data-accent={reduxAcento}>
+        {recVisible && (
+          <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
+        )}
+        <HomeReduxContent direccion={direccion} data={data} onAvatarClick={() => navigate("/perfil")} />
+      </div>
+    );
+  }
+
   // ── Stadium layout ────────────────────────────────────────────────────────
   if (!loading && layout === "stadium") {
     return (
@@ -282,6 +442,10 @@ export function Home() {
             </button>
           )}
         </div>
+
+        {recVisible && (
+          <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
+        )}
 
         {/* Hero Stadium */}
         <div className="stadium-hero">
@@ -375,6 +539,10 @@ export function Home() {
         <h1 style={{ margin: "4px 0 0", fontSize: 26, fontWeight: 800, letterSpacing: "-.02em" }}>
           Dale, {primerNombre}<span style={{ color: "var(--accent)" }}>.</span>
         </h1>
+
+        {recVisible && (
+          <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
+        )}
 
         {programa && (
           <div className="card" style={{ padding: "14px 16px" }}>
@@ -470,6 +638,10 @@ export function Home() {
 
       {loading && (
         <div className="loading-screen" style={{ minHeight: 120 }}><div className="spinner" /></div>
+      )}
+
+      {!loading && recVisible && (
+        <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
       )}
 
       {/* ── Hero Aurora ─────────────────────────────────────────────────── */}
