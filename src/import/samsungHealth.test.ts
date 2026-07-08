@@ -392,3 +392,53 @@ describe("parsearEjercicio — campos privados", () => {
     expect(items[1]._fcMin).toBeUndefined();
   });
 });
+
+// ── resolverActividad — type 0 / custom / unknown ─────────────────────────────
+
+const EXERCISE_CSV_TYPE0 = `com.samsung.shealth.exercise,6000007,15
+datauuid,com.samsung.shealth.exercise.start_time,com.samsung.shealth.exercise.time_offset,com.samsung.shealth.exercise.exercise_type,title,com.samsung.shealth.exercise.duration,com.samsung.shealth.exercise.calorie,com.samsung.shealth.exercise.custom_id
+uuid-t0-shapeup,1710488400000,UTC-0300,0,,3600000,400,custom-id-shapeup
+uuid-t0-otro,1710492000000,UTC-0300,0,,1800000,200,custom-id-otro
+uuid-t0-nada,1710495600000,UTC-0300,0,,1800000,180,
+uuid-tX-desconocido,1710499200000,UTC-0300,999,,2700000,300,`;
+
+describe("resolverActividad — type 0 y tipos desconocidos", () => {
+  const shapeUpIds  = new Set(["custom-id-shapeup"]);
+  const nameMap     = new Map([["custom-id-otro", "Pilates"]]);
+  const { items }   = parsearEjercicio(EXERCISE_CSV_TYPE0, "juanpablo", undefined, shapeUpIds, nameMap);
+
+  it("type 0 + customId ShapeUp → 'ShapeUp'", () => {
+    const item = items.find((i) => i._uuid === "uuid-t0-shapeup");
+    expect(item?.actividad).toBe("ShapeUp");
+  });
+
+  it("type 0 + customId con nombre en índice → ese nombre", () => {
+    const item = items.find((i) => i._uuid === "uuid-t0-otro");
+    expect(item?.actividad).toBe("Pilates");
+  });
+
+  it("type 0 sin customId → 'Personalizado'", () => {
+    const item = items.find((i) => i._uuid === "uuid-t0-nada");
+    expect(item?.actividad).toBe("Personalizado");
+  });
+
+  it("tipo desconocido (999) → 'Otro (999)' (nunca 'Tipo N')", () => {
+    const item = items.find((i) => i._uuid === "uuid-tX-desconocido");
+    expect(item?.actividad).toBe("Otro (999)");
+    expect(item?.actividad).not.toContain("Tipo");
+  });
+});
+
+// ── resolverActividad — redondeo de FC/kcal (verificado por parsearEjercicio) ──
+
+describe("parsearEjercicio — FC y kcal sin decimales en actividad", () => {
+  const EXERCISE_FC_CSV = `com.samsung.shealth.exercise,6000007,15
+datauuid,com.samsung.shealth.exercise.start_time,com.samsung.shealth.exercise.time_offset,com.samsung.shealth.exercise.exercise_type,title,com.samsung.shealth.exercise.duration,com.samsung.shealth.exercise.calorie,com.samsung.shealth.exercise.mean_heart_rate
+uuid-fc-001,1710488400000,UTC-0300,1001,,3600000,47.08,133.65286`;
+
+  it("fcPromedio se almacena con el valor original (redondeo es responsabilidad de la UI)", () => {
+    const { items } = parsearEjercicio(EXERCISE_FC_CSV, "juanpablo");
+    expect(items[0].fcPromedio).toBeCloseTo(133.65, 1);
+    expect(items[0].kcal).toBeCloseTo(47.08, 1);
+  });
+});

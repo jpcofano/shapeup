@@ -87,22 +87,30 @@ function datauuidDeRuta(path: string): string {
 }
 
 /**
- * Parsea el CSV de custom_exercise para encontrar el custom_id de ShapeUp.
- * Samsung usa: línea 1 = metadata, línea 2 = headers, líneas 3+ = datos.
+ * Parsea el CSV de custom_exercise y devuelve un mapa custom_id → custom_name
+ * y el custom_id específico de ShapeUp (si existe).
  */
-function extraerShapeUpCustomId(text: string): string | undefined {
+function extraerCustomExercises(text: string): {
+  shapeUpCustomId: string | undefined;
+  customNameMap: Map<string, string>;
+} {
+  const customNameMap = new Map<string, string>();
+  let shapeUpCustomId: string | undefined;
   const lines = text.split(/\r?\n/);
-  if (lines.length < 3) return undefined;
+  if (lines.length < 3) return { shapeUpCustomId, customNameMap };
   const headers = lines[1].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
   const idxId   = headers.findIndex((h) => h.endsWith("custom_id"));
   const idxName = headers.findIndex((h) => h.endsWith("custom_name"));
-  if (idxId < 0 || idxName < 0) return undefined;
+  if (idxId < 0 || idxName < 0) return { shapeUpCustomId, customNameMap };
   for (const line of lines.slice(2)) {
     if (!line.trim()) continue;
     const cols = line.split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
-    if (cols[idxName]?.toLowerCase() === "shapeup") return cols[idxId];
+    const id   = cols[idxId];
+    const name = cols[idxName];
+    if (id && name) customNameMap.set(id, name);
+    if (name?.toLowerCase() === "shapeup") shapeUpCustomId = id;
   }
-  return undefined;
+  return { shapeUpCustomId, customNameMap };
 }
 
 // ── Función principal ─────────────────────────────────────────────────────────
@@ -200,6 +208,24 @@ export async function extraerDesdeZip(
   progress(15, "Leyendo CSVs…");
 
   // ── 3. Parsear CSVs principales ───────────────────────────────────────────
+
+  // 3a. Extraer índice de ejercicios custom (para resolver "ShapeUp" vs "Tipo 0")
+  let shapeUpCustomIdFromIndex: string | undefined;
+  let customNameMap = new Map<string, string>();
+  for (const path of customExercisePath) {
+    try {
+      const text = await zip.files[path].async("text");
+      const extracted = extraerCustomExercises(text);
+      if (extracted.shapeUpCustomId) shapeUpCustomIdFromIndex = extracted.shapeUpCustomId;
+      for (const [id, name] of extracted.customNameMap) customNameMap.set(id, name);
+    } catch {
+      // silencioso
+    }
+  }
+  const shapeUpCustomIds = shapeUpCustomIdFromIndex
+    ? new Set([shapeUpCustomIdFromIndex])
+    : new Set<string>();
+
   const readAndParse = async (
     tipo: "weight" | "exercise" | "sleep",
     parser: (text: string, m: MiembroId, z?: PerfilMiembro["zonasFC"]) => { items: unknown[]; errors: string[] },
@@ -221,7 +247,19 @@ export async function extraerDesdeZip(
   await readAndParse("weight", (t, m) => parsearPeso(t, m), result.mediciones as unknown[]);
   progress(30, "Peso procesado…");
 
-  await readAndParse("exercise", (t, m, z) => parsearEjercicio(t, m, z), result.cardio as unknown[]);
+  // Ejercicio: pasa el índice de custom exercises para resolver "Tipo 0"
+  const exercisePath = csvPorTipo["exercise"];
+  if (exercisePath) {
+    try {
+      const text = await zip.files[exercisePath].async("text");
+      const { items, errors } = parsearEjercicio(text, miembro, zonasFC, shapeUpCustomIds, customNameMap);
+      (result.cardio as unknown[]).push(...items);
+      result.errors.push(...errors);
+      result.csvsLeidos.push(exercisePath.split("/").pop() ?? exercisePath);
+    } catch (e) {
+      result.errors.push(`Error leyendo exercise: ${String(e)}`);
+    }
+  }
   progress(45, "Cardio procesado…");
 
   await readAndParse("sleep", (t, m) => parsearSueno(t, m), result.sueno as unknown[]);
@@ -250,18 +288,10 @@ export async function extraerDesdeZip(
 
   progress(70, "Terminado CSVs…");
 
-  // ── 5. Biometría: custom_id + sesionesSamsung + live_data.json ───────────
+  // ── 5. Biometría: sesionesSamsung + live_data.json ───────────────────────
   if (nivel === "biometrico") {
-    // 5a. Buscar custom_id de ShapeUp
-    for (const path of customExercisePath) {
-      try {
-        const text = await zip.files[path].async("text");
-        const id   = extraerShapeUpCustomId(text);
-        if (id) { result.shapeUpCustomId = id; break; }
-      } catch {
-        // silencioso — no es bloqueante
-      }
-    }
+    // El shapeUpCustomId ya fue extraído en paso 3a junto con customNameMap
+    result.shapeUpCustomId = shapeUpCustomIdFromIndex;
     progress(75, "Identificando sesiones ShapeUp…");
 
     // 5b. Construir SesionSamsung[] desde los items de ejercicio parseados
