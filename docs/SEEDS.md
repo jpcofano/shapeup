@@ -28,6 +28,7 @@ apuntan a ejercicios que todavía no existen). Corré siempre `--dry-run` primer
 | 9 | `seed:futbol-juvenil` | `EJ-8030..8032` + `RUT-0019/0020` + `PRG-0011` | `seed:plan`, `seed:rugby-juvenil` | 12 |
 | 10 | `seed:maria` | `EJ-8033/8034` + `RUT-0021/0022` + `PRG-0012` | `seed:plan`, `seed:vr`, `seed:futbol-juvenil` | 13 |
 | 11 | `seed:visibilidad` | `config/visibilidad` | `seed:maria` (ref `PRG-0012`) | 14 |
+| 12 | `seed:salud-rutinas` | `RUT-0023..0025` (Cardio Z2, HIIT corto, Descarga activa) | `seed:plan`, `seed:planes-extra` (reutiliza EJ-8023..8027) | 50 |
 
 ## Pasada de prueba (no escribe nada)
 
@@ -45,6 +46,7 @@ npm run seed:rugby-juvenil -- --dry-run
 npm run seed:futbol-juvenil -- --dry-run
 npm run seed:maria         -- --dry-run
 npm run seed:visibilidad   -- --dry-run
+npm run seed:salud-rutinas -- --dry-run
 ```
 
 ## Pasada real
@@ -61,6 +63,7 @@ npm run seed:rugby-juvenil
 npm run seed:futbol-juvenil
 npm run seed:maria
 npm run seed:visibilidad
+npm run seed:salud-rutinas
 ```
 
 ## Notas
@@ -76,3 +79,41 @@ npm run seed:visibilidad
 ## Verificación post-seed
 Entrá como cada miembro y confirmá que ve **su** programa con los ejercicios cargados
 (nombre + instrucciones). Si un ejercicio aparece vacío, falta el seed que lo crea (revisá el orden).
+
+---
+
+## Mantenimiento: `limpiar:salud`
+
+Depura el módulo de salud (/mediciones, /cardio, /sueno, /metricas-salud) sin tocar ningún dato de la app (/historial, /sesiones, /rutinas, /programas, /ejercicios, /config).
+
+```bash
+# Dry-run (solo cuenta, no borra):
+npm run limpiar:salud -- --miembro=juanpablo
+
+# Borrar datos importados de un miembro:
+npm run limpiar:salud -- --miembro=juanpablo --confirmar
+
+# También borrar los cargados a mano:
+npm run limpiar:salud -- --miembro=juanpablo --confirmar --incluir-manual
+
+# Solo cardio y sueño:
+npm run limpiar:salud -- --miembro=juanpablo --confirmar --colecciones=cardio,sueno
+
+# Además limpiar biometría del historial (para re-probar el match de S1):
+npm run limpiar:salud -- --miembro=juanpablo --confirmar --limpiar-biometria
+
+# Todos los miembros de una vez:
+npm run limpiar:salud -- --todos --confirmar
+```
+
+**Flags:**
+- `--miembro=<id>` — Obligatorio (o `--todos`). IDs válidos: juanpablo, maria, sofia, federico.
+- `--confirmar` — Sin este flag es dry-run: muestra conteos pero no escribe.
+- `--incluir-manual` — También borra `fuente=="manual"`. Default: solo `"samsung-health-csv"`.
+- `--colecciones=a,b` — Subconjunto de colecciones. Default: las 4.
+- `--limpiar-biometria` — En `/historial`: elimina el campo `biometria` y los campos `fcPico`, `fcFinSerie`, `recuperacionBpm` de cada serie. **No toca** `inicioMs`/`finMs` ni ningún otro campo del Historial.
+
+**Flujo de prueba de S1:**
+1. `npm run limpiar:salud -- --miembro=juanpablo --confirmar [--limpiar-biometria]`
+2. Importar el ZIP real nivel biométrico desde la UI.
+3. Validar el resumen de matcheo ("X matcheadas, Y por custom-id, Z por ventana").

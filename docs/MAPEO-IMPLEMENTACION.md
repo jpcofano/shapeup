@@ -68,10 +68,143 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P47 (S1b) | Import selectivo de cardio por relevancia (ADR #020): filtro puro + toggle en preview | ✅ | 2026-07-04 |
 | P48 (S1-prep) | Script `limpiar-salud.ts`: depura módulo de salud antes de probar S1 | ✅ | 2026-07-04 |
 | P49 (S2) | Tab Resumen con señales y tendencias + contexto del día en HistorialDetalle + refactor tabs + cardio vinculado | ✅ | 2026-07-04 |
+| P50 (S3) | Motor de recomendaciones + rutinas Z2/HIIT/descarga + tarjeta en Home (ADRs #022/#023) | ✅ | 2026-07-04 |
+| P51 (S2b) | Fixes de prueba real: `resolverActividad` tipo 0→"ShapeUp", CardioTab legible (redondeo, zona, meses, "ver más"), versión en Perfil | ✅ | 2026-07-06 |
+| P52 (S2c) | Sueño consolidado por noche (`consolidarNoches`), import único siempre biométrico, SuenoTab una fila por noche | ✅ | 2026-07-06 |
+| P51b (VR) | VR como intervalos: series + cronómetro de trabajo + tiempo total + ilustraciones SVG (ADR #024) | ✅ | 2026-07-07 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-07-08] P54 (S-audit-b) — Persistir inicio/fin de sesión en `/cardio`
+
+> Prompt `docs/prompts/54-s-audit-b-inicio-en-cardio.md`. Delta corto originado en
+> un hallazgo de la auditoría P53: `/cardio` no guardaba la hora de inicio porque
+> `_startMs`/`_endMs` se strippeaban antes de escribir.
+
+- **`src/types/models.ts`** — `SesionCardio` suma `inicioMs?`/`finMs?` (epoch ms,
+  mismo patrón que `RegistroSueno`).
+- **`src/data/salud.ts`** — `importarCardioIdempotente` sigue destructurando y
+  descartando `_startMs`/`_endMs`/`_customId`/`_fcMin` del payload, pero ahora
+  copia `_startMs → inicioMs` y `_endMs → finMs` (solo si vienen definidos, para
+  no escribir `undefined`) antes del `setDoc(..., { merge: false })`. Al ser
+  `merge: false` sobre el id `CAR-{uuid}`, un re-import del mismo `_uuid`
+  reemplaza el doc entero y por lo tanto sí actualiza `inicioMs`/`finMs` en
+  docs existentes (idempotente).
+- **`src/components/salud/CardioTab.tsx`** — cada fila muestra la hora local
+  («19:32») antes de la duración cuando `inicioMs` existe; filas legacy sin el
+  campo no muestran nada ahí.
+- **`scripts/auditoria-salud.ts`** — sección A: candidatas del mismo día ahora
+  muestran su hora real (`horaLocal(c.inicioMs)`) en vez de la nota de
+  limitación "sin hora de inicio persistida"; sección B: nueva fila `con
+  inicioMs: N/total`.
+- **Tests:** `src/data/salud.test.ts` (nuevo) — persiste `inicioMs`/`finMs` y
+  strippea los `_`; fila sin `_startMs` → doc sin `inicioMs` (no `undefined`
+  escrito); re-import del mismo `_uuid` con `inicioMs` nuevo lo incorpora.
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (422 tests, +3 nuevos).
+
+### [2026-07-07] P51b (VR) — Series, cronómetro de trabajo, tiempo total e imágenes
+
+> Prompt `docs/prompts/51-vr-series-timers-imagenes.md`. Numerado "P51b" en esta
+> bitácora porque el nombre de archivo colisiona con el P51 (S2b) ya registrado
+> arriba — son dos tareas distintas que comparten el número de prompt.
+
+- **`src/lib/entrenarState.ts`** — núcleo puro ADR #009: `trabajoObjetivoSeg(p)`
+  (segundos de trabajo cronometrable según modalidad: Cardio Intervalos →
+  `trabajoSeg`, Isométrico → `duracionHoldSeg`, Cardio Continuo → `duracionMin*60`,
+  Fuerza/Movilidad → `null`); `trabajoRestanteMs(state, rutina, ahoraMs)` (ms
+  restantes del bloque actual, `null` sin objetivo o sin `serieInicioMs`);
+  `asegurarInicioSerie(state, idx, now)` (sella el inicio de la serie al montar
+  la sesión o cambiar de bloque si no hay uno ya, y no hay descanso activo — antes
+  solo se sellaba al salir del descanso, así que la serie 1 quedaba sin inicio);
+  `ajustarTrabajo(state, idx, deltaSeg)` (espejo de `ajustarDescanso`: como el
+  objetivo sale de la prescripción, "+30 s" corre el `serieInicioMs` hacia
+  adelante). `objetivoSerieLabel` ajustado: Cardio Intervalos con
+  `juegoSugerido` → `"4 min de juego · 90 s de descanso"` en vez del label
+  genérico de segundos.
+- **`src/hooks/useEntrenarState.ts`** — expone `asegurarInicioSerie(idx)` y
+  `ajustarTrabajo(idx, deltaSeg)`.
+- **`scripts/seed-plan.ts`** — `CVRI(...)` (VR en Intervalos: `rondas` = series,
+  `trabajoSeg`/`descansoSeg` por serie; ningún campo nuevo en el modelo).
+  Re-prescribe RUT-0004/0005/0007/0008 (RUT-0006/Pistol Whip ya no existe, baja
+  previa sin relación); `durEstMin` sale de `estimarDuracionMin` real
+  (lib/metricas.ts), no hardcodeado. Flag `--solo=ID1,ID2,...` para migraciones
+  acotadas sin repisar el resto del seed.
+- **`scripts/seed-vr.ts`** — `imagenes: ["/vr/{id}.svg"]` derivado del id en
+  `aEjercicio()`.
+- **`public/vr/*.svg`** — 10 ilustraciones originales (una por juego) +
+  `generic.svg` de fallback. Flat, tokens de diseño, sin arte oficial (copyright).
+- **`src/components/entrenar/SerieTimer.tsx`** (nuevo) — espejo de
+  `DescansoTimer`: cuenta regresiva de `trabajoRestanteMs`, beep + notificación
+  al llegar a 0 (no completa la serie), botón "+30 s". Se renderiza `null` sin
+  trabajo cronometrable.
+- **`src/components/entrenar/TiempoTotal.tsx`** (nuevo) — reloj de sesión
+  transcurrida + "estimado: X min", en `workout-header` de `EntrenarSesion.tsx`
+  y `EntrenarSesionLibre.tsx`.
+- **`src/components/entrenar/BloqueGuiado.tsx`** — chip `🎮 {juegoSugerido}`
+  bajo el nombre del ejercicio para bloques de Cardio con juego sugerido.
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (+16 tests nuevos en
+  `entrenarState.test.ts`). Seeds en dry-run antes de real.
+
+### [2026-07-06] P52 (S2c) — Sueño consolidado por noche + import único biométrico
+
+- **`src/types/models.ts`** — `RegistroSueno` suma `inicioMs?: number`, `finMs?: number`, `horaLevantarse?: string`.
+- **`src/import/samsungHealth.ts`** — `parsearSueno` rellena los tres campos nuevos: lee columna `end_time` del CSV; si no hay `end_time`, estima `finMs = inicioMs + sleepMin * 60_000`; `horaLevantarse = epochToTime(endRaw, offset)`.
+- **`src/lib/sueno.ts`** (nuevo) — núcleo puro ADR #009:
+  - `NocheSueno`: `{ fecha, horasTotal, horasNoche, horasSiesta?, inicio?, fin?, tramos }`. `fecha` = mañana en la que se despertó.
+  - `asignarNoche(r)`: con `inicioMs`, usa hora UTC (< 15:00 → misma fecha UTC; ≥ 15:00 → fecha+1). Legacy: `horaAcostarse` ≥ "15:00" → fecha+1; sin dato → fecha del registro.
+  - `esSiesta(r)`: inicia entre 10:00–19:59 Y duración < 3 h.
+  - `consolidarNoches(registros)`: filtra horas=0, agrupa por fecha de mañana, separa noche/siesta, devuelve desc por fecha.
+  - `promedioNoches(noches, n)`: `undefined` si < 3 noches; promedio de `horasTotal` de las primeras n, redondeado a 1 decimal.
+- **`src/lib/resumenSalud.ts`** — señal de sueño usa `consolidarNoches` + `promedioNoches(·, 3)`. Si < 3 noches → `sin-datos` con `valorActual = noches[0]?.horasTotal`.
+- **`src/components/salud/SuenoTab.tsx`** (reescrito) — una fila por `NocheSueno`: fecha, total, rango `HH:MM → HH:MM`, cantidad de tramos, nota siesta. Header: última noche + rango. Stats: promedio 7 noches + conteo último mes. Lista hasta 30 noches.
+- **`src/routes/Salud.tsx`** — eliminado selector de nivel ZIP, `handleZip` siempre pasa `"biometrico"`. Removido `ImportMode`, `ZipImportNivel`, `zipNivel` state.
+- **`src/components/salud/ImportPanel.tsx`** — texto fijo bajo ZIP: "Se importan tus métricas diarias y se matchean tus entrenamientos".
+- **`src/routes/HistorialDetalle.tsx`** — "Contexto del día": carga registros de sueño, corre `consolidarNoches`, busca `n.fecha === entry.fechaRealizada` (mañana = día del entrenamiento). Muestra `horasTotal` + rango.
+- **`src/lib/sueno.test.ts`** (nuevo) — 18 tests: consolidación básica, asignación de noche (hora tardía → D+1, hora temprana → D), siesta, tramos múltiples, orden desc, con/sin `inicioMs`, `promedioNoches` (< 3 → undefined, redondeo).
+- **`src/lib/resumenSalud.test.ts`** — 2 tests nuevos: señal sueño usa total consolidado (no promedio de tramos crudos).
+- **Verificado:** `tsc -b` limpio · `npx vitest run` 398 tests verdes.
+
+### [2026-07-06] P51 (S2b) — Fixes de prueba real en producción
+
+- **`src/import/samsungHealth.ts`** — `resolverActividad` reescrito: tipo `"0"` (custom Samsung) → "ShapeUp" si `customId ∈ shapeUpCustomIds`; nombre del índice si `customId ∈ customNameMap`; "Personalizado" si tipo 0 sin match. Tipo desconocido → `"Otro (N)"` en lugar de `"Tipo N"`. Firma suma `shapeUpCustomIds?: Set<string>`, `customNameMap?: Map<string, string>`.
+- **`src/import/samsungZip.ts`** — `extraerShapeUpCustomId` reemplazado por `extraerCustomExercises` que retorna `{ shapeUpCustomId, customNameMap: Map<string, string> }`. Ambos sets/maps construidos antes del parseo de ejercicios (paso 3a) y pasados directo a `parsearEjercicio`. Re-import corrige "Tipo 0" existentes porque `importarCardioIdempotente` usa `setDoc(..., { merge: false })`.
+- **`src/components/salud/CardioTab.tsx`** (reescrito):
+  - Valores redondeados: `Math.round(duracionMin)`, `Math.round(kcal)`, `Math.round(fcPromedio)`.
+  - `ZonaChip` por fila usando `c.zonaPrincipal`.
+  - Agrupado por mes (YYYY-MM), vinculadas primero dentro de cada grupo.
+  - Muestra solo los últimos 3 meses + botón "Ver más" (+3 meses, +3 meses…).
+  - Título: `SESIONES (N · M vinculadas)`.
+  - Fecha mostrada como día (`c.fecha.slice(8)`) dentro del header del mes.
+- **`vite.config.ts`** — `define: { __APP_VERSION__, __BUILD_DATE__ }` con valores leídos de `package.json` vía `readFileSync` (no import directo, evita TS6307).
+- **`src/vite-env.d.ts`** — declara `__APP_VERSION__: string` y `__BUILD_DATE__: string`.
+- **`package.json`** — versión bumped `0.1.0` → `0.2.0`.
+- **`src/routes/Perfil.tsx`** — footer: `v{__APP_VERSION__} · {__BUILD_DATE__}` (10px, muted, opacity 0.5).
+- **`src/import/samsungHealth.test.ts`** — 4 tests nuevos para `resolverActividad`: tipo 0 + ShapeUp custom → "ShapeUp"; tipo 0 + custom conocido → nombre del índice; tipo 0 sin match → "Personalizado"; tipo desconocido → "Otro (999)".
+- **Verificado:** `tsc -b` limpio (junto con P52).
+
+### [2026-07-04] P50 (S3) — Motor de recomendaciones + rutinas Z2/HIIT/descarga
+
+- **`src/types/models.ts`** — `Recomendacion.accionSugerida` suma `idPrograma?: string` (necesario para la acción deload que apunta a un programa, no a una rutina).
+- **`src/lib/recomendaciones.ts`** (nuevo) — núcleo puro ADR #009/#022:
+  - `RUTINAS_RECOMENDADAS` — `{ z2, hiit, descarga, deload }` (RUT-0023/0024/0025/PRG-0009).
+  - `semanasSinDescarga(historial, hoy, semanaArrancaEn?)` — helper exportado puro: cuenta semanas consecutivas (antes de `hoy`) con ≥ 2 sesiones de fuerza; break en semana liviana (≤ 1 sesión); soporta lunes/domingo. Computa desde `fechaRealizada` (no depende del `semanaInicio` almacenado).
+  - `calcularRecomendacion(senales, historial, hoy, miembro)` — 5 reglas en orden: (1) sueño/HRV alerta → Día de descanso/importante; (2) sueño/HRV atención → Bajar intensidad/sugerencia; (3) fc-reposo atención|alerta → Sumar cardio Z2/sugerencia; (4) 4+ semanas sin descarga → Deload/sugerencia; (5) todas ok + ≥ 2 sesiones en 7d → Felicitación/info. Sin datos → null. Mensaje siempre incluye el dato concreto (reutiliza `motivo` de `SenalSalud`). ADR #022: nada de caja negra.
+- **`src/lib/recomendaciones.test.ts`** (nuevo) — 25 tests sin Firebase: cada regla con señal exacta, prioridad (alerta > atención), `semanasSinDescarga` (4 llenas → 4, semana liviana resetea, borde lunes vs domingo), Felicitación (2 sesiones → sale; 1 sesión → null), todas sin-datos → null, `basadoEn` refleja señales reales, mensaje contiene dato concreto.
+- **`scripts/seed-salud-rutinas.ts`** (nuevo) — semilla de las 3 rutinas del motor (ADR #023):
+  - **RUT-0023 Cardio Z2 base** (~35 min, Aire libre): calentamiento Z1 5 min + bloque Z2 25 min + vuelta Z1 5 min; usa EJ-0820 (Trail Running/Walking) y EJ-0845 (Walking, Treadmill); descripción explica la regla "podés hablar en frases completas".
+  - **RUT-0024 HIIT corto** (~20 min, Aire libre): calentamiento 4 min (EJ-0217 butt kicks) + 7 rondas 30s/90s (EJ-0613 Running, Treadmill, Intervalos) + vuelta a calma 3 min (EJ-0845); nota advierte que no es para días con atención/alerta.
+  - **RUT-0025 Descarga activa** (~25 min, Casa): movilidad 5 ejercicios EJ-8023/8025/8026/8024/8017 + caminata Z1 10 min (EJ-0820) + estiramiento final (EJ-8027); cero cargas.
+- **`package.json`** — alias `"seed:salud-rutinas"`.
+- **`src/routes/Home.tsx`** — tarjeta de recomendación:
+  - Datos: `getMetricasSalud` + `getRegistrosSueno` se agregan al `Promise.all` existente; cacheado en `sessionStorage` con clave `su-{memberId}` (valor "0" = sin datos → no repite queries). El historial ya cargado para la vista semanal se comparte.
+  - `calcularResumenSalud` + `calcularRecomendacion` se llaman al vuelo si hay datos.
+  - Descarte: `localStorage` con clave `rec-descartada-{memberId}-{YYYY-MM-DD}`; re-chequeado en `useEffect` para sobrevivir reloads.
+  - Componente `RecCard` (local): icono por severidad (AlertTriangle/Lightbulb/Info), mensaje, botón "Ver rutina" → `/biblioteca/:idRutina` o `/programa/:idPrograma`, botón ✕ para descartar. Integrado en los 3 layouts (Aurora, Stadium, Clásico).
+- **`docs/SEEDS.md`** — fila 12 en la tabla de orden, comandos dry-run y real.
+- **ADR #023** (en CLAUDE.md): recomendaciones calculadas al vuelo, sin colección nueva; descarte en localStorage.
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (345 previos + 25 nuevos = 370 tests). Seed en dry-run antes de real.
 
 ### [2026-07-04] P49 (S2) — Tab Resumen + contexto del día + refactor tabs
 
@@ -107,7 +240,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 ### [2026-07-04] P46 (S1) — Enriquecimiento biométrico post-import
 
 - **`src/import/samsungHealth.ts`** — nuevo helper exportado `epochToMs(value, offset?)`: soporta epoch ms como string y formato datetime local `"YYYY-MM-DD HH:MM:SS.mmm"` (Samsung 2024+) con ajuste de offset. `parsearEjercicio` suma campos privados `_startMs`, `_endMs` (inicio+duración), `_customId` (de `custom_id` del CSV) y `_fcMin` (de `min_heart_rate`); tipo de retorno exportado como `EjercicioItem`.
-- **`src/data/salud.ts`** — `importarCardioIdempotente` hace destructuring y descarta `_startMs/_endMs/_customId/_fcMin` (no se escriben a Firestore).
+- **`src/data/salud.ts`** — `importarCardioIdempotente` hace destructuring y descarta `_customId/_fcMin` (no se escriben a Firestore); `_startMs/_endMs` sí se persisten, renombrados a `inicioMs/finMs` (ver P54 en la bitácora).
 - **`src/import/samsungZip.ts`** — `ZipExtraccion` suma `sesionesSamsung: SesionSamsung[]` (construido desde items de ejercicio con `_startMs/_endMs` válidos). Reemplaza el paso 5b anterior (que buscaba `datauuid` inexistente) por la construcción correcta y usa `datauuid` para leer `live_data.json`.
 - **`src/types/models.ts`** — `Historial` suma `inicioMs?: number` y `finMs?: number` (ADR #019).
 - **`src/lib/metricas.ts`** — nueva función exportada `ventanaDeBloques(bloques)`: mín de `serie.inicioMs` / máx de `serie.finMs` en todos los bloques.

@@ -1,7 +1,7 @@
 {
   "name": "shapeup",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,7 +22,10 @@
     "seed:futbol-juvenil": "npx tsx scripts/seed-futbol-juvenil.ts",
     "seed:maria": "npx tsx scripts/seed-maria.ts",
     "seed:visibilidad": "npx tsx scripts/seed-visibilidad.ts",
-    "seed:perfiles": "npx tsx scripts/seed-perfiles.ts"
+    "seed:perfiles": "npx tsx scripts/seed-perfiles.ts",
+    "seed:salud-rutinas": "npx tsx scripts/seed-salud-rutinas.ts",
+    "limpiar:salud": "npx tsx scripts/limpiar-salud.ts",
+    "auditoria:salud": "npx tsx scripts/auditoria-salud.ts"
   },
   "dependencies": {
     "firebase": "^11.0.0",

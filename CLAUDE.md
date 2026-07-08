@@ -41,32 +41,39 @@ esos datos, y simplificar la pantalla de Salud para mostrar solo lo relevante.
 → importar ZIP real nivel biométrico → validar resumen de matcheo en la UI.
 `scripts/limpiar-salud.ts`: depura solo salud; nunca toca historial/sesiones/rutinas.
 
-### S2 — Salud: mostrar lo relevante ✅ completo (P49, 2026-07-04)
+### S2 — Salud: mostrar lo relevante ✅ completo (P49+P51+P52, 2026-07-06)
 1. ✅ `lib/resumenSalud.ts`: `calcularResumenSalud` + `senalPeor`. 36 tests.
    **Umbrales exportados aquí** — S3 los importa (fuente única de verdad).
+   Señal de sueño usa `consolidarNoches` (fuente única; no promedio de tramos crudos).
 2. ✅ Tab `"resumen"` como default en `/salud`: cards con sparkline 14d, flecha de
    tendencia, semáforo (tokens), motivo explicable, tap navega a tab de detalle.
 3. ✅ `HistorialDetalle`: bloque "Contexto del día" (sueño noche anterior + FC en reposo).
-4. ✅ `CardioTab`: badge "vinculada a entrenamiento" + vinculadas ordenadas primero.
-5. ✅ Refactor: `ComposicionTab`, `CardioTab`, `SuenoTab`, `ProgresoTab`, `ImportPanel`
+   Sueño busca `NocheSueno.fecha === fechaRealizada` (mañana del día del entrenamiento).
+4. ✅ `CardioTab`: vinculadas primero, redondeo, `ZonaChip` por fila, agrupado por mes,
+   "Ver más" (+3 meses), contador vinculadas en título.
+5. ✅ `SuenoTab`: una fila por noche consolidada, rango `HH:MM → HH:MM`, tramos, siesta.
+6. ✅ Refactor: `ComposicionTab`, `CardioTab`, `SuenoTab`, `ProgresoTab`, `ImportPanel`
    en `src/components/salud/`. `Salud.tsx` → contenedor delgado con estado compartido.
+7. ✅ Import único siempre biométrico: selector de nivel eliminado (P52).
+8. ✅ `resolverActividad` (P51): tipo 0 → "ShapeUp"/"nombre custom"/"Personalizado";
+   tipo desconocido → "Otro (N)". Re-import idempotente corrige registros existentes.
+9. ✅ Versión en Perfil: `__APP_VERSION__` + `__BUILD_DATE__` via Vite define (P51).
 
-### S3 — Motor de recomendaciones + rutinas nuevas
-1. `lib/recomendaciones.ts` **puro**: reglas de umbral "métrica de hoy vs mediana 28 días"
-   que devuelven `TipoRecomendacion` (los tipos ya existen en `models.ts`) + rutina
-   sugerida. Sin ML, umbrales configurables. Ejemplos de reglas iniciales:
-   - sueño < 6h o HRV < baseline·0.85 dos noches seguidas → "Día de descanso" o
-     "Bajar intensidad" → rutina Descarga activa;
-   - FC reposo > baseline + 5 bpm sostenido → "Sumar cardio Z2" → rutina Z2 base;
-   - 4+ semanas de carga sin deload → "Deload" → PRG-0009;
-   - todo en verde → "Felicitación" / habilitar HIIT corto.
-2. Tarjeta de recomendación en Home ("Dormiste 5 h — hoy te sugiero Descarga activa").
-   Descartable; nunca bloquea entrenar lo planificado.
-3. Seeds de 3 rutinas nuevas (`scripts/seed-salud-rutinas.ts`), rango RUT-0023..0025:
-   - **RUT-0023 Cardio Z2 base** (30–40 min, guiada por `zonasFC` del perfil);
-   - **RUT-0024 HIIT corto** (~20 min intervalos; para días de buena recuperación);
-   - **RUT-0025 Descarga activa** (movilidad + caminata Z1, ~25 min).
-4. Client-side por ahora; migrar a Cloud Function queda para cuando salga del plan Spark.
+**`lib/sueno.ts`** — fuente única de verdad para sueño consolidado:
+`NocheSueno`, `consolidarNoches`, `promedioNoches`. `fecha` = mañana del despertar.
+Siesta: inicia 10:00–19:59 Y < 3h. Legacy: `horaAcostarse` ≥ "15:00" → fecha+1.
+
+### S3 — Motor de recomendaciones + rutinas nuevas ✅ completo (P50, 2026-07-04)
+1. ✅ `lib/recomendaciones.ts` **puro**: `calcularRecomendacion(senales, historial, hoy, miembro)`.
+   5 reglas en orden (primera que aplica gana): descanso → bajar intensidad → cardio Z2 →
+   deload → felicitación. Helper exportado `semanasSinDescarga` con tests propios.
+   `RUTINAS_RECOMENDADAS = { z2:"RUT-0023", hiit:"RUT-0024", descarga:"RUT-0025", deload:"PRG-0009" }`.
+2. ✅ Tarjeta en Home: icono por severidad, mensaje con dato concreto, "Ver rutina", ✕ descartable.
+   `localStorage` → `rec-descartada-{miembro}-{YYYY-MM-DD}`. Sin bloqueo.
+   Datos de salud cacheados en `sessionStorage` (`su-{miembro}` = "0"|"1").
+3. ✅ `scripts/seed-salud-rutinas.ts` → RUT-0023/0024/0025. Alias: `seed:salud-rutinas`.
+4. ADR #023: sin colección nueva; cálculo al vuelo, descarte en localStorage.
+   **Serie S completa.** S4 y roadmap = próxima conversación de arquitectura.
 
 ### S4 — (futuro, no arrancar sin OK del owner)
 Ver "Roadmap" abajo.
@@ -80,8 +87,16 @@ Ver "Roadmap" abajo.
 - **ADR #021** — El enriquecimiento biométrico es **post-hoc e idempotente**: re-importar
   el mismo ZIP no duplica ni pisa biometría con datos peores (si el Historial ya tiene
   `granularidad: "serie"`, no se degrada a "sesion").
-- **ADR #022** — Recomendaciones client-side, puras y explicables: cada recomendación
+- **ADR #022** ✅ — Recomendaciones client-side, puras y explicables: cada recomendación
   muestra su porqué ("FC reposo +6 bpm vs tus últimas 4 semanas"). Nada de caja negra.
+- **ADR #023** ✅ — Sin colección nueva para recomendaciones (costo Spark, son derivables).
+  Cálculo al vuelo en el cliente. Descarte del día en `localStorage` (`rec-descartada-{miembro}-{fecha}`).
+  Si a futuro hace falta trackear `aplicada`, se revisa el ADR.
+- **ADR #024** ✅ — VR como intervalos: las sesiones VR se modelan con
+  `PrescripcionCardio` formato `"Intervalos"` (`rondas` = series, `trabajoSeg`/
+  `descansoSeg` por serie, `juegoSugerido` para el chip) en vez de extender el
+  modelo. Las imágenes de juegos son SVG originales locales (`public/vr/`) por
+  copyright — nada de carátulas ni screenshots de marketing. Implementado en P51b.
 
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3):
