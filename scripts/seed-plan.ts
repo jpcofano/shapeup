@@ -28,10 +28,19 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { videoGenericoPorPatron, urlClip } from "./data/videos-genericos";
+import { VIDEOS_CURADOS } from "./data/videos-curados";
+import { estimarDuracionMin as estimarDuracionMinLib } from "../src/lib/metricas";
+import type { PatronMovimiento, Rutina as RutinaModel } from "../src/types/models";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const dryRun = process.argv.includes("--dry-run");
 const force  = process.argv.includes("--force");
+// --solo=ID1,ID2,...  → acota el seed a esos ids (cualquier colección), para
+// migraciones puntuales sin repisar todo el plan. Ej.: re-prescribir solo
+// las rutinas VR (P51) sin tocar RUT-0001..0003 ni RUT-0023..0025.
+const soloArg = process.argv.find((a) => a.startsWith("--solo="));
+const solo = soloArg ? new Set(soloArg.slice("--solo=".length).split(",")) : null;
 
 const serviceAccount = JSON.parse(readFileSync(resolve(__dir, "service-account.json"), "utf8"));
 initializeApp({ credential: cert(serviceAccount) });
@@ -102,11 +111,12 @@ const EJ: EjDef[] = [
     equipo: ["Mancuernas", "Banco"], nivel: "Principiante", unilateral: true, descanso: 60,
     instrucciones: ["Apoyá una mano y rodilla en un banco/silla, espalda paralela al piso.",
       "Tirá la pesa hacia la cadera apretando la escápula, codo pegado al cuerpo.",
-      "Bajá controlado hasta estirar."],
+      "Bajá controlado hasta estirar.",
+      "Hacé todas las reps con un brazo y después cambiá al otro."],
     puntosClave: ["El movimiento sale de la espalda, no del brazo."],
     erroresComunes: ["Rotar el tronco para levantar más peso."] },
 
-  { id: "EJ-8005", nombre: "Press de pecho con banda", modalidad: "Fuerza",
+  { id: "EJ-8005", nombre: "Press de pecho con banda", modalidad: "Fuerza", imagenes: imgs("Pushups"),
     patron: "Empuje horizontal", primario: "Pecho", secundarios: ["Hombros", "Tríceps"],
     equipo: ["Banda elástica"], nivel: "Principiante", descanso: 60,
     instrucciones: ["Anclá la banda detrás tuyo a la altura del pecho (o pasala por la espalda).",
@@ -118,7 +128,9 @@ const EJ: EjDef[] = [
   { id: "EJ-8006", nombre: "Curl de bíceps", modalidad: "Fuerza", imagenes: imgs("Dumbbell_Bicep_Curl"),
     patron: "Aislamiento", primario: "Bíceps", secundarios: ["Antebrazos"],
     equipo: ["Mancuernas", "Banda elástica"], nivel: "Principiante", descanso: 45,
-    instrucciones: ["Codos pegados al cuerpo.", "Subí controlando, sin balancear.", "Bajá lento."],
+    instrucciones: ["Una mancuerna en cada mano, brazos a los costados.",
+      "Subí AMBOS brazos a la vez (o alterná uno y uno), codos pegados al cuerpo.",
+      "Bajá lento, sin balancear el torso."],
     puntosClave: ["Controlá la bajada tanto como la subida."],
     erroresComunes: ["Balancear el cuerpo para subir.", "Despegar los codos."] },
 
@@ -134,7 +146,8 @@ const EJ: EjDef[] = [
     patron: "Zancada / unilateral", primario: "Cuádriceps", secundarios: ["Glúteos", "Isquios"],
     equipo: ["Peso corporal", "Mancuernas"], nivel: "Principiante", unilateral: true, descanso: 75,
     instrucciones: ["Dá un paso largo hacia atrás y bajá la rodilla de atrás hacia el piso.",
-      "El torso erguido; el peso en el talón de adelante.", "Volvé empujando con la pierna de adelante."],
+      "El torso erguido; el peso en el talón de adelante.", "Volvé empujando con la pierna de adelante.",
+      "Alterná piernas, o completá todas las reps de una y cambiá."],
     puntosClave: ["Hacé todas las reps de una pierna o alterná, como prefieras."],
     erroresComunes: ["Que la rodilla de adelante se vaya muy por delante del pie."] },
 
@@ -149,8 +162,8 @@ const EJ: EjDef[] = [
   { id: "EJ-8010", nombre: "Peso muerto rumano (RDL)", modalidad: "Fuerza", imagenes: imgs("Romanian_Deadlift"),
     patron: "Dominante de cadera", primario: "Isquios", secundarios: ["Glúteos", "Lumbares"],
     equipo: ["Mancuernas"], nivel: "Intermedio", descanso: 75,
-    instrucciones: ["Pesas adelante de los muslos, rodillas apenas flexionadas.",
-      "Llevá la cadera hacia atrás bajando las pesas pegadas a las piernas.",
+    instrucciones: ["Una mancuerna en cada mano, por delante de los muslos.",
+      "Rodillas apenas flexionadas; llevá la cadera hacia atrás bajando las pesas pegadas a las piernas.",
       "Sentí el estiramiento atrás del muslo; subí apretando glúteos."],
     puntosClave: ["La espalda recta SIEMPRE; el movimiento es de cadera, no de espalda."],
     erroresComunes: ["Redondear la espalda baja.", "Convertirlo en sentadilla."] },
@@ -167,7 +180,8 @@ const EJ: EjDef[] = [
   { id: "EJ-8012", nombre: "Swings con pesa", modalidad: "Fuerza", imagenes: imgs("One-Arm_Kettlebell_Swings"),
     patron: "Dominante de cadera", primario: "Glúteos", secundarios: ["Isquios", "Core", "Hombros"],
     equipo: ["Kettlebell", "Mancuernas"], nivel: "Intermedio", descanso: 30,
-    instrucciones: ["Impulso explosivo de cadera: la pesa sube hasta la altura del pecho.",
+    instrucciones: ["Sostené UNA pesa con las dos manos entre las piernas.",
+      "Impulso explosivo de cadera: la pesa sube hasta la altura del pecho.",
       "Los brazos solo guían; la fuerza sale de la cadera.", "Espalda recta todo el tiempo."],
     puntosClave: ["El movimiento es un 'snap' de cadera, no un levantamiento de hombros."],
     erroresComunes: ["Querer subir la pesa con los brazos.", "Redondear la espalda."] },
@@ -191,7 +205,8 @@ const EJ: EjDef[] = [
   { id: "EJ-8015", nombre: "Press de hombros", modalidad: "Fuerza", imagenes: imgs("Dumbbell_Shoulder_Press"),
     patron: "Empuje vertical", primario: "Hombros", secundarios: ["Tríceps"],
     equipo: ["Mancuernas"], nivel: "Principiante", descanso: 75,
-    instrucciones: ["Pesas a la altura de los hombros.", "Empujá arriba hasta estirar sin trabar codos.",
+    instrucciones: ["Una mancuerna en cada mano, a la altura de los hombros; subí las dos juntas.",
+      "Empujá arriba hasta estirar sin trabar codos.",
       "Bajá controlado a los hombros."],
     puntosClave: ["No arquees la espalda baja; apretá el abdomen."],
     erroresComunes: ["Empujar hacia adelante en vez de arriba."] },
@@ -200,7 +215,8 @@ const EJ: EjDef[] = [
     patron: "Core anti-rotación", primario: "Core", secundarios: ["Hombros"],
     equipo: ["Peso corporal"], nivel: "Principiante", unilateral: true, descanso: 30,
     instrucciones: ["De costado, apoyá el antebrazo bajo el hombro.",
-      "Subí la cadera hasta formar una línea recta y mantené."],
+      "Subí la cadera hasta formar una línea recta y mantené.",
+      "Hacé el tiempo de un lado y después girá al otro lado."],
     puntosClave: ["Cadera bien arriba; cuerpo en línea."],
     erroresComunes: ["Dejar caer la cadera."] },
 
@@ -212,16 +228,19 @@ const EJ: EjDef[] = [
     puntosClave: ["El tronco quieto; no dejes que la cadera se vaya de lado."],
     erroresComunes: ["Rotar la cadera al estirar la pierna."] },
 
-  { id: "EJ-8018", nombre: "Pallof press (banda)", modalidad: "Movilidad",
+  { id: "EJ-8018", nombre: "Pallof press (banda)", modalidad: "Movilidad", imagenes: imgs("Pallof_Press"),
     patron: "Core anti-rotación", primario: "Core", secundarios: ["Hombros"],
     equipo: ["Banda elástica"], nivel: "Principiante", unilateral: true, descanso: 30,
     instrucciones: ["Banda anclada a un costado, a la altura del pecho.",
-      "Llevá las manos al frente resistiendo la rotación; volvé controlado."],
+      "Llevá las manos al frente resistiendo la rotación; volvé controlado.",
+      "Hacé las reps de un lado y después cambiá de lado."],
     puntosClave: ["Anti-rotación: el core trabaja en NO girar."],
     erroresComunes: ["Dejar que el tronco gire hacia la banda."] },
 ];
 
 function ejercicioDoc(e: EjDef): Record<string, unknown> {
+  const clip = videoGenericoPorPatron(e.patron as PatronMovimiento);
+  const youtubeId = VIDEOS_CURADOS[e.id]?.youtubeId;
   return {
     idEjercicio: e.id, nombre: e.nombre, nombreCanonico: canon(e.nombre),
     modalidad: e.modalidad, patron: e.patron,
@@ -230,6 +249,8 @@ function ejercicioDoc(e: EjDef): Record<string, unknown> {
     instrucciones: e.instrucciones, puntosClave: e.puntosClave, erroresComunes: e.erroresComunes,
     descansoSugeridoSeg: e.descanso, sinonimos: [],
     imagenes: e.imagenes ?? [],
+    ...(youtubeId ? { videoYoutubeId: youtubeId } : {}),
+    ...(clip ? { videoUrl: urlClip(clip), videoEsGenerico: true } : {}),
     fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
@@ -269,10 +290,25 @@ const CINT = (orden: number, id: string, nombre: string, trabajoSeg: number, ron
   orden, idEjercicio: id, nombreEjercicio: nombre, modalidad: "Cardio",
   prescripcion: { modalidad: "Cardio", formato: "Intervalos", trabajoSeg, rondas, descansoSeg: desc, intensidad: "Vigorosa" },
 });
-const CVR = (orden: number, id: string, nombre: string, duracionMin: number, zona: string, juego: string) => ({
+// VR en intervalos (P51, ADR #024): rondas = series, trabajoSeg = tiempo por serie
+// (canción/round/bloque del juego), descansoSeg = descanso entre series. Ningún
+// campo nuevo en el modelo: reusa PrescripcionCardio formato "Intervalos".
+const CVRI = (orden: number, id: string, nombre: string, rondas: number, trabajoSeg: number, descansoSeg: number, zona: string, juego: string) => ({
   orden, idEjercicio: id, nombreEjercicio: nombre, modalidad: "Cardio",
-  prescripcion: { modalidad: "Cardio", formato: "Continuo", duracionMin, zonaObjetivo: zona, intensidad: "Moderada", juegoSugerido: juego },
+  prescripcion: { modalidad: "Cardio", formato: "Intervalos", rondas, trabajoSeg, descansoSeg, zonaObjetivo: zona, intensidad: "Moderada", juegoSugerido: juego },
 });
+
+// Bloques VR declarados antes de RUTINAS para poder derivar duracionEstimadaMin
+// con la función real (lib/metricas.ts), sin hardcodear el estimado.
+const BLOQUES_RUT0004 = [CVRI(1, "EJ-9009", "PowerBeatsVR (VR)", 5, 300, 60, "Z4", "PowerBeatsVR")];
+const BLOQUES_RUT0005 = [CVRI(1, "EJ-9010", "Beat the Beats (VR)", 6, 240, 60, "Z3", "Beat the Beats")];
+const BLOQUES_RUT0007 = [CVRI(1, "EJ-9004", "Creed: Rise to Glory (VR)", 5, 240, 90, "Z4", "Creed: Rise to Glory")];
+const BLOQUES_RUT0008 = [CVRI(1, "EJ-9003", "Les Mills Bodycombat (VR)", 3, 600, 60, "Z3", "Les Mills Bodycombat")];
+
+/** Duración estimada (min) de un array de bloques VR, vía la función real del lib. */
+function calcVR(bloques: Record<string, unknown>[]): number {
+  return estimarDuracionMinLib({ bloques } as unknown as RutinaModel);
+}
 
 type RutDef = {
   id: string; nombre: string; foco: string; objetivo: string; nivel: string; nivelOrden: number;
@@ -328,31 +364,34 @@ const RUTINAS: RutDef[] = [
       CINT(5, "EJ-8013", "Mountain climbers", 30, 3, 90),
     ] },
 
-  // ── Rutinas de VR (cardio) ──────────────────────────────────────────────────
+  // ── Rutinas de VR (cardio en Intervalos — P51, ADR #024) ────────────────────
   { id: "RUT-0004", nombre: "VR — Quema full-body (PowerBeatsVR)", foco: "VR",
     objetivo: "Pérdida de grasa", nivel: "Avanzado", nivelOrden: 3, lugar: "VR", equipo: ["VR"],
-    descripcion: "Cardio de alta intensidad: boxeo + esquives + sentadillas al ritmo.", durEstMin: 30,
-    bloques: [CVR(1, "EJ-9009", "PowerBeatsVR (VR)", 30, "Z4", "PowerBeatsVR")] },
+    descripcion: "Cardio de alta intensidad: boxeo + esquives + sentadillas al ritmo.",
+    durEstMin: calcVR(BLOQUES_RUT0004),
+    notas: "Cada serie es un entrenamiento/canción de PowerBeatsVR; pausá el juego en el descanso si hace falta.",
+    bloques: BLOQUES_RUT0004 },
 
   { id: "RUT-0005", nombre: "VR — Rítmico (Beat the Beats)", foco: "VR",
     objetivo: "Recomposición", nivel: "Intermedio", nivelOrden: 2, lugar: "VR", equipo: ["VR"],
-    descripcion: "Boxeo rítmico: brazos, hombros y core, con esquives laterales.", durEstMin: 30,
-    bloques: [CVR(1, "EJ-9010", "Beat the Beats (VR)", 30, "Z3", "Beat the Beats")] },
-
-  { id: "RUT-0006", nombre: "VR — Piernas y cardio (Pistol Whip)", foco: "VR",
-    objetivo: "Recomposición", nivel: "Intermedio", nivelOrden: 2, lugar: "VR", equipo: ["VR"],
-    descripcion: "Esquivar agachándose = sentadillas naturales. El que más suma piernas.", durEstMin: 30,
-    bloques: [CVR(1, "EJ-9001", "Pistol Whip (VR)", 30, "Z3", "Pistol Whip")] },
+    descripcion: "Boxeo rítmico: brazos, hombros y core, con esquives laterales.",
+    durEstMin: calcVR(BLOQUES_RUT0005),
+    notas: "Cada serie es una canción de Beat the Beats; pausá el juego en el descanso si hace falta.",
+    bloques: BLOQUES_RUT0005 },
 
   { id: "RUT-0007", nombre: "VR — Boxeo intenso (Creed)", foco: "VR",
     objetivo: "Resistencia muscular", nivel: "Avanzado", nivelOrden: 3, lugar: "VR", equipo: ["VR"],
-    descripcion: "Boxeo de cuerpo completo para los días de intensidad alta (Z4).", durEstMin: 25,
-    bloques: [CVR(1, "EJ-9004", "Creed: Rise to Glory (VR)", 25, "Z4", "Creed: Rise to Glory")] },
+    descripcion: "Boxeo de cuerpo completo para los días de intensidad alta (Z4).",
+    durEstMin: calcVR(BLOQUES_RUT0007),
+    notas: "Cada serie es un round de Creed; el juego ya da descanso entre rounds, usalo como referencia.",
+    bloques: BLOQUES_RUT0007 },
 
   { id: "RUT-0008", nombre: "VR — Cardio estructurado (Body Combat)", foco: "VR",
     objetivo: "General / salud", nivel: "Intermedio", nivelOrden: 2, lugar: "VR", equipo: ["VR"],
-    descripcion: "Sesión guiada por coach; ideal para sesión larga manteniendo Z3 con picos a Z4.", durEstMin: 40,
-    bloques: [CVR(1, "EJ-9003", "Les Mills Bodycombat (VR)", 40, "Z3", "Les Mills Bodycombat")] },
+    descripcion: "Sesión guiada por coach; ideal para sesión larga manteniendo Z3 con picos a Z4.",
+    durEstMin: calcVR(BLOQUES_RUT0008),
+    notas: "Cada serie es un bloque de la clase guiada de Body Combat; pausá en el descanso si hace falta.",
+    bloques: BLOQUES_RUT0008 },
 ];
 
 function totalSeries(bloques: Record<string, unknown>[]): number {
@@ -424,7 +463,7 @@ const PROGRAMAS: PrgDef[] = [
     descripcion: "Equilibrio simple: 2 de fuerza + 2 de cardio VR, sin sesión larga.",
     dias: [
       { orden: 1, dia: "lunes", etiqueta: "Lunes — Fuerza A", tipo: "rutina", idRutina: "RUT-0001" },
-      { orden: 2, dia: "martes", etiqueta: "Martes — VR piernas (Pistol Whip)", tipo: "rutina", idRutina: "RUT-0006" },
+      { orden: 2, dia: "martes", etiqueta: "Martes — Cardio VR (quema)", tipo: "rutina", idRutina: "RUT-0004" },
       { orden: 3, dia: "jueves", etiqueta: "Jueves — Fuerza B", tipo: "rutina", idRutina: "RUT-0002" },
       { orden: 4, dia: "viernes", etiqueta: "Viernes — VR rítmico", tipo: "rutina", idRutina: "RUT-0005" },
     ] },
@@ -437,7 +476,7 @@ const PROGRAMAS: PrgDef[] = [
       { orden: 1, dia: "lunes", etiqueta: "Lunes — VR quema (PowerBeats)", tipo: "rutina", idRutina: "RUT-0004" },
       { orden: 2, dia: "martes", etiqueta: "Martes — Fuerza A", tipo: "rutina", idRutina: "RUT-0001" },
       { orden: 3, dia: "miércoles", etiqueta: "Miércoles — VR rítmico", tipo: "rutina", idRutina: "RUT-0005" },
-      { orden: 4, dia: "jueves", etiqueta: "Jueves — VR piernas (Pistol Whip)", tipo: "rutina", idRutina: "RUT-0006" },
+      { orden: 4, dia: "jueves", etiqueta: "Jueves — VR (Body Combat)", tipo: "rutina", idRutina: "RUT-0008" },
       { orden: 5, dia: "viernes", etiqueta: "Viernes — Fuerza B", tipo: "rutina", idRutina: "RUT-0002" },
       { orden: 6, dia: "sábado", etiqueta: "Sábado — VR boxeo (Creed)", tipo: "rutina", idRutina: "RUT-0007" },
       DESC(7, "domingo"),
@@ -448,7 +487,7 @@ const PROGRAMAS: PrgDef[] = [
     descripcion: "Cuando no tenés pesas o estás de viaje: rotación de juegos de VR para sostener el cardio.",
     comoUsar: "Rotá los juegos para no aburrirte ni acostumbrar al cuerpo. Bajá un cambio si venís cansado.",
     dias: [
-      { orden: 1, dia: "lunes", etiqueta: "Lunes — Pistol Whip", tipo: "rutina", idRutina: "RUT-0006" },
+      { orden: 1, dia: "lunes", etiqueta: "Lunes — Beat the Beats", tipo: "rutina", idRutina: "RUT-0005" },
       { orden: 2, dia: "martes", etiqueta: "Martes — PowerBeats", tipo: "rutina", idRutina: "RUT-0004" },
       { orden: 3, dia: "miércoles", etiqueta: "Miércoles — Beat the Beats", tipo: "rutina", idRutina: "RUT-0005" },
       { orden: 4, dia: "jueves", etiqueta: "Jueves — Body Combat", tipo: "rutina", idRutina: "RUT-0008" },
@@ -487,16 +526,25 @@ async function writeDoc(col: string, id: string, data: Record<string, unknown>, 
 }
 
 async function run() {
-  console.log(`\nSeed PLAN — modo: ${dryRun ? "DRY RUN" : force ? "FORCE" : "SAFE"}\n`);
+  console.log(`\nSeed PLAN — modo: ${dryRun ? "DRY RUN" : force ? "FORCE" : "SAFE"}${solo ? ` — solo: ${[...solo].join(", ")}` : ""}\n`);
 
   console.log(`Ejercicios del plan (${EJ.length}):`);
-  for (const e of EJ) await writeDoc("ejercicios", e.id, ejercicioDoc(e), e.nombre);
+  for (const e of EJ) {
+    if (solo && !solo.has(e.id)) continue;
+    await writeDoc("ejercicios", e.id, ejercicioDoc(e), e.nombre);
+  }
 
   console.log(`\nRutinas (${RUTINAS.length}):`);
-  for (const r of RUTINAS) await writeDoc("rutinas", r.id, rutinaDoc(r), r.nombre);
+  for (const r of RUTINAS) {
+    if (solo && !solo.has(r.id)) continue;
+    await writeDoc("rutinas", r.id, rutinaDoc(r), r.nombre);
+  }
 
   console.log(`\nProgramas (${PROGRAMAS.length}):`);
-  for (const p of PROGRAMAS) await writeDoc("programas", p.id, programaDoc(p), p.nombre);
+  for (const p of PROGRAMAS) {
+    if (solo && !solo.has(p.id)) continue;
+    await writeDoc("programas", p.id, programaDoc(p), p.nombre);
+  }
 
   console.log("\nListo. Recordá: las rutinas de VR referencian EJ-9001+ (corré seed-vr.ts antes).\n");
   process.exit(0);

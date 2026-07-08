@@ -18,6 +18,9 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { videoGenericoPorPatron, urlClip } from "./data/videos-genericos";
+import { VIDEOS_CURADOS } from "./data/videos-curados";
+import type { PatronMovimiento } from "../src/types/models";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const dryRun = process.argv.includes("--dry-run");
@@ -43,7 +46,7 @@ type EjDef = { id: string; nombre: string; modalidad: string; patron: string; pr
   imagenes?: string[] };
 
 const EJ: EjDef[] = [
-  { id: "EJ-8028", nombre: "Curl nórdico (asistido)", modalidad: "Fuerza", patron: "Dominante de cadera",
+  { id: "EJ-8028", nombre: "Curl nórdico (asistido)", modalidad: "Fuerza", imagenes: imgs("Natural_Glute_Ham_Raise"), patron: "Dominante de cadera",
     primario: "Isquios", secundarios: ["Glúteos", "Core"], equipo: ["Peso corporal"], nivel: "Intermedio", descanso: 90,
     instrucciones: ["Arrodillado, con los pies bien anclados (alguien los sostiene o bajo un mueble firme).",
       "Bajá el torso hacia adelante lo más LENTO posible (3–5 s), resistiendo con los isquios.",
@@ -65,12 +68,16 @@ const EJ: EjDef[] = [
 ];
 
 function ejercicioDoc(e: EjDef): Record<string, unknown> {
+  const clip = videoGenericoPorPatron(e.patron as PatronMovimiento);
+  const youtubeId = VIDEOS_CURADOS[e.id]?.youtubeId;
   return {
     idEjercicio: e.id, nombre: e.nombre, nombreCanonico: canon(e.nombre), modalidad: e.modalidad, patron: e.patron,
     grupoMuscularPrimario: e.primario, gruposSecundarios: e.secundarios, equipo: e.equipo,
     unilateral: e.unilateral ?? false, nivel: e.nivel, instrucciones: e.instrucciones, puntosClave: e.puntosClave,
     erroresComunes: e.erroresComunes, ...(e.consejosSeguridad ? { consejosSeguridad: e.consejosSeguridad } : {}),
     descansoSugeridoSeg: e.descanso, sinonimos: [], imagenes: e.imagenes ?? [],
+    ...(youtubeId ? { videoYoutubeId: youtubeId } : {}),
+    ...(clip ? { videoUrl: urlClip(clip), videoEsGenerico: true } : {}),
     fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };

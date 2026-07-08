@@ -22,6 +22,9 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { videoGenericoPorPatron, urlClip } from "./data/videos-genericos";
+import { VIDEOS_CURADOS } from "./data/videos-curados";
+import type { PatronMovimiento } from "../src/types/models";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const dryRun = process.argv.includes("--dry-run");
@@ -64,12 +67,17 @@ const EJ: EjDef[] = [
 ];
 
 function ejercicioDoc(e: EjDef): Record<string, unknown> {
+  const clip = videoGenericoPorPatron(e.patron as PatronMovimiento);
+  const youtubeId = VIDEOS_CURADOS[e.id]?.youtubeId;
   return {
     idEjercicio: e.id, nombre: e.nombre, nombreCanonico: canon(e.nombre), modalidad: e.modalidad, patron: e.patron,
     grupoMuscularPrimario: e.primario, gruposSecundarios: e.secundarios, equipo: e.equipo,
     unilateral: e.unilateral ?? false, nivel: e.nivel, instrucciones: e.instrucciones, puntosClave: e.puntosClave,
     erroresComunes: e.erroresComunes, descansoSugeridoSeg: e.descanso, sinonimos: [],
-    imagenes: e.imagenes ?? [], fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
+    imagenes: e.imagenes ?? [],
+    ...(youtubeId ? { videoYoutubeId: youtubeId } : {}),
+    ...(clip ? { videoUrl: urlClip(clip), videoEsGenerico: true } : {}),
+    fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
 }

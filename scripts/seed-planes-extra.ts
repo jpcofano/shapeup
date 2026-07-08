@@ -18,6 +18,9 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { videoGenericoPorPatron, urlClip } from "./data/videos-genericos";
+import { VIDEOS_CURADOS } from "./data/videos-curados";
+import type { PatronMovimiento } from "../src/types/models";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const dryRun = process.argv.includes("--dry-run");
@@ -68,15 +71,15 @@ const EJ: EjDef[] = [
     primario: "Pecho", secundarios: ["Hombros"], equipo: ["Banda elástica"], nivel: "Principiante", descanso: 45,
     instrucciones: ["Banda anclada detrás, brazos abiertos.", "Juntá las manos al frente con los codos apenas flexionados.", "Volvé controlado."],
     puntosClave: ["Apretá el pecho al juntar las manos."], erroresComunes: ["Doblar mucho los codos (se vuelve press)."] },
-  { id: "EJ-8023", nombre: "Gato–camello", modalidad: "Movilidad", patron: "Core flexión",
+  { id: "EJ-8023", nombre: "Gato–camello", modalidad: "Movilidad", imagenes: imgs("Cat_Stretch"), patron: "Core flexión",
     primario: "Lumbares", secundarios: ["Core"], equipo: ["Peso corporal"], nivel: "Principiante", descanso: 0,
     instrucciones: ["En cuatro patas, redondeá la espalda (gato) y luego arqueala (camello).", "Movimiento lento, siguiendo la respiración."],
     puntosClave: ["Movilidad de columna; sin forzar."], erroresComunes: ["Hacerlo rápido y a los tirones."] },
-  { id: "EJ-8024", nombre: "Estiramiento del mundo (world's greatest)", modalidad: "Movilidad", patron: "Zancada / unilateral",
+  { id: "EJ-8024", nombre: "Estiramiento del mundo (world's greatest)", modalidad: "Movilidad", imagenes: imgs("Worlds_Greatest_Stretch"), patron: "Zancada / unilateral",
     primario: "Isquios", secundarios: ["Glúteos", "Core"], equipo: ["Peso corporal"], nivel: "Principiante", unilateral: true, descanso: 0,
     instrucciones: ["Desde una zancada, apoyá la mano del mismo lado y rotá el otro brazo hacia arriba.", "Sentí cadera, isquios y torácica.", "Alterná lados."],
     puntosClave: ["El gran estiramiento de calentamiento: abre todo."], erroresComunes: ["Apurar la rotación."] },
-  { id: "EJ-8025", nombre: "Círculos de cadera", modalidad: "Movilidad", patron: "Dominante de cadera",
+  { id: "EJ-8025", nombre: "Círculos de cadera", modalidad: "Movilidad", imagenes: imgs("Standing_Hip_Circles"), patron: "Dominante de cadera",
     primario: "Core", secundarios: ["Glúteos"], equipo: ["Peso corporal"], nivel: "Principiante", descanso: 0,
     instrucciones: ["De pie, manos en la cadera, hacé círculos amplios con la pelvis.", "Cambiá de dirección."],
     puntosClave: ["Soltar la cadera antes de entrenar."], erroresComunes: [] },
@@ -84,19 +87,23 @@ const EJ: EjDef[] = [
     primario: "Espalda media", secundarios: ["Pecho", "Hombros"], equipo: ["Peso corporal"], nivel: "Principiante", descanso: 0,
     instrucciones: ["De costado en el piso, brazos estirados juntos; abrí el brazo de arriba siguiendo con la mirada.", "Mantené unos segundos y volvé."],
     puntosClave: ["Abre el pecho y la columna torácica (clave si pasás horas sentado)."], erroresComunes: ["Despegar las rodillas del piso."] },
-  { id: "EJ-8027", nombre: "Estiramiento de isquios y flexores", modalidad: "Movilidad", patron: "Dominante de cadera",
+  { id: "EJ-8027", nombre: "Estiramiento de isquios y flexores", modalidad: "Movilidad", imagenes: imgs("Hamstring_Stretch"), patron: "Dominante de cadera",
     primario: "Isquios", secundarios: ["Cuádriceps"], equipo: ["Peso corporal"], nivel: "Principiante", unilateral: true, descanso: 0,
     instrucciones: ["Una pierna adelante estirada para isquios; cambiá a zancada para estirar el flexor de la de atrás.", "Mantené sin rebotar."],
     puntosClave: ["Estiramiento suave, sin dolor."], erroresComunes: ["Rebotar para llegar más lejos."] },
 ];
 
 function ejercicioDoc(e: EjDef): Record<string, unknown> {
+  const clip = videoGenericoPorPatron(e.patron as PatronMovimiento);
+  const youtubeId = VIDEOS_CURADOS[e.id]?.youtubeId;
   return {
     idEjercicio: e.id, nombre: e.nombre, nombreCanonico: canon(e.nombre),
     modalidad: e.modalidad, patron: e.patron, grupoMuscularPrimario: e.primario,
     gruposSecundarios: e.secundarios, equipo: e.equipo, unilateral: e.unilateral ?? false, nivel: e.nivel,
     instrucciones: e.instrucciones, puntosClave: e.puntosClave, erroresComunes: e.erroresComunes,
     descansoSugeridoSeg: e.descanso, sinonimos: [], imagenes: e.imagenes ?? [],
+    ...(youtubeId ? { videoYoutubeId: youtubeId } : {}),
+    ...(clip ? { videoUrl: urlClip(clip), videoEsGenerico: true } : {}),
     fuente: "Plan ShapeUp", origen: "seed", vecesUsado: 0,
     fechaCreacion: FieldValue.serverTimestamp(), ultimaModificacion: FieldValue.serverTimestamp(),
   };
