@@ -18,6 +18,10 @@
 //    --limpiar-biometria    En /historial: elimina campo biometria y campos de
 //                           enriquecimiento (fcPico, fcFinSerie, recuperacionBpm)
 //                           de series. No toca inicioMs/finMs ni otros campos.
+//
+//  Patrón de scripts/ (hotfix P55, ver scripts/pureza.test.ts): solo
+//  firebase-admin + módulos puros de src/lib/ o src/import/. Nunca src/data/
+//  ni src/firebase.ts (SDK cliente, usa import.meta.env — crashea bajo tsx).
 // ════════════════════════════════════════════════════════════════════════════
 
 import { initializeApp, cert } from "firebase-admin/app";

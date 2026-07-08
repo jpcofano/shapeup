@@ -1,21 +1,26 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  lib/enriquecerImport.ts — núcleo puro del match biométrico post-import
 //
-//  ADR #009: toda la lógica aquí es pura y testeable sin Firebase.
+//  ADR #009: toda la lógica aquí es pura y testeable sin Firebase — NUNCA
+//  importar nada de src/data/ ni src/firebase.ts en este archivo (ni siquiera
+//  transitivamente). scripts/rematch-salud.ts importa este módulo directo
+//  bajo tsx (Node puro, sin Vite): si algo de acá arrastra `../firebase.ts`
+//  (`import.meta.env`), el script crashea al cargar, antes de ejecutar una
+//  sola línea propia. El orquestador que sí toca Firestore
+//  (`enriquecerTrasImport`) vive en `data/enriquecimiento.ts` — separado a
+//  propósito tras un hotfix (P55) tras romper justo esto.
+//  Guarda automática: scripts/pureza.test.ts.
+//
 //  ADR #021: idempotente — no pisa biometría "serie" con "sesion".
 //  ADR #019: usa inicioMs/finMs del Historial si existen; si no, los deriva.
 // ════════════════════════════════════════════════════════════════════════════
 
-import type { Historial, BloqueRegistro, PerfilMiembro, MiembroId } from "../types/models";
+import type { Historial, BloqueRegistro, PerfilMiembro } from "../types/models";
 import type { ZipExtraccion } from "../import/samsungZip";
 import type { SesionApp } from "./matchBiometrico";
 import {
   elegirSesionSamsung, construirBiometriaSesion, enriquecerSerie,
 } from "./matchBiometrico";
-import { getHistorialMiembro, enriquecerHistorial } from "../data/historial";
-import { getPerfiles } from "../data/perfiles";
-import { ok, err } from "./result";
-import type { Result } from "./result";
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
 
@@ -137,39 +142,4 @@ export function calcularEnriquecimiento(
   }
 
   return resultado;
-}
-
-// ── Orquestador (lee Firestore + aplica updates) ──────────────────────────────
-
-/**
- * Lee el historial del miembro, calcula el enriquecimiento y aplica los updates.
- * Los errores parciales (una escritura fallida) no cancelan el resto.
- */
-export async function enriquecerTrasImport(
-  miembro: MiembroId,
-  extraccion: ZipExtraccion,
-): Promise<Result<ResultadoEnriquecimiento>> {
-  const [histRes, perfRes] = await Promise.all([
-    getHistorialMiembro(miembro),
-    getPerfiles(),
-  ]);
-
-  if (!histRes.ok) return err(histRes.error);
-
-  const perfil = perfRes.ok ? perfRes.value[miembro] : undefined;
-  const resultado = calcularEnriquecimiento(histRes.value, extraccion, perfil);
-
-  if (resultado.updates.length === 0) return ok(resultado);
-
-  const escrituras = await Promise.allSettled(
-    resultado.updates.map(({ idHist, biometria, bloques }) =>
-      enriquecerHistorial(idHist, biometria, bloques),
-    ),
-  );
-
-  // Contar errores: restar de matcheadas
-  const errores = escrituras.filter((r) => r.status === "rejected").length;
-  resultado.matcheadas -= errores;
-
-  return ok(resultado);
 }

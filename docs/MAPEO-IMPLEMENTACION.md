@@ -80,6 +80,43 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 ## 2. Bitácora
 
+### [2026-07-08] Hotfix P55 — `rematch-salud.ts` arrastraba el SDK cliente
+
+> `scripts/rematch-salud.ts` crasheaba bajo `tsx` real: "Cannot read properties
+> of undefined (reading 'VITE_FIREBASE_API_KEY')" en `src/firebase.ts`.
+
+- **Causa:** `lib/enriquecerImport.ts` (que el script importa por
+  `calcularEnriquecimiento`/`ventanaDeHistorial`, ambos puros) tenía adentro
+  el orquestador `enriquecerTrasImport`, que importaba `data/historial.ts` y
+  `data/perfiles.ts` → esos importan `src/firebase.ts` (SDK cliente,
+  `import.meta.env`). Bajo Vite/vitest `import.meta.env` existe (aunque las
+  vars no estén seteadas); bajo `tsx` puro no existe → crash al cargar el
+  módulo, antes de correr una sola línea del script. Por eso el bug no se
+  detectó con la suite de tests (todos corren bajo Vite).
+- **`src/lib/enriquecerImport.ts`** — se saca `enriquecerTrasImport` entero
+  (queda 100% puro: solo `ventanaDeHistorial`, `calcularEnriquecimiento`,
+  tipos). Comentario explícito de la regla ADR #009 para que no vuelva a pasar.
+- **`src/data/enriquecimiento.ts`** (nuevo) — `enriquecerTrasImport` movido
+  acá tal cual, con sus imports a `data/historial.ts`/`data/perfiles.ts`.
+- **`src/routes/Salud.tsx`** — importa `enriquecerTrasImport` desde
+  `../data/enriquecimiento` en vez de `../lib/enriquecerImport`.
+- **`scripts/rematch-salud.ts`** — suma `--help` (sale 0 sin tocar
+  `service-account.json` ni Firebase Admin; sirve de smoke test manual del
+  import chain). Comentario de pureza en el header.
+- **`scripts/pureza.test.ts`** (nuevo) — guarda automática: recorre
+  estáticamente (sin ejecutar) el grafo de imports en runtime de cada
+  `scripts/*.ts` (ignora `import type`, que se borra en runtime) y falla si
+  alguno alcanza `src/firebase.ts` o cualquier archivo bajo `src/data/`.
+  Verificado que detecta la regresión (se probó inyectando un script
+  deliberadamente impuro antes de confirmar la guarda). 34 scripts chequeados,
+  36 tests. `auditoria-salud.ts` y `limpiar-salud.ts` sumaron el mismo
+  comentario de patrón en su header (ya eran puros, no tenían el bug).
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (470 tests, +36
+  nuevos de `pureza.test.ts`) · `npx tsx scripts/rematch-salud.ts --help`
+  sale 0 · `npx tsx scripts/rematch-salud.ts --miembro=juanpablo` (dry-run,
+  sin `--confirmar`) llega hasta consultar Firestore real (falla después por
+  cuota de Firebase excedida — Spark plan, no relacionado con este bug).
+
 ### [2026-07-08] P55 (S-fix) — Mapeo de actividades, re-match sin ZIP, inventario e higiene
 
 > Prompt `docs/prompts/55-s-fix-mapeo-rematch-inventario.md`. Origen: auditoría

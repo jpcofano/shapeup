@@ -25,7 +25,7 @@ import {
 } from "../import/samsungZip";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialMiembro } from "../data/historial";
-import { enriquecerTrasImport } from "../lib/enriquecerImport";
+import { enriquecerTrasImport } from "../data/enriquecimiento";
 import { filtrarCardioRelevante } from "../lib/importSelectivo";
 import { useAuth } from "../auth/useAuth";
 import { ResumenTab }    from "../components/salud/ResumenTab";

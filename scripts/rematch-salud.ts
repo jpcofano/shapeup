@@ -21,6 +21,12 @@
 //  Uso:
 //    npx tsx scripts/rematch-salud.ts --miembro=juanpablo            # dry-run
 //    npx tsx scripts/rematch-salud.ts --miembro=juanpablo --confirmar
+//    npx tsx scripts/rematch-salud.ts --help
+//
+//  Patrón de scripts/ (hotfix P55, ver scripts/pureza.test.ts): solo
+//  firebase-admin + módulos puros de src/lib/ o src/import/. Nunca src/data/
+//  ni src/firebase.ts (SDK cliente, usa import.meta.env — crashea bajo tsx).
+//  Este script fue justamente el que rompió esto la primera vez.
 // ════════════════════════════════════════════════════════════════════════════
 
 import { initializeApp, cert } from "firebase-admin/app";
@@ -47,6 +53,19 @@ function argValor(flag: string): string | undefined {
 }
 const confirmar   = args.includes("--confirmar");
 const miembroFlag = argValor("miembro");
+
+// --help sale 0 sin tocar service-account.json ni Firebase Admin — sirve
+// también como smoke test de que el import chain (solo lib/ puro) no
+// arrastra el SDK cliente (ver nota de pureza en lib/enriquecerImport.ts).
+if (args.includes("--help") || args.includes("-h")) {
+  console.log(
+    "\nUso:\n" +
+    "  npx tsx scripts/rematch-salud.ts --miembro=<id>              (dry-run)\n" +
+    "  npx tsx scripts/rematch-salud.ts --miembro=<id> --confirmar\n\n" +
+    `Miembros válidos: ${MIEMBROS_VALIDOS.join(", ")}\n`,
+  );
+  process.exit(0);
+}
 
 if (!miembroFlag || !(MIEMBROS_VALIDOS as readonly string[]).includes(miembroFlag)) {
   console.error(

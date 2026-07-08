@@ -14,6 +14,10 @@
 //    npx tsx scripts/auditoria-salud.ts                    # miembro=juanpablo
 //    npx tsx scripts/auditoria-salud.ts --miembro=maria
 //    npx tsx scripts/auditoria-salud.ts --zip=./export.zip # + sección G: inventario del ZIP
+//
+//  Patrón de scripts/ (hotfix P55, ver scripts/pureza.test.ts): solo
+//  firebase-admin + módulos puros de src/lib/ o src/import/. Nunca src/data/
+//  ni src/firebase.ts (SDK cliente, usa import.meta.env — crashea bajo tsx).
 // ════════════════════════════════════════════════════════════════════════════
 
 import { initializeApp, cert } from "firebase-admin/app";
