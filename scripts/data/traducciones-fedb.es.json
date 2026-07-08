@@ -2401,7 +2401,7 @@
       "Posicionáte en plancha alta apoyado en las puntas de los pies y las manos, aproximadamente a la altura de los hombros, con los brazos extendidos y el cuerpo recto. Esta es la posición inicial.",
       "Bajá el pecho hacia el piso flexionando los codos.",
       "En la parte baja, revertí el movimiento empujando con fuerza para despegar del piso. Intentá 'saltar' unos 30-45 cm hacia un lado.",
-      "Al acelerar hacia arriba, mové el pie externo en la dirección de desplazamiento para acompañar el giro.",
+      "Al acelerar hacia arriba, mové el pie externo en sentido opuesto a la dirección de desplazamiento; eso te impulsa hacia ese lado.",
       "Al despegar, desplazá el cuerpo unos 30° para posicionarte para la próxima repetición.",
       "Volvé a la posición inicial y repetí avanzando en círculo hasta completar el reloj."
     ],
@@ -10103,6 +10103,54 @@
     ],
     "erroresComunes": [
       "Flexionar las rodillas en lugar de mantenerlas casi rectas."
+    ]
+  },
+  "Iron_Cross": {
+    "nombre": "Cruz de hierro (iron cross)",
+    "patron": "Aislamiento",
+    "unilateral": false,
+    "sinonimos": [
+      "iron cross",
+      "cruz con mancuernas"
+    ],
+    "instrucciones": [
+      "Paraté con una mancuerna en cada mano, pies al ancho de cadera y rodillas apenas flojas. Llevá las mancuernas al frente, a la altura de los muslos, casi tocándose. Esta es la posición inicial.",
+      "Con los brazos casi extendidos (codo fijo en un ángulo leve), abrí los brazos hacia los costados y arriba hasta la altura de los hombros, formando una cruz.",
+      "Hacé una pausa breve arriba, sin encoger los hombros hacia las orejas.",
+      "Bajá controlando en 2 s hasta volver a cruzar las mancuernas adelante. Repetí."
+    ],
+    "puntosClave": [
+      "Subí con fuerza del hombro, no con impulso de cadera.",
+      "Mantené el codo fijo en un ángulo leve durante todo el recorrido.",
+      "Arrancá liviano: es exigente para el deltoides."
+    ],
+    "erroresComunes": [
+      "Encoger los trapecios y subir los hombros a las orejas.",
+      "Usar demasiado peso y balancear el torso para llegar arriba."
+    ]
+  },
+  "Side_Jackknife": {
+    "nombre": "Navaja lateral (side jackknife)",
+    "patron": "Core flexión",
+    "unilateral": true,
+    "sinonimos": [
+      "side jackknife",
+      "navaja lateral",
+      "crunch lateral"
+    ],
+    "instrucciones": [
+      "Acostate de costado, piernas estiradas y apiladas una sobre la otra. La mano de abajo apoyala en el piso o cruzada sobre el pecho; la mano de arriba, detrás de la cabeza. Esta es la posición inicial.",
+      "Llevá al mismo tiempo las piernas y el torso hacia arriba, acercando el codo de arriba a la cadera y contrayendo los oblicuos del costado de arriba.",
+      "Apretá un instante en la parte alta.",
+      "Bajá con control hasta la posición inicial. Completá las reps de un lado y cambiá de lado."
+    ],
+    "puntosClave": [
+      "El movimiento sale del costado del abdomen, no del cuello ni del brazo.",
+      "Subí piernas y torso a la vez, no por separado."
+    ],
+    "erroresComunes": [
+      "Tirar de la cabeza con la mano.",
+      "Usar impulso en lugar de contraer el oblicuo."
     ]
   }
 }

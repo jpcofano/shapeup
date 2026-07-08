@@ -83,6 +83,7 @@ function validarTraduccion(
   const pasosEN = f.instructions.length;
   const pasosES = t.instrucciones.length;
 
+  // Ficha curada sin texto EN original: traduccion:"ok" sin ratio check ni warning.
   if (lenEN === 0) return;
   const ratio = lenES / lenEN;
 
