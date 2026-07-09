@@ -50,6 +50,17 @@ function mkMedicion(fecha: string, pesoKg: number): MedicionCorporal {
   return { idMedicion: `MED-${fecha}`, miembro: "juanpablo", fecha, pesoKg, fuente: "samsung-health-csv" };
 }
 
+function mkPresion(fecha: string, sistolica: number, diastolica: number): MetricaSalud[] {
+  return [
+    { idMetrica: `jp-presion-sistolica-${fecha}`, miembro: "juanpablo", tipo: "presion-sistolica", fecha, valor: sistolica, unidad: "mmHg", agregacion: "ultimo-del-dia", fuente: "samsung-health-csv" },
+    { idMetrica: `jp-presion-diastolica-${fecha}`, miembro: "juanpablo", tipo: "presion-diastolica", fecha, valor: diastolica, unidad: "mmHg", agregacion: "ultimo-del-dia", fuente: "samsung-health-csv" },
+  ];
+}
+
+function mkSpo2(fecha: string, valor: number): MetricaSalud {
+  return { idMetrica: `jp-spo2-${fecha}`, miembro: "juanpablo", tipo: "spo2", fecha, valor, unidad: "%", agregacion: "dia", fuente: "samsung-health-csv" };
+}
+
 /** 7 items en la ventana baseline (-35 a -8) con el mismo valor. */
 function baselineFc(valor: number): MetricaSalud[] {
   return Array.from({ length: 7 }, (_, i) => mkFc(offsetDate(HOY, -35 + i * 3), valor));
@@ -90,7 +101,7 @@ describe("calcularResumenSalud — baseline", () => {
     expect(fc.estado).not.toBe("sin-datos");
   });
 
-  it("< 7 datos en ventana → sin-datos (valorActual presente si hay dato reciente)", () => {
+  it("< 7 datos en ventana → sin-datos, sin valorActual (S-fix-b: nunca un número huérfano)", () => {
     const escasos = Array.from({ length: MIN_DATOS_BASELINE - 1 }, (_, i) =>
       mkFc(offsetDate(HOY, -35 + i * 4), 60),
     );
@@ -98,7 +109,7 @@ describe("calcularResumenSalud — baseline", () => {
     const senales = calcularResumenSalud([...actual, ...escasos], [], [], HOY);
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.estado).toBe("sin-datos");
-    expect(fc.valorActual).toBe(65);
+    expect(fc.valorActual).toBeUndefined();
   });
 
   it("datos con huecos (días sin métrica) no rompen la ventana", () => {
@@ -297,6 +308,83 @@ describe("peso", () => {
     expect(p.estado).toBe("ok");
     expect(p.valorActual).toBe(75.5);
     expect(p.baseline).toBeUndefined();
+  });
+});
+
+// ── Presión arterial (informativa, sin semáforo) ─────────────────────────────
+
+describe("presion", () => {
+  it("sin datos → no aparece", () => {
+    const senales = calcularResumenSalud([], [], [], HOY);
+    expect(senales.find((s) => s.clave === "presion")).toBeUndefined();
+  });
+
+  it("último par sistólica/diastólica del mismo día → valorActual compuesto", () => {
+    const senales = calcularResumenSalud(mkPresion(offsetDate(HOY, -2), 113, 78), [], [], HOY);
+    const p = senales.find((s) => s.clave === "presion")!;
+    expect(p.valorTexto).toBe("113/78");
+    expect(p.estado).toBe("ok");
+  });
+
+  it("no mezcla fechas distintas: solo empareja sistólica/diastólica del mismo día", () => {
+    // Sistólica más reciente (-1) no tiene diastólica ese día → debe usar el último día con AMBOS (-3)
+    const metricas: MetricaSalud[] = [
+      { idMetrica: "a", miembro: "juanpablo", tipo: "presion-sistolica", fecha: offsetDate(HOY, -1), valor: 150, unidad: "mmHg", agregacion: "ultimo-del-dia", fuente: "samsung-health-csv" },
+      ...mkPresion(offsetDate(HOY, -3), 110, 70),
+    ];
+    const senales = calcularResumenSalud(metricas, [], [], HOY);
+    const p = senales.find((s) => s.clave === "presion")!;
+    expect(p.valorTexto).toBe("110/70");
+  });
+
+  it("dato de hace más de 60 días → no aparece (recencia)", () => {
+    const senales = calcularResumenSalud(mkPresion(offsetDate(HOY, -61), 113, 78), [], [], HOY);
+    expect(senales.find((s) => s.clave === "presion")).toBeUndefined();
+  });
+
+  it("dato de hace exactamente 60 días → aparece (borde incluido)", () => {
+    const senales = calcularResumenSalud(mkPresion(offsetDate(HOY, -60), 113, 78), [], [], HOY);
+    expect(senales.find((s) => s.clave === "presion")).toBeDefined();
+  });
+
+  it("fuera del rango típico → motivo explicativo, pero estado sigue 'ok' (sin semáforo)", () => {
+    const senales = calcularResumenSalud(mkPresion(offsetDate(HOY, -1), 150, 95), [], [], HOY);
+    const p = senales.find((s) => s.clave === "presion")!;
+    expect(p.estado).toBe("ok");
+    expect(p.motivo).toContain("médico");
+  });
+
+  it("dentro del rango típico → sin motivo", () => {
+    const senales = calcularResumenSalud(mkPresion(offsetDate(HOY, -1), 113, 78), [], [], HOY);
+    expect(senales.find((s) => s.clave === "presion")!.motivo).toBeUndefined();
+  });
+});
+
+// ── SpO2 (informativa, sin semáforo) ─────────────────────────────────────────
+
+describe("spo2", () => {
+  it("sin datos → no aparece", () => {
+    const senales = calcularResumenSalud([], [], [], HOY);
+    expect(senales.find((s) => s.clave === "spo2")).toBeUndefined();
+  });
+
+  it("último valor reciente → aparece con estado 'ok'", () => {
+    const senales = calcularResumenSalud([mkSpo2(offsetDate(HOY, -1), 97)], [], [], HOY);
+    const s = senales.find((s) => s.clave === "spo2")!;
+    expect(s.valorActual).toBe(97);
+    expect(s.estado).toBe("ok");
+  });
+
+  it("dato de hace más de 60 días → no aparece (recencia)", () => {
+    const senales = calcularResumenSalud([mkSpo2(offsetDate(HOY, -61), 97)], [], [], HOY);
+    expect(senales.find((s) => s.clave === "spo2")).toBeUndefined();
+  });
+
+  it("por debajo del rango típico → motivo explicativo sin cambiar estado", () => {
+    const senales = calcularResumenSalud([mkSpo2(offsetDate(HOY, -1), 90)], [], [], HOY);
+    const s = senales.find((s) => s.clave === "spo2")!;
+    expect(s.estado).toBe("ok");
+    expect(s.motivo).toContain("médico");
   });
 });
 

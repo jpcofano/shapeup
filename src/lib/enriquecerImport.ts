@@ -28,7 +28,9 @@ export interface ResultadoEnriquecimiento {
   matcheadas:  number;
   porCustomId: number;
   porVentana:  number;
+  porDia:      number;   // ventana sintética + único ShapeUp ese día (S-fix-b)
   sinMatch:    number;
+  ambiguas:    number;   // ventana sintética + 2+ ShapeUp ese día — no se adivina (S-fix-b)
   omitidas:    number;   // ya tenían granularidad "serie" (ADR #021)
   updates: {
     idHist:    string;
@@ -40,16 +42,20 @@ export interface ResultadoEnriquecimiento {
 // ── Helper: ventana desde un Historial ────────────────────────────────────────
 
 /**
- * Deriva la ventana de tiempo {inicioMs, finMs} de un Historial.
+ * Deriva la ventana de tiempo {inicioMs, finMs, sintetica} de un Historial.
  * Prioridad:
- *   1. h.inicioMs / h.finMs sellados en finalizarSesion (ADR #019)
- *   2. mín/máx de serie.inicioMs / serie.finMs en los bloques
- *   3. fechaRealizada a mediodía local ± duracionRealMin (fallback)
+ *   1. h.inicioMs / h.finMs sellados en finalizarSesion (ADR #019) — no sintética
+ *   2. mín/máx de serie.inicioMs / serie.finMs en los bloques — no sintética
+ *   3. fechaRealizada a mediodía local ± duracionRealMin (fallback) — **sintética**:
+ *      no viene de timestamps reales, solo sirve como estimación gruesa. El
+ *      match por solapamiento sobre esta ventana no es confiable (S-fix-b);
+ *      por eso `sintetica: true` habilita el fallback "día único" en
+ *      `elegirSesionSamsung`.
  */
 export function ventanaDeHistorial(h: Historial): SesionApp | null {
   // 1. Ventana sellada
   if (h.inicioMs != null && h.finMs != null) {
-    return { inicioMs: h.inicioMs, finMs: h.finMs };
+    return { inicioMs: h.inicioMs, finMs: h.finMs, sintetica: false, fecha: h.fechaRealizada };
   }
 
   // 2. Derivar desde las series
@@ -61,13 +67,16 @@ export function ventanaDeHistorial(h: Historial): SesionApp | null {
       if (serie.finMs    != null) fin    = fin    == null ? serie.finMs    : Math.max(fin,    serie.finMs);
     }
   }
-  if (inicio != null && fin != null) return { inicioMs: inicio, finMs: fin };
+  if (inicio != null && fin != null) return { inicioMs: inicio, finMs: fin, sintetica: false, fecha: h.fechaRealizada };
 
   // 3. Fallback: fecha a mediodía local ± duracion
   const fechaMs = new Date(`${h.fechaRealizada}T12:00:00`).getTime();
   if (isNaN(fechaMs)) return null;
   const margenMs = ((h.duracionRealMin ?? 60) * 60_000);
-  return { inicioMs: fechaMs - margenMs, finMs: fechaMs + margenMs };
+  return {
+    inicioMs: fechaMs - margenMs, finMs: fechaMs + margenMs,
+    sintetica: true, fecha: h.fechaRealizada,
+  };
 }
 
 // ── Núcleo puro ───────────────────────────────────────────────────────────────
@@ -82,7 +91,8 @@ export function calcularEnriquecimiento(
   perfil?: PerfilMiembro,
 ): ResultadoEnriquecimiento {
   const resultado: ResultadoEnriquecimiento = {
-    matcheadas: 0, porCustomId: 0, porVentana: 0, sinMatch: 0, omitidas: 0, updates: [],
+    matcheadas: 0, porCustomId: 0, porVentana: 0, porDia: 0,
+    sinMatch: 0, ambiguas: 0, omitidas: 0, updates: [],
   };
 
   // Pool de datauuid disponibles (evitar doble asignación — ADR #021)
@@ -106,10 +116,12 @@ export function calcularEnriquecimiento(
     const match = elegirSesionSamsung(ventana, candidatas, extraccion.shapeUpCustomId);
 
     if (!match) { resultado.sinMatch++; continue; }
+    if (match.matchPor === "ambiguo") { resultado.ambiguas++; continue; }
 
     datauuidsUsados.add(match.sesion.datauuid);
     resultado.matcheadas++;
     if (match.matchPor === "custom-id") resultado.porCustomId++;
+    else if (match.matchPor === "dia") resultado.porDia++;
     else resultado.porVentana++;
 
     const biometria = construirBiometriaSesion(match.sesion, match.matchPor, perfil);

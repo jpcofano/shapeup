@@ -25,12 +25,18 @@ export interface SesionSamsung {
   fcMax?: number;
   fcMin?: number;
   kcal?: number;
+  /** Fecha local "YYYY-MM-DD" de la sesión — solo para el fallback "día único". */
+  fecha?: string;
 }
 
 /** Ventana de la sesión de la app (epoch ms). */
 export interface SesionApp {
   inicioMs: number;
   finMs: number;
+  /** true si la ventana vino del fallback por fecha (ver ventanaDeHistorial, caso 3). */
+  sintetica?: boolean;
+  /** Fecha local "YYYY-MM-DD" de la sesión app — requerida para el fallback "día único". */
+  fecha?: string;
 }
 
 /** Tolerancia de solapamiento (5 min) para el fallback por ventana. */
@@ -43,14 +49,24 @@ export const TOLERANCIA_MS = 5 * 60 * 1000;
  * 2. Entre ellas, toma la de mayor solapamiento con la ventana de la app.
  * 3. Fallback: si no hay match por custom_id, busca en todas las candidatas
  *    (matchPor = "ventana").
+ * 4. Fallback "día único" (S-fix-b): si la ventana es **sintética** (no hay
+ *    timestamps reales — la superposición horaria no es confiable) y en el
+ *    pool por custom_id hay **exactamente una** candidata con la misma fecha
+ *    local que la sesión app, se matchea por día (`matchPor: "dia"`). Con dos
+ *    o más candidatas ese día, la situación es ambigua y no se adivina:
+ *    devuelve `{ sesion: null, matchPor: "ambiguo" }`. Con ventana real esto
+ *    no aplica — rigen los techos de solapamiento de siempre.
  *
- * Retorna null si ninguna candidata solapa.
+ * Retorna null si ninguna candidata solapa (ni siquiera por día).
  */
 export function elegirSesionSamsung(
   sesionApp: SesionApp,
   candidatas: SesionSamsung[],
   shapeUpCustomId?: string,
-): { sesion: SesionSamsung; matchPor: "custom-id" | "ventana" } | null {
+):
+  | { sesion: SesionSamsung; matchPor: "custom-id" | "ventana" | "dia" }
+  | { sesion: null; matchPor: "ambiguo" }
+  | null {
   function maxSolapo(pool: SesionSamsung[]) {
     return pool
       .map((c) => {
@@ -64,15 +80,24 @@ export function elegirSesionSamsung(
   }
 
   // Intento 1: custom_id conocido
+  const poolCustomId = shapeUpCustomId
+    ? candidatas.filter((c) => c.customId === shapeUpCustomId)
+    : [];
   if (shapeUpCustomId) {
-    const pool = candidatas.filter((c) => c.customId === shapeUpCustomId);
-    const match = maxSolapo(pool);
+    const match = maxSolapo(poolCustomId);
     if (match) return { sesion: match.sesion, matchPor: "custom-id" };
   }
 
   // Fallback: mayor solapamiento entre todas
-  const match = maxSolapo(candidatas);
-  if (match) return { sesion: match.sesion, matchPor: "ventana" };
+  const matchVentana = maxSolapo(candidatas);
+  if (matchVentana) return { sesion: matchVentana.sesion, matchPor: "ventana" };
+
+  // Fallback "día único": solo para ventanas sintéticas, solo dentro del pool ShapeUp
+  if (sesionApp.sintetica && shapeUpCustomId && sesionApp.fecha) {
+    const delDia = poolCustomId.filter((c) => c.fecha === sesionApp.fecha);
+    if (delDia.length === 1) return { sesion: delDia[0], matchPor: "dia" };
+    if (delDia.length >= 2) return { sesion: null, matchPor: "ambiguo" };
+  }
 
   return null;
 }
@@ -142,7 +167,7 @@ export function derivarZona(
  */
 export function construirBiometriaSesion(
   sesionSamsung: SesionSamsung,
-  matchPor: "custom-id" | "ventana",
+  matchPor: "custom-id" | "ventana" | "dia",
   perfil?: PerfilMiembro,
 ): BiometriaSesion {
   const fcMedia = sesionSamsung.fcMedia;

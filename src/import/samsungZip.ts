@@ -329,6 +329,7 @@ export async function extraerDesdeZip(
         fcMax:    c.fcMaxima,
         fcMin:    c._fcMin,
         kcal:     c.kcal,
+        fecha:    c.fecha,
       }));
 
     // 5c. Leer curvas de FC (live_data.json) para sesiones con datauuid en el índice

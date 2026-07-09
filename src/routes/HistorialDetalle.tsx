@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import type { Historial, MetricaSalud, MiembroId } from "../types/models";
+import type { Historial, MetricaSalud, MiembroId, BiometriaSesion } from "../types/models";
 import { getHistorialEntry } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
 import { consolidarNoches } from "../lib/sueno";
@@ -11,6 +11,12 @@ function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
   return `${d}/${m}/${y}`;
 }
+
+const MATCH_POR_LABEL: Record<BiometriaSesion["matchPor"], string> = {
+  "custom-id": "por ID",
+  "ventana":   "por ventana",
+  "dia":       "por día (único ShapeUp)",
+};
 
 
 export function HistorialDetalle() {
@@ -164,7 +170,7 @@ export function HistorialDetalle() {
                 {h.biometria.zonaPrincipal}
               </span>
               <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: 8 }}>
-                Match por: {h.biometria.matchPor} · {h.biometria.granularidad}
+                Match {MATCH_POR_LABEL[h.biometria.matchPor]} · {h.biometria.granularidad}
               </span>
             </div>
           )}

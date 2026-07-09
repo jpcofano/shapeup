@@ -112,6 +112,7 @@ function construirSesionesSamsung(cardio: SesionCardio[]): SesionSamsung[] {
       fcMedia:  c.fcPromedio,
       fcMax:    c.fcMaxima,
       kcal:     c.kcal,
+      fecha:    c.fecha,
     }));
 }
 
@@ -149,7 +150,7 @@ async function main(): Promise<void> {
   //    agregado no expone). No persiste nada.
   const ordenado = [...historial].sort((a, b) => a.fechaRealizada.localeCompare(b.fechaRealizada));
   const usados = new Set<string>();
-  let matcheadas = 0, sinMatch = 0, omitidas = 0, sinVentana = 0;
+  let matcheadas = 0, sinMatch = 0, omitidas = 0, sinVentana = 0, ambiguas = 0;
 
   for (const h of ordenado) {
     if (h.biometria?.granularidad === "serie") {
@@ -170,14 +171,19 @@ async function main(): Promise<void> {
       console.log(`${h.idHist}  ${h.fechaRealizada}  — sin match`);
       continue;
     }
+    if (match.matchPor === "ambiguo") {
+      ambiguas++;
+      console.log(`${h.idHist}  ${h.fechaRealizada}  — ambiguo (2+ ShapeUp ese día, ventana sintética — no se adivina)`);
+      continue;
+    }
     usados.add(match.sesion.datauuid);
     matcheadas++;
-    const delta = minutos(match.sesion.startMs - ventana.inicioMs);
+    const delta = match.matchPor === "dia" ? "n/a (match por día)" : minutos(match.sesion.startMs - ventana.inicioMs);
     console.log(`${h.idHist}  ${h.fechaRealizada}  — matcheó por ${match.matchPor} · Δinicio ${delta}`);
   }
 
   console.log(
-    `\nResumen: ${matcheadas} matcheadas · ${sinMatch} sin match · ` +
+    `\nResumen: ${matcheadas} matcheadas · ${sinMatch} sin match · ${ambiguas} ambiguas · ` +
     `${omitidas} omitidas (ya enriquecidas) · ${sinVentana} sin ventana\n`,
   );
 

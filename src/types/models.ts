@@ -441,7 +441,7 @@ export interface BiometriaSesion {
   fcMin?: number;
   zonaPrincipal?: ZonaFC;             // derivada de fcMedia vs config/perfiles.zonasFC del miembro
   kcal?: number;
-  matchPor: "custom-id" | "ventana"; // cómo se identificó la sesión Samsung
+  matchPor: "custom-id" | "ventana" | "dia"; // cómo se identificó la sesión Samsung
   granularidad: "serie" | "sesion";  // qué tan fino llegó el enriquecimiento
 }
 
@@ -534,7 +534,7 @@ export interface RegistroSueno {
 // Para métricas de Samsung Health SIN colección tipada propia. Granularidad diaria.
 // idMetrica = `${miembro}-${tipo}-${fecha}` → idempotente por día.
 export const TIPOS_METRICA = [
-  "hrv", "fc-reposo", "fc-max-dia", "estres", "pasos", "spo2",
+  "hrv", "fc-reposo", "fc-media-dia", "fc-max-dia", "estres", "pasos", "spo2",
   "frecuencia-respiratoria", "temperatura-piel",
   "presion-sistolica", "presion-diastolica",
   "vo2max", "recovery-hr", "vitality",

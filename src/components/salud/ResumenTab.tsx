@@ -12,6 +12,8 @@ const TAB_DESTINO: Record<SenalSalud["clave"], TabDestino> = {
   "pasos":     "progreso",
   "sueno":     "sueno",
   "peso":      "composicion",
+  "presion":   "progreso",
+  "spo2":      "progreso",
 };
 
 const NOMBRE_CLAVE: Record<SenalSalud["clave"], string> = {
@@ -20,7 +22,13 @@ const NOMBRE_CLAVE: Record<SenalSalud["clave"], string> = {
   "pasos":     "Pasos",
   "sueno":     "Sueño",
   "peso":      "Peso",
+  "presion":   "Presión arterial",
+  "spo2":      "SpO2",
 };
+
+// Señales informativas estilo "peso": sin semáforo, sin juicio de color — la
+// app muestra el dato y su tendencia, nunca diagnostica (S-fix-b).
+const CLAVES_SIN_SEMAFORO = new Set<SenalSalud["clave"]>(["peso", "presion", "spo2"]);
 
 function colorEstado(estado: EstadoSenal): string {
   if (estado === "alerta")    return "var(--danger)";
@@ -36,8 +44,8 @@ function flechaTendencia(deltaPct: number | undefined): string {
 
 function colorFlecha(clave: SenalSalud["clave"], deltaPct: number | undefined): string {
   if (deltaPct == null || Math.abs(deltaPct) < 0.02) return "var(--muted)";
-  // Para peso: neutro (sin juicio de color)
-  if (clave === "peso") return "var(--muted)";
+  // Señales informativas (peso/presión/spo2): neutro, sin juicio de color
+  if (CLAVES_SIN_SEMAFORO.has(clave)) return "var(--muted)";
   // Para fc-reposo, hrv, sueno: subir es malo; para pasos: bajar es malo
   const subir_es_malo = clave === "fc-reposo";
   const bajar_es_malo = clave === "sueno" || clave === "hrv" || clave === "pasos";
@@ -57,7 +65,7 @@ function SenalCard({
   const flecha  = flechaTendencia(senal.deltaPct);
   const colFl   = colorFlecha(senal.clave, senal.deltaPct);
   const sparkData = senal.serie14d.map((p) => p.valor);
-  const sinJuicio = senal.clave === "peso";
+  const sinJuicio = CLAVES_SIN_SEMAFORO.has(senal.clave);
 
   return (
     <div
@@ -77,7 +85,7 @@ function SenalCard({
 
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
         <span style={{ fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", lineHeight: 1 }}>
-          {senal.valorActual != null ? senal.valorActual : "—"}
+          {senal.valorTexto ?? (senal.valorActual != null ? senal.valorActual : "—")}
         </span>
         <span style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>{senal.unidad}</span>
         {senal.deltaPct != null && (
@@ -96,8 +104,8 @@ function SenalCard({
         </div>
       )}
 
-      {senal.motivo && senal.estado !== "ok" && (
-        <p style={{ margin: 0, fontSize: 11, color, lineHeight: 1.4 }}>
+      {senal.motivo && (senal.estado !== "ok" || sinJuicio) && (
+        <p style={{ margin: 0, fontSize: 11, color: sinJuicio ? "var(--muted)" : color, lineHeight: 1.4 }}>
           {senal.motivo}
         </p>
       )}
@@ -119,7 +127,10 @@ export function ResumenTab({
     [metricas, sueno, mediciones, hoy],
   );
 
-  const conValor = senales.filter((s) => s.valorActual != null);
+  // Accionables primero, informativas (peso/presión/spo2, sin semáforo) al final.
+  const conValor = senales
+    .filter((s) => s.valorActual != null)
+    .sort((a, b) => Number(CLAVES_SIN_SEMAFORO.has(a.clave)) - Number(CLAVES_SIN_SEMAFORO.has(b.clave)));
 
   if (conValor.length === 0) {
     return (
@@ -129,7 +140,7 @@ export function ResumenTab({
     );
   }
 
-  const peor = senalPeor(senales.filter((s) => s.clave !== "peso"));
+  const peor = senalPeor(senales.filter((s) => !CLAVES_SIN_SEMAFORO.has(s.clave)));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

@@ -30,14 +30,14 @@ const SAMSUNG_OTRO: SesionSamsung = {
 describe("elegirSesionSamsung", () => {
   it("elige por custom_id cuando se conoce", () => {
     const res = elegirSesionSamsung(APP, [SAMSUNG_OTRO, SAMSUNG_SHAPEUP], "mq1mz4gd_gq");
-    expect(res?.sesion.datauuid).toBe("uuid-shapeup");
+    expect(res?.sesion?.datauuid).toBe("uuid-shapeup");
     expect(res?.matchPor).toBe("custom-id");
   });
 
   it("cae al fallback por ventana si no hay custom_id match", () => {
     const res = elegirSesionSamsung(APP, [SAMSUNG_OTRO]);
     expect(res?.matchPor).toBe("ventana");
-    expect(res?.sesion.datauuid).toBe("uuid-otro");
+    expect(res?.sesion?.datauuid).toBe("uuid-otro");
   });
 
   it("elige la de mayor solapamiento entre múltiples candidatas", () => {
@@ -48,7 +48,7 @@ describe("elegirSesionSamsung", () => {
       customId: "mq1mz4gd_gq",
     };
     const res = elegirSesionSamsung(APP, [parcial, SAMSUNG_SHAPEUP], "mq1mz4gd_gq");
-    expect(res?.sesion.datauuid).toBe("uuid-shapeup");
+    expect(res?.sesion?.datauuid).toBe("uuid-shapeup");
   });
 
   it("retorna null si ninguna candidata solapa", () => {
@@ -58,6 +58,54 @@ describe("elegirSesionSamsung", () => {
       endMs:   9_003_600_000,
     };
     expect(elegirSesionSamsung(APP, [lejos])).toBeNull();
+  });
+});
+
+// ── elegirSesionSamsung — fallback "día único" (S-fix-b) ─────────────────────
+
+describe("elegirSesionSamsung — día único", () => {
+  const APP_SINTETICA = {
+    inicioMs: 1_000_000, finMs: 1_003_600_000,
+    sintetica: true, fecha: "2026-07-07",
+  };
+  const APP_REAL = {
+    inicioMs: 1_000_000, finMs: 1_003_600_000,
+    sintetica: false, fecha: "2026-07-07",
+  };
+
+  const UNICA_DEL_DIA: SesionSamsung = {
+    datauuid: "uuid-unica", startMs: 9_000_000_000, endMs: 9_003_600_000, // lejos, no solapa
+    customId: "mq1mz4gd_gq", fecha: "2026-07-07",
+  };
+  const OTRA_DEL_DIA: SesionSamsung = {
+    datauuid: "uuid-otra", startMs: 9_100_000_000, endMs: 9_103_600_000, // lejos, no solapa
+    customId: "mq1mz4gd_gq", fecha: "2026-07-07",
+  };
+  const DE_OTRO_DIA: SesionSamsung = {
+    datauuid: "uuid-otro-dia", startMs: 9_200_000_000, endMs: 9_203_600_000,
+    customId: "mq1mz4gd_gq", fecha: "2026-07-06",
+  };
+
+  it("ventana sintética + exactamente 1 ShapeUp ese día → matchPor 'dia'", () => {
+    const res = elegirSesionSamsung(APP_SINTETICA, [UNICA_DEL_DIA, DE_OTRO_DIA], "mq1mz4gd_gq");
+    expect(res).not.toBeNull();
+    expect(res!.matchPor).toBe("dia");
+    expect(res!.sesion?.datauuid).toBe("uuid-unica");
+  });
+
+  it("ventana sintética + 2+ ShapeUp ese día → 'ambiguo' (no adivina)", () => {
+    const res = elegirSesionSamsung(APP_SINTETICA, [UNICA_DEL_DIA, OTRA_DEL_DIA], "mq1mz4gd_gq");
+    expect(res).toEqual({ sesion: null, matchPor: "ambiguo" });
+  });
+
+  it("ventana real (no sintética) con las mismas candidatas → sigue sin matchear (no afloja techos)", () => {
+    const res = elegirSesionSamsung(APP_REAL, [UNICA_DEL_DIA, DE_OTRO_DIA], "mq1mz4gd_gq");
+    expect(res).toBeNull();
+  });
+
+  it("ventana sintética sin shapeUpCustomId → no aplica el fallback", () => {
+    const res = elegirSesionSamsung(APP_SINTETICA, [UNICA_DEL_DIA]);
+    expect(res).toBeNull();
   });
 });
 

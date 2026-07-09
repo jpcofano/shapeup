@@ -182,11 +182,18 @@ describe("helpers de agregación", () => {
 // ── detectarTiposMetrica ──────────────────────────────────────────────────────
 
 describe("detectarTiposMetrica", () => {
-  it("heart_rate → fc-reposo + fc-max-dia", () => {
+  it("tracker.heart_rate → fc-media-dia + fc-max-dia", () => {
     const r = detectarTiposMetrica("com.samsung.health.tracker.heart_rate.20240315.csv");
-    expect(r?.tipos).toContain("fc-reposo");
+    expect(r?.tipos).toContain("fc-media-dia");
     expect(r?.tipos).toContain("fc-max-dia");
+    expect(r?.tipos).not.toContain("fc-reposo");
   });
+  // BUG real (S-fix-b, P56): estos dos archivos también contienen "heart_rate" en el
+  // nombre pero NO son el tracker general — no deben mezclarse con fc-media-dia/fc-max-dia.
+  it("alerted_heart_rate → null (no es el tracker general, no se mapea a ciegas)", () =>
+    expect(detectarTiposMetrica("com.samsung.shealth.alerted_heart_rate.20260607183598.csv")).toBeNull());
+  it("exercise.recovery_heart_rate → null (curva de recuperación, no agregado diario)", () =>
+    expect(detectarTiposMetrica("com.samsung.shealth.exercise.recovery_heart_rate.20260607183598.csv")).toBeNull());
   it("hrv → hrv / noche",     () => expect(detectarTiposMetrica("health.hrv.20240315.csv")?.tipos[0]).toBe("hrv"));
   it("stress → estres / dia", () => expect(detectarTiposMetrica("stress.20240315.csv")?.tipos[0]).toBe("estres"));
   it("step_daily → pasos",    () => expect(detectarTiposMetrica("step_daily_trend.csv")?.tipos[0]).toBe("pasos"));
@@ -220,13 +227,14 @@ describe("parsearMetricas — heart_rate", () => {
   const { items, errors } = parsearMetricas("tracker.heart_rate.20240315.csv", HR_CSV, "juanpablo");
 
   it("sin errores", () => expect(errors).toHaveLength(0));
-  it("genera fc-reposo y fc-max-dia para el día", () => {
-    expect(items.some((i) => i.tipo === "fc-reposo")).toBe(true);
+  it("genera fc-media-dia y fc-max-dia para el día (nunca fc-reposo)", () => {
+    expect(items.some((i) => i.tipo === "fc-media-dia")).toBe(true);
     expect(items.some((i) => i.tipo === "fc-max-dia")).toBe(true);
+    expect(items.some((i) => i.tipo === "fc-reposo")).toBe(false);
   });
-  it("fc-reposo = min del día (58)", () => {
-    const r = items.find((i) => i.tipo === "fc-reposo");
-    expect(r?.valor).toBe(58);
+  it("fc-media-dia = promedio del día (98.3)", () => {
+    const r = items.find((i) => i.tipo === "fc-media-dia");
+    expect(r?.valor).toBe(98.3); // (62 + 58 + 175) / 3
   });
   it("fc-max-dia = max del día (175)", () => {
     const r = items.find((i) => i.tipo === "fc-max-dia");

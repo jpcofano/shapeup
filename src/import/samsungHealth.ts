@@ -445,7 +445,16 @@ export function detectarTiposMetrica(
   filename: string,
 ): { tipos: TipoMetrica[]; agregacion: AgregacionMetrica } | null {
   const f = filename.toLowerCase();
-  if (f.includes("heart_rate"))         return { tipos: ["fc-reposo", "fc-max-dia"], agregacion: "dia" };
+  // BUG (S-fix-b, P56, auditoría real 2026-07-08): "heart_rate" como substring
+  // también matcheaba `alerted_heart_rate` (alertas de FC alta, ~120+ bpm por
+  // definición) y `exercise.recovery_heart_rate` (curvas de recuperación post-
+  // ejercicio, valor no numérico en la columna heart_rate). Ambos escribían al
+  // mismo idMetrica (`{miembro}-fc-reposo-{fecha}`) que `tracker.heart_rate`,
+  // pisando lecturas normales con valores de alerta → "fc-reposo" con 120+ bpm.
+  // Fix: matchear específicamente el archivo del tracker general, y no llamarlo
+  // "reposo" (es agregado diario de muestras esporádicas, no FC en reposo real
+  // — ver ADR fc-reposo/fc-media-dia más abajo).
+  if (f.includes("tracker.heart_rate")) return { tipos: ["fc-media-dia", "fc-max-dia"], agregacion: "dia" };
   if (f.includes("hrv"))                return { tipos: ["hrv"],                     agregacion: "noche" };
   if (f.includes("stress"))             return { tipos: ["estres"],                  agregacion: "dia" };
   if (f.includes("step_daily"))         return { tipos: ["pasos"],                   agregacion: "dia" };
@@ -565,11 +574,14 @@ export function parsearMetricas(
   const all: MetricaSalud[] = [];
   const f = filename.toLowerCase();
 
-  // ── FC (heart_rate) ───────────────────────────────────────────────────────
-  if (f.includes("heart_rate") && !f.includes("recovery")) {
+  // ── FC (tracker.heart_rate) ───────────────────────────────────────────────
+  // Agregado diario de muestras esporádicas de FC (no continuas, no clínicas).
+  // "fc-media-dia": promedio del día — dato de contexto, no señal de reposo.
+  // "fc-max-dia": máximo del día, de la misma fuente.
+  if (f.includes("tracker.heart_rate")) {
     const byDay = groupByDay(filas, "heart_rate");
-    all.push(...dayMapToMetricas(byDay, miembro, "fc-reposo",   "dia", "bpm", minArr));
-    all.push(...dayMapToMetricas(byDay, miembro, "fc-max-dia",  "dia", "bpm", maxArr));
+    all.push(...dayMapToMetricas(byDay, miembro, "fc-media-dia", "dia", "bpm", avgArr));
+    all.push(...dayMapToMetricas(byDay, miembro, "fc-max-dia",   "dia", "bpm", maxArr));
     return { items: all, errors };
   }
 

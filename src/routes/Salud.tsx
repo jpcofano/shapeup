@@ -238,11 +238,16 @@ export function Salud() {
           if (z.sesionesSamsung.length > 0) {
             const enrRes = await enriquecerTrasImport(memberId as MiembroId, z);
             if (enrRes.ok) {
-              const { matcheadas, porCustomId, porVentana, sinMatch, omitidas } = enrRes.value;
-              const evaluadas = matcheadas + sinMatch + omitidas;
+              const { matcheadas, porCustomId, porVentana, porDia, sinMatch, ambiguas, omitidas } = enrRes.value;
+              const evaluadas = matcheadas + sinMatch + ambiguas + omitidas;
               const partes: string[] = [];
-              if (matcheadas > 0) partes.push(`${matcheadas} matcheada${matcheadas !== 1 ? "s" : ""} (${porCustomId} por custom-id, ${porVentana} por ventana)`);
+              if (matcheadas > 0) {
+                const detalle = [`${porCustomId} por custom-id`, `${porVentana} por ventana`];
+                if (porDia > 0) detalle.push(`${porDia} por día`);
+                partes.push(`${matcheadas} matcheada${matcheadas !== 1 ? "s" : ""} (${detalle.join(", ")})`);
+              }
               if (sinMatch    > 0) partes.push(`${sinMatch} sin match`);
+              if (ambiguas    > 0) partes.push(`${ambiguas} ambigua${ambiguas !== 1 ? "s" : ""} (2+ ShapeUp el mismo día)`);
               if (omitidas    > 0) partes.push(`${omitidas} ya estaban enriquecidas`);
               msgBase += ` · ${evaluadas} sesión${evaluadas !== 1 ? "es" : ""} evaluada${evaluadas !== 1 ? "s" : ""}${partes.length > 0 ? `: ${partes.join(" · ")}` : ""}`;
             } else {

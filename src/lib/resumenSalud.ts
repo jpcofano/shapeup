@@ -4,8 +4,10 @@ import { consolidarNoches, promedioNoches } from "./sueno";
 export type EstadoSenal = "ok" | "atencion" | "alerta" | "sin-datos";
 
 export interface SenalSalud {
-  clave: "fc-reposo" | "sueno" | "hrv" | "pasos" | "peso";
+  clave: "fc-reposo" | "sueno" | "hrv" | "pasos" | "peso" | "presion" | "spo2";
   valorActual?: number;
+  /** Override de texto para el valor mostrado (p.ej. presión «113/78»). Si está, la UI lo prioriza sobre `valorActual`. */
+  valorTexto?: string;
   unidad: string;
   baseline?: number;
   deltaPct?: number;
@@ -13,6 +15,21 @@ export interface SenalSalud {
   motivo?: string;
   serie14d: { fecha: string; valor: number }[];
 }
+
+// Rango de recencia: no mostrar como "actual" un valor de hace más de 60 días
+// (presión/SpO2 se miden por rachas, no todos los días — ver decisión owner S-fix-b).
+const DIAS_RECENCIA_INFORMATIVA = 60;
+
+// Rangos de referencia publicados (AHA/ACC 2017 para presión; guías clínicas
+// generales de SpO2 en reposo a nivel del mar). Solo para el texto del motivo
+// — la app nunca diagnostica ni cambia el semáforo por esto.
+export const PRESION_SISTOLICA_MIN_TIPICA  = 90;
+export const PRESION_SISTOLICA_MAX_TIPICA  = 140;
+export const PRESION_DIASTOLICA_MIN_TIPICA = 60;
+export const PRESION_DIASTOLICA_MAX_TIPICA = 90;
+export const SPO2_MIN_TIPICO               = 95;
+
+const MOTIVO_FUERA_DE_RANGO = "Valor fuera del rango típico — vale la pena comentarlo con tu médico.";
 
 // Umbrales exportados — los reutiliza S3 (motor de recomendaciones).
 export const UMBRAL_FC_REPOSO_ATENCION_BPM = 5;
@@ -96,13 +113,12 @@ export function calcularResumenSalud(
       const actual   = promedioUltimosN(items, 3);
       const s14      = calcSerie14d(items, hoy);
 
-      if (actual == null) {
+      // sin-datos (sin actual o sin baseline): nunca mostrar valorActual — un
+      // número "huérfano" junto a "sin-datos" es confuso (y puede ser un
+      // valor viejo si la última lectura quedó lejos de `hoy`). Card ausente
+      // o explícitamente vacía, no un número suelto (S-fix-b).
+      if (actual == null || baseline == null) {
         senales.push({ clave: "fc-reposo", unidad: "bpm", estado: "sin-datos", serie14d: s14 });
-      } else if (baseline == null) {
-        senales.push({
-          clave: "fc-reposo", valorActual: Math.round(actual),
-          unidad: "bpm", estado: "sin-datos", serie14d: s14,
-        });
       } else {
         const delta    = actual - baseline;
         const deltaPct = delta / baseline;
@@ -257,6 +273,61 @@ export function calcularResumenSalud(
       senales.push({
         clave: "peso", valorActual: actual, unidad: "kg",
         baseline, deltaPct, estado: "ok", serie14d: s14,
+      });
+    }
+  }
+
+  // ── Presión arterial (informativa, sin semáforo) ────────────────────────────
+  {
+    const sisPorFecha = new Map<string, number>();
+    const diaPorFecha = new Map<string, number>();
+    for (const m of metricas) {
+      if (m.tipo === "presion-sistolica")  sisPorFecha.set(m.fecha, m.valor);
+      if (m.tipo === "presion-diastolica") diaPorFecha.set(m.fecha, m.valor);
+    }
+    // Último día con AMBOS valores (el par tiene que ser del mismo día, no mezclar fechas).
+    const fechaMasReciente = [...sisPorFecha.keys()]
+      .filter((f) => diaPorFecha.has(f))
+      .sort((a, b) => b.localeCompare(a))[0];
+
+    if (fechaMasReciente != null && addDays(hoy, -DIAS_RECENCIA_INFORMATIVA) <= fechaMasReciente) {
+      const sistolica  = sisPorFecha.get(fechaMasReciente)!;
+      const diastolica = diaPorFecha.get(fechaMasReciente)!;
+      const itemsSis   = [...sisPorFecha.entries()].map(([fecha, valor]) => ({ fecha, valor }));
+      const baseline   = calcBaseline(itemsSis, hoy);
+      const deltaPct   = baseline != null ? (sistolica - baseline) / baseline : undefined;
+      const fueraDeRango =
+        sistolica  < PRESION_SISTOLICA_MIN_TIPICA  || sistolica  > PRESION_SISTOLICA_MAX_TIPICA ||
+        diastolica < PRESION_DIASTOLICA_MIN_TIPICA || diastolica > PRESION_DIASTOLICA_MAX_TIPICA;
+
+      senales.push({
+        clave: "presion",
+        valorActual: Math.round(sistolica),
+        valorTexto: `${Math.round(sistolica)}/${Math.round(diastolica)}`,
+        unidad: "mmHg", baseline, deltaPct, estado: "ok",
+        motivo: fueraDeRango ? MOTIVO_FUERA_DE_RANGO : undefined,
+        serie14d: calcSerie14d(itemsSis, hoy),
+      });
+    }
+  }
+
+  // ── SpO2 (informativa, sin semáforo) ────────────────────────────────────────
+  {
+    const items = metricas
+      .filter((m) => m.tipo === "spo2")
+      .map((m) => ({ fecha: m.fecha, valor: m.valor }))
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+    if (items.length > 0 && addDays(hoy, -DIAS_RECENCIA_INFORMATIVA) <= items[0].fecha) {
+      const actual   = items[0].valor;
+      const baseline = calcBaseline(items, hoy);
+      const deltaPct = baseline != null ? (actual - baseline) / baseline : undefined;
+
+      senales.push({
+        clave: "spo2", valorActual: actual, unidad: "%",
+        baseline, deltaPct, estado: "ok",
+        motivo: actual < SPO2_MIN_TIPICO ? MOTIVO_FUERA_DE_RANGO : undefined,
+        serie14d: calcSerie14d(items, hoy),
       });
     }
   }

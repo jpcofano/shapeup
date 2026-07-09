@@ -72,22 +72,22 @@ describe("ventanaDeBloques", () => {
 // ── ventanaDeHistorial ────────────────────────────────────────────────────────
 
 describe("ventanaDeHistorial", () => {
-  it("usa inicioMs/finMs del Historial si existen (ADR #019)", () => {
+  it("usa inicioMs/finMs del Historial si existen (ADR #019) — no sintética", () => {
     const h = historial({ idHist: "H-1", fechaRealizada: "2024-03-15", inicioMs: 1000, finMs: 5000 });
     const v = ventanaDeHistorial(h);
-    expect(v).toEqual({ inicioMs: 1000, finMs: 5000 });
+    expect(v).toEqual({ inicioMs: 1000, finMs: 5000, sintetica: false, fecha: "2024-03-15" });
   });
 
-  it("deriva ventana desde las series cuando no hay inicioMs/finMs sellados", () => {
+  it("deriva ventana desde las series cuando no hay inicioMs/finMs sellados — no sintética", () => {
     const h = historial({
       idHist: "H-2", fechaRealizada: "2024-03-15",
       bloques: [bloque(1, [{ inicioMs: 2000, finMs: 3000 }, { inicioMs: 4000, finMs: 5000 }])],
     });
     const v = ventanaDeHistorial(h);
-    expect(v).toEqual({ inicioMs: 2000, finMs: 5000 });
+    expect(v).toEqual({ inicioMs: 2000, finMs: 5000, sintetica: false, fecha: "2024-03-15" });
   });
 
-  it("fallback a fechaRealizada ± duracionRealMin cuando no hay timestamps", () => {
+  it("fallback a fechaRealizada ± duracionRealMin cuando no hay timestamps — sintética", () => {
     const h = historial({
       idHist: "H-3", fechaRealizada: "2024-03-15", duracionRealMin: 60,
       bloques: [bloque(1, [{ reps: 10 }])],
@@ -97,6 +97,8 @@ describe("ventanaDeHistorial", () => {
     const mediodia = new Date("2024-03-15T12:00:00").getTime();
     expect(v!.inicioMs).toBe(mediodia - 60 * 60_000);
     expect(v!.finMs).toBe(mediodia + 60 * 60_000);
+    expect(v!.sintetica).toBe(true);
+    expect(v!.fecha).toBe("2024-03-15");
   });
 
   it("fallback usa ±60 min si duracionRealMin es null", () => {
@@ -108,6 +110,7 @@ describe("ventanaDeHistorial", () => {
     const mediodia = new Date("2024-03-15T12:00:00").getTime();
     expect(v!.finMs! - v!.inicioMs!).toBe(120 * 60_000);
     expect(v!.inicioMs).toBe(mediodia - 60 * 60_000);
+    expect(v!.sintetica).toBe(true);
   });
 });
 
@@ -241,6 +244,50 @@ describe("calcularEnriquecimiento", () => {
       liveData: { "uuid-shapeup": [{ ms: 1710488410000, fc: 130 }] },
     });
     expect(JSON.stringify(histCopy.bloques)).toBe(bloquesAntes);
+  });
+
+  it("matchea por 'dia' cuando la ventana es sintética y hay exactamente 1 ShapeUp ese día", () => {
+    // Sin inicioMs/finMs sellados ni series con timestamps → ventana sintética (fallback fecha ± duracion)
+    const histSintetico = historial({
+      idHist: "H-DIA", fechaRealizada: "2026-07-07", duracionRealMin: 56,
+      bloques: [],
+    });
+    // Candidata lejos en el tiempo (no solapa por ventana/custom-id), misma fecha local
+    const sesDia = {
+      datauuid: "uuid-dia-unico", startMs: 5_000_000_000, endMs: 5_003_600_000,
+      customId: CUSTOM_ID, fcMedia: 130, fcMax: 157, kcal: 300,
+      fecha: "2026-07-07",
+    };
+    const r = calcularEnriquecimiento([histSintetico], {
+      ...EXTRACCION_BASE,
+      sesionesSamsung: [sesDia],
+    });
+    expect(r.matcheadas).toBe(1);
+    expect(r.porDia).toBe(1);
+    expect(r.updates[0].biometria.matchPor).toBe("dia");
+    expect(r.updates[0].biometria.datauuidSamsung).toBe("uuid-dia-unico");
+  });
+
+  it("cuenta como ambigua cuando hay 2+ ShapeUp ese día con ventana sintética", () => {
+    const histSintetico = historial({
+      idHist: "H-AMBIGUO", fechaRealizada: "2026-07-07", duracionRealMin: 56,
+      bloques: [],
+    });
+    const sesA = {
+      datauuid: "uuid-a", startMs: 5_000_000_000, endMs: 5_003_600_000,
+      customId: CUSTOM_ID, fecha: "2026-07-07",
+    };
+    const sesB = {
+      datauuid: "uuid-b", startMs: 5_100_000_000, endMs: 5_103_600_000,
+      customId: CUSTOM_ID, fecha: "2026-07-07",
+    };
+    const r = calcularEnriquecimiento([histSintetico], {
+      ...EXTRACCION_BASE,
+      sesionesSamsung: [sesA, sesB],
+    });
+    expect(r.matcheadas).toBe(0);
+    expect(r.ambiguas).toBe(1);
+    expect(r.updates).toHaveLength(0);
   });
 
   it("serie enriquecida con curva tiene fcPico correcta", () => {

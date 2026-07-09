@@ -81,7 +81,7 @@ Para métricas sin colección tipada propia. **Granularidad diaria** — no se g
 
 | CSV Samsung | `TipoMetrica` | Agregación | Unidad |
 |---|---|---|---|
-| `tracker.heart_rate` | `fc-reposo` / `fc-max-dia` | mínimo / máximo diario | bpm |
+| `tracker.heart_rate` | `fc-media-dia` / `fc-max-dia` | promedio / máximo diario | bpm |
 | `health.hrv` | `hrv` | valor por noche (+ `payload` con bins) | ms |
 | `stress` | `estres` | promedio diario del score | — |
 | `step_daily_trend` | `pasos` | total diario | pasos |
@@ -99,7 +99,7 @@ El export confirma que **el set propuesto (`SENALES_SALUD`) es 100% obtenible**.
 | Señal (`SenalSalud`) | Fuente | Nota |
 |---|---|---|
 | `sueño` | `sleep.sleep_duration` / `sleep_score` | directo |
-| `fc-reposo` | `tracker.heart_rate.min` / lecturas matinales | derivar FC en reposo (mínimo diario o lectura al despertar) |
+| `fc-reposo` | **sin fuente en este export** (verificado, S-fix-b P56) | `tracker.heart_rate` es agregado esporádico, no reposo real — `fc-reposo` queda honestamente sin datos hasta que el export traiga `resting_heart_rate` o equivalente |
 | `hrv` | `health.hrv.binning_data` | **requiere parsear** `binning_data` (estructura serializada, no un número plano) |
 | `tendencia-peso` | `weight.weight` | serie temporal |
 | `tendencia-grasa` | `weight.body_fat` | serie temporal |
