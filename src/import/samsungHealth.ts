@@ -14,6 +14,7 @@ import type {
   MedicionCorporal, SesionCardio, RegistroSueno, MiembroId, ZonaFC,
   MetricaSalud, TipoMetrica, AgregacionMetrica,
 } from "../types/models";
+import type { LiveDataPoint } from "./samsungLiveData";
 
 export type MedicionInput = Omit<MedicionCorporal, "idMedicion" | "fechaCreacion">;
 export type CardioInput   = Omit<SesionCardio,   "idCardio"   | "fechaCreacion">;
@@ -185,8 +186,12 @@ function numOpt(s: string): number | undefined {
 /**
  * Elimina claves con valor `undefined` del objeto antes de escribir a Firestore.
  * Cinturón y tiradores junto con `ignoreUndefinedProperties` en firebase.ts.
+ * Exportada (hotfix P57): también la usa `lib/matchBiometrico.ts` para
+ * `BiometriaSesion` — el enriquecimiento biométrico tiene varios campos
+ * opcionales (fcMin, kcal, finMsEfectivo, zonaPrincipal) que salen `undefined`
+ * seguido, y Firestore rechaza escribir esa clave tal cual.
  */
-function stripUndef<T extends object>(obj: T): T {
+export function stripUndef<T extends object>(obj: T): T {
   const result = {} as T;
   for (const [k, v] of Object.entries(obj)) {
     if (v !== undefined) (result as Record<string, unknown>)[k] = v;
@@ -660,4 +665,28 @@ export function parsearMetricas(
   }
 
   return { items: [], errors: [`Sin handler para: ${filename}`] };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  NIVEL "RANGO" — muestras crudas de FC (S-match, P57)
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Parsea `tracker.heart_rate` a muestras crudas `{ ms, fc }[]`, ordenadas por
+ * tiempo — para el nivel "rango" del match (`construirBiometriaRango`).
+ *
+ * ADR #016: esto **nunca se persiste**. Vive en memoria solo durante el import,
+ * como último recurso cuando ningún pool (custom-id/ventana/día) matcheó — el
+ * agregado diario (`fc-media-dia`/`fc-max-dia`, en `parsearMetricas`) es lo
+ * único que se guarda en `/metricas-salud`.
+ */
+export function parsearFcCruda(text: string): LiveDataPoint[] {
+  const filas = parseSamsungCsv(text);
+  const result: LiveDataPoint[] = [];
+  for (const f of filas) {
+    const ms  = epochToMs(col(f, "start_time"), col(f, "time_offset") || undefined);
+    const bpm = numOpt(col(f, "heart_rate"));
+    if (ms != null && bpm != null && bpm > 0) result.push({ ms, fc: bpm });
+  }
+  return result.sort((a, b) => a.ms - b.ms);
 }

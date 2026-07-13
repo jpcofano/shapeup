@@ -121,6 +121,33 @@ function minutos(ms: number): string {
   return `${signo}${Math.round(Math.abs(ms) / 60_000)} min`;
 }
 
+const TZ = "America/Argentina/Buenos_Aires";
+
+/** Epoch ms → "YYYY-MM-DD HH:MM" en hora local de Argentina (para diagnóstico legible). */
+function horaLocal(ms: number): string {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+  const partes = fmt.formatToParts(new Date(ms));
+  const get = (t: string) => partes.find((p) => p.type === t)!.value;
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
+}
+
+/** Distancia en ms entre una ventana y una candidata: 0 si solapan, si no el hueco entre bordes. */
+function gapMs(ventana: { inicioMs: number; finMs: number }, c: SesionSamsung): number {
+  if (c.endMs < ventana.inicioMs) return ventana.inicioMs - c.endMs;
+  if (c.startMs > ventana.finMs)  return c.startMs - ventana.finMs;
+  return 0;
+}
+
+/** De un pool de candidatas, la más cercana a la ventana (por gap, no por customId). */
+function candidataMasCercana(ventana: { inicioMs: number; finMs: number }, candidatas: SesionSamsung[]): SesionSamsung | null {
+  return candidatas
+    .map((c) => ({ c, gap: gapMs(ventana, c) }))
+    .sort((a, b) => a.gap - b.gap)[0]?.c ?? null;
+}
+
 // ── Runner ────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -138,7 +165,8 @@ async function main(): Promise<void> {
   const perfil    = perfiles[miembro];
 
   const sesionesSamsung = construirSesionesSamsung(cardio);
-  console.log(`/historial: ${historial.length} · /cardio: ${cardio.length} (${sesionesSamsung.length} con inicioMs/finMs para matchear)\n`);
+  console.log(`/historial: ${historial.length} · /cardio: ${cardio.length} (${sesionesSamsung.length} con inicioMs/finMs para matchear)`);
+  console.log("Nivel \"rango\": solo disponible al importar el ZIP (las muestras crudas de FC no se persisten, ADR #016) — este script no lo intenta.\n");
 
   if (sesionesSamsung.length === 0) {
     console.log("Sin candidatas: ningún doc de /cardio tiene inicioMs/finMs (importalos primero con S-audit-b/P54, o re-importá el ZIP).");
@@ -150,7 +178,9 @@ async function main(): Promise<void> {
   //    agregado no expone). No persiste nada.
   const ordenado = [...historial].sort((a, b) => a.fechaRealizada.localeCompare(b.fechaRealizada));
   const usados = new Set<string>();
-  let matcheadas = 0, sinMatch = 0, omitidas = 0, sinVentana = 0, ambiguas = 0;
+  let matcheadas = 0, porCustomId = 0, porVentana = 0, porDia = 0;
+  let sinMatch = 0, sinCandidatasEseDia = 0, sinSolape = 0;
+  let omitidas = 0, sinVentana = 0, ambiguas = 0;
 
   for (const h of ordenado) {
     if (h.biometria?.granularidad === "serie") {
@@ -164,27 +194,45 @@ async function main(): Promise<void> {
       console.log(`${h.idHist}  ${h.fechaRealizada}  — sin ventana (no se pudo evaluar)`);
       continue;
     }
+    const tipoVentana = ventana.sintetica ? "sintética" : "real";
+    const rangoVentana = `${horaLocal(ventana.inicioMs)} → ${horaLocal(ventana.finMs)} ART`;
     const candidatas = sesionesSamsung.filter((s) => !usados.has(s.datauuid));
     const match = elegirSesionSamsung(ventana, candidatas, CUSTOM_ID_SHAPEUP);
+
     if (!match) {
       sinMatch++;
-      console.log(`${h.idHist}  ${h.fechaRealizada}  — sin match`);
+      if (ventana.sintetica) sinCandidatasEseDia++; else sinSolape++;
+      const cercana = candidataMasCercana(ventana, candidatas);
+      const detalleCercana = cercana
+        ? ` · candidata más cercana: ${horaLocal(cercana.startMs)} ART (gap ${minutos(gapMs(ventana, cercana))})`
+        : " · sin candidatas";
+      console.log(`${h.idHist}  ${h.fechaRealizada}  — sin match · ventana ${tipoVentana} [${rangoVentana}]${detalleCercana} · (nivel "rango" no disponible acá, ver nota arriba)`);
       continue;
     }
     if (match.matchPor === "ambiguo") {
       ambiguas++;
-      console.log(`${h.idHist}  ${h.fechaRealizada}  — ambiguo (2+ ShapeUp ese día, ventana sintética — no se adivina)`);
+      console.log(`${h.idHist}  ${h.fechaRealizada}  — ambiguo (2+ ShapeUp ese día, ventana sintética [${rangoVentana}] — no se adivina)`);
       continue;
     }
     usados.add(match.sesion.datauuid);
     matcheadas++;
-    const delta = match.matchPor === "dia" ? "n/a (match por día)" : minutos(match.sesion.startMs - ventana.inicioMs);
-    console.log(`${h.idHist}  ${h.fechaRealizada}  — matcheó por ${match.matchPor} · Δinicio ${delta}`);
+    if (match.matchPor === "custom-id") porCustomId++;
+    else if (match.matchPor === "dia") porDia++;
+    else porVentana++;
+    // Δinicio contra el borde de una ventana sintética no es informativo (S-fix-b hotfix):
+    // la ventana sintética es [mediodía−duración, mediodía+duración], simétrica y ancha —
+    // comparar contra su borde izquierdo exagera el desfasaje aunque el match sea bueno.
+    // Con ventana real (de timestamps reales) sí es una medida útil.
+    const detalle = ventana.sintetica
+      ? `ventana sintética [${rangoVentana}]`
+      : `ventana real [${rangoVentana}] · Δinicio ${minutos(match.sesion.startMs - ventana.inicioMs)}`;
+    console.log(`${h.idHist}  ${h.fechaRealizada}  — matcheó por ${match.matchPor} · ${detalle}`);
   }
 
   console.log(
-    `\nResumen: ${matcheadas} matcheadas · ${sinMatch} sin match · ${ambiguas} ambiguas · ` +
-    `${omitidas} omitidas (ya enriquecidas) · ${sinVentana} sin ventana\n`,
+    `\nResumen: ${matcheadas} matcheadas (${porCustomId} por custom-id, ${porVentana} por ventana, ${porDia} por día) · ` +
+    `${sinMatch} sin match (${sinCandidatasEseDia} sin candidatas ese día, ${sinSolape} sin solape) · ` +
+    `${ambiguas} ambiguas · ${omitidas} omitidas (ya enriquecidas) · ${sinVentana} sin ventana\n`,
   );
 
   if (!confirmar) {

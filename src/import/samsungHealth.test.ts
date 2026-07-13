@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   detectarTipoCsv, parsearPeso, parsearEjercicio, parsearSueno, derivarZona,
-  detectarTiposMetrica, parsearMetricas, epochToMs,
+  detectarTiposMetrica, parsearMetricas, epochToMs, parsearFcCruda,
   minArr, maxArr, avgArr, sumArr, lastArr, idMetrica,
 } from "./samsungHealth";
 
@@ -242,6 +242,34 @@ describe("parsearMetricas — heart_rate", () => {
   });
   it("idMetrica idempotente por día",   () =>
     expect(items[0].idMetrica).toBe(`juanpablo-${items[0].tipo}-${items[0].fecha}`));
+});
+
+// ── parsearFcCruda (nivel "rango", S-match, P57) ─────────────────────────────
+
+describe("parsearFcCruda", () => {
+  it("parsea filas válidas a { ms, fc }[] ordenadas por tiempo", () => {
+    const puntos = parsearFcCruda(HR_CSV);
+    expect(puntos).toHaveLength(3);
+    expect(puntos.map((p) => p.fc)).toEqual([62, 58, 175]); // ya vienen en orden ascendente de start_time
+    expect(puntos[0].ms).toBe(epochToMs("1710488400000"));
+  });
+
+  it("ordena por ms aunque el CSV venga desordenado", () => {
+    const desordenado = `com.samsung.health.tracker.heart_rate,6000001,3
+datauuid,com.samsung.health.tracker.heart_rate.start_time,com.samsung.health.tracker.heart_rate.time_offset,com.samsung.health.tracker.heart_rate.heart_rate
+uuid-b,1710495600000,UTC-0300,80
+uuid-a,1710488400000,UTC-0300,60`;
+    const puntos = parsearFcCruda(desordenado);
+    expect(puntos.map((p) => p.fc)).toEqual([60, 80]);
+  });
+
+  it("descarta filas sin heart_rate o con valor 0/negativo", () => {
+    const conVacios = `com.samsung.health.tracker.heart_rate,6000001,3
+datauuid,com.samsung.health.tracker.heart_rate.start_time,com.samsung.health.tracker.heart_rate.time_offset,com.samsung.health.tracker.heart_rate.heart_rate
+uuid-a,1710488400000,UTC-0300,
+uuid-b,1710488500000,UTC-0300,0`;
+    expect(parsearFcCruda(conVacios)).toHaveLength(0);
+  });
 });
 
 describe("parsearMetricas — stress", () => {

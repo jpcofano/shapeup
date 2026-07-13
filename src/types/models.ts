@@ -435,14 +435,21 @@ export interface BloqueRegistro {
 /** Enriquecimiento biométrico de una sesión ShapeUp cruzada con Samsung Health. */
 export interface BiometriaSesion {
   fuente: FuenteDato;                  // "samsung-health-csv"
-  datauuidSamsung: string;
+  /** Ausente en matchPor "rango": ahí no hay una única sesión Samsung detrás (P57). */
+  datauuidSamsung?: string;
   fcMedia?: number;
   fcMax?: number;
   fcMin?: number;
   zonaPrincipal?: ZonaFC;             // derivada de fcMedia vs config/perfiles.zonasFC del miembro
   kcal?: number;
-  matchPor: "custom-id" | "ventana" | "dia"; // cómo se identificó la sesión Samsung
+  matchPor: "custom-id" | "ventana" | "dia" | "rango"; // cómo se identificó la sesión Samsung
   granularidad: "serie" | "sesion";  // qué tan fino llegó el enriquecimiento
+  /**
+   * Fin efectivo usado para los cálculos cuando Samsung siguió grabando de más
+   * (corte olvidado — P57): fcMedia/fcMax/fcMin/kcal se recortan a la ventana
+   * real de la app, no a la fila completa de Samsung. Ausente si no aplicó.
+   */
+  finMsEfectivo?: number;
 }
 
 export interface Historial {

@@ -235,18 +235,26 @@ export function Salud() {
         // El resultado del enriquecimiento SIEMPRE se suma al mensaje — nunca desaparece
         // en silencio, ni cuando no hay candidatas, ni cuando la llamada tira (S-fix, P55).
         try {
-          if (z.sesionesSamsung.length > 0) {
+          if (z.sesionesSamsung.length > 0 || z.muestrasFcCrudas.length > 0) {
             const enrRes = await enriquecerTrasImport(memberId as MiembroId, z);
             if (enrRes.ok) {
-              const { matcheadas, porCustomId, porVentana, porDia, sinMatch, ambiguas, omitidas } = enrRes.value;
+              const {
+                matcheadas, porCustomId, porVentana, porDia, porRango,
+                sinMatch, sinCandidatasEseDia, sinSolape, ambiguas, omitidas,
+              } = enrRes.value;
               const evaluadas = matcheadas + sinMatch + ambiguas + omitidas;
               const partes: string[] = [];
               if (matcheadas > 0) {
                 const detalle = [`${porCustomId} por custom-id`, `${porVentana} por ventana`];
-                if (porDia > 0) detalle.push(`${porDia} por día`);
+                if (porDia   > 0) detalle.push(`${porDia} por día`);
+                if (porRango > 0) detalle.push(`${porRango} por rango horario`);
                 partes.push(`${matcheadas} matcheada${matcheadas !== 1 ? "s" : ""} (${detalle.join(", ")})`);
               }
-              if (sinMatch    > 0) partes.push(`${sinMatch} sin match`);
+              if (sinMatch > 0) {
+                const desglose = [`${sinCandidatasEseDia} sin candidatas ese día`, `${sinSolape} sin solape`]
+                  .filter((d) => !d.startsWith("0 "));
+                partes.push(`${sinMatch} sin match${desglose.length > 0 ? ` (${desglose.join(", ")})` : ""}`);
+              }
               if (ambiguas    > 0) partes.push(`${ambiguas} ambigua${ambiguas !== 1 ? "s" : ""} (2+ ShapeUp el mismo día)`);
               if (omitidas    > 0) partes.push(`${omitidas} ya estaban enriquecidas`);
               msgBase += ` · ${evaluadas} sesión${evaluadas !== 1 ? "es" : ""} evaluada${evaluadas !== 1 ? "s" : ""}${partes.length > 0 ? `: ${partes.join(" · ")}` : ""}`;

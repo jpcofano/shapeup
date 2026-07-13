@@ -142,12 +142,11 @@ function seccionA(historial: Historial[], cardio: SesionCardio[]): string[] {
 
     if (h.biometria) {
       const b = h.biometria;
-      const finMsEfectivo = (b as unknown as Record<string, unknown>).finMsEfectivo;
       L.push(
         `- biometria: matchPor=${b.matchPor}, granularidad=${b.granularidad}, ` +
         `fcMedia=${b.fcMedia ?? "—"}, fcMax=${b.fcMax ?? "—"}, kcal=${b.kcal ?? "—"}, ` +
-        `zonaPrincipal=${b.zonaPrincipal ?? "—"}, datauuidSamsung=${b.datauuidSamsung}` +
-        (finMsEfectivo != null ? `, finMsEfectivo=${finMsEfectivo}` : ""),
+        `zonaPrincipal=${b.zonaPrincipal ?? "—"}, datauuidSamsung=${b.datauuidSamsung ?? "—"}` +
+        (b.finMsEfectivo != null ? `, finMsEfectivo=${b.finMsEfectivo}` : ""),
       );
       if (b.granularidad === "serie") {
         const conFcPico = h.bloques.reduce(
@@ -268,9 +267,14 @@ function seccionB(cardio: SesionCardio[], historial: Historial[]): string[] {
 
 // ── Sección C: Métricas genéricas ─────────────────────────────────────────────
 
-function seccionC(metricas: MetricaSalud[], hoy: string): string[] {
+function seccionC(metricas: MetricaSalud[], hoy: string, advertenciaVacio?: string): string[] {
   const L: string[] = [];
   L.push("## C. Métricas genéricas (/metricas-salud)\n");
+  // Guarda anti-mentira (hotfix P56-b): si el miembro no tiene ninguna métrica,
+  // decir explícitamente si la colección está realmente vacía o si hay docs de
+  // otros miembros (posible filtro roto) — nunca dejar que la tabla en cero
+  // se lea como "todo bien, simplemente sin datos".
+  if (advertenciaVacio) L.push(`> ⚠ ${advertenciaVacio}\n`);
   L.push("| tipo | días con dato | primera fecha | última fecha | valor más reciente | ¿alcanza baseline 28d? |");
   L.push("|---|---|---|---|---|---|");
 
@@ -434,6 +438,19 @@ async function main(): Promise<void> {
   const sueno       = suenoSnap.docs.map((d) => d.data() as RegistroSueno);
   const mediciones  = medicionesSnap.docs.map((d) => d.data() as MedicionCorporal);
 
+  // Guarda anti-mentira (hotfix P56-b): si el filtro por miembro dio 0 en
+  // /metricas-salud, chequeá si la colección tiene docs en total antes de
+  // reportarlo como "sin datos" — eso distingue "genuinamente vacía" de
+  // "filtro roto" (nombre de campo, esquema).
+  let advertenciaMetricas: string | undefined;
+  if (metricas.length === 0) {
+    const totalSnap = await db.collection("metricas-salud").count().get();
+    const total = totalSnap.data().count;
+    advertenciaMetricas = total > 0
+      ? `0 métricas con miembro=="${miembro}" — la colección tiene ${total} docs en total (¿campo "miembro" correcto? ¿se corrió limpiar:salud y falta re-importar?)`
+      : undefined; // realmente no hay ningún doc en la colección
+  }
+
   const hoy = hoyArgentina();
   const fechaReporte = hoy.replace(/-/g, "");
 
@@ -443,7 +460,7 @@ async function main(): Promise<void> {
     "No modifica Firestore. Contiene datos de salud personales — no commitear.\n");
   L.push(...seccionA(historial, cardio));
   L.push(...seccionB(cardio, historial));
-  L.push(...seccionC(metricas, hoy));
+  L.push(...seccionC(metricas, hoy, advertenciaMetricas));
   L.push(...seccionD(sueno, hoy));
   L.push(...seccionE(mediciones));
   L.push(...seccionF(metricas, sueno, mediciones, historial, hoy));

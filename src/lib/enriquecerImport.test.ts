@@ -312,4 +312,149 @@ describe("calcularEnriquecimiento", () => {
     const serie1 = r.updates[0].bloques![0].series[0];
     expect(serie1.fcPico).toBe(160);
   });
+
+  // ── Desglose de sinMatch (P57) ──────────────────────────────────────────────
+
+  it("desglosa sinMatch: ventana real sin candidatas cercanas → sinSolape", () => {
+    const r = calcularEnriquecimiento([HIST_C], EXTRACCION_BASE);
+    expect(r.sinMatch).toBe(1);
+    expect(r.sinSolape).toBe(1);
+    expect(r.sinCandidatasEseDia).toBe(0);
+  });
+
+  it("desglosa sinMatch: ventana sintética sin ShapeUp ese día → sinCandidatasEseDia", () => {
+    const histSintetico = historial({
+      idHist: "H-SIN-DIA", fechaRealizada: "2026-01-01", duracionRealMin: 56, bloques: [],
+    });
+    // Las candidatas de EXTRACCION_BASE no tienen `fecha` seteada → nunca matchean "2026-01-01"
+    const r = calcularEnriquecimiento([histSintetico], EXTRACCION_BASE);
+    expect(r.sinMatch).toBe(1);
+    expect(r.sinCandidatasEseDia).toBe(1);
+    expect(r.sinSolape).toBe(0);
+  });
+
+  // ── Nivel "rango" (P57) ───────────────────────────────────────────────────────
+
+  describe("nivel 'rango' (muestras crudas de FC)", () => {
+    it("matchea por 'rango' con ≥10 muestras crudas dentro de la ventana, sin candidatas Samsung", () => {
+      const histRango = historial({
+        idHist: "H-RANGO", fechaRealizada: "2024-03-20",
+        inicioMs: 2_000_000, finMs: 2_600_000, bloques: [],
+      });
+      const muestras = Array.from({ length: 12 }, (_, i) => ({ ms: 2_000_000 + i * 50_000, fc: 100 + i }));
+      const r = calcularEnriquecimiento([histRango], {
+        sesionesSamsung: [], liveData: {}, shapeUpCustomId: undefined,
+        muestrasFcCrudas: muestras,
+      });
+      expect(r.matcheadas).toBe(1);
+      expect(r.porRango).toBe(1);
+      expect(r.updates[0].biometria.matchPor).toBe("rango");
+      expect(r.updates[0].biometria.datauuidSamsung).toBeUndefined();
+      expect(r.updates[0].biometria.kcal).toBeUndefined();
+    });
+
+    it("con menos de 10 muestras en la ventana, no matchea por rango (queda sinMatch)", () => {
+      const histRango = historial({
+        idHist: "H-RANGO-POCAS", fechaRealizada: "2024-03-20",
+        inicioMs: 2_000_000, finMs: 2_600_000, bloques: [],
+      });
+      const muestras = Array.from({ length: 9 }, (_, i) => ({ ms: 2_000_000 + i * 50_000, fc: 100 + i }));
+      const r = calcularEnriquecimiento([histRango], {
+        sesionesSamsung: [], liveData: {}, shapeUpCustomId: undefined,
+        muestrasFcCrudas: muestras,
+      });
+      expect(r.porRango).toBe(0);
+      expect(r.sinMatch).toBe(1);
+    });
+
+    it("sin muestrasFcCrudas (p.ej. rematch-salud, sin ZIP) → nunca matchea por rango", () => {
+      const r = calcularEnriquecimiento([HIST_C], EXTRACCION_BASE); // sin muestrasFcCrudas en el extraccion
+      expect(r.porRango).toBe(0);
+    });
+
+    it("ventana sintética también puede llegar a 'rango' si 'dia' no aplicó (S-fix-b + P57)", () => {
+      const histSintetico = historial({
+        idHist: "H-SIN-DIA-RANGO", fechaRealizada: "2026-01-02", duracionRealMin: 56, bloques: [],
+      });
+      const ventana = ventanaDeHistorial(histSintetico)!;
+      expect(ventana.sintetica).toBe(true);
+      const muestras = Array.from({ length: 10 }, (_, i) => ({ ms: ventana.inicioMs + i * 5_000, fc: 90 + i }));
+      const r = calcularEnriquecimiento([histSintetico], {
+        sesionesSamsung: [], liveData: {}, shapeUpCustomId: undefined,
+        muestrasFcCrudas: muestras,
+      });
+      expect(r.updates[0].biometria.matchPor).toBe("rango");
+    });
+  });
+
+  // ── Última serie: tope de recuperación explícito (P57) ───────────────────────
+
+  it("última serie de la sesión: recuperacionBpm se calcula con tope de 90s (no queda undefined por efecto colateral)", () => {
+    const inicioVentana = 1_000_000;
+    const finVentana = inicioVentana + 100_000;
+    const histTope = historial({
+      idHist: "H-TOPE", fechaRealizada: "2024-03-15",
+      inicioMs: inicioVentana, finMs: finVentana,
+      bloques: [bloque(1, [{ inicioMs: inicioVentana, finMs: inicioVentana + 50_000 }])], // única serie, sin serie siguiente
+    });
+    const curva = [
+      { ms: inicioVentana + 10_000, fc: 100 },
+      { ms: inicioVentana + 40_000, fc: 160 }, // pico dentro de la serie
+      { ms: inicioVentana + 50_000, fc: 150 }, // fin de la serie
+      { ms: inicioVentana + 150_000, fc: 130 }, // dentro del tope (finVentana + 90_000)
+      { ms: inicioVentana + 250_000, fc: 50 },  // más allá del tope — un corte olvidado no debe absorber esto
+    ];
+    const r = calcularEnriquecimiento([histTope], {
+      sesionesSamsung: [{
+        datauuid: "uuid-tope", startMs: inicioVentana, endMs: finVentana + 300_000, // "olvido de corte": sigue grabando de más
+        customId: CUSTOM_ID,
+      }],
+      liveData: { "uuid-tope": curva },
+      shapeUpCustomId: CUSTOM_ID,
+    });
+    const serie = r.updates[0].bloques![0].series[0];
+    expect(serie.recuperacionBpm).toBe(160 - 130); // pico(160) - fc a los +150_000ms (dentro del tope)
+  });
+
+  // ── Sin claves undefined al persistir (hotfix P57) ───────────────────────────
+  // Firestore (admin SDK, sin ignoreUndefinedProperties) rechaza escribir un
+  // campo con valor `undefined` explícito. `calcularEnriquecimiento` es lo que
+  // ambos escritores (cliente `enriquecerHistorial`, admin `rematch-salud.ts`)
+  // persisten tal cual — tiene que salir limpio de acá, en el origen.
+
+  it("serie enriquecida sin recuperacionBpm (última serie, sin datos tras el tope) no lleva la clave", () => {
+    const histSinRecuperacion = historial({
+      idHist: "H-SIN-REC", fechaRealizada: "2024-03-15",
+      inicioMs: 1710488400000, finMs: 1710488500000,
+      bloques: [bloque(1, [{ inicioMs: 1710488400000, finMs: 1710488450000 }])], // única serie
+    });
+    // Curva sin ninguna muestra después del fin de la serie → sin fcFinDescanso → sin recuperacionBpm
+    const curva = [{ ms: 1710488410000, fc: 130 }];
+    const r = calcularEnriquecimiento([histSinRecuperacion], {
+      ...EXTRACCION_BASE,
+      liveData: { "uuid-shapeup": curva },
+    });
+    const serie = r.updates[0].bloques![0].series[0];
+    expect(Object.prototype.hasOwnProperty.call(serie, "recuperacionBpm")).toBe(false);
+  });
+
+  it("ningún update (biometria ni series) tiene una clave con valor undefined — serializa sin pérdidas", () => {
+    const r = calcularEnriquecimiento(
+      [HIST_A, HIST_B, HIST_C],
+      EXTRACCION_BASE,
+    );
+    for (const { biometria, bloques } of r.updates) {
+      for (const [k, v] of Object.entries(biometria)) {
+        expect(v, `biometria.${k} no debería ser undefined`).not.toBeUndefined();
+      }
+      expect(Object.keys(JSON.parse(JSON.stringify(biometria)))).toEqual(Object.keys(biometria));
+      for (const bloque of bloques ?? []) {
+        for (const serie of bloque.series) {
+          for (const [k, v] of Object.entries(serie)) {
+            expect(v, `serie.${k} no debería ser undefined`).not.toBeUndefined();
+          }
+        }
+      }
+    }
+  });
 });

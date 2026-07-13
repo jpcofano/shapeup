@@ -190,7 +190,31 @@ type Resumen = {
   cantidad: number;
   borrados?: number;
   errores?: number;
+  /** Guarda anti-mentira (hotfix P56-b): si cantidad=0, por qué — para no confundir
+   *  "0 real" con "el filtro está roto". Nunca decir "(sin datos)" sin haberlo chequeado. */
+  advertencia?: string;
 };
+
+/**
+ * Diagnostica un `cantidad === 0` antes de reportarlo como "(sin datos)": compara
+ * contra el conteo SIN filtro de miembro/fuente. Si la colección tiene documentos
+ * en general (de cualquier miembro/fuente) pero el filtro dio 0, es sospechoso de
+ * un filtro roto (nombre de campo distinto, esquema cambiado) — nunca "(sin datos)"
+ * a ciegas (hotfix P56-b, ver auditoría 2026-07-08/09).
+ */
+async function diagnosticarCero(
+  col: string, miembro: string, docsMiembroSinFiltroFuente: number,
+): Promise<string | undefined> {
+  if (docsMiembroSinFiltroFuente > 0) {
+    return `0 con filtro fuente=[${fuentes.join(", ")}] — hay ${docsMiembroSinFiltroFuente} docs del miembro con otra fuente`;
+  }
+  const totalSnap = await db.collection(col).count().get();
+  const total = totalSnap.data().count;
+  if (total > 0) {
+    return `0 con filtro miembro=="${miembro}" — la colección tiene ${total} docs en total (¿campo "miembro" correcto?)`;
+  }
+  return undefined; // la colección está genuinamente vacía
+}
 
 async function procesarMiembro(miembro: Miembro): Promise<void> {
   console.log(`\n${"─".repeat(68)}`);
@@ -208,6 +232,10 @@ async function procesarMiembro(miembro: Miembro): Promise<void> {
     const snap = await db.collection(col).where("miembro", "==", miembro).get();
     const docs = snap.docs.filter((d) => fuentes.includes(d.get("fuente")));
     const res: Resumen = { col: `/${col}`, cantidad: docs.length };
+
+    if (docs.length === 0) {
+      res.advertencia = await diagnosticarCero(col, miembro, snap.docs.length);
+    }
 
     if (confirmar && docs.length > 0) {
       const { borrados, errores } = await borrarEnBatches(docs.map((d) => d.ref), col);
@@ -241,7 +269,7 @@ async function procesarMiembro(miembro: Miembro): Promise<void> {
     const pad = maxCol - r.col.length;
     const espacio = " ".repeat(pad + 2);
     if (r.cantidad === 0) {
-      console.log(`${r.col}${espacio}  (sin datos)`);
+      console.log(`${r.col}${espacio}  ${r.advertencia ? `⚠ ${r.advertencia}` : "(sin datos)"}`);
     } else if (confirmar && r.borrados !== undefined) {
       const sufijo = r.errores ? `  ⚠ ${r.errores} errores` : "";
       console.log(`${r.col}${espacio}  ${r.borrados} ${limpiarBio && r.col === "/historial" ? "actualizados" : "borrados"}${sufijo}`);

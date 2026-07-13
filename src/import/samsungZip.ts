@@ -20,7 +20,7 @@ import type { MiembroId, MetricaSalud } from "../types/models";
 import type { PerfilMiembro } from "../types/models";
 import {
   detectarTipoCsv, detectarTiposMetrica,
-  parsearPeso, parsearEjercicio, parsearSueno, parsearMetricas,
+  parsearPeso, parsearEjercicio, parsearSueno, parsearMetricas, parsearFcCruda,
   type MedicionInput, type CardioInput, type SuenoInput, type SamsungCsvType,
 } from "./samsungHealth";
 import { parsearLiveData, type LiveDataPoint } from "./samsungLiveData";
@@ -43,6 +43,12 @@ export interface ZipExtraccion {
   shapeUpCustomId: string | undefined;
   /** Sesiones de ejercicio con timestamps, para el match biométrico (nivel "biometrico"; [] en otros niveles). */
   sesionesSamsung: SesionSamsung[];
+  /**
+   * Muestras crudas de FC de `tracker.heart_rate` para el nivel "rango" del
+   * match (S-match, P57) — `{ ms, fc }[]`. Solo nivel "biometrico"; **nunca se
+   * persiste** (ADR #016), vive en memoria durante el import. [] en otros niveles.
+   */
+  muestrasFcCrudas: LiveDataPoint[];
   errors:     string[];
   csvsLeidos: string[];
   /** Diagnóstico: qué archivos CSV se encontraron en el ZIP por tipo conocido. */
@@ -140,7 +146,7 @@ export async function extraerDesdeZip(
 ): Promise<ZipExtraccion> {
   const result: ZipExtraccion = {
     mediciones: [], cardio: [], sueno: [], metricas: [],
-    liveData: {}, shapeUpCustomId: undefined, sesionesSamsung: [],
+    liveData: {}, shapeUpCustomId: undefined, sesionesSamsung: [], muestrasFcCrudas: [],
     errors: [], csvsLeidos: [], csvsPorTipo: {}, otrosCSVs: [], inventario: [],
   };
 
@@ -351,6 +357,24 @@ export async function extraerDesdeZip(
       }
       done++;
       progress(75 + Math.round((done / Math.max(total, 1)) * 20), `Curvas FC: ${done}/${total}`);
+    }
+
+    // 5d. Muestras crudas de FC para el nivel "rango" (S-match, P57) — nunca persistidas.
+    const pathHr = Object.entries(csvPorTipo)
+      .find(([k]) => k.toLowerCase().includes("tracker.heart_rate"))?.[1];
+    if (pathHr) {
+      try {
+        const text = await zip.files[pathHr].async("text");
+        result.muestrasFcCrudas = parsearFcCruda(text);
+        if (result.muestrasFcCrudas.length > 0) {
+          result.inventario.push({
+            archivo: pathHr.split("/").pop() ?? pathHr,
+            parser: `muestras crudas de FC para nivel "rango" (${result.muestrasFcCrudas.length}, no persistidas)`,
+          });
+        }
+      } catch {
+        // silencioso por diseño — degradación elegante; el nivel "rango" simplemente no aplica
+      }
     }
   }
 

@@ -16,6 +16,7 @@ const MATCH_POR_LABEL: Record<BiometriaSesion["matchPor"], string> = {
   "custom-id": "por ID",
   "ventana":   "por ventana",
   "dia":       "por día (único ShapeUp)",
+  "rango":     "por rango horario",
 };
 
 
@@ -160,8 +161,8 @@ export function HistorialDetalle() {
               </div>
             )}
           </div>
-          {h.biometria.zonaPrincipal && (
-            <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: 10 }}>
+            {h.biometria.zonaPrincipal && (
               <span style={{
                 padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600,
                 background: `var(--zona-${h.biometria.zonaPrincipal.toLowerCase()}-dim)`,
@@ -169,10 +170,15 @@ export function HistorialDetalle() {
               }}>
                 {h.biometria.zonaPrincipal}
               </span>
-              <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: 8 }}>
-                Match {MATCH_POR_LABEL[h.biometria.matchPor]} · {h.biometria.granularidad}
-              </span>
-            </div>
+            )}
+            <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: h.biometria.zonaPrincipal ? 8 : 0 }}>
+              Match {MATCH_POR_LABEL[h.biometria.matchPor]} · {h.biometria.granularidad}
+            </span>
+          </div>
+          {h.biometria.finMsEfectivo != null && (
+            <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--muted)" }}>
+              Samsung siguió grabando de más — datos recortados a tu sesión.
+            </p>
           )}
         </div>
       )}

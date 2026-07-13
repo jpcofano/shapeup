@@ -29,8 +29,9 @@ esos datos, y simplificar la pantalla de Salud para mostrar solo lo relevante.
 1. ✅ `data/historial.ts`: `enriquecerHistorial(idHist, biometria, bloques?)` — updateDoc simple.
 2. ✅ `lib/enriquecerImport.ts`: núcleo puro. `ventanaDeHistorial`, `calcularEnriquecimiento`,
    `enriquecerTrasImport`. 16 tests. No muta entrada, no duplica datauuid.
-3. ✅ `Salud.tsx` → `confirmarImport`: si `sesionesSamsung.length > 0` corre enriquecimiento
-   y muestra resumen "X matcheadas (Y por custom-id, Z por ventana)". Fallo no cancela import.
+3. ✅ `Salud.tsx` → `confirmarImport`: si hay `sesionesSamsung` o `muestrasFcCrudas` corre
+   enriquecimiento y muestra resumen "X matcheadas (Y por custom-id, Z por ventana, ...)".
+   Fallo no cancela import (ver P57 para los niveles "día"/"rango" agregados después).
 4. ✅ `finalizarSesion`: guarda `inicioMs`/`finMs` desde `ventanaDeBloques` (ADR #019).
 5. ✅ **Import selectivo (ADR #020) — P47**: `lib/importSelectivo.ts` puro. Reglas:
    "shapeup" → "historial" → "vr" → "actividad". Toggle opt-in en preview (ZIP + CSV).
@@ -40,6 +41,11 @@ esos datos, y simplificar la pantalla de Salud para mostrar solo lo relevante.
 `npm run limpiar:salud -- --miembro=juanpablo --confirmar [--limpiar-biometria]`
 → importar ZIP real nivel biométrico → validar resumen de matcheo en la UI.
 `scripts/limpiar-salud.ts`: depura solo salud; nunca toca historial/sesiones/rutinas.
+
+> **Nota (P57):** la sección "1c — Robustez del match" de este prompt original
+> nunca se implementó (el `docs/prompts/46-s1-*.md` guardado no la tiene — es una
+> versión anterior). La spec vigente del match es `docs/prompts/57-s-match-robusto.md`
+> — ver ADR #025 más abajo.
 
 ### S2 — Salud: mostrar lo relevante ✅ completo (P49+P51+P52, 2026-07-06)
 1. ✅ `lib/resumenSalud.ts`: `calcularResumenSalud` + `senalPeor`. 36 tests.
@@ -97,6 +103,21 @@ Ver "Roadmap" abajo.
   `descansoSeg` por serie, `juegoSugerido` para el chip) en vez de extender el
   modelo. Las imágenes de juegos son SVG originales locales (`public/vr/`) por
   copyright — nada de carátulas ni screenshots de marketing. Implementado en P51b.
+- **ADR #025** ✅ — Spec autoritativa del match biométrico: `docs/prompts/57-s-match-robusto.md`
+  (S-match, P57). Reemplaza la "1c" del P46 original que nunca se implementó
+  (`docs/prompts/46-s1-*.md` no la tiene — está desactualizado en ese punto).
+  Ranking por **Δinicio** (no por solapamiento): pool custom-id gana el menor
+  Δinicio con techo 30 min y sin mínimo de solape; pool ventana requiere
+  Δinicio ≤ 10 min y solapa > 0, con guardia de ambigüedad si el top-2 difiere
+  < 5 min. Anti-"olvido de corte": si Samsung siguió grabando > 15 min después
+  del fin de la app, se recorta FC a la ventana real y se omite `kcal`
+  (`finMsEfectivo` marca el corte). Nivel `"rango"` como último recurso: FC de
+  muestras crudas de `tracker.heart_rate` dentro de la ventana (mín. 10
+  muestras), solo disponible al importar (las muestras nunca se persisten,
+  ADR #016). Última serie de la sesión: tope de 90 s para `recuperacionBpm`
+  (ya no queda `undefined` por no encontrar "serie siguiente"). Lo agregado en
+  S-fix-b (ventana `sintetica`, regla "día único", ambigüedad por fecha) se
+  conserva sin cambios — P57 lo completa, no lo reemplaza.
 
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3):
