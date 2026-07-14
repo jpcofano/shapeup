@@ -80,10 +80,58 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | Hotfix P57 | Biometría sin claves `undefined` al persistir (`stripUndef` en el origen) | ✅ | 2026-07-13 |
 | **Serie I — Insights** | | | |
 | P58 (I1) | Tendencias largas de salud en Progreso (`lib/tendencias.ts` + `TrendChart`) + fix `zonaPrincipal` | ✅ | 2026-07-13 |
+| P59 (I2) | Costo cardíaco por rutina (`lib/costoCardiaco.ts`) + frase en HistorialDetalle + sección en RutinaDetalle | ✅ | 2026-07-14 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-07-14] P59 (I2) — Costo cardíaco por rutina
+
+> Prompt `docs/prompts/59-i2-costo-cardiaco.md`. Segundo insight de la serie
+> I, reusa `TrendChart` de I1. Con las sesiones matcheadas, la FC media a
+> igual rutina a lo largo del tiempo es una medida directa de mejora
+> aeróbica — misma rutina con menos bpm que hace un mes = el corazón hace el
+> mismo trabajo con menos esfuerzo. Hoy hay 1 sola sesión enriquecida (y es
+> libre, sin `idRutina`) — la feature arranca en silencio a propósito y
+> acumula valor con cada import futuro.
+
+- **`src/lib/costoCardiaco.ts`** (nuevo, puro) — `compararConPrevias(sesion,
+  historial)`: filtra previas por misma `idRutina`, con `biometria.fcMedia`
+  y fecha anterior; `null` con sesión libre, sin FC propia o menos de 2
+  previas (con 1 previa la "mediana" sería una anécdota). `deltaBpm` =
+  actual − mediana de previas (negativo = mejora). `kcalMin` solo si la
+  sesión actual Y al menos una previa tienen `kcal` + `duracionRealMin` — el
+  anti-"olvido de corte" (P57) puede omitir `kcal` en cualquiera de las dos
+  partes, ahí no se inventa. No se normaliza la FC por duración: la mediana
+  de FC media ya es comparable a igual rutina. `serieCostoRutina(idRutina,
+  historial)` arma los puntos para `TrendChart`, ordenados cronológicamente,
+  excluyendo sesiones sin biometría. 16 tests.
+- **`HistorialDetalle.tsx`** — nuevo fetch `getHistorialMiembro` en el
+  `useEffect` existente (antes solo traía sueño/FC-reposo); si
+  `compararConPrevias` devuelve algo, frase «FC media 122 · −8 bpm vs tus
+  últimas N sesiones de esta rutina» dentro de la card de biometría. Color
+  `--accent` solo si mejoró (bajó); si subió, `--muted` — nunca `--danger`
+  (decisión del owner: una FC más alta puede ser esfuerzo deliberado, no
+  "empeoraste").
+- **`RutinaDetalle.tsx`** — agrega `useAuth()` (no tenía contexto de miembro
+  hasta ahora) + fetch de `getHistorialMiembro` para `serieCostoRutina`.
+  Sección "Costo cardíaco" (chart chico + «Primera: X bpm · última: Y ·
+  Δ% en N sesiones») solo con ≥ `MIN_SESIONES_SECCION` (3) sesiones con
+  biometría del miembro actual en esa rutina — con menos, la sección no
+  existe (silencio, no "necesitás más sesiones").
+- **Verificación manual** (ADR #009, sin tests de componentes): ruta QA
+  temporal `/qa/costo-cardiaco` con 5 sesiones simuladas de la misma rutina
+  (FC descendente 138→122), screenshot vía Playwright CLI — frase con delta
+  en verde, chart descendente, resumen "−12% en 5 sesiones". Ruta borrada
+  antes de cerrar el prompt (no se commitea). Con los datos reales de hoy
+  (1 sesión enriquecida, libre) se verificó explícitamente vía script
+  read-only temporal contra Firestore: `compararConPrevias` da `null` y no
+  hay ninguna rutina con ≥ 3 sesiones con biometría → todo en silencio,
+  script borrado sin commitear.
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (520 tests, +16
+  nuevos) · `npm run build` sin errores.
+- Commit: `feat(salud): costo cardíaco por rutina (I2)`.
 
 ### [2026-07-13] P58 (I1) — Tendencias largas de salud en Progreso
 

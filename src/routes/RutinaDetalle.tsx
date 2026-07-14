@@ -4,17 +4,24 @@ import { ArrowLeft, Edit2, Zap } from "lucide-react";
 import type { Rutina, Ejercicio } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjerciciosMap } from "../data/ejercicios";
+import { getHistorialMiembro } from "../data/historial";
 import { avisoBalanceEmpujeTraccion } from "../lib/metricas";
 import { prescripcionLabel } from "../lib/prescripcionLabel";
+import { serieCostoRutina, MIN_SESIONES_SECCION } from "../lib/costoCardiaco";
+import type { PuntoCosto } from "../lib/costoCardiaco";
+import { TrendChart } from "../components/TrendChart";
+import { useAuth } from "../auth/useAuth";
 
 export function RutinaDetalle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { memberId } = useAuth();
   const [rutina,   setRutina]   = useState<Rutina | null>(null);
   const [catalogo, setCatalogo] = useState<Map<string, Ejercicio>>(new Map());
   const [aviso,    setAviso]    = useState<string | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [error,   setError]   = useState<string | null>(null);
+  const [costoCardiaco, setCostoCardiaco] = useState<PuntoCosto[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -26,6 +33,14 @@ export function RutinaDetalle() {
       setLoading(false);
     });
   }, [id]);
+
+  // Costo cardíaco (I2): solo sesiones del miembro actual, esta rutina.
+  useEffect(() => {
+    if (!id || !memberId) return;
+    getHistorialMiembro(memberId).then((r) => {
+      if (r.ok) setCostoCardiaco(serieCostoRutina(id, r.value));
+    });
+  }, [id, memberId]);
 
   if (loading) return <div className="loading-screen"><div className="spinner" /></div>;
   if (error)   return <p className="inline-error">{error}</p>;
@@ -75,6 +90,30 @@ export function RutinaDetalle() {
               <span className="stat-label">ejercicios</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Costo cardíaco (I2): silencio con < MIN_SESIONES_SECCION sesiones con biometría */}
+      {costoCardiaco.length >= MIN_SESIONES_SECCION && (
+        <div className="card">
+          <p className="section-title" style={{ marginBottom: 10 }}>Costo cardíaco</p>
+          <TrendChart
+            puntos={costoCardiaco.map((p) => ({ fecha: p.fecha, valor: p.fcMedia }))}
+            unidad="bpm"
+            rango="todo"
+            alto={120}
+          />
+          {(() => {
+            const primera = costoCardiaco[0].fcMedia;
+            const ultima = costoCardiaco[costoCardiaco.length - 1].fcMedia;
+            const deltaPct = ((ultima - primera) / primera) * 100;
+            return (
+              <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--muted)" }}>
+                Primera: {Math.round(primera)} bpm · última: {Math.round(ultima)} ·{" "}
+                {deltaPct > 0 ? "+" : ""}{deltaPct.toFixed(0)}% en {costoCardiaco.length} sesiones
+              </p>
+            );
+          })()}
         </div>
       )}
 

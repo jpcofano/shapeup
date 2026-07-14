@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { Historial, MetricaSalud, MiembroId, BiometriaSesion } from "../types/models";
-import { getHistorialEntry } from "../data/historial";
+import { getHistorialEntry, getHistorialMiembro } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
 import { consolidarNoches } from "../lib/sueno";
 import type { NocheSueno } from "../lib/sueno";
+import { compararConPrevias } from "../lib/costoCardiaco";
+import type { ComparativaCardiaca } from "../lib/costoCardiaco";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
@@ -28,6 +30,7 @@ export function HistorialDetalle() {
   const [error,   setError]   = useState<string | null>(null);
   const [nocheAnterior, setNocheAnterior] = useState<NocheSueno | null>(null);
   const [fcDia,          setFcDia]        = useState<MetricaSalud | null>(null);
+  const [comparativa,    setComparativa]  = useState<ComparativaCardiaca | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -36,11 +39,13 @@ export function HistorialDetalle() {
       setH(r.value);
       setLoading(false);
 
-      // Carga contexto del día: sueño noche anterior consolidada + FC en reposo del día
+      // Carga contexto del día: sueño noche anterior consolidada + FC en reposo del día,
+      // y el resto del historial del miembro para el insight de costo cardíaco (I2).
       const entry = r.value;
-      const [sRes, fRes] = await Promise.all([
+      const [sRes, fRes, histRes] = await Promise.all([
         getRegistrosSueno(entry.miembro as MiembroId),
         getMetricasSalud(entry.miembro as MiembroId, "fc-reposo"),
+        getHistorialMiembro(entry.miembro as MiembroId),
       ]);
       if (sRes.ok) {
         // NocheSueno.fecha = mañana del día en que te levantaste = fecha de la sesión
@@ -51,6 +56,9 @@ export function HistorialDetalle() {
       if (fRes.ok) {
         const met = fRes.value.find((m) => m.fecha === entry.fechaRealizada);
         if (met) setFcDia(met);
+      }
+      if (histRes.ok) {
+        setComparativa(compararConPrevias(entry, histRes.value));
       }
     });
   }, [id]);
@@ -161,6 +169,18 @@ export function HistorialDetalle() {
               </div>
             )}
           </div>
+          {comparativa && (
+            <p style={{ margin: "8px 0 0", fontSize: 13 }}>
+              FC media {Math.round(comparativa.fcMediaActual)} ·{" "}
+              <span style={{
+                fontWeight: 700,
+                color: comparativa.deltaBpm < 0 ? "var(--accent)" : "var(--muted)",
+              }}>
+                {comparativa.deltaBpm > 0 ? "+" : ""}{Math.round(comparativa.deltaBpm)} bpm
+              </span>
+              {" "}vs tus últimas {comparativa.sesionesPrevias} sesiones de esta rutina
+            </p>
+          )}
           <div style={{ marginTop: 10 }}>
             {h.biometria.zonaPrincipal && (
               <span style={{

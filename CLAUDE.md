@@ -106,8 +106,16 @@ un problema aparte (de ingesta, no de análisis).
   (chips de métrica con ≥10 datos, selector 3M/1A/5A/Todo, presión con dos
   líneas y ref 120/80). Fix de yapa: `derivarZona` cae a bandas estándar de
   `fcMaxTeorica` cuando no hay `zonasFC` configuradas (ver ADR #025).
-- ⬜ I2 — Costo cardíaco por sesión (misma rutina, tendencia de FC media/kcal
-  a lo largo de las semanas).
+- ✅ **I2 — Costo cardíaco por rutina** (P59, 2026-07-14): `lib/costoCardiaco.ts`
+  (núcleo puro) — `compararConPrevias` (FC media actual vs mediana de las
+  previas de la misma rutina, `null` con < 2 previas o sesión libre) +
+  `serieCostoRutina` (serie cronológica para `TrendChart`, excluye sesiones
+  sin biometría). Frase en `HistorialDetalle` (verde solo si mejoró — nunca
+  rojo si subió, puede ser esfuerzo deliberado); sección "Costo cardíaco" en
+  `RutinaDetalle` solo con ≥ 3 sesiones con biometría del miembro (silencio
+  si no hay dato suficiente). Comparación siempre contra uno mismo, nunca
+  entre miembros ni entre rutinas distintas. Con los datos reales de hoy (1
+  sesión enriquecida y libre) queda en silencio, como se espera.
 - ⬜ I3 — Progresión automática de cargas (doble progresión desde el historial
   del ejercicio).
 
