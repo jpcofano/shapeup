@@ -420,7 +420,10 @@ export function Salud() {
       )}
 
       {!loading && tab === "progreso" && (
-        <ProgresoTab mediciones={mediciones} historial={historial} />
+        <ProgresoTab
+          mediciones={mediciones} historial={historial}
+          metricas={metricas} sueno={sueno} hoy={hoy}
+        />
       )}
 
       {showManual && memberId && (

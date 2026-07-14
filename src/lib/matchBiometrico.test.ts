@@ -257,9 +257,23 @@ describe("derivarZona", () => {
     expect(derivarZona(160, PERFIL)).toBe("Z5");
   });
 
-  it("retorna undefined si no hay zonasFC en el perfil", () => {
+  it("retorna undefined si no hay zonasFC ni fcMaxTeorica en el perfil", () => {
     expect(derivarZona(130, {})).toBeUndefined();
     expect(derivarZona(130, undefined)).toBeUndefined();
+  });
+
+  it("fallback a bandas estándar de fcMaxTeorica cuando no hay zonasFC (hotfix P58)", () => {
+    const soloFcMax: PerfilMiembro = { fcMaxTeorica: 180 };
+    expect(derivarZona(90,  soloFcMax)).toBe("Z1");  // 50-60% de 180 = 90-108
+    expect(derivarZona(115, soloFcMax)).toBe("Z2");  // 60-70% = 108-126
+    expect(derivarZona(135, soloFcMax)).toBe("Z3");  // 70-80% = 126-144
+    expect(derivarZona(150, soloFcMax)).toBe("Z4");  // 80-90% = 144-162
+    expect(derivarZona(170, soloFcMax)).toBe("Z5");  // 90-100% = 162-180
+  });
+
+  it("zonasFC a medida gana sobre el fallback de fcMaxTeorica si ambas están configuradas", () => {
+    const ambas: PerfilMiembro = { ...PERFIL, fcMaxTeorica: 999 }; // banda estándar daría otra zona
+    expect(derivarZona(90, ambas)).toBe("Z1"); // usa zonasFC (85-102), no la banda de 999
   });
 });
 

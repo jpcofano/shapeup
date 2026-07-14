@@ -197,20 +197,49 @@ export function topeInicioSiguiente(finVentanaAppMs: number, finDatosDisponibles
 }
 
 /**
+ * Bandas estándar de %FCmáx (fallback cuando no hay `zonasFC` configuradas a
+ * medida): Z1 50-60%, Z2 60-70%, Z3 70-80%, Z4 80-90%, Z5 90-100%.
+ */
+const BANDAS_PCT_FC_MAX: Record<ZonaFC, { min: number; max: number }> = {
+  Z1: { min: 0.50, max: 0.60 },
+  Z2: { min: 0.60, max: 0.70 },
+  Z3: { min: 0.70, max: 0.80 },
+  Z4: { min: 0.80, max: 0.90 },
+  Z5: { min: 0.90, max: 1.00 },
+};
+
+/**
  * Deriva la zona de FC de un valor numérico usando el perfil del miembro.
- * Retorna undefined si no hay zonasFC configuradas o la FC no cae en ninguna zona.
+ * Prioridad: 1) `zonasFC` a medida si están configuradas; 2) bandas estándar
+ * de `fcMaxTeorica` (hotfix P58, auditoría 2026-07-13: `config/perfiles` está
+ * vacío para el owner — zonaPrincipal salía siempre "—" aunque el perfil se
+ * cargara bien). Sin ninguna de las dos, `undefined` (degradación elegante).
+ *
+ * NOTA: `PerfilMiembro` no tiene campo de edad/fecha de nacimiento — el
+ * fallback "220−edad" que pedía el prompt no es calculable sin ese dato.
+ * Si se agrega a futuro, se suma acá como tercer nivel.
  */
 export function derivarZona(
   fcMedia: number,
   perfil?: PerfilMiembro,
 ): ZonaFC | undefined {
   const zonasFC = perfil?.zonasFC;
-  if (!zonasFC) return undefined;
-  for (const zona of (["Z5", "Z4", "Z3", "Z2", "Z1"] as ZonaFC[])) {
-    const z = zonasFC[zona];
-    if (!z) continue;
-    if (fcMedia >= z.min && fcMedia <= z.max) return zona;
+  if (zonasFC) {
+    for (const zona of (["Z5", "Z4", "Z3", "Z2", "Z1"] as ZonaFC[])) {
+      const z = zonasFC[zona];
+      if (!z) continue;
+      if (fcMedia >= z.min && fcMedia <= z.max) return zona;
+    }
   }
+
+  const fcMaxTeorica = perfil?.fcMaxTeorica;
+  if (fcMaxTeorica) {
+    for (const zona of (["Z5", "Z4", "Z3", "Z2", "Z1"] as ZonaFC[])) {
+      const banda = BANDAS_PCT_FC_MAX[zona];
+      if (fcMedia >= banda.min * fcMaxTeorica && fcMedia <= banda.max * fcMaxTeorica) return zona;
+    }
+  }
+
   return undefined;
 }
 

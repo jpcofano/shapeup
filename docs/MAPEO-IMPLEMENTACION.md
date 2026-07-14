@@ -75,10 +75,133 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P53 (S-audit) | `scripts/auditoria-salud.ts`: auditoría read-only de cobertura/calidad de datos de salud | ✅ | 2026-07-08 |
 | P54 (S-audit-b) | Persistir `inicioMs`/`finMs` de sesión en `/cardio`, hallazgo de la auditoría | ✅ | 2026-07-08 |
 | P55 (S-fix) | Mapeo de actividades (bug HIIT falso), `rematch-salud.ts`, inventario del ZIP, fix noches 0/30 | ✅ | 2026-07-08 |
+| P56 (S-fix-b) | Regla "día único" en el match, `fc-media-dia` (fin de `fc-reposo` falso), señales presión/SpO2 | ✅ | 2026-07-09 |
+| P57 (S-match) | Ranking por Δinicio (spec autoritativa, ADR #025), anti-"olvido de corte", nivel "rango", tope última serie | ✅ | 2026-07-13 |
+| Hotfix P57 | Biometría sin claves `undefined` al persistir (`stripUndef` en el origen) | ✅ | 2026-07-13 |
+| **Serie I — Insights** | | | |
+| P58 (I1) | Tendencias largas de salud en Progreso (`lib/tendencias.ts` + `TrendChart`) + fix `zonaPrincipal` | ✅ | 2026-07-13 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-07-13] P58 (I1) — Tendencias largas de salud en Progreso
+
+> Prompt `docs/prompts/58-i1-progreso-tendencias.md`. Arranca la serie I
+> (insights): el owner tiene diez años de datos dormidos (1537 días de FC,
+> 552 de SpO2, 154 de presión, 251 pesajes, 1363 noches) sin forma de verse
+> como tendencia. Serie S queda cerrada (ver nota en `CLAUDE.md`).
+
+- **`src/lib/tendencias.ts`** (nuevo, puro) — `serieTendencia(valores, rango, hoy)`:
+  bucketing diario ("3m"), semanal por lunes de semana ("1a"), mensual
+  ("5a"/"todo"); valor del bucket = mediana, `min`/`max` para la banda. Huecos
+  no se interpolan (el bucket simplemente no existe). `actual` = mediana de
+  las últimas 7 lecturas dentro de los últimos 90 días (sin tope, una métrica
+  sin datos recientes mostraría un "ahora" armado con lecturas de meses atrás
+  — decisión propia, no estaba en el prompt). `haceUnAnio` = mediana en
+  ventana ±14 días alrededor de hoy−365. `deltaAnualPct` solo si ambas
+  ventanas alcanzan `MIN_DATOS_DELTA_ANUAL` (5). `alcanzaMinimoChip` expone el
+  umbral de 10 datos para los chips — pura, no vive en el componente. 21 tests.
+- **`src/components/TrendChart.tsx`** (nuevo) — SVG propio (sin librerías
+  nuevas): línea de mediana + banda min-máx, segmentada por huecos (corta la
+  línea si el gap entre puntos supera la cadencia esperada del rango), línea(s)
+  de referencia punteada (`lineaRef`, admite array — presión usa 120/80),
+  segunda serie superpuesta (`puntosSecundarios`, solo línea, para
+  diastólica), ejes con marcas (X sin etiquetas consecutivas repetidas), tap
+  muestra el punto más cercano en texto fijo arriba del chart (nada
+  flotante, mobile-first).
+- **`ProgresoTab.tsx`** — nueva sección "Tendencias de salud" arriba de lo
+  existente: chips de métrica (FC reposo/media día/máx día, SpO2, Presión,
+  Peso, Sueño — solo las que llegan a 10 datos), selector de rango (3M/1A/5A/Todo,
+  default 1A), chart + resumen "Ahora: X · hace un año: Y · Δ%". Sueño reusa
+  `consolidarNoches` (no recalcula); presión arma sistólica + diastólica como
+  dos `serieTendencia` independientes. Sin queries nuevas — reusa el estado ya
+  cargado por `Salud.tsx` (`metricas`, `sueno`, `mediciones`, `hoy`).
+- **Fix de yapa (punto 0 del prompt)** — `lib/matchBiometrico.ts`:
+  `derivarZona` cae a bandas estándar de %FCmáx sobre `fcMaxTeorica` cuando no
+  hay `zonasFC` a medida (ver ADR #025, sección de ADRs de la serie S). Causa
+  real verificada contra Firestore: `config/perfiles` está vacío para el
+  owner — `rematch-salud.ts` ya cargaba el perfil correctamente, el problema
+  era que no había ningún dato de perfil para derivar zona. El fallback
+  "220−edad" que pedía el prompt no se implementó: `PerfilMiembro` no tiene
+  campo de edad/fecha de nacimiento en ningún lado del modelo.
+- **Verificación manual** (no hay tests de componentes en este repo — todo
+  React se deja "solo dibuja", ver ADR #009): ruta QA temporal
+  (`/qa/tendencias`, mismo patrón que `/qa/home-redux` de P53) con datos mock
+  de 2 años, screenshots vía Playwright CLI — chips, rango, corte de línea en
+  huecos, presión con las dos líneas y las refs 120/80, tap-to-inspect. Ruta
+  borrada antes de cerrar el prompt (no se commitea).
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (548 tests, +23
+  nuevos) · `npm run build` sin errores.
+- Commit: `feat(salud): tendencias largas en Progreso (I1) + zonaPrincipal en rematch`.
+
+### [2026-07-13] P57 (S-match) + hotfix — Ranking por Δinicio, anti-olvido de corte, nivel "rango"
+
+> Prompts `docs/prompts/57-s-match-robusto.md` (S-match) y un hotfix inmediato
+> de persistencia. Origen: el diff owner-chat vs `lib/matchBiometrico.ts`
+> confirmó que la "1c — Robustez del match" del P46 nunca se implementó.
+
+- **`lib/matchBiometrico.ts`** — `elegirSesionSamsung` pasa de rankear por
+  solapamiento a rankear por **Δinicio** (ver ADR #025 para el detalle
+  completo de techos/ambigüedad). `construirBiometriaSesion` suma anti-"olvido
+  de corte" (`finMsEfectivo`) y `construirBiometriaRango` (nivel 3, matchPor
+  `"rango"`, `datauuidSamsung` pasa a opcional). `topeInicioSiguiente` acota a
+  90 s la recuperación de la última serie.
+- **`src/import/samsungHealth.ts`** — `parsearFcCruda` (nuevo): parsea
+  `tracker.heart_rate` a `{ ms, fc }[]` crudo, nunca persistido (ADR #016),
+  solo para el nivel "rango" durante el import. `stripUndef` pasa a exportarse
+  (lo reusa `matchBiometrico.ts` y `enriquecerImport.ts` para el hotfix).
+- **`src/import/samsungZip.ts`** — `ZipExtraccion.muestrasFcCrudas`, poblado
+  solo en nivel "biometrico".
+- **`src/lib/enriquecerImport.ts`** — intenta el nivel "rango" cuando ningún
+  pool matcheó; nuevos contadores `porRango`, `sinCandidatasEseDia`, `sinSolape`.
+- **Hotfix el mismo día:** `rematch-salud.ts --confirmar` tiraba "Cannot use
+  undefined as a Firestore value" (SDK admin, sin `ignoreUndefinedProperties`
+  — a propósito, no se activa global). Causa: `construirBiometriaSesion`/
+  `construirBiometriaRango` armaban objetos con campos opcionales en
+  `undefined` explícito. Fix en el origen con `stripUndef`, aplicado también a
+  las series enriquecidas antes del spread. Verificado contra Firestore real
+  con ambos escritores (`enriquecerHistorial` cliente y el `update` admin).
+- **Verificado contra Firestore real** (no solo tests): `rematch:salud`
+  dry-run reprodujo exacto lo que predecía la spec (07/07 "por día", 29/06 sin
+  match con el gap informado, 06/04 sin candidatas) y `--confirmar` escribió
+  sin error — primera biometría real persistida y visible.
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (525 tests).
+- Commits: `feat(salud): match por Δinicio, anti-olvido de corte y nivel rango
+  (S-match, spec P57)` y `fix(salud): biometría sin claves undefined al
+  persistir (hotfix P57)`.
+
+### [2026-07-09] P56 (S-fix-b) — Regla "día único", `fc-media-dia`, señales de presión/SpO2
+
+> Prompt `docs/prompts/56-s-fix-b-dia-unico-fcreposo-presion.md`. Origen:
+> segunda auditoría real del owner sobre datos ya limpios.
+
+- **`lib/matchBiometrico.ts` / `lib/enriquecerImport.ts`** — `ventanaDeHistorial`
+  suma `sintetica: boolean`; `elegirSesionSamsung` agrega el fallback "día
+  único" (ventana sintética + exactamente 1 ShapeUp ese día → `matchPor:
+  "dia"`; 2+ → `{ sesion: null, matchPor: "ambiguo" }`, no se adivina).
+- **`src/import/samsungHealth.ts`** — causa real del bug de `fc-reposo` con
+  120+ bpm, verificada contra el ZIP real del owner: `detectarTiposMetrica`
+  matcheaba "heart_rate" como substring y mezclaba `alerted_heart_rate.csv`
+  (alertas de FC alta) con `tracker.heart_rate` bajo el mismo `idMetrica`.
+  Fix: match específico a `tracker.heart_rate`, tipo nuevo `fc-media-dia`
+  (promedio del día, ya no se llama "reposo" porque no lo es). `fc-reposo`
+  queda reservado a una fuente real que este export no trae — sin datos,
+  honestamente.
+- **`lib/resumenSalud.ts`** — señales nuevas `presion` (par sistólica/diastólica
+  del mismo día, recencia 60 días) y `spo2`, estilo "peso" (sin semáforo).
+  `fc-reposo` nunca muestra `valorActual` cuando está `sin-datos` (antes
+  mostraba un número viejo/huérfano).
+- **Hotfix el mismo día (P55/P56):** guarda anti-mentira en
+  `limpiar-salud.ts`/`auditoria-salud.ts` (si un filtro da 0 pero la colección
+  tiene docs, lo dice explícito en vez de "sin datos" a ciegas — verificado
+  contra Firestore real: `/metricas-salud` estaba genuinamente vacía, no era
+  un filtro roto). `rematch-salud.ts`: diagnóstico de ventana real/sintética +
+  Δinicio solo con ventana real (antes exageraba el desfasaje contra
+  ventanas sintéticas).
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (519 tests).
+- Commit: `fix(salud): match por día único, fc-reposo real, señales
+  presión/SpO2 (S-fix-b)`.
 
 ### [2026-07-08] Hotfix P55 — `rematch-salud.ts` arrastraba el SDK cliente
 

@@ -84,6 +84,33 @@ Siesta: inicia 10:00–19:59 Y < 3h. Legacy: `horaAcostarse` ≥ "15:00" → fec
 ### S4 — (futuro, no arrancar sin OK del owner)
 Ver "Roadmap" abajo.
 
+**Serie S cerrada (2026-07-13):** después de "Serie S completa" (arriba) todavía
+hicieron falta tres hotfixes reales sobre el match — S-fix-b (P56: regla "día
+único", `fc-media-dia` en vez de `fc-reposo` falso, señales de presión/SpO2),
+S-match (P57: ranking por Δinicio con techos 30/10 min, anti-"olvido de corte",
+nivel "rango" con muestras crudas, spec autoritativa en `docs/prompts/57-*.md`,
+ver ADR #025) y su hotfix de persistencia (claves `undefined` rechazadas por
+Firestore). Con eso la primera biometría real quedó persistida y visible
+(H-20260707, `matchPor: "dia"`). De acá en más, arranca la **serie I**.
+
+## Serie I — Insights (arranca 2026-07-13)
+
+Los insights leen de Firestore y son agnósticos de cómo llegó el dato — no se
+mezclan con la serie H (Health Connect, sync automático), que va después y es
+un problema aparte (de ingesta, no de análisis).
+
+- ✅ **I1 — Tendencias largas de salud** (P58, 2026-07-13): `lib/tendencias.ts`
+  (núcleo puro, bucketing diario/semanal/mensual según rango, mediana +
+  banda min-máx, `deltaAnualPct`) + `components/TrendChart.tsx` (SVG propio,
+  sin librerías nuevas) + sección "Tendencias de salud" en `ProgresoTab`
+  (chips de métrica con ≥10 datos, selector 3M/1A/5A/Todo, presión con dos
+  líneas y ref 120/80). Fix de yapa: `derivarZona` cae a bandas estándar de
+  `fcMaxTeorica` cuando no hay `zonasFC` configuradas (ver ADR #025).
+- ⬜ I2 — Costo cardíaco por sesión (misma rutina, tendencia de FC media/kcal
+  a lo largo de las semanas).
+- ⬜ I3 — Progresión automática de cargas (doble progresión desde el historial
+  del ejercicio).
+
 ## ADRs de la serie S
 - **ADR #019** — `Historial.inicioMs/finMs` a nivel sesión, sellados en `finalizarSesion`
   desde las series. Motivo: el match por ventana no debe depender de recalcular.
@@ -118,6 +145,12 @@ Ver "Roadmap" abajo.
   (ya no queda `undefined` por no encontrar "serie siguiente"). Lo agregado en
   S-fix-b (ventana `sintetica`, regla "día único", ambigüedad por fecha) se
   conserva sin cambios — P57 lo completa, no lo reemplaza.
+  **P58:** `derivarZona` suma un segundo nivel de fallback — bandas estándar
+  de %FCmáx sobre `fcMaxTeorica` cuando no hay `zonasFC` a medida (el
+  `config/perfiles` real está vacío; sin esto `zonaPrincipal` sale siempre
+  "—"). No hay campo de edad en `PerfilMiembro`, así que el fallback "220−edad"
+  que se había pedido no es calculable todavía — queda pendiente si se agrega
+  ese campo a futuro.
 
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3):
