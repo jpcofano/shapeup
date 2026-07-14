@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { Check } from "lucide-react";
+import { Check, TrendingDown, TrendingUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { WeekChip } from "../../lib/weekChips";
 
@@ -77,10 +77,10 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
       <>
         <div className="a-top">
           <div>
-            <h1 className="a-hola">Dale, {primerNombre}<span className="acc" style={{ color: "var(--accent)" }}>.</span></h1>
+            <h1 className="a-hola">Dale, {primerNombre}<span className="acc" style={{ color: "var(--accent-muted)" }}>.</span></h1>
             <div className="a-dia">{diaLabel}</div>
           </div>
-          <button className="a-avatar" onClick={onAvatarClick} style={{ border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", cursor: onAvatarClick ? "pointer" : "default" }}>
+          <button className="a-avatar" onClick={onAvatarClick} style={{ border: "1px solid var(--accent-border)", cursor: onAvatarClick ? "pointer" : "default" }}>
             {avatarIniciales}
           </button>
         </div>
@@ -160,11 +160,14 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
   const R = 82;
   const C2 = 2 * Math.PI * R;
   const arc = C2 * pct;
+  // Forma + color: la flecha marca la dirección real del delta, el color (pos/neg)
+  // marca si es favorable — así no se confunde con el acento cuando ambos son verdes.
+  const DeltaIcon = metrics.peso?.delta?.trim().startsWith("-") ? TrendingDown : TrendingUp;
   return (
     <>
       <div className="c-top">
         <div>
-          <h1 className="c-hola">Dale, {primerNombre}<span className="acc" style={{ color: "var(--accent)" }}>.</span></h1>
+          <h1 className="c-hola">Dale, {primerNombre}<span className="acc" style={{ color: "var(--accent-muted)" }}>.</span></h1>
           <div className="c-dia">{diaLabel}</div>
         </div>
         <button className="c-avatar" onClick={onAvatarClick} style={{ cursor: onAvatarClick ? "pointer" : "default" }}>
@@ -176,8 +179,8 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
         <svg width={200} height={200} viewBox="0 0 200 200">
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" style={{ stopColor: "var(--accent)" }} />
-              <stop offset="1" style={{ stopColor: "color-mix(in srgb, var(--accent) 55%, #ffffff)" }} />
+              <stop offset="0" style={{ stopColor: "var(--accent-solid)" }} />
+              <stop offset="1" style={{ stopColor: "color-mix(in srgb, var(--accent-solid) 55%, #ffffff)" }} />
             </linearGradient>
           </defs>
           <circle className="tr" cx={100} cy={100} r={R} />
@@ -209,7 +212,10 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
             <span className="l">Peso</span>
             <span className="v">{metrics.peso.valor}<small>kg</small></span>
             {metrics.peso.delta && (
-              <span className={`c-mdelta ${metrics.peso.deltaFavorable ? "pos" : "neg"}`}>{metrics.peso.delta}</span>
+              <span className={`c-mdelta ${metrics.peso.deltaFavorable ? "pos" : "neg"}`}>
+                <DeltaIcon />
+                {metrics.peso.delta}
+              </span>
             )}
           </div>
         )}

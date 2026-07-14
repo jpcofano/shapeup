@@ -19,16 +19,47 @@
 [data-accent="indigo"] { --acc-d: #8b90ff; --acc-l: #4f46e5; }
 [data-accent="pulse"]  { --acc-d: #ff4d79; --acc-l: #be185c; }
 
+/* Rampa de intensidad por acento (anti-empaste, P54 Fix 1). --accent-solid es
+   alias explícito de --accent; usar dentro de otros color-mix() en vez del
+   crudo var(--accent). --accent-subtle/-border/-muted son valores terminales
+   (fondos teñidos, bordes teñidos, iconos secundarios); --accent-strong es el
+   nivel de hover/pressed. */
 [data-mode="dark"] {
-  --accent:     var(--acc-d);
-  --on-accent:  #0b0f14;
-  --accent-dim: color-mix(in srgb, var(--acc-d) 14%, transparent);
+  --accent:        var(--acc-d);
+  --on-accent:     #0b0f14;
+  --accent-dim:    color-mix(in srgb, var(--acc-d) 14%, transparent);
+  --accent-subtle: color-mix(in srgb, var(--acc-d) 10%, transparent);
+  --accent-border: color-mix(in srgb, var(--acc-d) 28%, transparent);
+  --accent-muted:  color-mix(in srgb, var(--acc-d) 72%, var(--fg));
+  --accent-solid:  var(--acc-d);
+  --accent-strong: color-mix(in srgb, var(--acc-d) 88%, white);
 }
 [data-mode="light"] {
-  --accent:     var(--acc-l);
-  --on-accent:  #ffffff;
-  --accent-dim: color-mix(in srgb, var(--acc-l) 10%, transparent);
+  --accent:        var(--acc-l);
+  --on-accent:     #ffffff;
+  --accent-dim:    color-mix(in srgb, var(--acc-l) 10%, transparent);
+  --accent-subtle: color-mix(in srgb, var(--acc-l) 8%, transparent);
+  --accent-border: color-mix(in srgb, var(--acc-l) 26%, transparent);
+  --accent-muted:  color-mix(in srgb, var(--acc-l) 72%, var(--fg));
+  --accent-solid:  var(--acc-l);
+  --accent-strong: color-mix(in srgb, var(--acc-l) 88%, black);
 }
+
+/* ── Nav inferior (compartido Pulse/Premium, P54 Fix 2) ───────────────────── */
+.nav-it { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 9px; font-weight: 600; color: var(--muted); transition: color 0.15s ease; }
+.nav-it svg { width: 21px; height: 21px; }
+.nav-it.on { color: var(--accent-solid); }
+
+nav.a-nav { flex: 0 0 78px; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(6, 1fr); padding: 10px 8px 0; background: color-mix(in srgb, var(--card) 65%, var(--bg)); }
+.a-nav .nav-it { font-weight: 700; letter-spacing: 0.03em; }
+.a-nav .nav-it.on::before { content: ""; position: absolute; top: -11px; width: 26px; height: 3px; border-radius: 2px; background: var(--accent-solid); }
+
+nav.c-nav { flex: 0 0 78px; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(6, 1fr); padding: 9px 8px 0; background: color-mix(in srgb, var(--surface) 70%, var(--bg)); }
+.c-nav .nav-it { font-weight: 600; }
+.c-nav .ic { width: 36px; height: 24px; display: grid; place-items: center; border-radius: 8px 8px 8px 3px; }
+.c-nav .nav-it svg { width: 20px; height: 20px; }
+.c-nav .nav-it.on { color: var(--fg); font-weight: 700; }
+.c-nav .nav-it.on .ic { background: var(--accent-dim); color: var(--accent-solid); }
 
 /* ── Dirección A · "Pulse" — enérgica / deportiva ─────────────────────────── */
 .dir-a { font-family: "Archivo", var(--font-sans); }
@@ -38,57 +69,57 @@
 .a-top { display: flex; justify-content: space-between; align-items: flex-start; }
 .a-hola { margin: 0; font-weight: 900; font-style: italic; font-size: 27px; line-height: 1; letter-spacing: -0.005em; text-transform: uppercase; }
 .a-dia { margin-top: 8px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
-.a-dia svg { width: 12px; height: 12px; color: var(--accent); }
-.a-avatar { width: 38px; height: 38px; border-radius: 12px; background: var(--accent-dim); color: var(--accent); display: grid; place-items: center; font-weight: 800; font-size: 13px; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); flex-shrink: 0; }
+.a-dia svg { width: 12px; height: 12px; color: var(--accent-muted); }
+.a-avatar { width: 38px; height: 38px; border-radius: 12px; background: var(--accent-dim); color: var(--accent-muted); display: grid; place-items: center; font-weight: 800; font-size: 13px; border: 1px solid var(--accent-border); flex-shrink: 0; }
 
 /* anillo segmentado: 1 segmento = 1 sesión */
 .a-ring { position: relative; width: 176px; height: 176px; margin: 4px auto 16px; }
 .a-ring svg { display: block; transform: rotate(-90deg); }
 .a-ring .seg { stroke: var(--track); fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke 0.2s ease; }
-.a-ring .seg.on { stroke: var(--accent); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent)); }
+.a-ring .seg.on { stroke: var(--accent-solid); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-solid) 55%, transparent)); }
 .a-ring-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
 .a-ring-num { font-weight: 900; font-style: italic; font-size: 38px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--fg); }
 .a-ring-num small { font-size: 20px; font-weight: 800; color: var(--muted); }
 .a-ring-lab { font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 
 /* tarjeta hero del día: lavado de acento */
-.a-hero { position: relative; border-radius: 20px; padding: 18px 18px 16px; overflow: hidden; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--card)) 0%, var(--card) 62%); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); }
-.a-hero-mark { position: absolute; right: -16px; top: -12px; width: 112px; height: 112px; color: var(--accent); opacity: 0.1; pointer-events: none; }
-.a-hero-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 6px; margin-bottom: 9px; }
+.a-hero { position: relative; border-radius: 20px; padding: 18px 18px 16px; overflow: hidden; background: linear-gradient(135deg, color-mix(in srgb, var(--accent-solid) 16%, var(--card)) 0%, var(--card) 62%); border: 1px solid var(--accent-border); }
+.a-hero-mark { position: absolute; right: -16px; top: -12px; width: 112px; height: 112px; color: var(--accent-muted); opacity: 0.1; pointer-events: none; }
+.a-hero-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 9px; }
 .a-hero-tag svg { width: 13px; height: 13px; }
 .a-hero-title { margin: 0 0 6px; font-weight: 900; font-style: italic; text-transform: uppercase; font-size: 24px; line-height: 1.02; letter-spacing: -0.01em; color: var(--fg); }
 .a-hero-msg { margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted); max-width: 270px; }
 
 .a-btn1, .a-btn2 { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; font: 800 12px "Archivo", sans-serif; text-transform: uppercase; letter-spacing: 0.06em; }
-.a-btn1 { padding: 12px 18px; border-radius: 12px; background: var(--accent); color: var(--on-accent); transition: opacity 0.15s ease, transform 0.1s ease; }
+.a-btn1 { padding: 12px 18px; border-radius: 12px; background: var(--accent-solid); color: var(--on-accent); transition: opacity 0.15s ease, transform 0.1s ease; }
 .a-btn1:hover { opacity: 0.88; }
 .a-btn1:active { transform: scale(0.97); }
-.a-btn2 { padding: 11px 16px; border-radius: 12px; background: transparent; border: 1.5px solid color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent); transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease; }
-.a-btn2:hover { background: var(--accent-dim); border-color: var(--accent); }
+.a-btn2 { padding: 11px 16px; border-radius: 12px; background: transparent; border: 1.5px solid color-mix(in srgb, var(--accent-solid) 45%, transparent); color: var(--accent-muted); transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease; }
+.a-btn2:hover { background: var(--accent-dim); border-color: var(--accent-strong); }
 .a-btn2:active { transform: scale(0.97); }
 .a-btn1 svg, .a-btn2 svg { width: 15px; height: 15px; }
 
 /* métricas */
 .a-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .a-metric { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 12px 11px; display: flex; flex-direction: column; gap: 4px; transition: border-color 0.15s ease; }
-.a-metric:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.a-metric:hover { border-color: color-mix(in srgb, var(--accent-strong) 45%, var(--border)); }
 .a-metric .l { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .a-metric .v { font-weight: 800; font-style: italic; font-size: 21px; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; color: var(--fg); }
-.a-metric .v svg { width: 16px; height: 16px; color: var(--accent); }
+.a-metric .v svg { width: 16px; height: 16px; color: var(--accent-muted); }
 .a-delta { font-size: 10.5px; font-weight: 800; color: var(--muted); }
-.a-delta.down { color: var(--accent); }
+.a-delta.down { color: var(--accent-muted); }
 
 /* módulo semanal */
 .a-mob { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 14px 13px; }
 .a-mob-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
 .a-mob-t { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-.a-mob-n { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
+.a-mob-n { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent-muted); }
 .a-days { display: flex; justify-content: space-between; }
 .a-day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); }
 .a-day .c { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; border: 1.5px solid var(--border); color: var(--muted); transition: border-color 0.15s ease; }
 .a-day .c svg { width: 15px; height: 15px; }
-.a-day.done .c { background: var(--accent-dim); border-color: transparent; color: var(--accent); }
-.a-day.today .c { border-color: var(--accent); color: var(--accent); }
+.a-day.done .c { background: var(--accent-dim); border-color: transparent; color: var(--accent-muted); }
+.a-day.today .c { border-color: var(--accent-border); color: var(--accent-muted); }
 .a-day.today { color: var(--fg); }
 
 /* ── Dirección B v2.1 · "Premium" — minimalista / premium contemporáneo ─────── */
@@ -105,7 +136,7 @@
 .c-ring { position: relative; width: 200px; height: 200px; margin: 2px auto 16px; }
 .c-ring .tr { fill: none; stroke: var(--track); stroke-width: 14; }
 .c-ring .pr { fill: none; stroke-width: 14; stroke-linecap: round; }
-.dir-c[data-mode="dark"] .c-ring .pr { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 40%, transparent)); }
+.dir-c[data-mode="dark"] .c-ring .pr { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-solid) 40%, transparent)); }
 .c-ring-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
 .c-ring-num { font-size: 42px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; color: var(--fg); }
 .c-ring-num .den { font-size: 20px; font-weight: 600; color: var(--muted); }
@@ -120,11 +151,11 @@
 .c-title { margin: 0 0 5px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 9px; color: var(--fg); }
 .c-title svg { width: 19px; height: 19px; }
 .c-msg { margin: 0 0 14px; font-size: 13.5px; line-height: 1.55; color: var(--muted); max-width: 280px; }
-.duo svg { fill: var(--accent-dim); color: var(--accent); }
+.duo svg { fill: var(--accent-dim); color: var(--accent-muted); }
 
 /* botones */
 .c-btn1, .c-btn2 { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border-radius: var(--r-el); }
-.c-btn1 { padding: 12px 20px; border: none; background: var(--accent); color: var(--on-accent); font: 700 13.5px "Hanken Grotesk", sans-serif; letter-spacing: 0.01em; transition: filter 0.15s ease, transform 0.1s ease; }
+.c-btn1 { padding: 12px 20px; border: none; background: var(--accent-solid); color: var(--on-accent); font: 700 13.5px "Hanken Grotesk", sans-serif; letter-spacing: 0.01em; transition: filter 0.15s ease, transform 0.1s ease; }
 .c-btn1:hover { filter: brightness(1.07); }
 .c-btn1:active { transform: scale(0.97); }
 .c-btn2 { padding: 11px 18px; background: transparent; border: 1px solid var(--border); color: var(--fg); font: 600 13.5px "Hanken Grotesk", sans-serif; transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease; }
@@ -153,7 +184,7 @@
 .c-day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 9.5px; font-weight: 600; color: var(--muted); }
 .c-day .k { width: 34px; height: 34px; border-radius: var(--r-chip); display: grid; place-items: center; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
 .c-day .k svg { width: 15px; height: 15px; }
-.c-day.done .k { background: var(--accent-dim); border-color: transparent; color: var(--accent); }
+.c-day.done .k { background: var(--accent-dim); border-color: transparent; color: var(--accent-muted); }
 .c-day.today .k { background: var(--surface); border: 1.5px solid var(--fg); color: var(--fg); }
 .c-day.today { color: var(--fg); font-weight: 700; }
 
