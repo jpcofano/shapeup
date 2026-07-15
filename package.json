@@ -26,6 +26,7 @@
     "seed:salud-rutinas": "npx tsx scripts/seed-salud-rutinas.ts",
     "limpiar:salud": "npx tsx scripts/limpiar-salud.ts",
     "auditoria:salud": "npx tsx scripts/auditoria-salud.ts",
+    "auditoria:features": "npx tsx scripts/auditoria-features.ts",
     "rematch:salud": "npx tsx scripts/rematch-salud.ts"
   },
   "dependencies": {
