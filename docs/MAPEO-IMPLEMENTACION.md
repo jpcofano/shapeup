@@ -81,10 +81,72 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | **Serie I — Insights** | | | |
 | P58 (I1) | Tendencias largas de salud en Progreso (`lib/tendencias.ts` + `TrendChart`) + fix `zonaPrincipal` | ✅ | 2026-07-13 |
 | P59 (I2) | Costo cardíaco por rutina (`lib/costoCardiaco.ts`) + frase en HistorialDetalle + sección en RutinaDetalle | ✅ | 2026-07-14 |
+| P60 (I3) | Progresión de cargas por doble progresión (`lib/progresion.ts`) + sugerencia en EntrenarSesion + indicador en RutinaDetalle | ✅ | 2026-07-14 |
 
 ---
 
 ## 2. Bitácora
+
+### [2026-07-14] P60 (I3) — Progresión de cargas (doble progresión, cierra la serie I)
+
+> Prompt `docs/prompts/60-i3-progresion-cargas.md`. Tercer y último insight
+> de la serie I. A diferencia de I1/I2 no depende de datos de salud (lee las
+> propias series reps×peso del historial, materia prima desde el día uno) y
+> toca el flujo de entrenar — alcance contenido a propósito: sugerir, nunca
+> autocompletar sin gesto del usuario.
+
+- **Auditoría del modelo (previa al código, pedida por el prompt)**:
+  `SerieRegistro` tiene `reps?`, `cargaKg?`, `rir?`, `completada`, sin campo
+  que distinga series de calentamiento (limitación conocida, anotada en el
+  código — se usan todas las series). `PrescripcionFuerza.repsObjetivo` es un
+  `RangoNumerico` (`parseRango`): rango real (`"8-12"` → `min`/`max`
+  poblados) o reps fijas (`"10"` → solo `value`, sin `min`/`max`). El flujo
+  de arrancar un ejercicio vive en `routes/EntrenarSesion.tsx` (modo guiado,
+  bloque actual = `rutina.bloques[state.bloqueActual]`), con `logReps`/
+  `logCarga` ya editables ahí mismo para el "log rápido".
+- **`src/lib/progresion.ts`** (nuevo, puro) — `sugerirProgresion(idEjercicio,
+  historial, prescripcion, incrementoKg?)`, reglas en orden (primera que
+  aplica gana): **A** subir-peso (todas las series de la última sesión al
+  techo del rango, o al objetivo si es fijo) → peso + incremento, reps al
+  piso; **B** bajar-peso (dos sesiones seguidas con ≥ mitad de series bajo el
+  piso) → peso − incremento; **C** subir-reps (completó todo pero sin llegar
+  al techo — solo aplica con rango real, reps fijas no tienen techo que
+  completar) → mismo peso, objetivo = mejor serie + 1; **D** repetir
+  (cualquier otro caso con historia). `null` sin sesiones previas del
+  ejercicio, modalidad sin peso (Cardio/Movilidad/Isométrico), ejercicio de
+  Fuerza sin `cargaKg` registrada (bodyweight), u objetivo no numérico
+  (AMRAP). `incrementoPara(pesoKg)`: 1 kg si la última carga fue < 10 kg
+  (mancuernas livianas), 2 kg si no — exportada y testeada sola. El "peso de
+  la sesión" es el más repetido entre las series con carga (empate → la más
+  reciente), no un promedio. 17 tests (reglas A–D con sus bordes exactos —
+  techo exacto, piso exacto, mitad de series —, fixed-reps, incrementos 1/2
+  kg, los cuatro silencios, override de `incrementoKg`).
+- **`EntrenarSesion.tsx`** — nuevo fetch `getHistorialMiembro` (una sola vez
+  al montar, igual patrón que I2 en `RutinaDetalle`). `SugerenciaChip`
+  (nuevo, `components/entrenar/`) se muestra arriba de `BloqueGuiado` en modo
+  guiado, solo si hay sugerencia y el bloque no fue descartado; "Usar"
+  precarga `logReps`/`logCarga` (mismo estado que ya alimenta el log rápido,
+  el usuario puede seguir editando); ✕ descarta con estado local
+  (`Set<number>` por índice de bloque, en memoria — no se persiste, se pierde
+  al recargar, como pide el prompt).
+- **`RutinaDetalle.tsx`** — reusa el `getHistorialMiembro` que ya traía para
+  I2 (ahora se guarda en un solo estado `historialMiembro`, `costoCardiaco`
+  se deriva de ahí en vez de un fetch aparte). Indicador: ícono `TrendingUp`
+  junto al nombre del ejercicio, **solo** en bloques con sugerencia
+  `"subir-peso"` (no reps/repetir/bajar — esos no son "hoy toca progresar" y
+  hubieran ensuciado la lista con matices poco accionables antes de arrancar
+  la sesión). Tap alterna el motivo en texto debajo del bloque.
+- **Conteo de tests — resuelto lo pendiente de P59**: I1 cerró en 548, P59
+  documentó 520 tras sumar 16 (`+16` esperaría 564, no 520 — la baja de 44
+  que pedía investigar este prompt). El commit siguiente a P59
+  (`995450d fix(home-redux)`, ya en main antes de arrancar este prompt) deja
+  el total en exactamente 564 — el número que hubiera dado I1+I2 sin ninguna
+  pérdida. Conclusión: no se cayó ninguna suite; el 520 de P59 fue un estado
+  transitorio (vitest corrido en medio de una edición, no un run limpio de
+  main). Con los 17 tests de este prompt: **581 tests**.
+- **Verificado:** `tsc -b` limpio · `npx vitest run` verde (581 tests, +17
+  nuevos, 26 archivos).
+- Commit: `feat(entrenar): progresión de cargas por doble progresión (I3)`.
 
 ### [2026-07-14] P59 (I2) — Costo cardíaco por rutina
 

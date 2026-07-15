@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit2, Zap } from "lucide-react";
-import type { Rutina, Ejercicio } from "../types/models";
+import { ArrowLeft, Edit2, Zap, TrendingUp } from "lucide-react";
+import type { Rutina, Ejercicio, Historial } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjerciciosMap } from "../data/ejercicios";
 import { getHistorialMiembro } from "../data/historial";
 import { avisoBalanceEmpujeTraccion } from "../lib/metricas";
 import { prescripcionLabel } from "../lib/prescripcionLabel";
 import { serieCostoRutina, MIN_SESIONES_SECCION } from "../lib/costoCardiaco";
-import type { PuntoCosto } from "../lib/costoCardiaco";
+import { sugerirProgresion } from "../lib/progresion";
 import { TrendChart } from "../components/TrendChart";
 import { useAuth } from "../auth/useAuth";
 
@@ -21,7 +21,8 @@ export function RutinaDetalle() {
   const [aviso,    setAviso]    = useState<string | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [error,   setError]   = useState<string | null>(null);
-  const [costoCardiaco, setCostoCardiaco] = useState<PuntoCosto[]>([]);
+  const [historialMiembro, setHistorialMiembro] = useState<Historial[]>([]);
+  const [motivoAbierto, setMotivoAbierto] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -34,17 +35,25 @@ export function RutinaDetalle() {
     });
   }, [id]);
 
-  // Costo cardíaco (I2): solo sesiones del miembro actual, esta rutina.
+  // Historial del miembro actual: alimenta costo cardíaco (I2) y sugerencias de progresión (I3).
   useEffect(() => {
-    if (!id || !memberId) return;
-    getHistorialMiembro(memberId).then((r) => {
-      if (r.ok) setCostoCardiaco(serieCostoRutina(id, r.value));
-    });
-  }, [id, memberId]);
+    if (!memberId) return;
+    getHistorialMiembro(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
+  }, [memberId]);
+
+  const costoCardiaco = id ? serieCostoRutina(id, historialMiembro) : [];
 
   if (loading) return <div className="loading-screen"><div className="spinner" /></div>;
   if (error)   return <p className="inline-error">{error}</p>;
   if (!rutina) return null;
+
+  // Sugerencias de progresión (I3): solo se marcan los bloques con "subir-peso" —
+  // subir-reps/repetir/bajar-peso no son "hoy toca progresar" y ensuciarían la lista.
+  const sugerenciasPorBloque = new Map<number, string>();
+  rutina.bloques.forEach((b, i) => {
+    const s = sugerirProgresion(b.idEjercicio, historialMiembro, b.prescripcion);
+    if (s?.tipo === "subir-peso") sugerenciasPorBloque.set(i, s.motivo);
+  });
 
   return (
     <div className="page">
@@ -158,10 +167,30 @@ export function RutinaDetalle() {
                   {b.grupoSet}
                 </span>
               )}
-              <p className="bloque-nombre">{b.nombreEjercicio}</p>
+              <p className="bloque-nombre">
+                {b.nombreEjercicio}
+                {sugerenciasPorBloque.has(i) && (
+                  <button
+                    onClick={() => setMotivoAbierto((cur) => (cur === i ? null : i))}
+                    aria-label="Hoy toca subir peso"
+                    title="Hoy toca subir peso"
+                    style={{
+                      background: "none", border: "none", color: "var(--accent)",
+                      cursor: "pointer", padding: 0, marginLeft: 6, verticalAlign: "middle", lineHeight: 1,
+                    }}
+                  >
+                    <TrendingUp size={14} />
+                  </button>
+                )}
+              </p>
               <p className="bloque-prescripcion">
                 {prescripcionLabel(b.prescripcion, catalogo.get(b.idEjercicio)?.equipo)}
               </p>
+              {motivoAbierto === i && sugerenciasPorBloque.has(i) && (
+                <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--accent)" }}>
+                  💡 {sugerenciasPorBloque.get(i)}
+                </p>
+              )}
               {b.notas && (
                 <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
                   {b.notas}

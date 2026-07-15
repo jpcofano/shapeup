@@ -1,16 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { X, AlignJustify, Zap, RotateCcw } from "lucide-react";
 import { Bicep } from "../components/Bicep";
-import type { Rutina, Ejercicio, SerieRegistro } from "../types/models";
+import type { Rutina, Ejercicio, SerieRegistro, Historial } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
-import { finalizarSesion } from "../data/historial";
+import { finalizarSesion, getHistorialMiembro } from "../data/historial";
 import { crearSesion, iniciarSesion } from "../data/sesiones";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, seriesObjetivo, valorPrefillSerie,
 } from "../lib/entrenarState";
+import { sugerirProgresion } from "../lib/progresion";
 import { useEntrenarState } from "../hooks/useEntrenarState";
 import { useWakeLock } from "../hooks/useWakeLock";
 import { unlockAudio } from "../lib/audioAlert";
@@ -19,6 +20,7 @@ import { SerieTimer } from "../components/entrenar/SerieTimer";
 import { TiempoTotal } from "../components/entrenar/TiempoTotal";
 import { BloqueGuiado } from "../components/entrenar/BloqueGuiado";
 import { BloqueScroll } from "../components/entrenar/BloqueScroll";
+import { SugerenciaChip } from "../components/entrenar/SugerenciaChip";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
 
 /**
@@ -38,6 +40,10 @@ export function EntrenarSesion() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [sesionId, setSesionId] = useState<string | null>(null);
   const startRef = useRef<number>(Date.now());
+
+  // Progresión de cargas (I3): historial del miembro para sugerir doble progresión.
+  const [historialMiembro, setHistorialMiembro] = useState<Historial[]>([]);
+  const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState<Set<number>>(new Set());
 
   // Log rápido para modo guiado
   const [logReps,      setLogReps]      = useState("");
@@ -127,6 +133,24 @@ export function EntrenarSesion() {
       setLoading(false);
     });
   }, [rutinaId, memberId]);
+
+  // Historial del miembro para la sugerencia de progresión (I3) — una sola carga.
+  useEffect(() => {
+    if (!memberId) return;
+    getHistorialMiembro(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
+  }, [memberId]);
+
+  const sugerencia = useMemo(() => {
+    if (!blq || blq.modalidad !== "Fuerza") return null;
+    if (sugerenciasDescartadas.has(state.bloqueActual)) return null;
+    return sugerirProgresion(blq.idEjercicio, historialMiembro, blq.prescripcion);
+  }, [blq, historialMiembro, sugerenciasDescartadas, state.bloqueActual]);
+
+  function usarSugerencia() {
+    if (!sugerencia) return;
+    if (sugerencia.pesoKg != null) setLogCarga(String(sugerencia.pesoKg));
+    if (sugerencia.repsObjetivo != null) setLogReps(String(sugerencia.repsObjetivo));
+  }
 
   if (loading) {
     return (
@@ -290,6 +314,15 @@ export function EntrenarSesion() {
                   state={state}
                   rutina={rutina}
                   onAjustar={(d) => session.ajustarTrabajo(state.bloqueActual, d)}
+                />
+              )}
+
+              {/* Sugerencia de progresión (I3) — propuesta, nunca se autocompleta */}
+              {!state.descanso && sugerencia && (
+                <SugerenciaChip
+                  sugerencia={sugerencia}
+                  onUsar={usarSugerencia}
+                  onDescartar={() => setSugerenciasDescartadas((s) => new Set(s).add(state.bloqueActual))}
                 />
               )}
 

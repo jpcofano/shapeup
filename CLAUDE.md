@@ -116,8 +116,21 @@ un problema aparte (de ingesta, no de análisis).
   si no hay dato suficiente). Comparación siempre contra uno mismo, nunca
   entre miembros ni entre rutinas distintas. Con los datos reales de hoy (1
   sesión enriquecida y libre) queda en silencio, como se espera.
-- ⬜ I3 — Progresión automática de cargas (doble progresión desde el historial
-  del ejercicio).
+- ✅ **I3 — Progresión de cargas** (P60, 2026-07-14): `lib/progresion.ts`
+  (núcleo puro) — `sugerirProgresion(idEjercicio, historial, prescripcion,
+  incrementoKg?)`, doble progresión clásica: reglas en orden, la primera que
+  aplica gana — subir-peso (toda la última sesión al techo del rango o al
+  objetivo fijo), bajar-peso (dos sesiones seguidas con ≥ mitad de series
+  bajo el piso), subir-reps (completó todo sin llegar al techo — solo con
+  rango real), repetir (default con historia). Silencio (`null`) sin
+  sesiones previas del ejercicio, modalidad sin peso, ejercicio bodyweight
+  sin `cargaKg`, u objetivo no numérico (AMRAP). `incrementoPara`: 1 kg bajo
+  10 kg, 2 kg si no. `EntrenarSesion.tsx`: `SugerenciaChip` arriba del bloque
+  guiado, "Usar" precarga el log rápido (nunca se autocompleta sola), ✕
+  descarta en memoria (no persiste). `RutinaDetalle.tsx`: ícono discreto solo
+  en bloques con sugerencia "subir-peso" (los demás tipos ensuciarían la
+  lista), tap muestra el motivo. **Serie I completa** — lo próximo es la
+  serie H (arranca con conversación de arquitectura, no directo a código).
 
 ## ADRs de la serie S
 - **ADR #019** — `Historial.inicioMs/finMs` a nivel sesión, sellados en `finalizarSesion`
@@ -161,11 +174,8 @@ un problema aparte (de ingesta, no de análisis).
   ese campo a futuro.
 
 ## Roadmap (ideas evaluadas, orden tentativo)
-Corto plazo (después de S1–S3):
-- **Progresión automática de cargas**: sugerir peso/reps de la próxima sesión por doble
-  progresión, leyendo reps/RIR del historial del ejercicio.
-- **Costo cardíaco por rutina**: misma rutina, tendencia de FC media/kcal a lo largo de
-  las semanas → mejora aeróbica visible en `RutinaDetalle`.
+Corto plazo (después de S1–S3; progresión de cargas y costo cardíaco por rutina
+ya se implementaron como I2/I3 — ver "Serie I" arriba):
 - **PRs y logros**: récords personales por ejercicio (carga, reps, tonelaje) + hitos
   familiares livianos. Motivación para los 4 miembros.
 - **Panel familiar de adherencia** (solo owner): sesiones hechas vs planificadas por
