@@ -271,7 +271,7 @@ export function calcularResumenSalud(
       const deltaPct = baseline != null ? (actual - baseline) / baseline : undefined;
 
       senales.push({
-        clave: "peso", valorActual: actual, unidad: "kg",
+        clave: "peso", valorActual: +actual.toFixed(1), unidad: "kg",
         baseline, deltaPct, estado: "ok", serie14d: s14,
       });
     }
@@ -324,7 +324,7 @@ export function calcularResumenSalud(
       const deltaPct = baseline != null ? (actual - baseline) / baseline : undefined;
 
       senales.push({
-        clave: "spo2", valorActual: actual, unidad: "%",
+        clave: "spo2", valorActual: Math.round(actual), unidad: "%",
         baseline, deltaPct, estado: "ok",
         motivo: actual < SPO2_MIN_TIPICO ? MOTIVO_FUERA_DE_RANGO : undefined,
         serie14d: calcSerie14d(items, hoy),

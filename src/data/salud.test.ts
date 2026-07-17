@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { importarCardioIdempotente } from "./salud";
+import { importarCardioIdempotente, getMetricasSalud } from "./salud";
 
 vi.mock("../firebase", () => ({ db: {} }));
 
 const setDocCalls: Array<{ id: string; data: Record<string, unknown> }> = [];
+let getDocsImpl: () => Promise<{ docs: unknown[] }> = () => Promise.resolve({ docs: [] });
 
 vi.mock("firebase/firestore", () => ({
   collection: vi.fn((_db, ...path: string[]) => ({ type: "collection", path: path.join("/") })),
   doc: vi.fn((_db, col: string, id: string) => ({ type: "doc", path: `${col}/${id}`, id })),
-  getDocs: vi.fn(),
+  getDocs: vi.fn(() => getDocsImpl()),
   query: vi.fn((col) => col),
   where: vi.fn(),
   orderBy: vi.fn(),
@@ -21,7 +22,23 @@ vi.mock("firebase/firestore", () => ({
 
 beforeEach(() => {
   setDocCalls.length = 0;
+  getDocsImpl = () => Promise.resolve({ docs: [] });
   vi.clearAllMocks();
+});
+
+// Regresión P63: getMetricasSalud (sin filtro de tipo, como la llama Salud.tsx/Home.tsx
+// para traer todos los tipos de una vez) hace where(miembro)+orderBy(fecha) — si Firestore
+// rechaza esa consulta (p.ej. falta el índice compuesto), el error tiene que llegar como
+// Result de error y NUNCA resolver como si no hubiera datos (eso fue lo que lo hizo invisible).
+describe("getMetricasSalud", () => {
+  it("propaga el error como Result — nunca resuelve [] en silencio ante un fallo de Firestore", async () => {
+    getDocsImpl = () => Promise.reject(
+      new Error("9 FAILED_PRECONDITION: The query requires an index."),
+    );
+    const r = await getMetricasSalud("juanpablo");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("index");
+  });
 });
 
 describe("importarCardioIdempotente", () => {

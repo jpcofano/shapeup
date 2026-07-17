@@ -44,7 +44,7 @@ export function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] 
         <p className="t-label" style={{ marginBottom: 4 }}>Peso — {hace(last.fecha)}</p>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 8, marginBottom: sparkData.length >= 2 ? 10 : 0 }}>
           <p style={{ margin: 0, fontWeight: 800, fontSize: 32, letterSpacing: "-.03em", lineHeight: 1 }}>
-            {last.pesoKg ?? "—"} <span style={{ fontSize: 16, fontWeight: 600, color: "var(--muted)" }}>kg</span>
+            {last.pesoKg?.toFixed(1) ?? "—"} <span style={{ fontSize: 16, fontWeight: 600, color: "var(--muted)" }}>kg</span>
           </p>
           {prev?.pesoKg != null && last.pesoKg != null && (
             <DeltaLine current={last.pesoKg} prev={prev.pesoKg} label="kg" />
@@ -55,10 +55,10 @@ export function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] 
             <Sparkline data={sparkData} color="var(--accent)" height={52} />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
               <span style={{ fontSize: 9, color: "var(--muted)" }}>
-                {med30[0].fecha.slice(5)} · {med30[0].pesoKg} kg
+                {med30[0].fecha.slice(5)} · {med30[0].pesoKg!.toFixed(1)} kg
               </span>
               <span style={{ fontSize: 9, color: "var(--muted)" }}>
-                {med30[med30.length - 1].fecha.slice(5)} · {med30[med30.length - 1].pesoKg} kg
+                {med30[med30.length - 1].fecha.slice(5)} · {med30[med30.length - 1].pesoKg!.toFixed(1)} kg
               </span>
             </div>
           </>
@@ -98,7 +98,7 @@ export function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] 
         <p className="section-title" style={{ marginBottom: 8 }}>Última medición</p>
         <p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--muted)" }}>{last.fecha} · {hace(last.fecha)}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", fontSize: 13 }}>
-          {last.pesoKg         != null && <span><span style={{ color: "var(--muted)" }}>Peso </span>{last.pesoKg} kg</span>}
+          {last.pesoKg         != null && <span><span style={{ color: "var(--muted)" }}>Peso </span>{last.pesoKg.toFixed(1)} kg</span>}
           {last.grasaPct       != null && <span><span style={{ color: "var(--muted)" }}>Grasa </span>{last.grasaPct.toFixed(1)}%</span>}
           {last.masaMuscularKg != null && <span><span style={{ color: "var(--muted)" }}>Músculo </span>{last.masaMuscularKg.toFixed(1)} kg</span>}
           {last.aguaPct        != null && <span><span style={{ color: "var(--muted)" }}>Agua </span>{last.aguaPct.toFixed(1)}%</span>}
@@ -112,7 +112,7 @@ export function ComposicionTab({ mediciones }: { mediciones: MedicionCorporal[] 
             <div key={m.idMedicion} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
               <span style={{ color: "var(--muted)" }}>{m.fecha}</span>
               <span>
-                {m.pesoKg         != null && `${m.pesoKg} kg`}
+                {m.pesoKg         != null && `${m.pesoKg.toFixed(1)} kg`}
                 {m.grasaPct       != null && ` · ${m.grasaPct.toFixed(1)}%`}
                 {m.masaMuscularKg != null && ` · ${m.masaMuscularKg.toFixed(1)} kg M`}
               </span>

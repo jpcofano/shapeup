@@ -83,6 +83,14 @@
       ]
     },
     {
+      "collectionGroup": "metricas-salud",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "miembro", "order": "ASCENDING" },
+        { "fieldPath": "fecha",   "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "sueno",
       "queryScope": "COLLECTION",
       "fields": [

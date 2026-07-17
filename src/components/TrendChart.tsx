@@ -73,6 +73,9 @@ export function TrendChart({
   if (puntos.length === 0) {
     return <p style={{ color: "var(--muted)", fontSize: 13 }}>Sin datos suficientes para graficar.</p>;
   }
+  if (puntos.length < 3) {
+    return <p style={{ color: "var(--muted)", fontSize: 13 }}>Pocos datos en este rango — probá 1A o Todo.</p>;
+  }
 
   const H = alto;
   const PAD_X = 8;
@@ -113,6 +116,9 @@ export function TrendChart({
   const segmentosSecundarios = puntosSecundarios ? segmentos(puntosSecundarios, rango) : [];
 
   const ticksY = ticksEje(yMin, yMax, 3);
+  // Con rangos chicos, redondear a entero duplica etiquetas (90, 90, 89) — un
+  // decimal alcanza para separarlas sin agregar ruido en rangos grandes.
+  const decimalesY = yMax - yMin < 5 ? 1 : 0;
   const nTicksX = rango === "3m" ? 4 : 6;
   const pasoTickX = Math.max(1, Math.floor(puntos.length / (nTicksX - 1)));
   // Sin etiquetas consecutivas repetidas (p.ej. dos ticks del mismo año en "todo").
@@ -156,7 +162,7 @@ export function TrendChart({
         {ticksY.map((t, i) => (
           <g key={i}>
             <line x1={EJE_Y_W} y1={y(t)} x2={W} y2={y(t)} stroke="var(--border)" strokeWidth="1" />
-            <text x={0} y={y(t) + 3} style={{ fontSize: 9, fill: "var(--muted)" }}>{t.toFixed(0)}</text>
+            <text x={0} y={y(t) + 3} style={{ fontSize: 9, fill: "var(--muted)" }}>{t.toFixed(decimalesY)}</text>
           </g>
         ))}
 

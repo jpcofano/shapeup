@@ -141,12 +141,16 @@ export function ProgresoTab({
   metricas,
   sueno,
   hoy,
+  metricasError,
+  onReintentarMetricas,
 }: {
   mediciones: MedicionCorporal[];
   historial: Historial[];
   metricas: MetricaSalud[];
   sueno: RegistroSueno[];
   hoy: string;
+  metricasError?: string | null;
+  onReintentarMetricas?: () => void;
 }) {
   const tonelaje = historial
     .filter((h) => h.tonelajeKg != null)
@@ -162,6 +166,19 @@ export function ProgresoTab({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {metricasError && (
+        <p className="inline-error">
+          No se pudieron cargar las métricas
+          {onReintentarMetricas && (
+            <> · <button
+              onClick={onReintentarMetricas}
+              style={{ background: "none", border: "none", padding: 0, color: "inherit", textDecoration: "underline", cursor: "pointer", font: "inherit" }}
+            >
+              reintentar
+            </button></>
+          )}
+        </p>
+      )}
       <TendenciasSalud metricas={metricas} sueno={sueno} mediciones={mediciones} hoy={hoy} />
 
       <div className="card">
@@ -171,7 +188,7 @@ export function ProgresoTab({
         ) : (
           <div className="stats-row" style={{ gap: 20 }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 700 }}>{mediciones[0].pesoKg ?? "-"} kg</p>
+              <p style={{ margin: 0, fontWeight: 700 }}>{mediciones[0].pesoKg?.toFixed(1) ?? "-"} kg</p>
               {pesoTrend !== null && (
                 <p style={{ margin: 0, fontSize: 12, color: pesoTrend < 0 ? "var(--accent)" : pesoTrend > 0 ? "var(--danger)" : "var(--muted)" }}>
                   {pesoTrend > 0 ? "+" : ""}{pesoTrend.toFixed(1)} kg vs anterior
@@ -181,7 +198,7 @@ export function ProgresoTab({
             </div>
             {mediciones[0].grasaPct != null && (
               <div>
-                <p style={{ margin: 0, fontWeight: 700 }}>{mediciones[0].grasaPct}%</p>
+                <p style={{ margin: 0, fontWeight: 700 }}>{mediciones[0].grasaPct.toFixed(1)}%</p>
                 {grasaTrend !== null && (
                   <p style={{ margin: 0, fontSize: 12, color: grasaTrend < 0 ? "var(--accent)" : grasaTrend > 0 ? "var(--danger)" : "var(--muted)" }}>
                     {grasaTrend > 0 ? "+" : ""}{grasaTrend.toFixed(1)}% vs anterior

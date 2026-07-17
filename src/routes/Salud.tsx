@@ -50,6 +50,7 @@ export function Salud() {
   const [historial,  setHistorial] = useState<Historial[]>([]);
   const [loading,    setLoading]   = useState(true);
   const [error,      setError]     = useState<string | null>(null);
+  const [metricasError, setMetricasError] = useState<string | null>(null);
 
   // Import state
   const [showManual,        setShowManual]        = useState(false);
@@ -75,10 +76,22 @@ export function Salud() {
       if (s.ok)   setSueno(s.value);
       if (met.ok) setMetricas(met.value);
       if (h.ok)   setHistorial(h.value);
-      if (!m.ok)  setError(m.error);
+      // Ningún error se traga: mediciones/cardio/sueno/historial comparten un
+      // aviso genérico arriba de la página; métricas tiene su propio aviso
+      // con reintentar en Resumen/Progreso porque son las tabs que dependen de ella.
+      const otros = [!m.ok && m.error, !c.ok && c.error, !s.ok && s.error, !h.ok && h.error].filter(Boolean) as string[];
+      setError(otros[0] ?? null);
+      setMetricasError(met.ok ? null : met.error);
       setLoading(false);
     });
   }, [memberId]);
+
+  async function reintentarMetricas() {
+    if (!memberId) return;
+    const met = await getMetricasSalud(memberId as MiembroId);
+    if (met.ok) { setMetricas(met.value); setMetricasError(null); }
+    else        setMetricasError(met.error);
+  }
 
   // ── ZIP → extracción selectiva → preview ─────────────────────────────────
   async function handleZip(file: File) {
@@ -279,6 +292,7 @@ export function Salud() {
         if (fc.ok)   setCardio(fc.value);
         if (fs.ok)   setSueno(fs.value);
         if (fmet.ok) setMetricas(fmet.value);
+        setMetricasError(fmet.ok ? null : fmet.error);
       } catch (e) {
         setImportMsg(`❌ Error inesperado al importar: ${e instanceof Error ? e.message : String(e)}`);
       }
@@ -309,6 +323,7 @@ export function Salud() {
         importados = r.value.importados; omitidos = r.value.omitidos;
         const fmet = await getMetricasSalud(memberId as MiembroId);
         if (fmet.ok) setMetricas(fmet.value);
+        setMetricasError(fmet.ok ? null : fmet.error);
       } else errorMsg = r.error;
     } else {
       const r = await importarSueno(preview.parsedItems as Parameters<typeof importarSueno>[0]);
@@ -404,6 +419,8 @@ export function Salud() {
           mediciones={mediciones}
           hoy={hoy}
           onTabChange={(t) => setTab(t as Tab)}
+          metricasError={metricasError}
+          onReintentarMetricas={reintentarMetricas}
         />
       )}
 
@@ -423,6 +440,8 @@ export function Salud() {
         <ProgresoTab
           mediciones={mediciones} historial={historial}
           metricas={metricas} sueno={sueno} hoy={hoy}
+          metricasError={metricasError}
+          onReintentarMetricas={reintentarMetricas}
         />
       )}
 

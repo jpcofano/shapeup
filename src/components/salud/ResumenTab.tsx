@@ -114,13 +114,15 @@ function SenalCard({
 }
 
 export function ResumenTab({
-  metricas, sueno, mediciones, hoy, onTabChange,
+  metricas, sueno, mediciones, hoy, onTabChange, metricasError, onReintentarMetricas,
 }: {
   metricas:   MetricaSalud[];
   sueno:      RegistroSueno[];
   mediciones: MedicionCorporal[];
   hoy:        string;
   onTabChange: (tab: TabDestino) => void;
+  metricasError?: string | null;
+  onReintentarMetricas?: () => void;
 }) {
   const senales = useMemo(
     () => calcularResumenSalud(metricas, sueno, mediciones, hoy),
@@ -132,9 +134,24 @@ export function ResumenTab({
     .filter((s) => s.valorActual != null)
     .sort((a, b) => Number(CLAVES_SIN_SEMAFORO.has(a.clave)) - Number(CLAVES_SIN_SEMAFORO.has(b.clave)));
 
+  const avisoMetricas = metricasError && (
+    <p className="inline-error">
+      No se pudieron cargar las métricas
+      {onReintentarMetricas && (
+        <> · <button
+          onClick={onReintentarMetricas}
+          style={{ background: "none", border: "none", padding: 0, color: "inherit", textDecoration: "underline", cursor: "pointer", font: "inherit" }}
+        >
+          reintentar
+        </button></>
+      )}
+    </p>
+  );
+
   if (conValor.length === 0) {
     return (
       <div className="empty-state">
+        {avisoMetricas}
         <p>Sin datos de salud todavía. Importá un ZIP desde Samsung Health para ver tu resumen.</p>
       </div>
     );
@@ -144,6 +161,7 @@ export function ResumenTab({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {avisoMetricas}
       {peor !== "ok" && peor !== "sin-datos" && (
         <div style={{
           padding: "8px 12px", borderRadius: "var(--r-sm)", fontSize: 12,

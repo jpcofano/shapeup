@@ -300,7 +300,9 @@ export function Home() {
         const sueno     = sueR.ok ? sueR.value : [];
         const mediciones = medR.ok ? medR.value : [];
         const tieneDatos = metricas.length > 0 || sueno.length > 0;
-        if (loadSalud) sessionStorage.setItem(`su-${memberId}`, tieneDatos ? "1" : "0");
+        // Solo cachear "sin datos" si ambas queries realmente resolvieron — un
+        // error de carga nunca debe quedar guardado como "este miembro no tiene salud".
+        if (loadSalud && metR.ok && sueR.ok) sessionStorage.setItem(`su-${memberId}`, tieneDatos ? "1" : "0");
         if (tieneDatos) {
           const hoy = ymdLocal();
           const senales = calcularResumenSalud(metricas, sueno, mediciones, hoy);
