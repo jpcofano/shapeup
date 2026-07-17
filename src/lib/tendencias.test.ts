@@ -98,12 +98,12 @@ describe("serieTendencia — bucketing por rango", () => {
     expect(s.puntos).toHaveLength(2);
   });
 
-  it("serie vacía → puntos vacíos, actual/haceUnAnio/deltaAnualPct undefined", () => {
+  it("serie vacía → puntos vacíos, actual/comparacion/minMax undefined", () => {
     const s = serieTendencia([], "1a", HOY);
     expect(s.puntos).toEqual([]);
     expect(s.actual).toBeUndefined();
-    expect(s.haceUnAnio).toBeUndefined();
-    expect(s.deltaAnualPct).toBeUndefined();
+    expect(s.comparacion).toBeUndefined();
+    expect(s.minMax).toBeUndefined();
   });
 
   it("no cuenta lecturas con fecha futura respecto a 'hoy'", () => {
@@ -117,9 +117,9 @@ describe("serieTendencia — bucketing por rango", () => {
   });
 });
 
-// ── actual / haceUnAnio / deltaAnualPct ───────────────────────────────────────
+// ── actual ──────────────────────────────────────────────────────────────────
 
-describe("serieTendencia — actual, haceUnAnio y deltaAnualPct", () => {
+describe("serieTendencia — 'actual'", () => {
   it("'actual' es la mediana de las últimas 7 lecturas con dato", () => {
     const valores = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -(i + 1)), valor: 60 + i }));
     const s = serieTendencia(valores, "1a", HOY);
@@ -131,50 +131,96 @@ describe("serieTendencia — actual, haceUnAnio y deltaAnualPct", () => {
     return sorted[3]; // 7 elementos → mediana es el del medio
   }
 
-  it("deltaAnualPct se computa cuando ambas ventanas tienen ≥ 5 datos", () => {
-    const actualVals = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -(i + 1)), valor: 66 }));
-    const haceUnAnioVals = Array.from({ length: 6 }, (_, i) => ({
-      fecha: offsetDate(HOY, -365 + (i - 3)), valor: 71,
-    }));
-    const s = serieTendencia([...actualVals, ...haceUnAnioVals], "5a", HOY);
-    expect(s.actual).toBe(66);
-    expect(s.haceUnAnio).toBe(71);
-    expect(s.deltaAnualPct).toBeCloseTo((66 - 71) / 71, 5);
-  });
-
-  it("sin deltaAnualPct si la ventana 'hace un año' tiene < 5 datos", () => {
-    const actualVals = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -(i + 1)), valor: 66 }));
-    const haceUnAnioVals = Array.from({ length: 4 }, (_, i) => ({ fecha: offsetDate(HOY, -365 + i), valor: 71 }));
-    const s = serieTendencia([...actualVals, ...haceUnAnioVals], "5a", HOY);
-    expect(s.haceUnAnio).toBe(71); // sí se calcula el valor
-    expect(s.deltaAnualPct).toBeUndefined(); // pero no el delta (no alcanza MIN_DATOS_DELTA_ANUAL)
-  });
-
-  it("sin deltaAnualPct si la ventana 'actual' tiene < 5 datos", () => {
-    const actualVals = Array.from({ length: 3 }, (_, i) => ({ fecha: offsetDate(HOY, -(i + 1)), valor: 66 }));
-    const haceUnAnioVals = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -365 + i), valor: 71 }));
-    const s = serieTendencia([...actualVals, ...haceUnAnioVals], "5a", HOY);
-    expect(s.actual).toBeDefined(); // hay mediana con las 3 que hay
-    expect(s.haceUnAnio).toBe(71);  // esa ventana sí llega a 5+
-    expect(s.deltaAnualPct).toBeUndefined(); // pero "actual" no alcanza el mínimo
-  });
-
   it("'actual' no busca más allá de 90 días: sin lecturas recientes, queda undefined", () => {
     const soloViejas = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -200 - i), valor: 66 }));
     const s = serieTendencia(soloViejas, "5a", HOY);
     expect(s.actual).toBeUndefined();
   });
 
-  it("sin datos hace un año → haceUnAnio y deltaAnualPct ambos undefined", () => {
-    const valores = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -(i + 1)), valor: 66 }));
-    const s = serieTendencia(valores, "1a", HOY);
-    expect(s.actual).toBeDefined();
-    expect(s.haceUnAnio).toBeUndefined();
-    expect(s.deltaAnualPct).toBeUndefined();
-  });
-
   it("MIN_DATOS_DELTA_ANUAL es 5", () => {
     expect(MIN_DATOS_DELTA_ANUAL).toBe(5);
+  });
+});
+
+// ── comparación por rango (P64): "ahora vs. X" ya no es siempre "hace un año" ──
+
+describe("serieTendencia — comparación parametrizada por rango", () => {
+  const actualVals = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -(i + 1)), valor: 66 }));
+
+  it("'3m' compara contra la ventana ±7 días alrededor de hoy−90, etiqueta 'hace 3 meses'", () => {
+    const vals3m = Array.from({ length: 6 }, (_, i) => ({ fecha: offsetDate(HOY, -90 + (i - 3)), valor: 71 }));
+    const s = serieTendencia([...actualVals, ...vals3m], "3m", HOY);
+    expect(s.comparacion?.etiqueta).toBe("hace 3 meses");
+    expect(s.comparacion?.valor).toBe(71);
+    expect(s.comparacion?.deltaPct).toBeCloseTo((66 - 71) / 71, 5);
+  });
+
+  it("'1a' compara contra la ventana ±14 días alrededor de hoy−365, etiqueta 'hace un año'", () => {
+    const valsAnio = Array.from({ length: 6 }, (_, i) => ({ fecha: offsetDate(HOY, -365 + (i - 3)), valor: 71 }));
+    const s = serieTendencia([...actualVals, ...valsAnio], "1a", HOY);
+    expect(s.comparacion?.etiqueta).toBe("hace un año");
+    expect(s.comparacion?.valor).toBe(71);
+    expect(s.comparacion?.deltaPct).toBeCloseTo((66 - 71) / 71, 5);
+  });
+
+  it("'5a' compara contra la ventana ±30 días alrededor de hoy−5 años, etiqueta 'hace 5 años'", () => {
+    const vals5a = Array.from({ length: 6 }, (_, i) => ({ fecha: offsetDate(HOY, -5 * 365 + (i - 3) * 5), valor: 71 }));
+    const s = serieTendencia([...actualVals, ...vals5a], "5a", HOY);
+    expect(s.comparacion?.etiqueta).toBe("hace 5 años");
+    expect(s.comparacion?.valor).toBe(71);
+    expect(s.comparacion?.deltaPct).toBeCloseTo((66 - 71) / 71, 5);
+  });
+
+  it("'5a' sin dato en la ventana de 5 años cae al dato más viejo del rango: etiqueta 'vs {año}'", () => {
+    // Sin nada cerca de hoy−5 años, pero sí datos más recientes (dentro del rango de 5 años).
+    const viejasEnRango = Array.from({ length: 6 }, (_, i) => ({ fecha: offsetDate(HOY, -4 * 365 - i), valor: 71 }));
+    const s = serieTendencia([...actualVals, ...viejasEnRango], "5a", HOY);
+    const anioEsperado = offsetDate(HOY, -4 * 365 - 5).slice(0, 4);
+    expect(s.comparacion?.etiqueta).toBe(`vs ${anioEsperado}`);
+    expect(s.comparacion?.valor).toBe(71);
+  });
+
+  it("'todo' compara contra la mediana de las lecturas más viejas, etiqueta 'primera medición (año)'", () => {
+    const primeras = Array.from({ length: 6 }, (_, i) => ({ fecha: `2015-01-0${i + 1}`, valor: 71 }));
+    const s = serieTendencia([...actualVals, ...primeras], "todo", HOY);
+    expect(s.comparacion?.etiqueta).toBe("primera medición (2015)");
+    expect(s.comparacion?.valor).toBe(71);
+    expect(s.comparacion?.deltaPct).toBeCloseTo((66 - 71) / 71, 5);
+  });
+
+  it("'todo' agrega minMax con los extremos del período; otros rangos no", () => {
+    const valores = [
+      { fecha: "2015-01-01", valor: 50 },
+      { fecha: "2020-01-01", valor: 90 },
+      ...actualVals,
+    ];
+    const sTodo = serieTendencia(valores, "todo", HOY);
+    expect(sTodo.minMax).toEqual({ min: 50, max: 90 });
+
+    const s1a = serieTendencia(valores, "1a", HOY);
+    expect(s1a.minMax).toBeUndefined();
+  });
+
+  it("sin dato en la ventana de comparación → comparacion undefined (p.ej. '1a' sin lecturas de hace un año)", () => {
+    const s = serieTendencia(actualVals, "1a", HOY);
+    expect(s.actual).toBeDefined();
+    expect(s.comparacion).toBeUndefined();
+  });
+
+  it("sin deltaPct si la ventana de comparación tiene < 5 datos (el valor sí se muestra)", () => {
+    const pocasHaceUnAnio = Array.from({ length: 4 }, (_, i) => ({ fecha: offsetDate(HOY, -365 + i), valor: 71 }));
+    const s = serieTendencia([...actualVals, ...pocasHaceUnAnio], "1a", HOY);
+    expect(s.comparacion?.valor).toBe(71);
+    expect(s.comparacion?.deltaPct).toBeUndefined();
+  });
+
+  it("sin deltaPct si la ventana 'actual' tiene < 5 datos", () => {
+    const pocasActuales = actualVals.slice(0, 3);
+    const haceUnAnio = Array.from({ length: 7 }, (_, i) => ({ fecha: offsetDate(HOY, -365 + i), valor: 71 }));
+    const s = serieTendencia([...pocasActuales, ...haceUnAnio], "1a", HOY);
+    expect(s.actual).toBeDefined();
+    expect(s.comparacion?.valor).toBe(71);
+    expect(s.comparacion?.deltaPct).toBeUndefined();
   });
 });
 

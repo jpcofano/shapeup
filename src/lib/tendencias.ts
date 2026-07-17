@@ -21,11 +21,18 @@ export interface PuntoTendencia {
   max?: number;
 }
 
+/** Comparación "ahora vs. X" — X depende del rango activo (P64: antes era siempre "hace un año"). */
+export interface ComparacionTendencia {
+  etiqueta: string;    // "hace 3 meses" | "hace un año" | "hace 5 años" | "vs 2021" | "primera medición (2015)"
+  valor: number;
+  deltaPct?: number;   // (actual − valor) / valor — solo si ambas ventanas alcanzan MIN_DATOS_DELTA_ANUAL
+}
+
 export interface SerieTendencia {
   puntos: PuntoTendencia[];
-  actual?: number;          // mediana de las últimas 7 lecturas, dentro de los últimos 90 días
-  haceUnAnio?: number;      // mediana de lecturas en ventana ±14 días alrededor de hoy−365
-  deltaAnualPct?: number;   // (actual − haceUnAnio) / haceUnAnio — solo si ambas ventanas alcanzan
+  actual?: number;                    // mediana de las últimas 7 lecturas, dentro de los últimos 90 días
+  comparacion?: ComparacionTendencia;
+  minMax?: { min: number; max: number }; // extremos del período — solo rango "todo"
 }
 
 /** Lecturas mínimas en cada ventana (actual / hace un año) para confiar en `deltaAnualPct`. */
@@ -36,15 +43,20 @@ export const MIN_DATOS_CHIP = 10;
 export function alcanzaMinimoChip(cantidadDatos: number): boolean {
   return cantidadDatos >= MIN_DATOS_CHIP;
 }
-/** Cantidad de lecturas recientes que arma la ventana "actual". */
+/** Cantidad de lecturas recientes que arma la ventana "actual" (y las ventanas de comparación). */
 const N_ACTUAL = 7;
 /** Tope de antigüedad para "actual": sin lecturas en los últimos 90 días, no hay "ahora" honesto que mostrar. */
 const VENTANA_ACTUAL_DIAS = 90;
-/** Medio ancho (días) de la ventana "hace un año" — ventana total de 28 días. */
-const MEDIO_ANCHO_HACE_UN_ANIO_DIAS = 14;
 
 const DIAS_POR_RANGO: Record<RangoTendencia, number | undefined> = {
   "3m": 90, "1a": 365, "5a": 5 * 365, "todo": undefined,
+};
+
+/** Punto de comparación y medio ancho de la ventana (días) alrededor de él, por rango. "todo" se resuelve aparte. */
+const CONFIG_COMPARACION: Record<"3m" | "1a" | "5a", { diasAtras: number; medioAncho: number; etiqueta: string }> = {
+  "3m": { diasAtras: 90,        medioAncho: 7,  etiqueta: "hace 3 meses" },
+  "1a": { diasAtras: 365,       medioAncho: 14, etiqueta: "hace un año" },
+  "5a": { diasAtras: 5 * 365,   medioAncho: 30, etiqueta: "hace 5 años" },
 };
 
 // ── Helpers de fecha ──────────────────────────────────────────────────────────
@@ -115,17 +127,50 @@ export function serieTendencia(
   const ultimasN = recientes.slice(0, N_ACTUAL);
   const actual = ultimasN.length > 0 ? mediana(ultimasN.map((v) => v.valor)) : undefined;
 
-  const centroHaceUnAnio = addDays(hoy, -365);
-  const desdeHaceUnAnio = addDays(centroHaceUnAnio, -MEDIO_ANCHO_HACE_UN_ANIO_DIAS);
-  const hastaHaceUnAnio = addDays(centroHaceUnAnio, MEDIO_ANCHO_HACE_UN_ANIO_DIAS);
-  const ventanaHaceUnAnio = valores.filter((v) => v.fecha >= desdeHaceUnAnio && v.fecha <= hastaHaceUnAnio);
-  const haceUnAnio = ventanaHaceUnAnio.length > 0 ? mediana(ventanaHaceUnAnio.map((v) => v.valor)) : undefined;
+  // ── Comparación "ahora vs. X": X depende del rango activo, no siempre "hace un año" ──
+  let comparacion: ComparacionTendencia | undefined;
+  if (actual != null) {
+    if (rango === "todo") {
+      // "Primera medición": mediana de las N_ACTUAL lecturas más viejas (mismo
+      // criterio de robustez que "actual", pero en el otro extremo del tiempo).
+      const masViejas = [...valores]
+        .filter((v) => v.fecha <= hoy)
+        .sort((a, b) => a.fecha.localeCompare(b.fecha))
+        .slice(0, N_ACTUAL);
+      if (masViejas.length > 0) {
+        const valor = mediana(masViejas.map((v) => v.valor));
+        const anio  = masViejas[0].fecha.slice(0, 4);
+        const deltaPct = valor !== 0 && masViejas.length >= MIN_DATOS_DELTA_ANUAL && ultimasN.length >= MIN_DATOS_DELTA_ANUAL
+          ? (actual - valor) / valor : undefined;
+        comparacion = { etiqueta: `primera medición (${anio})`, valor, deltaPct };
+      }
+    } else {
+      const cfg = CONFIG_COMPARACION[rango];
+      const centro = addDays(hoy, -cfg.diasAtras);
+      const ventana = valores.filter(
+        (v) => v.fecha >= addDays(centro, -cfg.medioAncho) && v.fecha <= addDays(centro, cfg.medioAncho),
+      );
+      if (ventana.length > 0) {
+        const valor = mediana(ventana.map((v) => v.valor));
+        const deltaPct = valor !== 0 && ventana.length >= MIN_DATOS_DELTA_ANUAL && ultimasN.length >= MIN_DATOS_DELTA_ANUAL
+          ? (actual - valor) / valor : undefined;
+        comparacion = { etiqueta: cfg.etiqueta, valor, deltaPct };
+      } else if (rango === "5a" && enRango.length > 0) {
+        // Sin dato en la ventana de "hace 5 años": el más viejo dentro del rango de 5 años.
+        const masViejasEnRango = [...enRango].sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, N_ACTUAL);
+        const valor = mediana(masViejasEnRango.map((v) => v.valor));
+        const anio  = masViejasEnRango[0].fecha.slice(0, 4);
+        const deltaPct = valor !== 0 && masViejasEnRango.length >= MIN_DATOS_DELTA_ANUAL && ultimasN.length >= MIN_DATOS_DELTA_ANUAL
+          ? (actual - valor) / valor : undefined;
+        comparacion = { etiqueta: `vs ${anio}`, valor, deltaPct };
+      }
+    }
+  }
 
-  const deltaAnualPct =
-    actual != null && haceUnAnio != null && haceUnAnio !== 0 &&
-    ultimasN.length >= MIN_DATOS_DELTA_ANUAL && ventanaHaceUnAnio.length >= MIN_DATOS_DELTA_ANUAL
-      ? (actual - haceUnAnio) / haceUnAnio
-      : undefined;
+  // Extremos del período — solo tienen sentido narrativo en rangos largos ("todo").
+  const minMax = rango === "todo" && enRango.length > 0
+    ? { min: Math.min(...enRango.map((v) => v.valor)), max: Math.max(...enRango.map((v) => v.valor)) }
+    : undefined;
 
-  return { puntos, actual, haceUnAnio, deltaAnualPct };
+  return { puntos, actual, comparacion, minMax };
 }

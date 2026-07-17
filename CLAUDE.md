@@ -19,7 +19,7 @@ argentino, voseo. Tokens de diseño siempre (`src/styles/tokens.css`).
 - Antes de dar por terminado un prompt: `npx tsc -b` limpio + `npx vitest run` verde
   (la suite `firestore.rules.test.ts` requiere emulador; sin emulador se permite skip).
 
-## Serie S — Integración de salud (plan vigente)
+## Serie S — Integración de salud ✅ CERRADA (2026-07-04 → 2026-07-17)
 
 Objetivo del owner: **no importar todo indiscriminadamente**; matchear los entrenamientos
 hechos en la app con los datos de salud, enriquecer el historial y las rutinas analizando
@@ -93,7 +93,7 @@ ver ADR #025) y su hotfix de persistencia (claves `undefined` rechazadas por
 Firestore). Con eso la primera biometría real quedó persistida y visible
 (H-20260707, `matchPor: "dia"`). De acá en más, arranca la **serie I**.
 
-## Serie I — Insights (arranca 2026-07-13)
+## Serie I — Insights ✅ CERRADA (2026-07-13 → 2026-07-17)
 
 Los insights leen de Firestore y son agnósticos de cómo llegó el dato — no se
 mezclan con la serie H (Health Connect, sync automático), que va después y es
@@ -129,8 +129,24 @@ un problema aparte (de ingesta, no de análisis).
   guiado, "Usar" precarga el log rápido (nunca se autocompleta sola), ✕
   descarta en memoria (no persiste). `RutinaDetalle.tsx`: ícono discreto solo
   en bloques con sugerencia "subir-peso" (los demás tipos ensuciarían la
-  lista), tap muestra el motivo. **Serie I completa** — lo próximo es la
-  serie H (arranca con conversación de arquitectura, no directo a código).
+  lista), tap muestra el motivo. **Serie I completa** (P60, 2026-07-14).
+
+**Cierre S/I (2026-07-17):** después de "completa" todavía hicieron falta dos
+pases de validación del owner sobre datos reales — **P63** (fix: `getMetricasSalud`
+sin filtro de tipo necesitaba índice compuesto en `metricas-salud` y el error
+`failed-precondition` quedaba atrapado sin llegar a la UI, que mostraba "sin
+datos" en silencio; se agregó el índice, se propagó el error como `Result`
+visible con reintentar, y se pulieron redondeos/ejes/rangos cortos de los
+charts) y **P64** (pulido de Resumen: jerarquía + sparkline de fondo +
+densidad en grilla para las informativas + "medida el DD/MM"; conclusión de
+tendencias parametrizada por rango en `serieTendencia` — antes siempre decía
+"hace un año" sin importar el selector activo; línea de estado diario en Home
+vía `seleccionarEstadoDiario` — visible solo cuando no hay tarjeta de
+recomendación, para que el motor de salud no parezca inexistente con todo en
+verde; estado honesto "Sin datos del reloj para esta sesión" en
+`HistorialDetalle` en vez de silencio). Con esto quedan **cerradas las series
+S e I**. Lo próximo es la **serie H** (ver sección propia, abajo) — arranca
+con conversación de arquitectura, no directo a código.
 
 ## ADRs de la serie S
 - **ADR #019** — `Historial.inicioMs/finMs` a nivel sesión, sellados en `finalizarSesion`
@@ -173,6 +189,20 @@ un problema aparte (de ingesta, no de análisis).
   que se había pedido no es calculable todavía — queda pendiente si se agrega
   ese campo a futuro.
 
+## Serie H — Sync automático de salud (no arrancada — 2026-07-17)
+
+Objetivo: que la biometría entre sin el paso manual de exportar/importar el ZIP
+de Samsung Health — sync automático vía Health Connect (Android). Distinto
+problema del de las series S/I: esas son de *análisis* (qué hacer con el dato
+una vez que ya está en Firestore); esta es de *ingesta* (cómo llega el dato).
+
+**No arranca directo a código.** El primer paso (H1) es una conversación de
+arquitectura con el owner: Health Connect no tiene API web — hace falta un
+cascarón nativo (Capacitor o TWA) para leerlo, lo que es un cambio de alcance
+grande (empaquetado, permisos Android, posiblemente una store listing) y no
+una prompt más de la serie S/I. Sin plan de H1 todavía — no hay sub-secciones
+que completar hasta que esa conversación pase.
+
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3; progresión de cargas y costo cardíaco por rutina
 ya se implementaron como I2/I3 — ver "Serie I" arriba):
@@ -188,7 +218,6 @@ Mediano plazo:
   notificaciones de "hoy toca X".
 
 Largo plazo (registrado, sin compromiso):
-- Sync de salud verdaderamente automático (Health Connect vía cascarón nativo
-  Capacitor/TWA) — scope grande, decisión a futuro.
+- Sync de salud verdaderamente automático — ver "Serie H" arriba.
 - Al cerrar el proyecto: purga del historial de git (mails de menores) → repo privado
   (ADR #015).

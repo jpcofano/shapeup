@@ -14,7 +14,15 @@ export interface SenalSalud {
   estado: EstadoSenal;
   motivo?: string;
   serie14d: { fecha: string; valor: number }[];
+  /** Fecha ("YYYY-MM-DD") de la última medición — señales que se miden por rachas
+   *  (presión, SpO2) la muestran en texto secundario para no engañar sobre recencia. */
+  fechaUltima?: string;
 }
+
+// Señales informativas estilo "peso": sin semáforo, sin juicio de color — la
+// app muestra el dato y su tendencia, nunca diagnostica (S-fix-b). Fuente única
+// de verdad — la UI (ResumenTab) y la selección de estado diario (Home) la comparten.
+export const CLAVES_SIN_SEMAFORO = new Set<SenalSalud["clave"]>(["peso", "presion", "spo2"]);
 
 // Rango de recencia: no mostrar como "actual" un valor de hace más de 60 días
 // (presión/SpO2 se miden por rachas, no todos los días — ver decisión owner S-fix-b).
@@ -307,6 +315,7 @@ export function calcularResumenSalud(
         unidad: "mmHg", baseline, deltaPct, estado: "ok",
         motivo: fueraDeRango ? MOTIVO_FUERA_DE_RANGO : undefined,
         serie14d: calcSerie14d(itemsSis, hoy),
+        fechaUltima: fechaMasReciente,
       });
     }
   }
@@ -328,6 +337,7 @@ export function calcularResumenSalud(
         baseline, deltaPct, estado: "ok",
         motivo: actual < SPO2_MIN_TIPICO ? MOTIVO_FUERA_DE_RANGO : undefined,
         serie14d: calcSerie14d(items, hoy),
+        fechaUltima: items[0].fecha,
       });
     }
   }

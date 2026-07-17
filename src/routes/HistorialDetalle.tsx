@@ -202,6 +202,11 @@ export function HistorialDetalle() {
           )}
         </div>
       )}
+      {!h.biometria && (
+        <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+          Sin datos del reloj para esta sesión.
+        </p>
+      )}
 
       {/* Contexto del día: sueño noche anterior consolidada + FC en reposo */}
       {(nocheAnterior || fcDia) && (

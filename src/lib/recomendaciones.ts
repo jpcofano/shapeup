@@ -1,5 +1,6 @@
 import type { Historial, MiembroId, Recomendacion, SenalSalud as SenalSaludModel } from "../types/models";
-import type { SenalSalud as SenalSaludResumen } from "./resumenSalud";
+import type { SenalSalud as SenalSaludResumen, EstadoSenal } from "./resumenSalud";
+import { CLAVES_SIN_SEMAFORO, senalPeor } from "./resumenSalud";
 import { lunesDeSemana } from "./semana";
 
 export const RUTINAS_RECOMENDADAS = {
@@ -179,4 +180,48 @@ export function calcularRecomendacion(
   }
 
   return null;
+}
+
+// ── seleccionarEstadoDiario ──────────────────────────────────────────────────
+
+const NOMBRE_CORTO_SENAL: Partial<Record<SenalSaludResumen["clave"], string>> = {
+  "fc-reposo": "FC reposo", "hrv": "HRV", "pasos": "pasos", "sueno": "sueño",
+};
+
+export type EstadoDiario =
+  | { tipo: "nada" }
+  | { tipo: "tarjeta" }
+  | { tipo: "linea"; texto: string; severidad: Exclude<EstadoSenal, "sin-datos"> };
+
+/**
+ * Decide qué mostrar en la línea de estado diario de Home (P64): visibilidad
+ * del motor de recomendaciones incluso cuando no hay nada que decir. Nunca
+ * compite con la tarjeta de recomendación — si hay tarjeta, gana ella.
+ */
+export function seleccionarEstadoDiario(
+  senales: SenalSaludResumen[],
+  hayTarjeta: boolean,
+): EstadoDiario {
+  // Solo señales accionables (con semáforo) y con valor calculable — igual
+  // criterio que el badge de la tab Resumen (fuente única: CLAVES_SIN_SEMAFORO).
+  const calculables = senales.filter(
+    (s) => s.valorActual != null && !CLAVES_SIN_SEMAFORO.has(s.clave),
+  );
+  if (calculables.length === 0) return { tipo: "nada" };
+  if (hayTarjeta) return { tipo: "tarjeta" };
+
+  const peor = senalPeor(calculables);
+  if (peor === "ok" || peor === "sin-datos") {
+    return { tipo: "linea", texto: "Señales de salud en verde", severidad: "ok" };
+  }
+
+  const enPeorEstado = calculables.filter((s) => s.estado === peor);
+  const nombres = enPeorEstado.map((s) => NOMBRE_CORTO_SENAL[s.clave] ?? s.clave).join(", ");
+  const sustantivo = enPeorEstado.length > 1 ? "señales" : "señal";
+  const palabra = peor === "alerta" ? "alerta" : "atención";
+  return {
+    tipo: "linea",
+    texto: `${enPeorEstado.length} ${sustantivo} en ${palabra}: ${nombres}`,
+    severidad: peor,
+  };
 }

@@ -7,8 +7,8 @@ import { getProgramaActivo } from "../data/programas";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialMiembro } from "../data/historial";
 import { getMediciones, getMetricasSalud, getRegistrosSueno } from "../data/salud";
-import { calcularResumenSalud } from "../lib/resumenSalud";
-import { calcularRecomendacion } from "../lib/recomendaciones";
+import { calcularResumenSalud, type SenalSalud } from "../lib/resumenSalud";
+import { calcularRecomendacion, seleccionarEstadoDiario, type EstadoDiario } from "../lib/recomendaciones";
 import { useAuth } from "../auth/useAuth";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { WeekStrip } from "../components/WeekStrip";
@@ -95,6 +95,25 @@ function RecCard({ rec, onDescartar, onVerRutina }: {
         </button>
       )}
     </div>
+  );
+}
+
+function EstadoDiarioLinea({ estado, onClick }: { estado: EstadoDiario; onClick: () => void }) {
+  if (estado.tipo !== "linea") return null;
+  const color = estado.severidad === "alerta" ? "var(--danger)"
+    : estado.severidad === "atencion" ? "var(--warning)"
+    : "var(--accent)";
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "flex", alignItems: "center", gap: 6, background: "none", border: "none",
+        padding: "2px 0", cursor: "pointer", font: "inherit", fontSize: 12, color: "var(--muted)",
+      }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
+      {estado.texto}
+    </button>
   );
 }
 
@@ -230,6 +249,7 @@ export function Home() {
   const [lastMed,    setLastMed]    = useState<MedicionCorporal | null>(null);
   const [prevMed,    setPrevMed]    = useState<MedicionCorporal | null>(null);
   const [recomendacion, setRecomendacion] = useState<Recomendacion | null>(null);
+  const [senalesSalud, setSenalesSalud] = useState<SenalSalud[]>([]);
   const [recDescartada, setRecDescartada] = useState(false);
   const [estaSemana, setEstaSemana] = useState<Historial[]>([]);
 
@@ -306,6 +326,7 @@ export function Home() {
         if (tieneDatos) {
           const hoy = ymdLocal();
           const senales = calcularResumenSalud(metricas, sueno, mediciones, hoy);
+          setSenalesSalud(senales);
           const rec = calcularRecomendacion(senales, hist, hoy, memberId as MiembroId);
           setRecomendacion(rec);
         }
@@ -333,6 +354,7 @@ export function Home() {
   }
 
   const recVisible = !recDescartada && recomendacion !== null ? recomendacion : null;
+  const estadoDiario = seleccionarEstadoDiario(senalesSalud, recVisible !== null);
   const semanaCompleta = proxima === null && sesObj > 0;
 
   const subtitulo = semanaCompleta
@@ -425,6 +447,7 @@ export function Home() {
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
+        <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />
         <HomeReduxContent direccion={direccion} data={data} onAvatarClick={() => navigate("/perfil")} />
       </div>
     );
@@ -448,6 +471,7 @@ export function Home() {
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
+        <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />
 
         {/* Hero Stadium */}
         <div className="stadium-hero">
@@ -545,6 +569,7 @@ export function Home() {
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
+        <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />
 
         {programa && (
           <div className="card" style={{ padding: "14px 16px" }}>
@@ -645,6 +670,7 @@ export function Home() {
       {!loading && recVisible && (
         <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
       )}
+      {!loading && <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />}
 
       {/* ── Hero Aurora ─────────────────────────────────────────────────── */}
       {!loading && (

@@ -83,12 +83,17 @@ function TendenciasSalud({
     : null;
 
   const resumen = [
-    serie.actual     != null ? `Ahora: ${serie.actual.toFixed(1)} ${metrica.unidad}` : null,
-    serie.haceUnAnio  != null ? `hace un año: ${serie.haceUnAnio.toFixed(1)}` : null,
-    serie.deltaAnualPct != null
-      ? `${serie.deltaAnualPct > 0 ? "+" : ""}${(serie.deltaAnualPct * 100).toFixed(0)}%`
+    serie.actual != null ? `Ahora: ${serie.actual.toFixed(1)} ${metrica.unidad}` : null,
+    serie.comparacion != null ? `${serie.comparacion.etiqueta}: ${serie.comparacion.valor.toFixed(1)}` : null,
+    serie.comparacion?.deltaPct != null
+      ? `${serie.comparacion.deltaPct > 0 ? "+" : ""}${(serie.comparacion.deltaPct * 100).toFixed(0)}%`
       : null,
   ].filter(Boolean).join(" · ");
+
+  // Solo en rangos largos ("todo") los extremos del período cuentan historia.
+  const extremos = serie.minMax != null
+    ? `mín ${serie.minMax.min.toFixed(1)} · máx ${serie.minMax.max.toFixed(1)}`
+    : null;
 
   return (
     <div className="card">
@@ -128,6 +133,9 @@ function TendenciasSalud({
 
       {resumen && (
         <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--muted)" }}>{resumen}</p>
+      )}
+      {extremos && (
+        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>{extremos}</p>
       )}
     </div>
   );

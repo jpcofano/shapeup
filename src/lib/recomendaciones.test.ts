@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcularRecomendacion, semanasSinDescarga, RUTINAS_RECOMENDADAS } from "./recomendaciones";
+import { calcularRecomendacion, semanasSinDescarga, RUTINAS_RECOMENDADAS, seleccionarEstadoDiario } from "./recomendaciones";
 import type { SenalSalud as SenalSaludResumen } from "./resumenSalud";
 import type { Historial, BloqueRegistro } from "../types/models";
 
@@ -317,5 +317,58 @@ describe("calcularRecomendacion", () => {
     const senales = [mkSenal("fc-reposo", "ok", 58)];
     const rec = calcularRecomendacion(senales, hist, HOY, MIEMBRO);
     expect(rec?.mensaje).toMatch(/5 semanas/);
+  });
+});
+
+// ── seleccionarEstadoDiario (P64) ──────────────────────────────────────────────
+
+describe("seleccionarEstadoDiario", () => {
+  it("sin señales calculables → 'nada'", () => {
+    expect(seleccionarEstadoDiario([], false)).toEqual({ tipo: "nada" });
+  });
+
+  it("solo señales informativas (sin semáforo) calculables → 'nada'", () => {
+    const senales = [mkSenal("peso", "ok", 80), mkSenal("spo2", "ok", 97)];
+    expect(seleccionarEstadoDiario(senales, false)).toEqual({ tipo: "nada" });
+  });
+
+  it("hay tarjeta de recomendación → 'tarjeta', nunca compite con la línea", () => {
+    const senales = [mkSenal("fc-reposo", "alerta", 70)];
+    expect(seleccionarEstadoDiario(senales, true)).toEqual({ tipo: "tarjeta" });
+  });
+
+  it("todas las señales accionables en ok → línea 'en verde'", () => {
+    const senales = [mkSenal("fc-reposo", "ok", 58), mkSenal("sueno", "ok", 7.5)];
+    const r = seleccionarEstadoDiario(senales, false);
+    expect(r).toEqual({ tipo: "linea", texto: "Señales de salud en verde", severidad: "ok" });
+  });
+
+  it("una señal en atención → línea nombra la señal, singular", () => {
+    const senales = [mkSenal("fc-reposo", "ok", 58), mkSenal("sueno", "atencion", 6)];
+    const r = seleccionarEstadoDiario(senales, false);
+    expect(r).toEqual({ tipo: "linea", texto: "1 señal en atención: sueño", severidad: "atencion" });
+  });
+
+  it("dos señales en el mismo peor estado → línea las nombra en plural", () => {
+    const senales = [mkSenal("fc-reposo", "atencion", 70), mkSenal("hrv", "atencion", 40)];
+    const r = seleccionarEstadoDiario(senales, false);
+    expect(r).toEqual({ tipo: "linea", texto: "2 señales en atención: FC reposo, HRV", severidad: "atencion" });
+  });
+
+  it("alerta pesa más que atención — la línea reporta el peor estado, no todo lo que no está ok", () => {
+    const senales = [mkSenal("fc-reposo", "atencion", 70), mkSenal("sueno", "alerta", 4)];
+    const r = seleccionarEstadoDiario(senales, false);
+    expect(r).toEqual({ tipo: "linea", texto: "1 señal en alerta: sueño", severidad: "alerta" });
+  });
+
+  it("señales sin-datos o sin valor no cuentan como calculables", () => {
+    const senales = [{ clave: "fc-reposo" as const, estado: "sin-datos" as const, unidad: "bpm", serie14d: [] }];
+    expect(seleccionarEstadoDiario(senales, false)).toEqual({ tipo: "nada" });
+  });
+
+  it("informativas (peso/presión/spo2) no cuentan para decidir el peor estado", () => {
+    const senales = [mkSenal("fc-reposo", "ok", 58), mkSenal("peso", "ok", 80)];
+    const r = seleccionarEstadoDiario(senales, false);
+    expect(r).toEqual({ tipo: "linea", texto: "Señales de salud en verde", severidad: "ok" });
   });
 });
