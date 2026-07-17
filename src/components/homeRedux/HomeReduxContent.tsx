@@ -69,6 +69,10 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
   const gradientId = `hr-pg-${useId()}`;
   const total = sesObj > 0 ? sesObj : 1;
   const pct = Math.min(1, sesHechas / total);
+  // Forma + color: la flecha marca la dirección real del delta, el color (pos/neg)
+  // marca si es favorable — así no se confunde con el acento cuando ambos son verdes
+  // (caso crítico P54 Fix 3, compartido por las dos direcciones).
+  const DeltaIcon = metrics.peso?.delta?.trim().startsWith("-") ? TrendingDown : TrendingUp;
 
   if (direccion === "pulse") {
     const C = 2 * Math.PI * 66;
@@ -127,7 +131,10 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
               <span className="l">Peso</span>
               <span className="v">{metrics.peso.valor}</span>
               {metrics.peso.delta && (
-                <span className={`a-delta ${metrics.peso.deltaFavorable ? "down" : ""}`}>{metrics.peso.delta}</span>
+                <span className={`a-delta ${metrics.peso.deltaFavorable ? "pos" : "neg"}`}>
+                  <DeltaIcon />
+                  {metrics.peso.delta}
+                </span>
               )}
             </div>
           )}
@@ -160,9 +167,6 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
   const R = 82;
   const C2 = 2 * Math.PI * R;
   const arc = C2 * pct;
-  // Forma + color: la flecha marca la dirección real del delta, el color (pos/neg)
-  // marca si es favorable — así no se confunde con el acento cuando ambos son verdes.
-  const DeltaIcon = metrics.peso?.delta?.trim().startsWith("-") ? TrendingDown : TrendingUp;
   return (
     <>
       <div className="c-top">

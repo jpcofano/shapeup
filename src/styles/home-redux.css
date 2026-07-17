@@ -63,8 +63,8 @@ nav.c-nav { flex: 0 0 78px; border-top: 1px solid var(--border); display: grid; 
 
 /* ── Dirección A · "Pulse" — enérgica / deportiva ─────────────────────────── */
 .dir-a { font-family: "Archivo", var(--font-sans); }
-.dir-a[data-mode="dark"]  { --bg: #0a0c10; --card: #14171d; --card2: #1a1e26; --border: #252b36; --fg: #f4f6fa; --muted: #909aa9; --track: #232935; }
-.dir-a[data-mode="light"] { --bg: #eceef1; --card: #ffffff; --card2: #f4f5f8; --border: #dfe2e8; --fg: #14171c; --muted: #5c6570; --track: #dde0e6; }
+.dir-a[data-mode="dark"]  { --bg: #0a0c10; --card: #14171d; --card2: #1a1e26; --border: #252b36; --fg: #f4f6fa; --muted: #909aa9; --track: #232935; --pos: #34d399; --neg: #f87171; }
+.dir-a[data-mode="light"] { --bg: #eceef1; --card: #ffffff; --card2: #f4f5f8; --border: #dfe2e8; --fg: #14171c; --muted: #5c6570; --track: #dde0e6; --pos: #067647; --neg: #b42318; }
 
 .a-top { display: flex; justify-content: space-between; align-items: flex-start; }
 .a-hola { margin: 0; font-weight: 900; font-style: italic; font-size: 27px; line-height: 1; letter-spacing: -0.005em; text-transform: uppercase; }
@@ -106,8 +106,12 @@ nav.c-nav { flex: 0 0 78px; border-top: 1px solid var(--border); display: grid; 
 .a-metric .l { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .a-metric .v { font-weight: 800; font-style: italic; font-size: 21px; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; color: var(--fg); }
 .a-metric .v svg { width: 16px; height: 16px; color: var(--accent-muted); }
-.a-delta { font-size: 10.5px; font-weight: 800; color: var(--muted); }
-.a-delta.down { color: var(--accent-muted); }
+.a-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 800; color: var(--muted); }
+.a-delta svg { width: 11px; height: 11px; }
+/* Pill + ícono, no solo color: mismo criterio que .c-mdelta (P54 Fix 3) — el
+   favorable no puede depender de que --pos coincida con el acento (ej. Volt). */
+.a-delta.pos { color: var(--pos); background: color-mix(in srgb, var(--pos) 14%, transparent); padding: 2px 6px; border-radius: 999px; }
+.a-delta.neg { color: var(--neg); background: color-mix(in srgb, var(--neg) 14%, transparent); padding: 2px 6px; border-radius: 999px; }
 
 /* módulo semanal */
 .a-mob { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 14px 13px; }
