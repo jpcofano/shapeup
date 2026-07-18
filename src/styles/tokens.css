@@ -30,7 +30,10 @@
   --accent-strong:#0891b2;
   --on-accent:    #04161a;             /* texto sobre el acento */
 
-  /* ── Semánticos ───────────────────────────────────────────────────────── */
+  /* ── Semánticos · TEMATIZABLES POR MODO (P65) ─────────────────────────── *
+   * Los valores de :root son los de modo oscuro. [data-mode="light"] los    *
+   * pisa con equivalentes AA-safe sobre fondo claro — mismo hue, más        *
+   * saturados/oscuros para no perder contraste como texto.                  */
   --danger:      #f87171;
   --danger-dim:  rgba(248, 113, 113, 0.10);
   --warning:     #fbbf24;
@@ -129,13 +132,20 @@
   --tracking-tight: -0.02em;
   --tracking-label:  0.05em;
 
-  color-scheme: dark;
+  color-scheme: dark; /* default previo a hidratar [data-mode] — evita flash */
 }
 
 /* ════════════════════════════════════════════════════════════════════════ *
-   TEMAS — 8 temas. Default = Ion (sin data-theme o data-theme="ion").
-   Cada tema redefine acento + superficies teñidas + glow del FAB.
-   Las zonas de FC y los colores de miembro NO cambian con el tema.
+   TEMAS — 5 temas (P65: consolidado desde 8 — solar/crimson/grape se
+   sacaron para converger con el prototipo Home Redux, que ya validó estos
+   5 en claro y oscuro). Default = Ion (sin data-theme o data-theme="ion").
+   Cada tema redefine acento + superficie oscura teñida + glow del FAB —
+   igual que antes (cero regresión visual en oscuro). El claro NO tiñe
+   superficie por tema (sigue el patrón del prototipo: una sola superficie
+   clara neutra, el acento por tema alcanza para distinguirlos) — ver el
+   bloque [data-mode="light"] compartido más abajo, que la resuelve.
+   Las zonas de FC y los colores de miembro NO cambian con el tema ni con
+   el modo.
  * ════════════════════════════════════════════════════════════════════════ */
 
 [data-theme="ion"] {
@@ -143,17 +153,19 @@
   --accent: #22d3ee; --accent-dim: rgba(34,211,238,0.16); --accent-strong: #0891b2; --on-accent: #04161a;
   --shadow-fab: 0 4px 16px rgba(34,211,238,0.34);
 }
+[data-theme="ion"][data-mode="light"] {
+  --accent: #0e7490; --accent-dim: rgba(14,116,144,0.10); --accent-strong: #155e75; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(14,116,144,0.22);
+}
 
 [data-theme="volt"] {
   --bg: #0b140e; --card: #122017; --card-hover: #1a2d20; --border: #21372a; --border-dim: #16241b;
   --accent: #4ade80; --accent-dim: rgba(74,222,128,0.15); --accent-strong: #16a34a; --on-accent: #08130b;
   --shadow-fab: 0 4px 16px rgba(74,222,128,0.32);
 }
-
-[data-theme="solar"] {
-  --bg: #161108; --card: #221a0d; --card-hover: #2f2614; --border: #3a3019; --border-dim: #271f10;
-  --accent: #f5b62b; --accent-dim: rgba(245,182,43,0.16); --accent-strong: #d99413; --on-accent: #1a1303;
-  --shadow-fab: 0 4px 16px rgba(245,182,43,0.34);
+[data-theme="volt"][data-mode="light"] {
+  --accent: #15803d; --accent-dim: rgba(21,128,61,0.10); --accent-strong: #166534; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(21,128,61,0.22);
 }
 
 [data-theme="blaze"] {
@@ -161,11 +173,9 @@
   --accent: #ff7a45; --accent-dim: rgba(255,122,69,0.16); --accent-strong: #ea580c; --on-accent: #1c0a02;
   --shadow-fab: 0 4px 16px rgba(255,122,69,0.34);
 }
-
-[data-theme="crimson"] {
-  --bg: #170a0c; --card: #241317; --card-hover: #311c21; --border: #3e262b; --border-dim: #2b181c;
-  --accent: #fb3b53; --accent-dim: rgba(251,59,83,0.16); --accent-strong: #e11d3a; --on-accent: #ffffff;
-  --shadow-fab: 0 4px 16px rgba(251,59,83,0.34);
+[data-theme="blaze"][data-mode="light"] {
+  --accent: #c2410c; --accent-dim: rgba(194,65,12,0.10); --accent-strong: #9a3412; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(194,65,12,0.22);
 }
 
 [data-theme="pulse"] {
@@ -173,17 +183,70 @@
   --accent: #ff4d79; --accent-dim: rgba(255,77,121,0.16); --accent-strong: #e11d63; --on-accent: #ffffff;
   --shadow-fab: 0 4px 16px rgba(255,77,121,0.34);
 }
-
-[data-theme="grape"] {
-  --bg: #120c1a; --card: #1e1528; --card-hover: #2a1e38; --border: #352845; --border-dim: #241a31;
-  --accent: #b15cff; --accent-dim: rgba(177,92,255,0.17); --accent-strong: #9333ea; --on-accent: #ffffff;
-  --shadow-fab: 0 4px 16px rgba(177,92,255,0.34);
+[data-theme="pulse"][data-mode="light"] {
+  --accent: #be185c; --accent-dim: rgba(190,24,92,0.10); --accent-strong: #9d174d; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(190,24,92,0.22);
 }
 
+/* Hex de acento oscuro fijado al del prototipo Home Redux (P65) — los
+   tokens viejos (#7c83ff/#6366f1) quedaban desalineados con
+   [data-accent="indigo"] de home-redux.css. */
 [data-theme="indigo"] {
   --bg: #0e0d1c; --card: #17162b; --card-hover: #20203c; --border: #2a2a4a; --border-dim: #1d1c33;
-  --accent: #7c83ff; --accent-dim: rgba(124,131,255,0.17); --accent-strong: #6366f1; --on-accent: #ffffff;
-  --shadow-fab: 0 4px 16px rgba(124,131,255,0.34);
+  --accent: #8b90ff; --accent-dim: rgba(139,144,255,0.17); --accent-strong: #6366f1; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(139,144,255,0.34);
+}
+[data-theme="indigo"][data-mode="light"] {
+  --accent: #4f46e5; --accent-dim: rgba(79,70,229,0.10); --accent-strong: #4338ca; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(79,70,229,0.22);
+}
+
+/* ── Modo claro/oscuro (P65) — semánticos compartidos por los 5 temas      *
+   (el acento por tema ya se resolvió arriba). Ambos modos son bloques      *
+   EXPLÍCITOS a propósito — [data-mode="dark"] repite los valores de :root  *
+   en vez de confiar en que ":root" alcance: ":root" solo matchea <html>,   *
+   así que un [data-mode="dark"] anidado dentro de un <html data-mode=      *
+   "light"> (p.ej. la grilla de /qa/temas, que muestra los 10 combos a la   *
+   vez) heredaría el --fg claro de <html> si "oscuro" no tuviera su propia  *
+   regla — bug real, encontrado en el QA visual de este prompt.
+   OJO: --bg/--card/--border NO van acá — esos siguen viviendo en cada      *
+   [data-theme] (superficie teñida por tema, sin cambios). Si se agregaran  *
+   acá también, empatarían en especificidad con [data-theme="x"] y el       *
+   orden de la hoja los haría ganar, aplanando la tinta de los 5 temas a    *
+   un solo gris (la regresión que ya se evitó una vez en este mismo pase).  *
+   [data-mode="light"] sí las lleva porque ahí la superficie SÍ es          *
+   compartida entre temas (ver comentario de la sección TEMAS, arriba). */
+[data-mode="dark"] {
+  --fg:         #f5f7fa;
+  --muted:      #9aa4b2;
+
+  --danger:      #f87171;
+  --danger-dim:  rgba(248,113,113,0.10);
+  --warning:     #fbbf24;
+  --warning-dim: rgba(251,191,36,0.10);
+  --info:        #60a5fa;
+  --info-dim:    rgba(96,165,250,0.12);
+
+  color-scheme: dark;
+}
+
+[data-mode="light"] {
+  --bg:         #eceef1;
+  --card:       #ffffff;
+  --card-hover: #f4f5f8;
+  --border:     #dfe2e8;
+  --border-dim: #e8eaee;
+  --fg:         #14171c;
+  --muted:      #5c6570;
+
+  --danger:      #b42318;
+  --danger-dim:  rgba(180,35,24,0.08);
+  --warning:     #92400e;
+  --warning-dim: rgba(146,64,14,0.08);
+  --info:        #1d4ed8;
+  --info-dim:    rgba(29,78,216,0.10);
+
+  color-scheme: light;
 }
 
 /* ── Clases semánticas de tipografía ──────────────────────────────────── */

@@ -19,6 +19,7 @@ import { EjercicioForm } from "./routes/EjercicioForm";
 import { ProgramaDetalle } from "./routes/ProgramaDetalle";
 import { QaHomeRedux } from "./routes/QaHomeRedux";
 import { QaSaludResumen } from "./routes/QaSaludResumen";
+import { QaTemas } from "./routes/QaTemas";
 
 const router = createBrowserRouter([
   // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
   { path: "/entrenar/:rutinaId",            element: <EntrenarSesion /> },
   { path: "/qa/home-redux",                 element: <QaHomeRedux /> },
   { path: "/qa/salud-resumen",              element: <QaSaludResumen /> },
+  { path: "/qa/temas",                      element: <QaTemas /> },
 
   // ── App con AppShell ───────────────────────────────────────────────────────
   {
@@ -54,8 +56,9 @@ const router = createBrowserRouter([
 export default function App() {
   const { user, memberId, loading } = useAuth();
 
-  // QA de theming/mocks (P53, P64): datos mock, sin info de usuario → no requiere login.
-  if (window.location.pathname === "/qa/home-redux" || window.location.pathname === "/qa/salud-resumen") {
+  // QA de theming/mocks (P53, P64, P65): datos mock, sin info de usuario → no requiere login.
+  const QA_SIN_LOGIN = ["/qa/home-redux", "/qa/salud-resumen", "/qa/temas"];
+  if (QA_SIN_LOGIN.includes(window.location.pathname)) {
     return <RouterProvider router={router} />;
   }
 

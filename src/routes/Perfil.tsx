@@ -5,54 +5,43 @@ import { auth } from "../firebase";
 import { useAuth } from "../auth/useAuth";
 import { getPerfiles } from "../data/perfiles";
 import { MemberAvatar } from "../components/MemberAvatar";
-import { useTheme, type ThemeName } from "../contexts/ThemeProvider";
+import { useTheme, type ThemeName, type Modo } from "../contexts/ThemeProvider";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { MIEMBRO_IDS, type MiembroId } from "../types/models";
 import { getHomeLayout, setHomeLayout, type HomeLayout } from "../lib/homeLayout";
-import {
-  getHomeReduxPrefs, setHomeReduxModo, setHomeReduxAcento, resolverModo,
-  type HomeReduxModo, type HomeReduxAcento,
-} from "../lib/homeReduxPrefs";
 
-const REDUX_ACENTOS: { name: HomeReduxAcento; dark: string; light: string; label: string }[] = [
+// Hex dark/light por tema (P65) — mismos valores que src/styles/tokens.css
+// [data-theme][data-mode]; el picker muestra el que corresponde al modo
+// efectivo actual para que el swatch nunca mienta sobre lo que se va a ver.
+const TEMAS: { name: ThemeName; dark: string; light: string; label: string }[] = [
   { name: "ion",    dark: "#22d3ee", light: "#0e7490", label: "Ion"    },
   { name: "volt",   dark: "#4ade80", light: "#15803d", label: "Volt"   },
   { name: "blaze",  dark: "#ff7a45", light: "#c2410c", label: "Blaze"  },
-  { name: "indigo", dark: "#8b90ff", light: "#4f46e5", label: "Indigo" },
   { name: "pulse",  dark: "#ff4d79", light: "#be185c", label: "Pulse"  },
+  { name: "indigo", dark: "#8b90ff", light: "#4f46e5", label: "Indigo" },
+];
+
+const MODOS: { id: Modo; label: string }[] = [
+  { id: "light",  label: "Claro"   },
+  { id: "dark",   label: "Oscuro"  },
+  { id: "system", label: "Sistema" },
 ];
 
 const NOMBRES: Record<MiembroId, string> = {
   juanpablo: "Juan Pablo", maria: "María", sofia: "Sofía", federico: "Federico",
 };
 
-const TEMAS: { name: ThemeName; color: string; label: string }[] = [
-  { name: "ion",     color: "#22d3ee", label: "Ion"     },
-  { name: "volt",    color: "#4ade80", label: "Volt"    },
-  { name: "solar",   color: "#f5b62b", label: "Solar"   },
-  { name: "blaze",   color: "#ff7a45", label: "Blaze"   },
-  { name: "crimson", color: "#fb3b53", label: "Crimson" },
-  { name: "pulse",   color: "#ff4d79", label: "Pulse"   },
-  { name: "grape",   color: "#b15cff", label: "Grape"   },
-  { name: "indigo",  color: "#7c83ff", label: "Indigo"  },
-];
-
 export function Perfil() {
   const { user, memberId }              = useAuth();
-  const { theme, setTheme }             = useTheme();
+  const { tema, setTema, modo, setModo, modoEfectivo } = useTheme();
   const { canInstall, isInstalled, isIOS, promptInstall } = useInstallPrompt();
   const [color,    setColor]      = useState<string | undefined>(undefined);
   const [objetivos, setObjetivos] = useState<string[]>([]);
   const [homeLayout, setHomeLayoutState] = useState<HomeLayout>("aurora");
-  const [reduxModo,   setReduxModoState]   = useState<HomeReduxModo>("system");
-  const [reduxAcento, setReduxAcentoState] = useState<HomeReduxAcento>("ion");
 
   useEffect(() => {
     if (!memberId) return;
     setHomeLayoutState(getHomeLayout(memberId));
-    const prefs = getHomeReduxPrefs(memberId);
-    setReduxModoState(prefs.modo);
-    setReduxAcentoState(prefs.acento);
     getPerfiles().then((r) => {
       if (!r.ok) return;
       const perfil = r.value[memberId];
@@ -66,23 +55,6 @@ export function Perfil() {
     setHomeLayoutState(l);
     setHomeLayout(memberId, l);
   }
-
-  function handleReduxModo(m: HomeReduxModo) {
-    if (!memberId) return;
-    setReduxModoState(m);
-    setHomeReduxModo(memberId, m);
-  }
-
-  function handleReduxAcento(a: HomeReduxAcento) {
-    if (!memberId) return;
-    setReduxAcentoState(a);
-    setHomeReduxAcento(memberId, a);
-  }
-
-  const reduxDireccionClass = homeLayout === "pulse" ? "dir-a" : "dir-c v21";
-  const reduxModoEfectivo = resolverModo(reduxModo);
-  const reduxAcentoObj = REDUX_ACENTOS.find((a) => a.name === reduxAcento)!;
-  const reduxAcentoHex = reduxModoEfectivo === "dark" ? reduxAcentoObj.dark : reduxAcentoObj.light;
 
   const nombre = memberId ? NOMBRES[memberId as MiembroId] : (user?.displayName ?? "");
 
@@ -112,22 +84,42 @@ export function Perfil() {
         </div>
       )}
 
-      {/* ── Selector de tema ─────────────────────────────────────────────── */}
+      {/* ── Apariencia: modo claro/oscuro/sistema + tema (P65) ────────────── *
+         Antes eran dos cards separadas con dos sistemas de persistencia     *
+         distintos (Tema, 8 colores, solo oscuro / Apariencia, 5 acentos,    *
+         claro+oscuro, solo visible en layout Pulse/Premium). Consolidado:   *
+         una sola card, un solo ThemeProvider, visible siempre — el modo     *
+         claro/oscuro ahora afecta TODA la app, no solo Pulse/Premium.       */}
       {memberId && (
-        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
-            <p className="section-title" style={{ margin: "0 0 2px" }}>Tema</p>
+            <p className="section-title" style={{ margin: "0 0 2px" }}>Apariencia</p>
             <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
               Solo para {NOMBRES[memberId as MiembroId]}
             </p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+
+          <div style={{ display: "flex", gap: 6 }}>
+            {MODOS.map((m) => (
+              <button
+                key={m.id}
+                className={`filter-chip ${modo === m.id ? "active" : ""}`}
+                onClick={() => setModo(m.id)}
+                style={{ flex: 1, textAlign: "center" }}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
             {TEMAS.map((t) => {
-              const activo = theme === t.name;
+              const activo = tema === t.name;
+              const hex = modoEfectivo === "dark" ? t.dark : t.light;
               return (
                 <button
                   key={t.name}
-                  onClick={() => setTheme(t.name)}
+                  onClick={() => setTema(t.name)}
                   title={t.label}
                   style={{
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
@@ -135,15 +127,15 @@ export function Perfil() {
                   }}
                 >
                   <span style={{
-                    width: 40, height: 40, borderRadius: "50%",
-                    background: t.color,
+                    width: 36, height: 36, borderRadius: "50%",
+                    background: hex,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     boxShadow: activo
-                      ? `0 0 0 3px var(--bg), 0 0 0 5px ${t.color}`
+                      ? `0 0 0 3px var(--bg), 0 0 0 5px ${hex}`
                       : "none",
                     transition: "box-shadow 0.15s",
                   }}>
-                    {activo && <Check size={18} color="#fff" strokeWidth={2.5} />}
+                    {activo && <Check size={16} color="#fff" strokeWidth={2.5} />}
                   </span>
                   <span style={{
                     fontSize: 10, fontWeight: activo ? 700 : 400,
@@ -155,6 +147,19 @@ export function Perfil() {
                 </button>
               );
             })}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <svg width={40} height={40} viewBox="0 0 40 40">
+              <circle cx={20} cy={20} r={15} fill="none" stroke="var(--track, var(--border))" strokeWidth={5} />
+              <g transform="rotate(-90 20 20)">
+                <circle cx={20} cy={20} r={15} fill="none" stroke="var(--accent)" strokeWidth={5} strokeLinecap="round" strokeDasharray="47 94" />
+              </g>
+            </svg>
+            <button className="btn-secondary" style={{ width: "auto", padding: "9px 14px" }}>
+              Entrenar
+            </button>
+            <span style={{ fontSize: 11, color: "var(--muted)" }}>Preview</span>
           </div>
         </div>
       )}
@@ -203,56 +208,6 @@ export function Perfil() {
                 </button>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {/* ── Apariencia (Pulse/Premium) ───────────────────────────────────── */}
-      {memberId && (homeLayout === "pulse" || homeLayout === "premium") && (
-        <div className={reduxDireccionClass} data-mode={reduxModoEfectivo} data-accent={reduxAcento}>
-          <div className="c-card" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <p className="section-title" style={{ margin: 0, color: "var(--fg)" }}>Apariencia</p>
-            <p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--muted)" }}>
-              Solo para {NOMBRES[memberId as MiembroId]} · layout {homeLayout === "pulse" ? "Pulse" : "Premium"}
-            </p>
-
-            <div className="cfg-seg">
-              {([
-                { id: "light",  label: "Claro"   },
-                { id: "dark",   label: "Oscuro"  },
-                { id: "system", label: "Sistema" },
-              ] as { id: HomeReduxModo; label: string }[]).map((m) => (
-                <button key={m.id} className={reduxModo === m.id ? "on" : ""} onClick={() => handleReduxModo(m.id)}>
-                  {m.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="cfg-sws" style={{ marginTop: 14 }}>
-              {REDUX_ACENTOS.map((a) => (
-                <button
-                  key={a.name}
-                  className={`cfg-sw ${reduxAcento === a.name ? "on" : ""}`}
-                  title={a.label}
-                  onClick={() => handleReduxAcento(a.name)}
-                >
-                  <span className="dot" style={{ background: reduxModoEfectivo === "dark" ? a.dark : a.light }} />
-                </button>
-              ))}
-            </div>
-
-            <div className="cfg-preview">
-              <svg width={44} height={44} viewBox="0 0 44 44">
-                <circle cx={22} cy={22} r={17} fill="none" stroke="var(--track)" strokeWidth={6} />
-                <g transform="rotate(-90 22 22)">
-                  <circle cx={22} cy={22} r={17} fill="none" stroke={reduxAcentoHex} strokeWidth={6} strokeLinecap="round" strokeDasharray="53 107" />
-                </g>
-              </svg>
-              <button className={homeLayout === "pulse" ? "a-btn1" : "c-btn1"} style={{ padding: "9px 14px" }}>
-                Entrenar
-              </button>
-              <span className="plab">Preview</span>
-            </div>
           </div>
         </div>
       )}

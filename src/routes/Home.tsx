@@ -9,6 +9,7 @@ import { getHistorialMiembro } from "../data/historial";
 import { getMediciones, getMetricasSalud, getRegistrosSueno } from "../data/salud";
 import { calcularResumenSalud, type SenalSalud } from "../lib/resumenSalud";
 import { calcularRecomendacion, seleccionarEstadoDiario, type EstadoDiario } from "../lib/recomendaciones";
+import { useTheme } from "../contexts/ThemeProvider";
 import { useAuth } from "../auth/useAuth";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { WeekStrip } from "../components/WeekStrip";
@@ -19,7 +20,6 @@ import { lunesDeSemana, ymdLocal } from "../lib/semana";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
 import { getHomeLayout, type HomeLayout } from "../lib/homeLayout";
 import { calcularWeekChips } from "../lib/weekChips";
-import { getHomeReduxPrefs, resolverModo } from "../lib/homeReduxPrefs";
 import { HomeReduxContent, type HomeReduxData, type HomeReduxButton } from "../components/homeRedux/HomeReduxContent";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -233,6 +233,7 @@ function BentoTile({ label, children, animClass }: {
 export function Home() {
   const navigate             = useNavigate();
   const { memberId }         = useAuth();
+  const { tema, modoEfectivo } = useTheme();
 
   const [programa,  setPrograma]  = useState<Programa | null>(null);
   const [proxima,   setProxima]   = useState<ProximaSesionResult | null | undefined>(undefined);
@@ -255,15 +256,9 @@ export function Home() {
 
   const semanaRef = useRef(lunesDeSemana());
 
-  const [reduxModo,   setReduxModo]   = useState<"light" | "dark">("dark");
-  const [reduxAcento, setReduxAcento] = useState("ion");
-
   useEffect(() => {
     if (!memberId) return;
     setLayout(getHomeLayout(memberId));
-    const prefs = getHomeReduxPrefs(memberId);
-    setReduxModo(resolverModo(prefs.modo));
-    setReduxAcento(prefs.acento);
     getPerfiles().then((r) => { if (r.ok) setColor(r.value[memberId as MiembroId]?.color); });
 
     // Verificar descarte del día (localStorage)
@@ -443,7 +438,7 @@ export function Home() {
     };
 
     return (
-      <div className={`page ${direccion === "pulse" ? "dir-a" : "dir-c v21"}`} data-mode={reduxModo} data-accent={reduxAcento}>
+      <div className={`page ${direccion === "pulse" ? "dir-a" : "dir-c v21"}`} data-mode={modoEfectivo} data-accent={tema}>
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}

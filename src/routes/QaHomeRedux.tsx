@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { Moon } from "lucide-react";
 import type { HomeReduxData, HomeReduxDireccion } from "../components/homeRedux/HomeReduxContent";
 import { HomeReduxContent } from "../components/homeRedux/HomeReduxContent";
-import type { HomeReduxAcento } from "../lib/homeReduxPrefs";
+import type { ThemeName } from "../contexts/ThemeProvider";
 
 const DIRECCIONES: HomeReduxDireccion[] = ["pulse", "premium"];
 const MODOS: ("light" | "dark")[] = ["dark", "light"];
-const ACENTOS: HomeReduxAcento[] = ["ion", "volt", "blaze", "indigo", "pulse"];
+const ACENTOS: ThemeName[] = ["ion", "volt", "blaze", "indigo", "pulse"];
 
 const WEEK_CHIPS = [
   { letter: "L", fecha: "mock-0", estado: "done" as const },
