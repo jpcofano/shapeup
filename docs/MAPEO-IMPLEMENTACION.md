@@ -1585,6 +1585,56 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   Contexto: importar-fedb.ts asigna IDs secuenciales desde EJ-0001.
   Decisión: saltar al rango 9001+ para VR garantiza que nunca colisionan,
   corra seed-vr.ts antes o después de seed-ejercicios.ts.
+
+#019…#025 — ADRs de la serie S (salud): documentados en CLAUDE.md, sección
+  "ADRs de la serie S". #025 es la spec autoritativa del match biométrico
+  (docs/prompts/57-s-match-robusto.md, P57).
+
+#026 [2026-09-14] Toda actividad de Samsung Health entra al historial
+  Contexto: el ADR #020 estableció el filtro de relevancia de importSelectivo.ts,
+  que descarta en silencio toda actividad sin match. Con uso real del reloj esa
+  política pierde entrenamientos legítimos: lo descartado no deja rastro.
+  Decisión: no descartar, clasificar. Tres destinos, siempre exactamente uno:
+    (a) matchea una sesión ShapeUp → enriquece ese Historial, no crea entrada;
+    (b) no matchea y dura ≥ umbral → Historial nuevo con tipo: "externa";
+    (c) no matchea y no llega al umbral → listada como descartada VISIBLE,
+        con el motivo (no se borra: bajar el umbral después la recupera).
+  Historial.tipo suma "externa". Umbral 15 min configurable en /config/import
+  junto con la lista de actividades (hoy ACTIVIDADES_SIEMPRE_RELEVANTES y
+  DURACION_MIN_ACTIVIDAD_MIN=10 son constantes hardcodeadas).
+  Idempotencia por datauuid: el id de la entrada externa se deriva del
+  identificador de Samsung, misma estrategia que idMetrica (ADR #016).
+  Racha del plan (sólo sesiones ShapeUp) y días activos (todo) como dos
+  métricas separadas.
+  Consecuencia: todo cálculo derivado del historial (racha, adherencia,
+  vecesEntrenada, tonelaje, progresión) debe filtrar por tipo de forma
+  explícita, con tests que lo garanticen ESCRITOS ANTES de la ingesta (P74
+  antes que P75). El ADR #020 queda ACOTADO, NO REVERTIDO: su lógica de
+  relevancia pasa a decidir visibilidad, no persistencia.
+  Plan: docs/ROADMAP-producto.md, bloque 5. Prompt de origen: P66.
+
+#027 [2026-09-14] La sustitución de ejercicios se calcula, no se declara
+  Contexto: BloqueEjercicio.alternativas, Ejercicio.progresiones y
+  Ejercicio.regresiones están en el modelo pero vacíos en los 873 ejercicios
+  del catálogo (verificado: 0 fichas los tienen), y ningún script los puebla.
+  Decisión: los candidatos se derivan en tiempo real de patron,
+  grupoMuscularPrimario, mecanica, equipo y nivel, más el historial del
+  miembro, en un módulo puro (lib/sustitucion.ts, ADR #009) con los pesos en
+  constantes nombradas al principio del archivo. Los campos declarativos
+  quedan sin uso hasta que algo los pueble.
+  Consecuencia: la calidad de la sustitución depende de la calidad del
+  catálogo — de ahí que la auditoría de traducciones (404/873 marcadas
+  "pendiente" en el seed) sea precondición y no un extra. Se registra la
+  posición del candidato elegido en el ranking (BloqueRegistro.rankingSustituto)
+  para poder evaluar el algoritmo con datos reales: si siempre se elige el
+  tercero, el orden está mal.
+  Plan: docs/ROADMAP-producto.md, bloque 3. Prompt de origen: P66.
+
+  Nota de numeración: P66 pidió estos dos ADRs como #025 y #026 ("el último
+  conocido es #024"). #025 ya estaba tomado por la spec del match biométrico
+  (P57), citada desde CLAUDE.md y desde esta misma bitácora, así que se
+  registraron corridos a #026/#027 en vez de pisar una referencia viva. Ver
+  docs/ROADMAP-producto.md §12.1.
 ```
 
 ---
