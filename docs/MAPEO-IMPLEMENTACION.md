@@ -1634,7 +1634,46 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   conocido es #024"). #025 ya estaba tomado por la spec del match biométrico
   (P57), citada desde CLAUDE.md y desde esta misma bitácora, así que se
   registraron corridos a #026/#027 en vez de pisar una referencia viva. Ver
-  docs/ROADMAP-producto.md §12.1.
+  docs/ROADMAP-producto.md §12.1. P66b confirmó el corrimiento: sus ADRs son
+  #028 y #029.
+
+#028 [2026-09-14] La app es la única fuente de qué ejercicio fue
+  Contexto: el reloj usa UN solo workout custom ("Shape up") para todo, así que
+  el export no distingue fuerza de VR: mismo custom_id, misma actividad. Se
+  evaluaron dos formas de que Samsung aportara el ejercicio — un diccionario
+  juego→ejercicio en el import, y un segundo workout nombrado "ShapeUp VR" en
+  el reloj.
+  Decisión: ambas se rechazan. La app dice QUÉ ejercicio fue; Samsung dice
+  CUÁNTO costó (intensidad, duración, FC); el match por hora los une. Nunca se
+  infiere el ejercicio desde Samsung. El precedente es el bug del mapeo 1001
+  (P55): inferir desde el export ya salió caro una vez.
+  Consecuencia: una sesión jugada sin abrir la app antes queda como entrada
+  externa ambigua (ADR #026) y se resuelve a mano con el "enlazar" del bloque 5.
+  Se acepta ese costo antes que adivinar. El pool de match por custom_id tolera
+  30 min de Δinicio (ADR #025), así que abrir la rutina antes de jugar alcanza.
+  Plan: docs/ROADMAP-producto.md, bloque 9. Prompt de origen: P66b.
+
+#029 [2026-09-14] El programa es una cola y el atraso se mide en semanas de ciclo
+  Contexto: proximaSesion cuenta las sesiones de la semana por orden e ignora
+  diaSemana (lib/proximaSesion.ts); el conteo se reinicia cada lunes y no queda
+  registro de lo incumplido. Programa.duracionSemanas está declarado y nadie lo
+  lee.
+  Decisión: el programa es una cola sin fechas — hacés la siguiente sesión
+  cuando podés, diaSemana queda como etiqueta informativa. El atraso se expresa
+  como semanas de ciclo completadas contra transcurridas ("vas por la semana 3 y
+  transcurrieron 5"), con tope y oferta de reiniciar el ciclo — NUNCA como
+  sesiones pendientes acumuladas, que crecen sin techo hasta ser impagables.
+  La descarga se dispara por carga real, no por calendario: una semana cuenta
+  como semana de carga con ≥75% de las sesiones no opcionales completadas; a las
+  cuatro semanas de carga se PROPONE descarga (nunca se aplica sola), que
+  recorta 40% de las series redondeando hacia abajo, mínimo una serie por
+  ejercicio, manteniendo la carga.
+  Consecuencia: duracionSemanas pasa a usarse, y el estado de ciclo (inicio,
+  semanas de carga, última descarga, descarga activa) vive en el PERFIL DEL
+  MIEMBRO, no en el programa, porque los programas son plantillas compartidas.
+  Los días con opcional: true no cuentan como incumplidos en ninguna de las dos
+  cuentas.
+  Plan: docs/ROADMAP-producto.md, bloque 10. Prompt de origen: P66b.
 ```
 
 ---

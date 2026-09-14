@@ -32,9 +32,12 @@ y carga en un teclado numérico** con las manos ocupadas.
   suena, vibra, hace flash y la card se queda con `+30 s` y `Saltar`. Cambios: el botón
   pasa a decir **"Seguir"** cuando el descanso terminó (hoy sigue diciendo "Saltar", que
   es incorrecto en ese estado), se agranda, y se suma **`−30 s`**.
-- **Salir sin perder nada.** La X abre una hoja con tres salidas: *Guardar y salir*
-  (sesión parcial) · *Salir sin guardar* · *Seguir entrenando*. Hoy la X descarta todo lo
-  hecho y deja además la `SesionProgramada` en `En curso` para siempre.
+- **Salir ordenado.** La X abre una hoja con tres salidas: *Guardar y salir*
+  (sesión parcial) · *Salir sin guardar* · *Seguir entrenando*. Hoy la X no descarta lo
+  hecho —sólo navega, el estado vive en localStorage y se recupera al volver—, pero deja la
+  `SesionProgramada` en `En curso` indefinidamente, y "Reiniciar sesión" (en el header, al
+  lado del toggle de modo) borra todo sin confirmar. La hoja es la decisión correcta por
+  **ordenar la salida y cerrar la sesión programada**, no por rescatar trabajo perdido.
 - **`+ serie`** habilitado al alcanzar `seriesObjetivo()`, para AMRAP o una serie de más.
 - **"Saltar ejercicio"** con motivo **opcional** en chips: *dolor · equipo ocupado · sin
   tiempo · otro*. El motivo alimenta la sustitución del bloque 3.
@@ -105,11 +108,15 @@ elegís el tercero, el orden está mal.
 
 **Precondiciones:**
 - **Perfil editable.** `data/perfiles.ts` sólo tiene `getPerfiles()`; falta el writer y la
-  UI. `PerfilMiembro` ya modela lo necesario y las reglas ya permiten escribir
-  `/config/perfiles`, pero hoy todo se cambia corriendo `seed-perfiles.ts`.
+  UI. Las reglas ya permiten escribir `/config/perfiles`, pero hoy todo se cambia corriendo
+  `seed-perfiles.ts`.
   **El equipo se guarda por lugar** (casa / gimnasio / aire libre / VR) y al empezar la
-  sesión elegís dónde estás. Esto además enciende `lib/elegibilidad.ts`, hoy código muerto
-  que ningún import alcanza.
+  sesión elegís dónde estás. `PerfilMiembro` hoy tiene `equipoDisponible: Equipo[]` plano
+  más `lugarHabitual`, así que esto es **migrar la forma del documento ya sembrado**, no
+  agregar un campo: P72 necesita script de migración.
+  El **filtro por equipo hay que escribirlo**: `lib/elegibilidad.ts` filtra por
+  visibilidad, no por equipo, y sigue siendo código muerto que ningún import alcanza —
+  reutilizarlo o eliminarlo es una pregunta aparte.
 - **Auditoría de traducciones.** 404 de 873 fichas siguen marcadas `traduccion: "pendiente"`
   en el seed; no se sabe si los 18 scripts de lote las corrigieron en Firestore. Si la
   sustitución ofrece nombres en inglés, no sirve — y el buscador tampoco: buscar "remo" no
@@ -147,10 +154,14 @@ todo se clasifica.
 | No matchea y dura ≥ umbral | `Historial` nuevo con `tipo: "externa"` |
 | No matchea y no llega al umbral | Listada como descartada **visible, con el motivo** |
 
-- **Umbral: 15 minutos**, configurable en `/config/import` junto con la lista de
-  actividades. Hoy `ACTIVIDADES_SIEMPRE_RELEVANTES` y `DURACION_MIN_ACTIVIDAD_MIN` son
-  constantes hardcodeadas. Lo que no pasa el umbral no se borra: bajarlo después recupera
-  lo que quedó afuera.
+- **Umbral: se mantiene en 10 minutos**, el valor que `DURACION_MIN_ACTIVIDAD_MIN` tiene
+  desde P55 (elegido después del bug del mapeo 1001). Lo que cambia es que pasa a ser
+  **configurable en `/config/import`** junto con la lista de actividades — hoy
+  `ACTIVIDADES_SIEMPRE_RELEVANTES` y `DURACION_MIN_ACTIVIDAD_MIN` son constantes
+  hardcodeadas, y ése era el objetivo real. Subirlo sin evidencia cambiaría comportamiento
+  vigente a cambio de nada: como acá nada se borra, un umbral bajo sólo produce más
+  entradas externas visibles, ajustables en un toque si molestan. Lo que no pasa el umbral
+  tampoco se borra: bajarlo después recupera lo que quedó afuera.
 - **Idempotencia por `datauuid`**: el id de la entrada externa se deriva del identificador
   de Samsung, así reimportar el mismo ZIP —o uno que solapa— no duplica. Misma estrategia
   que `idMetrica`.
@@ -212,6 +223,134 @@ la que más se usa con un programa activo.
 
 ---
 
+## Bloque 9 — VR
+
+### Principio de fuentes
+**La app dice qué ejercicio fue. Samsung dice cuánto costó. El match por hora los une.**
+
+Ninguna fuente opina sobre lo de la otra. Esto descarta explícitamente dos ideas que se
+evaluaron y se rechazaron: un diccionario juego→ejercicio en el import, y un segundo
+workout en el reloj llamado "ShapeUp VR". Ambas intentaban que Samsung dedujera el
+ejercicio, que es justo lo que no tiene por qué saber. El precedente es el mapeo 1001:
+inferir desde Samsung ya salió caro una vez.
+
+Contexto de uso: **un único workout custom en el reloj, llamado "Shape up", para todo**.
+En el export, fuerza y VR son indistinguibles entre sí — mismo `custom_id`, misma
+actividad. El pool de match por `custom_id` es el más fuerte del sistema (tolerancia de
+30 min contra los 10 del fallback por ventana), así que abrir la rutina en la app antes de
+jugar alcanza para que la sesión quede correctamente identificada.
+
+**Consecuencia aceptada:** una sesión VR jugada sin abrir la app entra como entrada externa
+ambigua y se resuelve a mano con el "enlazar" del bloque 5. No hay forma honesta de
+evitarlo.
+
+### 9.1 Dificultad
+Chip al cerrar la sesión VR, tres niveles: **suave · normal · intenso**. Un toque, igual
+que el RIR del bloque 2. Es la palanca que necesita la progresión para existir.
+
+### 9.2 Progresión decidida por FC
+El sistema elige. Compara la FC media de la sesión contra la zona objetivo que las rutinas
+VR ya declaran (Z3 para las rítmicas, Z4 para las de quema y boxeo).
+
+**Escalera de palancas, ordenada por lo que cuesta en tiempo:**
+1. **Dificultad del juego** — no alarga la sesión.
+2. **Recortar descanso** — tampoco.
+3. **Sumar ronda** — sí, por eso va última.
+
+- FC media **por debajo** de la zona objetivo y rondas completas → el juego no exige:
+  subir dificultad.
+- FC media **en zona** y rondas completas → recortar descanso; con el descanso en su piso,
+  sumar ronda.
+- FC media **muy por encima**, o mala recuperación entre rondas → mantener o bajar.
+
+Piso de descanso y techo de rondas configurables.
+**Precondición:** zonas de FC en el perfil (bloque 3).
+
+### 9.3 Confiabilidad del dato de FC
+La FC de muñeca durante boxeo y juegos de ritmo es la peor medición del sistema: el sensor
+es óptico, agarrar el control contrae el antebrazo y los golpes sacuden el reloj. Picos
+falsos y caídas que no ocurrieron.
+
+**Decisión:** la progresión **sugiere igual**, avisando que el dato es dudoso. Si el aviso
+aparece seguido, la conclusión no es que la regla falle: es que la muñeca no sirve para
+medir esa actividad.
+
+### 9.4 Métricas propias en la vista por ejercicio
+Para modalidad VR, 1RM y tonelaje no significan nada. En su lugar:
+- minutos en zona 3 y 4,
+- FC media por ronda,
+- **recuperación entre rondas** — cuánto baja la FC en el descanso, el mejor indicador de
+  fitness cardiovascular disponible sin laboratorio,
+- rondas completadas.
+
+El `SerieTimer` ya marca el fin de cada ronda y el import ya trabaja con la curva completa
+de FC: el cruce de ambos es lo que habilita la recuperación. (Parte del camino ya está
+hecho: `SerieRegistro` guarda `inicioMs`/`finMs` por serie y el enriquecimiento ya escribe
+`fcPico`, `fcFinSerie` y `recuperacionBpm` — ver §13.2.)
+
+### 9.5 Qué aporta el VR, para que el plan no lo sobrevalore
+Aporta **adherencia**: cuarenta minutos en zona 3-4 sin vivirlos como entrenar. Es
+intermitente, dominante de tren superior, sin impacto articular.
+**No aporta sobrecarga progresiva**: no hay forma de subir carga de manera controlada, sólo
+densidad, y eso tiene techo. Complementa la fuerza, no la reemplaza.
+Las calorías que reporta el reloj en actividades de brazos vienen infladas: los algoritmos
+están calibrados sobre movimiento de muñeca.
+
+---
+
+## Bloque 10 — Planificación del programa
+
+### 10.1 El programa es una cola, no un calendario
+Hacés la siguiente sesión cuando podés. No hay días perdidos: hay avance más lento.
+`diaSemana` queda como etiqueta informativa y deja de fingir que planifica.
+
+### 10.2 El atraso se mide en semanas de ciclo
+En una cola pura la deuda no existe, y un contador de sesiones pendientes crece sin techo
+hasta volverse impagable e inútil. En su lugar: **semanas de ciclo completadas contra
+semanas transcurridas** — "vas por la semana 3 del plan y transcurrieron 5".
+
+`Programa.duracionSemanas` pasa a usarse. Superado un atraso máximo, el sistema ofrece
+**reiniciar el ciclo** en vez de seguir acumulando.
+
+El estado del ciclo **es del miembro, no del programa**: los programas son plantillas
+compartidas, así que inicio de ciclo, semanas de carga y última descarga viven en el perfil
+del miembro.
+
+### 10.3 Descarga automática, disparada por carga real
+La descarga sirve para bajar fatiga acumulada. Si no cumpliste, no acumulaste fatiga: el
+disparador no puede ser el calendario.
+
+- Una semana cuenta como **semana de carga** si completaste **al menos el 75%** de sus
+  sesiones no opcionales.
+- Al juntar **cuatro semanas de carga**, se **propone** descarga. Nunca se aplica sola.
+- La descarga recorta **un 40% de las series**, redondeando hacia abajo, nunca por debajo
+  de una serie por ejercicio. **La carga se mantiene.**
+
+Cumpliendo a medias tardás el doble en llegar a la descarga, que es exactamente la
+intención.
+
+**Entrada futura:** `recomendaciones.ts` ya vigila FC de reposo elevada y sueño bajo. Esas
+señales podrían **adelantar** la descarga. Es el puente natural entre la solapa Salud y el
+plan; queda propuesto, sin decidir.
+
+### 10.4 Fin de ciclo
+Al completar las semanas del ciclo, el sistema **sugiere cómo seguir** — repetir, subir
+volumen, cambiar de programa — y vos decidís.
+
+### 10.5 Arreglos que van en este bloque
+- **Pausar no puede dejarte sin Home.** `getProgramaActivo` sólo reconoce `"Activo"`, así
+  que un programa `Pausado` cae en el estado vacío que sugiere crear uno en Biblioteca —
+  donde no se pueden crear programas. La Home tiene que entender la pausa y ofrecer
+  reanudar. (Precisión del código: eso vale por el camino de fallback; con entrada en
+  `config/programaActivo` el programa pausado sí vuelve, pero la Home lo muestra como si
+  estuviera activo y tampoco ofrece reanudar. Ver §13.1.)
+- **Los días `opcional: true` no cuentan como incumplidos**, ni para el atraso ni para el
+  contador de semanas de carga.
+- **`DiaPrograma.tipo: "vr"` es una rama muerta**: ningún seed la usa. Decidir si se elimina
+  del modelo o se documenta como no usada.
+
+---
+
 ## 9. Cambios de modelo que implica el plan
 
 | Campo | Bloque |
@@ -223,16 +362,25 @@ la que más se usa con un programa activo.
 | `BloqueRegistro.saltado?` + `motivoSalto?` | 1 |
 | `BloqueRegistro.idEjercicioOriginal?` + `motivoSustitucion?` + `rankingSustituto?` | 3 |
 | `SerieRegistro.rir` — ya existe, empezar a llenarlo | 2 |
-| `PerfilMiembro`: equipo disponible **por lugar** | 3 |
+| `PerfilMiembro`: equipo disponible **por lugar** — migración de la forma del doc sembrado (de `equipoDisponible: Equipo[]` plano), no un campo nuevo | 3 |
 | `/config/import`: umbral y lista de actividades | 5 |
 | Entrada externa: actividad, duración, kcal, FC media/máx, zona, distancia, `datauuid` | 5 |
+| `Historial.dificultadVR?: "suave" \| "normal" \| "intenso"` | 9 |
+| `Historial.fcConfiable?: boolean` | 9 |
+| Piso de descanso y techo de rondas para rutinas VR | 9 |
+| Estado de ciclo en el perfil del miembro: programa, inicio de ciclo, semanas de carga, última descarga, descarga activa | 10 |
+| `Programa.pausadoDesde?` | 10 |
 
 ## 10. Diferidos (no descartados)
 
 - **Análisis por LLM.** El usuario exporta un snapshot de salud e historial, lo pega en un
-  chat de IA, y el análisis vuelve como JSON que la app ingiere y muestra. El destino ya
-  existe: `Recomendacion` y `/recomendaciones`, ya renderizado en Home. **La solapa Salud
-  por ahora sólo visualiza datos de la app.**
+  chat de IA, y el análisis vuelve como JSON que la app ingiere y muestra. El tipo
+  `Recomendacion` y la regla de `/recomendaciones` existen, pero **ningún código los usa**:
+  Home renderiza lo que `lib/recomendaciones.ts` calcula al vuelo, por decisión explícita
+  del **ADR #023** (sin colección, cálculo derivable). Persistir recomendaciones lo
+  contradice, así que este bloque **requiere revisar el ADR #023 de frente** — no hay
+  infraestructura existente en la que apoyarse. **La solapa Salud por ahora sólo visualiza
+  datos de la app.**
 - **Registro real de movilidad, isométrico y VR.** Hoy el quick-log sólo aparece con
   `modalidad === "Fuerza"`. Diferido porque Samsung ya trae el cardio; queda pendiente que
   el reloj tampoco captura movilidad ni isométrico.
@@ -263,8 +411,8 @@ silencioso toda la sesión.
 | P69 | Bloque 4 — sin señal (chico y evita perder sesiones) | P68 |
 | P70 | Bloque 2 — resumen post-entreno y RIR | P68 |
 | P71 | Auditoría de traducciones (script, sin UI) | — |
-| P72 | Perfil editable + equipo por lugar | — |
-| P73 | Bloque 3 — `lib/sustitucion.ts` y UI | P71, P72 |
+| P72 | Perfil editable + equipo por lugar **+ script de migración del doc sembrado** | — |
+| P73 | Bloque 3 — `lib/sustitucion.ts` y UI **+ filtro por equipo escrito desde cero** | P71, P72 |
 | P74 | Tests de aislamiento por `tipo` de historial | — |
 | P75 | Bloque 5 — ingesta total y entradas externas | P74 |
 | P76 | Bloque 5 — enlazar, convertir, inventario del import | P75 |
@@ -272,6 +420,12 @@ silencioso toda la sesión.
 | P78 | Bloque 7 — vista por ejercicio | P70, P77 |
 | P79 | Bloque 8 — recortar la rutina del día | P73 |
 | P80 | Bloque 8 — armar desde cero | P79 |
+| P81 | Arreglos de planificación: pausa, días opcionales, `diaSemana` informativo | — |
+| P82 | Cola + atraso en semanas de ciclo + fin de ciclo | P81 |
+| P83 | Contador de semanas de carga + propuesta de descarga | P82 |
+| P84 | VR: chip de dificultad y marca de confiabilidad de FC | P72 |
+| P85 | VR: progresión por FC con la escalera de palancas | P84 |
+| P86 | VR: métricas propias en la vista por ejercicio | P78, P84 |
 
 ---
 
@@ -356,3 +510,48 @@ leyenda (`EntrenarSesion.tsx:194`). Quick-log sólo con `modalidad === "Fuerza"`
 Tonelaje calculado recién en `finalizarSesion` (`data/historial.ts:72`). `seriesObjetivo` y
 `estimarDuracionMin` existen en `lib/metricas.ts`. `data/perfiles.ts` sólo expone
 `getPerfiles()`.
+
+---
+
+## 13. Discrepancias detectadas (P66b, 2026-09-14)
+
+Verificación del texto de los bloques 9 y 10 contra el código. **Nada de esta sección
+modifica las decisiones**, igual que §12. §12 queda intacta: registra lo de P66.
+
+### 13.1 `getProgramaActivo` no filtra por estado en su camino principal
+
+El bloque 10.5 dice que sólo reconoce `"Activo"`. Eso vale para el **fallback**
+(`src/data/programas.ts:65`, `find((p) => p.estado === "Activo")`), pero el camino
+principal lee `config/programaActivo` y devuelve el programa que el mapa apunta **sin mirar
+el estado** (`programas.ts:50-61`), que es el camino que usa Home (`Home.tsx:273`, con
+`memberId`). O sea, hay dos agujeros distintos, no uno:
+
+- **con** entrada en `config/programaActivo`: el programa pausado vuelve y la Home lo
+  muestra como si estuviera activo — la pausa es invisible y no hay dónde reanudar;
+- **sin** entrada (retrocompat): el pausado desaparece y cae el estado vacío que manda a
+  Biblioteca, donde no se pueden crear programas.
+
+El arreglo de P81 es entonces doble: que la Home entienda la pausa (mostrarla y ofrecer
+reanudar) **y** decidir qué devuelve `getProgramaActivo` cuando el doc apunta a un programa
+pausado. La decisión de producto —"pausar no puede dejarte sin Home"— no cambia.
+
+### 13.2 La recuperación entre rondas ya está medida; falta exponerla
+
+El bloque 9.4 la plantea como cruce a construir. En el modelo ya existe por serie:
+`SerieRegistro` guarda `inicioMs`/`finMs` (sellados por el reducer, no por el `SerieTimer`,
+que es una cuenta regresiva con beep y no registra nada) más `fcPico`, `fcFinSerie` y
+`recuperacionBpm`, que el enriquecimiento escribe desde la curva de FC (ADR #025, con tope
+de 90 s en la última serie). P86 es sobre todo **superficie**: agregarlo por ronda y
+mostrarlo, no derivarlo de cero.
+
+### 13.3 Verificado y correcto (para constancia)
+
+`ESTADOS_PROGRAMA` incluye `"Pausado"` (`models.ts:175`). `Programa.duracionSemanas` está
+declarado (`models.ts:357`) y lo escribe `seed-planes-extra.ts`, pero **ningún código lo
+lee**: "pasa a usarse" es exacto. `DiaPrograma.opcional: boolean` existe (`models.ts:345`).
+`proximaSesion` recorre los días por `orden` contra el historial de la semana e ignora
+`diaSemana` (`lib/proximaSesion.ts:21-46`). `DiaPrograma.tipo: "vr"` no lo usa ningún seed
+(sí lo contempla `proximaSesion` como "día sin rutina" y lo ejercita su test). Las rutinas
+VR declaran `zonaObjetivo` (`seed-plan.ts:298`, ADR #024), así que 9.2 tiene contra qué
+comparar. `lib/recomendaciones.ts` ya vigila `fc-reposo` y sueño. No existen todavía
+`Historial.dificultadVR`, `Historial.fcConfiable` ni `Programa.pausadoDesde`.
