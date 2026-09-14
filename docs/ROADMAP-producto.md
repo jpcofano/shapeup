@@ -283,10 +283,10 @@ Para modalidad VR, 1RM y tonelaje no significan nada. En su lugar:
   fitness cardiovascular disponible sin laboratorio,
 - rondas completadas.
 
-El `SerieTimer` ya marca el fin de cada ronda y el import ya trabaja con la curva completa
-de FC: el cruce de ambos es lo que habilita la recuperación. (Parte del camino ya está
-hecho: `SerieRegistro` guarda `inicioMs`/`finMs` por serie y el enriquecimiento ya escribe
-`fcPico`, `fcFinSerie` y `recuperacionBpm` — ver §13.2.)
+**El dato ya existe; esto es superficie, no derivación.** `SerieRegistro` guarda
+`inicioMs`/`finMs` por serie (los sella el reducer de la sesión) y el enriquecimiento ya
+escribe `fcPico`, `fcFinSerie` y `recuperacionBpm` desde la curva de FC (ADR #025, con tope
+de 90 s en la última serie). Lo que falta es agregarlo por ronda y mostrarlo — ver §13.2.
 
 ### 9.5 Qué aporta el VR, para que el plan no lo sobrevalore
 Aporta **adherencia**: cuarenta minutos en zona 3-4 sin vivirlos como entrenar. Es
@@ -322,12 +322,18 @@ disparador no puede ser el calendario.
 
 - Una semana cuenta como **semana de carga** si completaste **al menos el 75%** de sus
   sesiones no opcionales.
+- **La primera semana parcial no cuenta.** Si el ciclo arranca un jueves, esa semana sale
+  incompleta por definición: el contador de semanas de carga empieza el lunes siguiente.
 - Al juntar **cuatro semanas de carga**, se **propone** descarga. Nunca se aplica sola.
 - La descarga recorta **un 40% de las series**, redondeando hacia abajo, nunca por debajo
   de una serie por ejercicio. **La carga se mantiene.**
 
 Cumpliendo a medias tardás el doble en llegar a la descarga, que es exactamente la
 intención.
+
+**La propuesta mira la cobertura antes de hablar** (bloque 11). Si venís cumpliendo el 75%
+pero cambiando la mitad de los días, el mensaje no es "te toca descargar" sino que quizá
+el problema no es la fatiga sino el plan. Mismo cálculo, distinto mensaje.
 
 **Entrada futura:** `recomendaciones.ts` ya vigila FC de reposo elevada y sueño bajo. Esas
 señales podrían **adelantar** la descarga. Es el puente natural entre la solapa Salud y el
@@ -341,13 +347,61 @@ volumen, cambiar de programa — y vos decidís.
 - **Pausar no puede dejarte sin Home.** `getProgramaActivo` sólo reconoce `"Activo"`, así
   que un programa `Pausado` cae en el estado vacío que sugiere crear uno en Biblioteca —
   donde no se pueden crear programas. La Home tiene que entender la pausa y ofrecer
-  reanudar. (Precisión del código: eso vale por el camino de fallback; con entrada en
-  `config/programaActivo` el programa pausado sí vuelve, pero la Home lo muestra como si
-  estuviera activo y tampoco ofrece reanudar. Ver §13.1.)
+  reanudar. **P81 arregla las dos ramas** de `getProgramaActivo` (§13.1): el camino
+  principal, que lee `config/programaActivo` sin filtrar por estado y hoy muestra el
+  programa pausado como si estuviera activo, y el fallback, que filtra por `"Activo"` y
+  hace desaparecer el pausado.
 - **Los días `opcional: true` no cuentan como incumplidos**, ni para el atraso ni para el
   contador de semanas de carga.
 - **`DiaPrograma.tipo: "vr"` es una rama muerta**: ningún seed la usa. Decidir si se elimina
   del modelo o se documenta como no usada.
+
+---
+
+## Bloque 11 — Cambiar el día
+
+El caso: hoy tocaba tren inferior y hacés VR, o tren superior, o lo que sea. El sistema
+lo registra en vez de pelearse con vos.
+
+### 11.1 Cómo funciona
+Desde Home o desde Entrenar, donde dice cuál es la siguiente sesión, un **cambiar**.
+Elegís otra rutina del plan, una VR, o una sesión libre. Entrenás normal.
+
+**El plan avanza igual.** La rutina que tocaba no queda trabada adelante: se hace en la
+próxima vuelta de la cola. Si la evitás sistemáticamente, eso aparece en los datos en vez
+de bloquearte la app.
+
+### 11.2 Qué queda registrado
+`rutinaPrevista`, `rutinaRealizada` y un motivo opcional. **Los tres**: sin lo previsto,
+el análisis no puede ver el patrón. Con dos meses de datos esto permite decir "cambiaste
+tren inferior en seis de diez veces que te tocó", que es información sobre el plan, no
+sobre la disciplina de quien entrena.
+
+### 11.3 Adherencia y cobertura
+Dos métricas separadas, por la misma razón que racha del plan y días activos:
+- **Adherencia** — entrenaste. Cambiar tren inferior por VR la deja intacta.
+- **Cobertura del plan** — hiciste lo que el plan pedía. Baja cuando cambiás.
+
+La semana cuenta como cumplida para el contador de carga (bloque 10.3) hayas hecho lo que
+hayas hecho. Cualquiera de las dos métricas sola miente; juntas cuentan la historia.
+
+### 11.4 Aviso por esquive repetido
+A la **tercera vez** que cambiás la misma rutina, el sistema lo dice. No como reproche:
+como señal de que esa rutina probablemente no va más en tu plan. Es el mismo criterio que
+el contador de sustituciones del bloque 7.
+
+### 11.5 Descartado explícitamente
+Se evaluaron y se rechazaron dos diseños más ambiciosos:
+- **Deuda a nivel ejercicio** (el ejercicio salteado pasa al día siguiente). El día
+  siguiente casi nunca es el día correcto: arrastrar un empuje al día de piernas rompe el
+  split que justifica el programa. Y lo salteado por dolor es precisamente lo que no debe
+  reaparecer mañana.
+- **Cajón de pendientes con caducidad.** Consecuencia del anterior; sin deuda a nivel
+  ejercicio no tiene razón de existir.
+
+Dentro de la sesión sigue habiendo dos herramientas para el mismo problema: **sustituir**
+(bloque 3) cambia un ejercicio por otro el mismo día, y **saltar** (bloque 1) lo descarta
+registrando el motivo.
 
 ---
 
@@ -370,6 +424,8 @@ volumen, cambiar de programa — y vos decidís.
 | Piso de descanso y techo de rondas para rutinas VR | 9 |
 | Estado de ciclo en el perfil del miembro: programa, inicio de ciclo, semanas de carga, última descarga, descarga activa | 10 |
 | `Programa.pausadoDesde?` | 10 |
+| `Historial.rutinaPrevista?` + `motivoCambio?` | 11 |
+| Cobertura del plan como métrica derivada, separada de adherencia | 11 |
 
 ## 10. Diferidos (no descartados)
 
@@ -420,12 +476,16 @@ silencioso toda la sesión.
 | P78 | Bloque 7 — vista por ejercicio | P70, P77 |
 | P79 | Bloque 8 — recortar la rutina del día | P73 |
 | P80 | Bloque 8 — armar desde cero | P79 |
-| P81 | Arreglos de planificación: pausa, días opcionales, `diaSemana` informativo | — |
+| P81 | Arreglos de planificación: pausa (las dos ramas de `getProgramaActivo`), días opcionales, `diaSemana` informativo | — |
 | P82 | Cola + atraso en semanas de ciclo + fin de ciclo | P81 |
 | P83 | Contador de semanas de carga + propuesta de descarga | P82 |
 | P84 | VR: chip de dificultad y marca de confiabilidad de FC | P72 |
 | P85 | VR: progresión por FC con la escalera de palancas | P84 |
-| P86 | VR: métricas propias en la vista por ejercicio | P78, P84 |
+| P86 | VR: métricas propias en la vista por ejercicio — superficie sobre `recuperacionBpm` ya calculado, no derivación desde la curva | P78, P84 |
+| P87 | Bloque 11 — cambiar el día, registro previsto/realizado, cobertura, aviso al tercer esquive | P82 |
+| P88 | H1′ — spike del puente Drive, sin código en la app | — |
+| P89 | H2 — adaptador Health Sync → tipos de entrada existentes | P88 |
+| P90 | H3 — lectura de Drive, sync al abrir, idempotencia de doble vía | P89 |
 
 ---
 
@@ -555,3 +615,65 @@ lee**: "pasa a usarse" es exacto. `DiaPrograma.opcional: boolean` existe (`model
 VR declaran `zonaObjetivo` (`seed-plan.ts:298`, ADR #024), así que 9.2 tiene contra qué
 comparar. `lib/recomendaciones.ts` ya vigila `fc-reposo` y sueño. No existen todavía
 `Historial.dificultadVR`, `Historial.fcConfiable` ni `Programa.pausadoDesde`.
+
+---
+
+## 14. Discrepancias detectadas (P66c, 2026-09-14)
+
+Verificación del bloque 11 y de la serie H revisada contra el código y los docs. **Nada
+de esta sección modifica las decisiones.** §12 y §13 quedan intactas.
+
+### 14.1 La señal que "adelantaría la descarga" hoy no tiene datos
+
+10.3 dice que `recomendaciones.ts` "ya vigila FC de reposo elevada". El código la vigila
+(regla 3, `lib/recomendaciones.ts:92,140`), pero la señal `fc-reposo` **sale siempre
+`sin-datos`** (`lib/resumenSalud.ts:129`): el ZIP no trae reposo real
+(`docs/SAMSUNG-HEALTH-MAPEO.md:102`, verificado en P56). La regla existe y nunca dispara.
+Esto no cambia la decisión, pero refuerza la pregunta 4 de H1′: si Health Sync trae FC de
+reposo, la entrada futura de 10.3 pasa de hipotética a posible.
+
+### 14.2 §10 y §11 ya no dicen lo mismo sobre la serie H
+
+El diferido de §10 sigue diciendo "Serie H (Health Connect) — entra cuando el bloque 5
+esté estable, porque el bloque 5 define qué se hace con lo que llega". §11 ahora pone
+**P88 sin dependencias** y P89 → P88, P90 → P89, sin atarlos a P75. Para el spike (P88,
+sin código) no hay conflicto: se puede correr cuando sea. Para **P89/P90 sí**: el riesgo
+central de la serie H es la idempotencia contra el id que define el bloque 5, así que
+escribir el adaptador antes de P75 implicaría adivinar esa clave. El nombre "Health
+Connect" del diferido también quedó viejo (ADR #031). No se corrigió en el lugar porque
+P66c no lo pide; queda para decidir si P89 depende también de P75.
+
+### 14.3 "Mismo criterio" que el bloque 7, distinto umbral
+
+11.4 avisa a la **tercera** vez que cambiás una rutina y dice que es el mismo criterio que
+el contador de sustituciones del bloque 7, que habla de "sustituirlo **seis** veces
+seguidas". La idea es la misma (señal de que eso no va más en el plan); los números no.
+P78 y P87 van a necesitar decidir si comparten umbral.
+
+### 14.4 `rutinaRealizada` ya existe con otro nombre
+
+`Historial.idRutina` (`models.ts`, "ausente en sesiones libres") es la rutina realizada;
+por eso §9 sólo agrega `rutinaPrevista?` + `motivoCambio?`, y está bien. Lo que P87 tiene
+que resolver: cuando el cambio es a una **sesión libre** no hay `idRutina`, así que "lo
+realizado" se lee de `tipo: "libre"`, no de un id.
+
+### 14.5 `CLAUDE.md` sigue diciendo "plan Spark" en otros lugares
+
+La serie H nueva dice **Blaze habilitado**, pero `CLAUDE.md` mantiene "plan Spark" en
+"Qué es" (línea 9) y cita "costo Spark" como motivo en la regla de métricas diarias
+(ADR #016), en ADR #020, en ADR #023 y en el roadmap viejo (backup CSV). Los motivos de
+esos ADRs siguen siendo razonables —el nivel gratuito de Blaze tiene los mismos límites—,
+pero la línea de "Qué es" contradice a la serie H en el mismo archivo. Igual con
+`docs/ESTADO-DEL-PROYECTO.md:59-61`, que describe el cascarón nativo como el único camino a
+sync automático. P66c sólo autoriza reemplazar la sección de la serie H, así que no se
+tocaron.
+
+### 14.6 Verificado y correcto (para constancia)
+
+`docs/prompts/61-h0-plan-serie-h.md` propone ADR #026–#029 (sync on-device sin backend,
+Capacitor con web remota, APK directo, sync al abrir) y pedía marcar la serie H "en
+curso — fase H1": nada de eso se aplicó (`CLAUDE.md` seguía en "no arrancada"). La curva
+de FC sale de `live_data.json` dentro del ZIP, indexada por `datauuid`
+(`import/samsungZip.ts:93-94,176`). `docs/auditorias/` está gitignoreada (`.gitignore:26`),
+así que el reporte de H1′ tiene dónde ir. `Historial` no tiene todavía `rutinaPrevista`,
+`motivoCambio` ni nada de cobertura.

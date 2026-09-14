@@ -1674,6 +1674,46 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   Los días con opcional: true no cuentan como incumplidos en ninguna de las dos
   cuentas.
   Plan: docs/ROADMAP-producto.md, bloque 10. Prompt de origen: P66b.
+
+#030 [2026-09-14] Cambiar el día no genera deuda
+  Contexto: con la cola del ADR #029, cambiar la rutina de un día (tocaba tren
+  inferior y se hizo VR, otra rutina o una sesión libre) podía resolverse de
+  tres maneras: trabando la rutina prevista adelante, arrastrando ejercicios
+  sueltos al día siguiente, o manteniendo un cajón de pendientes con caducidad.
+  Decisión: el plan avanza. La rutina prevista se hace en la próxima vuelta de
+  la cola. Se registran rutinaPrevista, rutinaRealizada (hoy Historial.idRutina,
+  o tipo "libre") y un motivo opcional, y se miden por separado ADHERENCIA
+  (entrenaste) y COBERTURA DEL PLAN (hiciste lo que el plan pedía). Sin deuda a
+  nivel ejercicio ni pendientes: arrastrar un empuje al día de piernas rompe el
+  split, y lo salteado por dolor es justo lo que no debe reaparecer mañana.
+  Dentro de la sesión siguen sustituir (bloque 3) y saltar (bloque 1).
+  Consecuencia: el patrón de esquive queda en los datos y alimenta el análisis,
+  en vez de trabar la app. A la tercera repetición sobre la misma rutina, el
+  sistema lo señala como información sobre el plan, no como reproche. La
+  propuesta de descarga (ADR #029) mira la cobertura antes de hablar: mucho
+  cambio con 75% cumplido sugiere revisar el plan, no descargar.
+  Plan: docs/ROADMAP-producto.md, bloque 11. Prompt de origen: P66c.
+
+#031 [2026-09-14] La serie H arranca por puente de archivos, no por cascarón nativo
+  Contexto: P61 (docs/prompts/61-h0-plan-serie-h.md, nunca aplicado) propuso
+  Capacitor + Health Connect asumiendo Spark y sin backend. Hoy hay Health Sync
+  pago exportando a Google Drive en segundo plano (CSV de salud; actividades en
+  FIT/TCX/GPX/CSV) y Blaze habilitado con alertas de presupuesto.
+  Decisión: el camino primario es leer desde la PWA los archivos que Health
+  Sync deja en Drive, al abrir la app, procesando lo nuevo y marcando lo
+  procesado. Plan B: Intervals.icu vía proxy en una function (CORS). Plan C: el
+  cascarón de P61, que queda como antecedente y no como plan vigente. Ningún
+  diseño de adaptador se compromete antes del reporte del spike H1′ (curva de
+  FC por sesión, identificador estable, frecuencia de escritura, FC de reposo
+  y HRV). Riesgos a confirmar: revocación de refresh tokens a los 7 días con la
+  app OAuth en Testing, y drive.readonly como alcance restringido.
+  Consecuencia: la premisa "sin backend, proyecto en Spark" de P61 queda
+  revisada. La clave determinista compartida entre ZIP y Drive se define con
+  los archivos del spike a la vista: ambas vías deben producir exactamente el
+  mismo id (ADR #026). El import por ZIP no se elimina. Los números de ADR que
+  P61 proponía (#026–#029) nunca se registraron y hoy están ocupados por P66 y
+  P66b — P61 no debe re-aplicarse tal cual.
+  Plan: CLAUDE.md, sección "Serie H". Prompt de origen: P66c.
 ```
 
 ---

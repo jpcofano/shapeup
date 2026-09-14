@@ -1,5 +1,12 @@
 # Prompt 61 — H0 · Documentar el plan de la serie H (Health Connect) en `CLAUDE.md`
 
+> **⚠ SUPERADO por P66c (2026-09-14) — antecedente, no plan vigente. No re-aplicar.**
+> Este prompt nunca se aplicó. Su premisa (sin backend, proyecto en Spark, Capacitor como
+> única vía) quedó revisada por el **ADR #031**: el camino primario es el puente de
+> archivos de Health Sync en Drive, y el cascarón Capacitor de acá queda como plan C.
+> Los números de ADR que propone (#026–#029) nunca se registraron y hoy están ocupados
+> por P66 y P66b con otras decisiones. Plan vigente: sección "Serie H" de `CLAUDE.md`.
+
 > **Solo documentación** (no toques código de la app ni tests). Origen: conversación
 > de arquitectura con el owner (2026-07-14), decisiones ya tomadas. Mismo método que
 > abrió la serie S (P45): primero el plan y las decisiones escritas, después los

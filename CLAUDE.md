@@ -189,19 +189,76 @@ con conversación de arquitectura, no directo a código.
   que se había pedido no es calculable todavía — queda pendiente si se agrega
   ese campo a futuro.
 
-## Serie H — Sync automático de salud (no arrancada — 2026-07-17)
+## Serie H — Sync automático de salud (plan vigente desde P66c)
 
-Objetivo: que la biometría entre sin el paso manual de exportar/importar el ZIP
-de Samsung Health — sync automático vía Health Connect (Android). Distinto
-problema del de las series S/I: esas son de *análisis* (qué hacer con el dato
-una vez que ya está en Firestore); esta es de *ingesta* (cómo llega el dato).
+Objetivo: que la biometría entre sin exportar el ZIP a mano.
 
-**No arranca directo a código.** El primer paso (H1) es una conversación de
-arquitectura con el owner: Health Connect no tiene API web — hace falta un
-cascarón nativo (Capacitor o TWA) para leerlo, lo que es un cambio de alcance
-grande (empaquetado, permisos Android, posiblemente una store listing) y no
-una prompt más de la serie S/I. Sin plan de H1 todavía — no hay sub-secciones
-que completar hasta que esa conversación pase.
+### Qué cambió respecto del plan de P61
+P61 asumía que la única vía era leer Health Connect desde un cascarón nativo, y que el
+proyecto seguía en Spark sin backend. Dos cosas cambiaron:
+
+- **Health Sync (versión paga) está instalado y exporta a Google Drive**: datos de salud
+  como CSV y actividades como FIT/TCX/GPX/CSV, automáticamente en segundo plano. Eso
+  abre un camino que no requiere APK: la PWA lee la carpeta.
+- **Blaze habilitado**, con alertas de presupuesto. El uso a esta escala cae en el nivel
+  gratuito, así que el costo esperado es cero, pero deja de ser cierto que no puede haber
+  una function.
+
+### Caminos evaluados
+
+**A — Puente por Drive (recomendado).** Health Sync escribe, ShapeUp lee al abrir,
+procesa lo nuevo y marca lo procesado. Sin APK, sin entorno Android, y las APIs de Google
+funcionan desde el navegador. Dos riesgos a confirmar antes de comprometerse:
+- Con la app OAuth en estado **Testing**, Google revoca los refresh tokens **a los 7
+  días**, se use o no. Reautorizar cada semana sería peor que exportar el ZIP. La salida
+  es publicar la app; para uso personal Google contempla excepciones a la verificación,
+  con pantalla de advertencia.
+- Leer archivos creados por otra app requiere `drive.readonly`, que Google clasifica como
+  **alcance restringido**; su verificación puede escalar a una auditoría de seguridad.
+  Verificar en la consola qué exige hoy para este caso.
+
+**B — Intervals.icu.** Health Sync también sincroniza ahí. Autenticación por clave
+personal (básica), expone actividades y wellness —FC de reposo, HRV, peso, pasos— y
+webhooks. Auth trivial comparada con Google. Riesgo probable: **CORS** desde el
+navegador, que obligaría a un proxy en una function — ahora posible con Blaze, pero es
+infraestructura nueva.
+
+**C — Cascarón Capacitor** (el plan de P61). Lee Health Connect directo, con token de
+cambios para sync incremental. El camino correcto a largo plazo y el más caro: APK,
+entorno Android, capa nativa que mantener. Queda como plan C, intacto.
+
+### H1′ — Spike sin código (primero, y bloquea todo lo demás)
+Configurar el export de Health Sync a Drive y dejarlo correr **un día que incluya una
+sesión de fuerza, una de VR y una noche de sueño**. Después auditar los archivos. Lo que
+hay que responder:
+
+1. **¿Viene la curva de FC por sesión?** Hoy sale de `live_data.json` dentro del ZIP,
+   indexada por `datauuid`, ~1 muestra por segundo. De ahí sale todo el enriquecimiento
+   biométrico, y `recuperacionBpm` por serie con él. Un FIT debería transportar algo
+   equivalente; hay que confirmarlo.
+2. **¿Hay identificador estable por registro?** El `datauuid` de Samsung probablemente no
+   viaje por esta vía.
+3. **¿Cada cuánto escribe?**
+4. **¿Trae FC de reposo y HRV?** `docs/SAMSUNG-HEALTH-MAPEO.md` registra que `fc-reposo`
+   **no tiene fuente en el export del ZIP** (verificado en P56): `tracker.heart_rate` es
+   un agregado esporádico, no reposo real. Health Connect sí tiene un tipo dedicado. Si
+   esta vía lo trae, la serie H no solo saca un paso manual: **destraba un dato hoy
+   imposible**, y con él la señal que puede adelantar la descarga del bloque 10.3.
+
+Salida: reporte de auditoría (gitignored, como los demás). Sin escribir nada a Firestore
+en esta fase.
+
+### Riesgo central: idempotencia por dos vías
+El bloque 5 deriva el id de una entrada externa del `datauuid` de Samsung. Si el mismo
+entrenamiento llega por ZIP y por Drive y el identificador no viaja, se generan dos
+entradas distintas para el mismo hecho. **La clave determinista compartida hay que
+definirla con los archivos del spike a la vista**, no antes — y ambas vías deben producir
+exactamente el mismo id. El import por ZIP no se elimina: queda como respaldo y para la
+historia previa.
+
+### Regla heredada de la serie S
+Todo timestamp en epoch ms UTC; conversión a local solo al mostrar. Los bugs de zona
+horaria fueron el enemigo número uno de la serie S.
 
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3; progresión de cargas y costo cardíaco por rutina
