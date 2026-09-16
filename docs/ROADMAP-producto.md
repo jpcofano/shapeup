@@ -876,10 +876,21 @@ Detalles adicionales medidos:
 - El nivel superior expone además `appId` (`com.sec.android.app.shealth`), `deviceId` y
   `zoneOffset`, que ninguna de las otras dos vías entrega juntos.
 
-#### M1 del puente: lectura verificada
+#### Hitos del puente
 
-M1 del puente —la app Android que lee Samsung Health con el Data SDK— se verificó contra la
-sesión de referencia y coincide exacto:
+El puente es la app Android que lee Samsung Health con el Data SDK (vía D). Sus hitos se
+llaman PU1–PU4, para no chocar con el M1/M2 del backlog de `MAPEO-IMPLEMENTACION.md`.
+
+| Hito | Qué es | Estado |
+|---|---|---|
+| **PU1** | Leer por SDK y volcar a JSON | Hecho y verificado |
+| **PU2** | El JSON viaja solo a Firebase | Siguiente |
+| **PU3** | Lectura incremental y corrida periódica en background | Pendiente |
+| **PU4** | Adaptador TypeScript, en este repo | Pendiente, depende de P75 |
+
+#### PU1 del puente: lectura verificada
+
+PU1 se verificó contra la sesión de referencia y coincide exacto:
 
 | | Valor |
 |---|---|
@@ -899,7 +910,7 @@ Fricción operativa medida:
 
 - Los permisos sobreviven al reinicio de la app.
 - El modo desarrollador de Samsung Health sigue activo sin reintervención.
-- 118 KB por sesión con curva, así que en M3 la lectura incremental es una optimización, no un
+- 118 KB por sesión con curva, así que en PU3 la lectura incremental es una optimización, no un
   requisito.
 
 ### 15.9 Composición corporal: tres escritores, dos métodos, un solo dato repetido
@@ -1178,9 +1189,10 @@ hay que depurar las mediciones ya guardadas.
 
 ### 16.13 Inconsistencias menores del texto de P66f
 
-- **`deviceId` como discriminador de las autodetectadas (#035).** §15.9 dice que `DQLXfARDMe`
-  (el teléfono) aparece tanto en la sesión de ShapeUp como en las autodetectadas, así que
-  `deviceId` por sí solo no las separa; el `log` vacío sí. Quedó registrado tal como vino.
+- **Discriminador de las autodetectadas: ver ADR #035** (corregido en P66g). El criterio es la
+  densidad del ADR #034 (0,1/s). `deviceId` `DQLXfARDMe` es el teléfono, que también escribe
+  la sesión de ShapeUp y los registros de Health Sync, así que no separa nada. Las
+  autodetectadas del teléfono no tienen el log vacío: tienen 12 y 13 entradas.
 - **"El ZIP deja de ser necesario como vía de ingesta" (§15.9, #036).** Es cierto sobre el
   dato. En el código, la única vía implementada de la curva y de la composición sigue siendo
   el ZIP, y la vía D no está decidida. `CLAUDE.md` y `ESTADO-DEL-PROYECTO.md` lo dicen así.

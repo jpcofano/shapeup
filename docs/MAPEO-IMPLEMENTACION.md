@@ -1880,7 +1880,7 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   descarga del 10.3, que se calcula por porcentaje de sesiones completadas.
   Lo que infla son los días activos, los minutos y las kcal, que son las tres
   señales que alimentan la vista de historial y el análisis.
-  Evidencia de M1 del puente (vía D, 14/09):
+  Evidencia de PU1 del puente (vía D, 14/09):
     - autoDetected viene true en las cinco caminatas, incluidas las tres
       reales del reloj. Marca "arrancada automáticamente", no "fantasma".
     - Las dos autodetectadas del teléfono no tienen el log vacío: tienen 12 y
@@ -1902,8 +1902,8 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   el discriminador de la vía D. La decisión no cambia.
   Enmienda (P66g, 2026-09-16): el criterio pasa a ser la densidad del ADR
   #034; se abandonan live_data_internal vacío, deviceId y log vacío como
-  discriminadores, porque M1 mostró que no separan. Se reemplazó el párrafo
-  del discriminador de la vía D por la evidencia de M1. Solapamiento, no
+  discriminadores, porque PU1 mostró que no separan. Se reemplazó el párrafo
+  del discriminador de la vía D por la evidencia de PU1. Solapamiento, no
   fusión y revisión pendiente, sin cambios.
 
 #036 [2026-09-15] La vía D está verificada y pasa a ser el camino objetivo
