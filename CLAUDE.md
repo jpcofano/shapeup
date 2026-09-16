@@ -6,15 +6,18 @@ Fuentes ampliadas: `docs/ESTADO-DEL-PROYECTO.md` (estado), `docs/MAPEO-IMPLEMENT
 
 ## Qué es
 App de entrenamiento familiar (4 miembros, owner juanpablo). React + TypeScript + Vite +
-Firebase (Firestore, plan Spark, `southamerica-east1`). PWA en camino. Idioma: castellano
+Firebase (Firestore, plan Blaze, `southamerica-east1`). PWA en camino. Idioma: castellano
 argentino, voseo. Tokens de diseño siempre (`src/styles/tokens.css`).
+**Los límites de costo siguen valiendo:** el nivel gratuito de Blaze tiene los mismos topes
+que Spark, así que las decisiones tomadas "por costo Spark" siguen en pie.
 
 ## Reglas de trabajo (no re-discutir)
 - Funciones puras separadas de Firebase (ADR #009): la lógica va en `src/lib/`, testeable
   sin emulador; `src/data/` solo orquesta Firestore.
 - Las transacciones de cierre escriben SOLO documentos del propio miembro (ADR #014);
   contadores derivables no se actualizan en caliente.
-- Métricas de salud con granularidad diaria, no crudas (ADR #016, costo Spark).
+- Métricas de salud con granularidad diaria, no crudas (ADR #016, costo: plan Blaze, con los
+  mismos topes que Spark).
 - IDs con rangos reservados (ADR #010). Result<T> en toda la capa de datos.
 - Antes de dar por terminado un prompt: `npx tsc -b` limpio + `npx vitest run` verde
   (la suite `firestore.rules.test.ts` requiere emulador; sin emulador se permite skip).
@@ -154,6 +157,8 @@ con conversación de arquitectura, no directo a código.
 - **ADR #020** ✅ — Import selectivo por defecto: solo cardio que matchea historial o
   actividades conocidas; "importar todo" es opt-in. Motivo: pedido explícito del owner
   ("no se trata de importar todo") + costo Spark. Implementado en P47.
+  _Nota al pie (P66e): el proyecto pasó a Blaze; su nivel gratuito tiene los mismos topes,
+  así que el motivo de costo sigue en pie._
 - **ADR #021** — El enriquecimiento biométrico es **post-hoc e idempotente**: re-importar
   el mismo ZIP no duplica ni pisa biometría con datos peores (si el Historial ya tiene
   `granularidad: "serie"`, no se degrada a "sesion").
@@ -162,6 +167,8 @@ con conversación de arquitectura, no directo a código.
 - **ADR #023** ✅ — Sin colección nueva para recomendaciones (costo Spark, son derivables).
   Cálculo al vuelo en el cliente. Descarte del día en `localStorage` (`rec-descartada-{miembro}-{fecha}`).
   Si a futuro hace falta trackear `aplicada`, se revisa el ADR.
+  _Nota al pie (P66e): el proyecto pasó a Blaze; su nivel gratuito tiene los mismos topes,
+  así que el motivo de costo sigue en pie._
 - **ADR #024** ✅ — VR como intervalos: las sesiones VR se modelan con
   `PrescripcionCardio` formato `"Intervalos"` (`rondas` = series, `trabajoSeg`/
   `descansoSeg` por serie, `juegoSugerido` para el chip) en vez de extender el
@@ -204,33 +211,60 @@ proyecto seguía en Spark sin backend. Dos cosas cambiaron:
   gratuito, así que el costo esperado es cero, pero deja de ser cierto que no puede haber
   una function.
 
-### Caminos evaluados
+### Vías de ingesta (ADR #032, superseded por #036)
+Se clasifican por **de dónde leen**, no por el transporte. Auditoría ZIP vs Drive del
+14/09/2026 en `docs/ROADMAP-producto.md` §15; verificación de la vía D en §15.8 y §15.9.
 
-**A — Puente por Drive (recomendado).** Health Sync escribe, ShapeUp lee al abrir,
-procesa lo nuevo y marca lo procesado. Sin APK, sin entorno Android, y las APIs de Google
-funcionan desde el navegador. Dos riesgos a confirmar antes de comprometerse:
-- Con la app OAuth en estado **Testing**, Google revoca los refresh tokens **a los 7
-  días**, se use o no. Reautorizar cada semana sería peor que exportar el ZIP. La salida
-  es publicar la app; para uso personal Google contempla excepciones a la verificación,
-  con pantalla de advertencia.
-- Leer archivos creados por otra app requiere `drive.readonly`, que Google clasifica como
-  **alcance restringido**; su verificación puede escalar a una auditoría de seguridad.
-  Verificar en la consola qué exige hoy para este caso.
+| Vía | Qué es | Lee de | Estado |
+|---|---|---|---|
+| **A** | Health Sync → Google Drive | Health Connect | En uso, automática, **topeada** |
+| **B** | Intervals.icu | Health Connect (vía Health Sync) | Descartada, mismo techo |
+| **C** | Cascarón Capacitor + plugin de **Health Connect** | Health Connect | Descartada, mismo techo |
+| **D** | App Android + **Samsung Health Data SDK** | La app de Samsung Health | **Verificada, pendiente de decisión de costo** |
+| **E** | App Wear OS + Samsung Health Sensor SDK | El sensor del reloj | Descartada por costo |
 
-**B — Intervals.icu.** Health Sync también sincroniza ahí. Autenticación por clave
-personal (básica), expone actividades y wellness —FC de reposo, HRV, peso, pasos— y
-webhooks. Auth trivial comparada con Google. Riesgo probable: **CORS** desde el
-navegador, que obligaría a un proxy en una function — ahora posible con Blaze, pero es
-infraestructura nueva.
+**H2 se ejecutó el 15/09/2026 y dio positivo** (`docs/ROADMAP-producto.md` §15.8, ADR
+#036). Con el DataViewer del Data SDK 1.1.0, la sesión de referencia devuelve el mismo `uid`
+que el `datauuid` del ZIP, los mismos 4133 puntos de curva, FC máxima 174, 604 kcal, la
+duración activa y `customTitle: "ShapeUp"`. La D es el camino objetivo para el ejercicio,
+pero **no está decidido tomarla**: exige app nativa (Capacitor + plugin en Kotlin), entorno
+Android e instalación por fuera de la Play Store en cada teléfono. P88′ mide ese costo y si
+es estable sin intervención.
 
-**C — Cascarón Capacitor** (el plan de P61). Lee Health Connect directo, con token de
-cambios para sync incremental. El camino correcto a largo plazo y el más caro: APK,
-entorno Android, capa nativa que mantener. Queda como plan C, intacto.
+**La C y la D no son la misma cosa, y esa distinción es la que evitó dar la D por
+cerrada.** La C (el plan de P61) es Capacitor leyendo **Health Connect**, descartada por el
+origen: Health Connect publica **2** muestras de FC de la sesión de fuerza del 14/09, para
+la que el ZIP declara `heart_rate_sample_count = 12839`. Si Health Connect no tiene las
+muestras, ningún consumidor de Health Connect las va a tener. La D lee **de la app de
+Samsung Health** con el Data SDK (`ExerciseSession.log`) y trae la curva completa.
+
+**La vía A no se retira.** Es la única automática hoy (cardio, pasos, sueño, FC pasiva); la
+D la complementa en el hueco que A no cubre. **Health Sync sigue siendo necesario** aunque
+se adopte la D: es el puente que mete la medición de la balanza en Samsung Health (§15.9).
+Mientras la D no se construya, la única vía implementada de la curva de FC sigue siendo el
+import del ZIP.
+
+Riesgos de la vía A que siguen abiertos: con la app OAuth en **Testing**, Google revoca los
+refresh tokens **a los 7 días**; y leer archivos de otra app requiere `drive.readonly`,
+**alcance restringido** (verificar en la consola qué exige hoy).
+
+Reglas que valen para cualquier vía: clave canónica = inicio en epoch ms UTC + tipo
+normalizado + `appId`, con tabla de fuentes declarada (ADR #033, enmendado en P66f); el tipo
+del workout custom es `otro`, nunca `fuerza`; ningún cero ni dato derivado pisa un dato
+medido (ADR #034); sesiones autodetectadas sin curva (ADR #035); composición corporal en
+series por fuente de medición, sin merge entre fuentes (§15.9).
 
 ### H1′ — Spike sin código (primero, y bloquea todo lo demás)
 Configurar el export de Health Sync a Drive y dejarlo correr **un día que incluya una
 sesión de fuerza, una de VR y una noche de sueño**. Después auditar los archivos. Lo que
 hay que responder:
+
+> **Estado (P66f): cerrado en lo que respecta a la vía Drive.** El transporte y el retraso
+> de publicación quedaron respondidos en `docs/ROADMAP-producto.md` §15.4 y §15.8: por
+> Drive la sesión de fuerza no trae curva (2 muestras) y ningún archivo tiene identificador
+> por registro. **Las preguntas 3 y 4 y la sesión de VR no se dan por cerradas ni se
+> descartan**: quedan pendientes de reformularse contra la vía D (texto literal transcripto
+> en §16.10).
 
 1. **¿Viene la curva de FC por sesión?** Hoy sale de `live_data.json` dentro del ZIP,
    indexada por `datauuid`, ~1 muestra por segundo. De ahí sale todo el enriquecimiento
@@ -256,6 +290,13 @@ definirla con los archivos del spike a la vista**, no antes — y ambas vías de
 exactamente el mismo id. El import por ZIP no se elimina: queda como respaldo y para la
 historia previa.
 
+> **Resuelto por el ADR #033 (P66e, enmendado en P66f):** la clave es el inicio en epoch ms
+> UTC + el tipo normalizado + `appId`, con comparación exacta y una tabla de fuentes
+> declarada (origen o puente, preferencia, exclusión por campo). Las tres vías entregan
+> `1789418092506` para la misma sesión. El `datauuid` baja a metadato, aunque por la vía D
+> viaja como `uid`. El tipo del workout custom es `otro`, nunca `fuerza`. Ver §16.9 del
+> roadmap sobre cómo obtener `appId` en las vías que no lo entregan.
+
 ### Regla heredada de la serie S
 Todo timestamp en epoch ms UTC; conversión a local solo al mostrar. Los bugs de zona
 horaria fueron el enemigo número uno de la serie S.
@@ -270,7 +311,7 @@ ya se implementaron como I2/I3 — ver "Serie I" arriba):
 
 Mediano plazo:
 - **Correlaciones simples en Salud**: sueño vs RPE, kcal vs tendencia de peso semanal.
-- **Backup/export CSV** de historial y mediciones (plan Spark, resguardo de datos).
+- **Backup/export CSV** de historial y mediciones (resguardo de datos; plan Blaze, con los mismos topes que Spark).
 - **PWA completa**: offline con cola de escrituras (entrenar sin señal en el gimnasio) +
   notificaciones de "hoy toca X".
 

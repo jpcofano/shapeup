@@ -10,7 +10,8 @@ forma de trabajo de "Comida Familiar".
 - Idioma: castellano (argentino, voseo).
 
 ## Infra
-- **Firebase:** `shapeup-41e74`, Firestore `southamerica-east1`, login Google whitelist, plan Spark.
+- **Firebase:** `shapeup-41e74`, Firestore `southamerica-east1`, login Google whitelist, plan Blaze
+  (el nivel gratuito tiene los mismos topes que Spark: los límites de costo siguen valiendo).
 - **Repo:** `github.com/jpcofano/shapeup`. **Decisión del owner: queda público hasta terminar** (ADR
   #015). Pendiente al cierre del proyecto: cerrar el historial de git (mails de menores) → privado o purga.
 
@@ -55,10 +56,21 @@ forma de trabajo de "Comida Familiar".
 4. **Traducciones FEDB** — track en paralelo.
 
 ## Futuro / ideas registradas
-- **Sync de salud verdaderamente automático:** hoy la importación es manual (exportar de Samsung →
-  elegir el zip). El único camino a "automático de verdad" (sin export ni elegir archivos) es una
-  **app nativa Android con Health Connect** o el SDK de Samsung Health, o envolver la PWA en un
-  cascarón nativo (Capacitor/TWA) con plugin de Health Connect. Scope grande, decisión a futuro.
+- **Sync de salud automático — serie H** (plan en `CLAUDE.md`, taxonomía en ADR #032, auditoría
+  en `docs/ROADMAP-producto.md` §15). Hoy la curva de FC entra por import manual (exportar de
+  Samsung → elegir el zip). Las vías se clasifican por **de dónde leen**, no por el transporte:
+  - **A** — Health Sync → Google Drive (lee Health Connect): en uso y automática, pero
+    **topeada**: en sesiones de fuerza Health Connect publica 2 muestras de FC, no la curva.
+  - **B** — Intervals.icu y **C** — cascarón Capacitor con plugin de Health Connect: descartadas,
+    mismo techo que A (leen Health Connect).
+  - **D** — app Android con el **Samsung Health Data SDK** (lee la app de Samsung Health):
+    **verificada, pendiente de decisión de costo**. H2 se ejecutó el 15/09/2026 y dio positivo
+    (`docs/ROADMAP-producto.md` §15.8, ADR #036): mismo identificador y misma curva que el ZIP.
+    Exige app nativa; P88′ mide ese costo. **No es la C**: la C lee Health Connect, que no
+    tiene la curva; la D lee la app de Samsung Health, que sí.
+  - **E** — app Wear OS con el Sensor SDK (lee el sensor del reloj): descartada por costo.
+  La vía A no se retira y Health Sync sigue siendo el puente de la balanza. Mientras la D no se
+  construya, la única vía implementada de la curva de FC sigue siendo el import del ZIP.
 - Expansión de mancuernas: discos sueltos de hierro fundido para sumar a los handles existentes.
 
 ## ADRs clave
@@ -67,7 +79,8 @@ forma de trabajo de "Comida Familiar".
 - #013 catálogo via tabs.
 - #014 contadores fuera de la tx de cierre (fix multiusuario).
 - #015 repo público hasta terminar (decisión del owner).
-- #016 métricas de salud diarias (no crudas) por costo Spark.
+- #016 métricas de salud diarias (no crudas) por costo: plan Blaze, cuyo nivel gratuito tiene los
+  mismos topes que Spark.
 - #019 `Historial.inicioMs/finMs` sellados en `finalizarSesion`.
 - #020 import selectivo por defecto (solo cardio que matchea historial).
 - #021 enriquecimiento biométrico post-hoc e idempotente.

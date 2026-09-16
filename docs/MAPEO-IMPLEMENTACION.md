@@ -1518,6 +1518,8 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   Las muestras crudas se descartan en memoria; nunca llegan a la base.
   idMetrica = `${miembro}-${tipo}-${fecha}` → un doc por día, idempotente:
   re-importar el mismo archivo no duplica datos.
+  Nota al pie (P66e, 2026-09-15): el proyecto pasó de Spark a Blaze. El nivel
+  gratuito de Blaze tiene los mismos topes, así que el motivo de costo sigue en pie.
 
 #015 [2026-06-04] Emails reales en historial de git — decisión pendiente
   Contexto: seed-config.ts tenía los emails reales hardcodeados. Se movieron
@@ -1714,6 +1716,237 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   P61 proponía (#026–#029) nunca se registraron y hoy están ocupados por P66 y
   P66b — P61 no debe re-aplicarse tal cual.
   Plan: CLAUDE.md, sección "Serie H". Prompt de origen: P66c.
+
+#032 [2026-09-15] Taxonomía de vías de ingesta de Samsung Health
+  ESTADO: SUPERSEDED por #036 (2026-09-15, P66f) — H2 dio positivo y la vía D
+  está verificada. El cuerpo se conserva sin cambios: el razonamiento que
+  descarta B y C sigue valiendo.
+  Contexto: el 14/09/2026 se auditó la misma sesión de fuerza por la vía ZIP y
+  por la vía Drive (docs/ROADMAP-producto.md §15). Health Connect publica 2
+  muestras de FC de una sesión para la que el propio ZIP declara
+  heart_rate_sample_count = 12839, y un reexport 82 min después sigue igual
+  (§15.4): no es retraso de publicación.
+  Decisión: se identifican cinco vías y se clasifican por DÓNDE LEEN, no por el
+  transporte:
+    A  Health Sync → Google Drive          lee Health Connect     en uso, automática, TOPEADA
+    B  Intervals.icu                        lee Health Connect     descartada, mismo techo
+                                            (vía Health Sync)
+    C  Cascarón Capacitor + plugin de       lee Health Connect     descartada, mismo techo
+       Health Connect
+    D  App Android + Samsung Health         lee la app de          ABIERTA, SIN VERIFICAR
+       Data SDK                             Samsung Health
+    E  App Wear OS + Samsung Health         lee el sensor          descartada por costo
+       Sensor SDK                           del reloj
+  B y C quedan descartadas por el origen: si Health Connect no tiene las
+  muestras, ningún consumidor de Health Connect las va a tener. Evidencia:
+  §15.4 más el heart_rate_sample_count del ZIP.
+  La vía D NO está descartada y NO está verificada: lee directo de la app de
+  Samsung Health, no de Health Connect, y su modelo expone ExerciseSession.log
+  (lista de ExerciseLog con los puntos medidos durante la sesión). Su
+  viabilidad se decide en H2 (verificación manual con DataViewer) y, si H2 da
+  positivo, en P88′ (docs/prompts/88prima-poc-data-sdk.md).
+  Mientras D no esté resuelta, el ZIP es la vía de la curva. Se registra como
+  estado actual, no permanente: si D funciona, este ADR se supersede.
+  Lo que hoy se pierde por la vía A en sesiones de fuerza: la curva completa,
+  la FC media y máxima reales, la FC mínima, el nombre del workout, la
+  distinción activo/transcurrido, recuperacionBpm por serie, fcPico,
+  fcFinSerie y la recuperación entre rondas del bloque 9.4.
+  Consecuencia: revisa el ADR #031, que ponía Intervals.icu como plan B y el
+  cascarón de Health Connect como plan C; los dos quedan descartados. OJO: la C
+  descartada es Capacitor leyendo Health Connect; la D es leer el Data SDK
+  (con o sin Capacitor encima). No confundirlas.
+  Plan: docs/ROADMAP-producto.md §15. Prompt de origen: P66e.
+
+#033 [2026-09-15] Clave canónica de actividad
+  Contexto: el bloque 5 (ADR #026) derivaba el id de la entrada externa del
+  datauuid, que no viaja por la vía Drive (§15.7: ningún archivo de Drive tiene
+  identificador por registro).
+  Decisión: la clave es INICIO EN EPOCH UTC CON MILISEGUNDOS + TIPO
+  NORMALIZADO + appId. Verificado: ZIP, Drive y vía D entregan 1789418092506
+  para la misma sesión (start_time del ZIP, TCX de Drive, SDK). Sin
+  tolerancia, sin ventana, comparación exacta. El datauuid baja de clave
+  primaria a metadato (por la vía D viaja como uid, idéntico al del ZIP;
+  §15.8).
+  El tipo no se usa crudo. Cada vía tiene su vocabulario y se normaliza antes
+  de componer la clave:
+    ZIP                    Drive       Vía D      Normalizado
+    exercise_type = 0      TRAINING    OTHER      otro
+    exercise_type = 1001   WALKING     WALKING    caminata
+  "otro" significa SIN CLASIFICAR POR SAMSUNG, no fuerza. Samsung no dice
+  "esto fue fuerza": dice "esto no es ninguno de los deportes que reconozco".
+  Fuerza y VR usan el mismo workout custom y llegan con el mismo tipo por las
+  tres vías, así que ninguna vía de Samsung puede decir cuál de las dos fue.
+  Lo decide ShapeUp, por el match con la sesión propia (ADR #028). P75 NO
+  PUEDE tratar "otro" como fuerza.
+  Opción anotada, no tarea: la vía D trae customTitle ("ShapeUp"). Si en el
+  futuro se crea un segundo workout custom con otro nombre para VR, ese campo
+  separa los dos casos en el origen.
+  La tabla es por observación y está abierta. Ante un tipo no mapeado el
+  adaptador PARA Y REPORTA: no adivina ni cae a un default. La tabla vive junto
+  al adaptador, no dispersa.
+  appId y tabla de fuentes. §15.9 muestra dos registros de composición
+  corporal con el mismo startTime y distinto appId (la misma medición de la
+  balanza entrando por dos puentes, Garmin Connect y Health Sync) y dos
+  aparatos que miden lo mismo con métodos distintos. Inicio + tipo los
+  colapsaría a todos en uno, con un resultado que depende del orden de
+  llegada. La regla NO es una jerarquía de aplicaciones: privilegiar
+  com.sec.android.app.shealth descartaría la medición de la balanza, que es
+  real y Samsung nunca tomó. Dos niveles:
+    Nivel 1 — la clave. appId forma parte de la clave canónica. Nada se pisa
+    al guardar; la deduplicación opera solo dentro de un mismo appId.
+    Nivel 2 — tabla de fuentes, declarada y versionada. Cada appId se declara
+    como ORIGEN o PUENTE, con la fuente de medición que representa, un orden
+    de preferencia entre los puentes de una misma fuente y los campos que esa
+    fuente escribe pero no mide:
+      appId                                   fuente   rol     pref.  excluye
+      com.sec.android.app.shealth
+        + deviceId 9XdbeBZKBf                 reloj    origen  —      weight
+      nl.appyhapps.healthsync                 balanza  puente  1      —
+      com.garmin.android.apps.connectmobile   balanza  puente  2      —
+    - Mismo inicio y MISMA fuente de medición: es la misma medición. Entra el
+      puente de preferencia más alta disponible y el resto se descarta.
+    - Mismo inicio y DISTINTA fuente: son dos mediciones distintas y conviven,
+      en series separadas.
+    - appId que no está en la tabla: el adaptador PARA Y REPORTA. No adivina
+      si es origen o puente.
+    La preferencia es un orden, no una lista negra: si Health Sync deja de
+    escribir, el registro de Garmin entra solo y el peso se sigue guardando.
+    Una lista negra de com.garmin.android.apps.connectmobile lo habría
+    descartado en silencio.
+    Exclusión por campo: hoy hay una sola, weight en la fuente reloj, porque
+    el reloj hereda el peso del perfil (§15.9). Se declara, no se infiere.
+  La duración NO forma parte de la clave ni sirve para comparar entre vías: el
+  CSV y el TCX de Drive dicen 4169 s y el FIT dice 4170.
+  Consecuencia: el "idempotencia por datauuid" del ADR #026 queda reemplazado
+  por esta clave; el riesgo central de la serie H (dos ids para el mismo hecho)
+  se resuelve acá. P75 define el tipo normalizado, por eso P89 depende de P75.
+  Plan: docs/ROADMAP-producto.md §15.2, §15.8 y §15.9. Prompt de origen: P66e.
+  Enmienda (P66f, 2026-09-15): la tabla de tipos pasa a tres columnas con el
+  vocabulario de la vía D; el tipo normalizado del workout custom pasa de
+  "fuerza" a "otro" (Samsung no distingue fuerza de VR); appId entra en la
+  clave, con tabla de fuentes (rol, preferencia, exclusión por campo), y
+  customTitle queda anotado como discriminador futuro. Motivo: resultado de
+  H2 (§15.8) y composición corporal con tres escritores (§15.9). Ver §16.9
+  sobre cómo producir appId desde las vías que no lo entregan.
+
+#034 [2026-09-15] Precedencia por procedencia del dato
+  Contexto: la vía Drive entrega ceros que significan "no hay dato" (masas de
+  composición corporal, calorías activas diarias; §15.7) y estadísticas de FC
+  derivadas de dos puntos disfrazadas de resumen (§15.3).
+  Decisión: dos reglas, en este orden:
+    1. Ningún cero se escribe. Un 0.0 que significa "no hay dato" se convierte
+       en campo ausente. Esa conversión es responsabilidad del ADAPTADOR, que
+       la hace antes de pasar el objeto a stripUndef. stripUndef sólo saca
+       claves undefined (import/samsungHealth.ts:194-199) y NO convierte
+       ceros: es el último paso, no la regla. Sin esta regla, sincronizar Drive
+       después de subir el ZIP pisa la composición corporal buena con ceros.
+       Ejemplo medido: por la vía D, la sesión de fuerza trae count = 0,
+       distance = 0.0 y maxSpeed = 0.0 (§15.8). Es el caso exacto que la regla
+       tiene que atrapar.
+    2. Ningún dato derivado pisa un dato medido. Antes de persistir
+       estadísticas de FC, el adaptador calcula la densidad de muestras de la
+       sesión (muestras / segundos) y, si cae debajo del umbral, marca los
+       campos de FC como ausentes en vez de escribirlos.
+  Umbral: 0,1 muestras por segundo. Las sesiones con curva dan ~0,7/s y la
+  sesión de fuerza por Drive da 0,0005/s. Se eligió densidad y no una regla
+  por tipo de actividad para que siga funcionando sin cambios si Samsung
+  empieza a publicar la curva.
+  Consecuencia: con estas dos reglas el orden de llegada de las vías deja de
+  importar.
+  Plan: docs/ROADMAP-producto.md §15.3, §15.7 y §15.8. Prompt de origen: P66e.
+  Enmienda (P66f, 2026-09-15): la regla 1 describía la conversión de ceros
+  como si stripUndef ya la hiciera; no la hace. Se corrigió: la conversión es
+  del adaptador y stripUndef es el último paso. Se agregó como ejemplo medido
+  los ceros de la vía D (count, distance, maxSpeed).
+
+#035 [2026-09-15] Sesiones autodetectadas sin curva
+  Contexto: el bloque 5 (ADR #026) dice que toda actividad de Samsung entra al
+  historial. El ZIP del 14/09 tiene seis filas de ejercicio y Drive cuatro; las
+  dos extra son tipo 1001 con milisegundos en .000, live_data_internal vacío y
+  ningún campo de FC, y una se solapa casi por completo con una caminata real
+  (§15.5).
+  Decisión: una sesión es AUTODETECTADA SIN CURVA cuando su densidad de
+  muestras de FC está por debajo del umbral del ADR #034 (0,1/s). Vale igual
+  para ZIP y para la vía D. El #035 no define criterio propio.
+    - Si se solapa en el tiempo con otra sesión que sí tiene curva, se
+      descarta: es la misma actividad contada dos veces por dos fuentes.
+    - Si no se solapa con ninguna, se ingiere marcada como autodetectada, con
+      la misma marca "sin detalle" que usa la carga manual del bloque 6.
+  Nunca se fusionan dos filas en una: se descarta o se ingiere marcada.
+  Revisión pendiente: la decisión se tomó en la sesión de diseño y conviene
+  revisarla. La alternativa era ingerir siempre y resolver el solapamiento en
+  la vista; se eligió descartar. Motivo: una caminata contada dos veces no
+  afecta el tonelaje —las entradas externas no lo tienen— ni la propuesta de
+  descarga del 10.3, que se calcula por porcentaje de sesiones completadas.
+  Lo que infla son los días activos, los minutos y las kcal, que son las tres
+  señales que alimentan la vista de historial y el análisis.
+  Evidencia de M1 del puente (vía D, 14/09):
+    - autoDetected viene true en las cinco caminatas, incluidas las tres
+      reales del reloj. Marca "arrancada automáticamente", no "fantasma".
+    - Las dos autodetectadas del teléfono no tienen el log vacío: tienen 12 y
+      13 entradas.
+    - deviceId DQLXfARDMe es el teléfono. También escribe la sesión de
+      ShapeUp y los registros de Health Sync, así que no separa nada. El
+      reloj es 9XdbeBZKBf.
+    - Lo que separa limpio es la densidad:
+        Sesión (UTC)          Dispositivo   logSize   Densidad
+        14:16:30              reloj           505     0,77/s
+        14:57:05              teléfono         12     0,018/s
+        15:48:51              reloj           645     0,83/s
+        15:50:04              teléfono         13     0,018/s
+        17:13:15              reloj           677     0,83/s
+        20:34:52 (ShapeUp)    teléfono       4133     1,00/s
+  Plan: docs/ROADMAP-producto.md §15.5 y §15.8, bloque 5. Prompt de origen: P66e.
+  Enmienda (P66f, 2026-09-15): se reemplazó el motivo, que atribuía el daño al
+  tonelaje y a la descarga (ver docs/ROADMAP-producto.md §16.3), y se agregó
+  el discriminador de la vía D. La decisión no cambia.
+  Enmienda (P66g, 2026-09-16): el criterio pasa a ser la densidad del ADR
+  #034; se abandonan live_data_internal vacío, deviceId y log vacío como
+  discriminadores, porque M1 mostró que no separan. Se reemplazó el párrafo
+  del discriminador de la vía D por la evidencia de M1. Solapamiento, no
+  fusión y revisión pendiente, sin cambios.
+
+#036 [2026-09-15] La vía D está verificada y pasa a ser el camino objetivo
+  Supersede: #032 (su cuerpo se conserva; el descarte de B y C sigue valiendo).
+  Contexto: H2 (15/09/2026). DataViewer del Samsung Health Data SDK 1.1.0 con
+  el modo desarrollador de lectura. La sesión de referencia devuelve el mismo
+  uid que el datauuid del ZIP, mismo inicio y fin, 4133 puntos de curva, FC
+  máxima 174,0, 604,0 kcal, duración activa 4152 s y customTitle "ShapeUp"
+  (docs/ROADMAP-producto.md §15.8).
+  Decisión: el Samsung Health Data SDK entrega la curva completa de sesiones
+  de ejercicio custom, con el mismo identificador y los mismos valores que la
+  exportación manual. La vía D deja de ser una hipótesis abierta y pasa a ser
+  el camino objetivo para todo lo que hoy es exclusivo del ZIP en materia de
+  ejercicio.
+  Lo que la vía D reemplaza del ZIP: curva de FC, FC media y máxima reales,
+  nombre del workout, sesiones autodetectadas, distinción entre duración
+  activa y transcurrida, recuperacionBpm derivable, fcPico, fcFinSerie y la
+  recuperación entre rondas del bloque 9.4.
+  Lo que no cambia:
+    - B y C siguen descartadas, por el motivo del #032: leen Health Connect.
+    - La vía A (Drive) NO se retira. Es la única automática hoy, cubre cardio,
+      pasos, sueño y FC pasiva a cadencia diaria, y no requiere app nativa. La
+      D la complementa en el hueco que A no cubre; no la sustituye.
+    - El ZIP deja de ser necesario para el ejercicio Y para la composición
+      corporal (§15.9). Queda como respaldo y artefacto de archivo, no como
+      vía de ingesta.
+    - Health Sync sigue siendo necesario aunque se adopte la D: no por el
+      ejercicio, sino porque es el puente que mete la medición de la balanza
+      en Samsung Health. Adoptar la D reduce la dependencia de la vía A a
+      cardio, pasos, sueño y FC pasiva; no la elimina.
+  Costo, registrado sin resolver: el SDK es una librería Android. Exige app
+  nativa (Capacitor + plugin en Kotlin), entorno de compilación Android e
+  instalación por fuera de la Play Store en cada teléfono. Ese costo no estaba
+  en el plan, y la decisión de pagarlo se toma en la conversación de diseño.
+  ESTE ADR REGISTRA QUE EL CAMINO EXISTE Y FUNCIONA, NO QUE SE HAYA DECIDIDO
+  TOMARLO.
+  Consecuencia: P88′ pasa de "averiguar si existe" a "medir cuánto cuesta y si
+  es estable sin intervención". Su prompt (docs/prompts/88prima-poc-data-sdk.md)
+  no se modifica: H2 ya cumplió el criterio de éxito, y la fricción operativa
+  ya está en su entregable. P89 (H3) queda bloqueado por P75 y P88′. Hasta que
+  la D se construya, la única vía implementada de la curva sigue siendo el
+  import del ZIP (docs/ROADMAP-producto.md §16.13).
+  Plan: docs/ROADMAP-producto.md §15.8 y §15.9. Prompt de origen: P66f.
 ```
 
 ---
