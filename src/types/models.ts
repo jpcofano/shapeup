@@ -202,6 +202,8 @@ export interface Ejercicio {
   consejosSeguridad?: string[];    // contraindicaciones / cuidados
 
   descansoSugeridoSeg: number;
+  /** Paso del stepper de carga (kg). Si falta, `lib/pasoCarga.ts` usa el default del equipo. */
+  pasoCargaKg?: number;
 
   // ── Variantes (analog sustitutos/equivalencias) ──
   progresiones?: string[];         // idEjercicio[] más difíciles

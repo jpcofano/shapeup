@@ -39,6 +39,12 @@ export interface EntrenarState {
   serieInicioMs: Record<number, number>;
   /** Último reps/carga ingresado por bloque (prefill de la próxima serie). */
   ultimoLog: Record<number, { reps?: number; cargaKg?: number }>;
+  /**
+   * Epoch ms del inicio de la sesión. Persistido para que reanudar no reinicie
+   * el reloj (`TiempoTotal`) ni acorte `duracionRealMin`. `null` hasta sellarlo
+   * con `asegurarInicioSesion`.
+   */
+  inicioMs: number | null;
 }
 
 export const INITIAL_ENTRENAR_STATE: EntrenarState = {
@@ -49,6 +55,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   descanso: null,
   serieInicioMs: {},
   ultimoLog: {},
+  inicioMs: null,
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -305,11 +312,36 @@ export function saltarDescanso(state: EntrenarState, now: number = Date.now()): 
   };
 }
 
-/** Extender/recortar el descanso en curso (delta en segundos, +/-). */
-export function ajustarDescanso(state: EntrenarState, deltaSeg: number): EntrenarState {
+/**
+ * Extender/recortar el descanso (delta en segundos, +/-).
+ *  - Mientras corre: suma o resta a `durMs`, sin bajar de 0.
+ *  - Ya terminado y delta > 0: arranca una cuenta nueva de `delta` desde `now`
+ *    (`durMs = (now − startMs) + delta`). Sumar a un `durMs` vencido dejaba el
+ *    descanso en 0 y la alarma volvía a sonar.
+ */
+export function ajustarDescanso(
+  state: EntrenarState,
+  deltaSeg: number,
+  now: number = Date.now(),
+): EntrenarState {
   if (!state.descanso) return state;
-  const durMs = Math.max(0, state.descanso.durMs + deltaSeg * 1000);
-  return { ...state, descanso: { ...state.descanso, durMs } };
+  const { startMs, durMs } = state.descanso;
+  const deltaMs = deltaSeg * 1000;
+  if (deltaMs > 0 && startMs + durMs <= now) {
+    return { ...state, descanso: { ...state.descanso, durMs: now - startMs + deltaMs } };
+  }
+  return { ...state, descanso: { ...state.descanso, durMs: Math.max(0, durMs + deltaMs) } };
+}
+
+/** Sella el inicio de la sesión si todavía no lo tiene. No pisa uno existente. */
+export function asegurarInicioSesion(state: EntrenarState, now: number = Date.now()): EntrenarState {
+  if (state.inicioMs != null) return state;
+  return { ...state, inicioMs: now };
+}
+
+/** Total de series marcadas como hechas en toda la sesión. */
+export function seriesHechasTotales(state: EntrenarState): number {
+  return Object.values(state.seriesHechas).reduce((acc, n) => acc + n, 0);
 }
 
 /**

@@ -9,6 +9,7 @@ import {
   valorPrefillSerie,
   trabajoObjetivoSeg, trabajoRestanteMs, asegurarInicioSerie, ajustarTrabajo,
   objetivoSerieLabel,
+  asegurarInicioSesion, seriesHechasTotales, loadEntrenarState,
 } from "./entrenarState";
 import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
 
@@ -145,6 +146,67 @@ describe("ajustarDescanso", () => {
     const s = completarSerie(s0, rutina, 0);
     const s2 = ajustarDescanso(s, -9999);
     expect(s2.descanso!.durMs).toBe(0);
+  });
+
+  // Descanso de 60 s arrancado en t = 1000.
+  const conDescanso = completarSerie(s0, rutina, 0, undefined, 1000);
+
+  it("+30 mientras corre suma a durMs", () => {
+    const s2 = ajustarDescanso(conDescanso, 30, 21_000);
+    expect(s2.descanso).toEqual({ bloqueIdx: 0, startMs: 1000, durMs: 90_000 });
+  });
+
+  it("−30 mientras corre resta, con clamp en 0", () => {
+    expect(ajustarDescanso(conDescanso, -30, 11_000).descanso!.durMs).toBe(30_000);
+    expect(ajustarDescanso(conDescanso, -90, 11_000).descanso!.durMs).toBe(0);
+  });
+
+  it("+30 con el descanso terminado arranca una cuenta nueva desde now", () => {
+    const now = 1000 + 60_000 + 45_000; // venció hace 45 s
+    const s2 = ajustarDescanso(conDescanso, 30, now);
+    expect(s2.descanso!.durMs).toBe(now - 1000 + 30_000);
+    expect(descansoRestanteMs(s2, now)).toBe(30_000);
+  });
+
+  it("sin descanso devuelve el mismo estado", () => {
+    expect(ajustarDescanso(s0, 30, 5000)).toBe(s0);
+  });
+});
+
+// ── asegurarInicioSesion ──────────────────────────────────────────────────────
+describe("asegurarInicioSesion", () => {
+  it("el estado inicial arranca sin inicio", () => {
+    expect(INITIAL_ENTRENAR_STATE.inicioMs).toBeNull();
+  });
+
+  it("sella el inicio si es null", () => {
+    expect(asegurarInicioSesion(s0, 5000).inicioMs).toBe(5000);
+  });
+
+  it("no pisa un inicio existente", () => {
+    const sellado = { ...s0, inicioMs: 1234 };
+    expect(asegurarInicioSesion(sellado, 5000)).toBe(sellado);
+  });
+
+  it("un estado viejo en localStorage sin el campo carga con inicioMs null", () => {
+    const viejo: Record<string, unknown> = { ...s0, seriesHechas: { 0: 2 } };
+    delete viejo.inicioMs;
+    localStorage.setItem("entrenar:test-viejo", JSON.stringify(viejo));
+    try {
+      const cargado = loadEntrenarState("test-viejo");
+      expect(cargado.inicioMs).toBeNull();
+      expect(cargado.seriesHechas).toEqual({ 0: 2 });
+      expect(asegurarInicioSesion(cargado, 7000).inicioMs).toBe(7000);
+    } finally {
+      localStorage.removeItem("entrenar:test-viejo");
+    }
+  });
+});
+
+describe("seriesHechasTotales", () => {
+  it("suma las series de todos los bloques", () => {
+    expect(seriesHechasTotales(s0)).toBe(0);
+    expect(seriesHechasTotales({ ...s0, seriesHechas: { 0: 2, 1: 3 } })).toBe(5);
   });
 });
 

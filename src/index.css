@@ -513,9 +513,12 @@
 }
 .workout-footer {
   padding: 12px 16px 20px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+/* Reiniciar: al final del header, ≥ 16 px del toggle de modo (gap 10 + 8). */
+.workout-header-reset { margin-left: 8px; }
 
 /* ── Dots de progreso ────────────────────────────────────────────────────── */
 .progress-dots {
@@ -624,6 +627,10 @@
 }
 .timer-big.urgent { color: var(--danger); }
 .descanso-actions { display: flex; gap: 10px; width: 100%; }
+.descanso-actions > button { flex: 1; min-width: 0; padding-inline: 8px; }
+.descanso-actions > button:disabled { opacity: 0.4; cursor: default; }
+.descanso-actions > .descanso-principal { flex: 1.4; }
+.descanso-actions > .descanso-seguir { flex: 2; min-height: 60px; font-size: 18px; font-weight: 700; }
 
 /* ── Cronómetro de trabajo (VR / cardio en intervalos) — espejo de .descanso-card ── */
 .serie-timer-card {
@@ -687,12 +694,13 @@
 /* ── Botón serie hecha ───────────────────────────────────────────────────── */
 .btn-serie-hecha {
   width: 100%;
+  min-height: 76px;
   padding: 16px;
   background: var(--accent);
   color: var(--on-accent);
   border: none;
   border-radius: var(--r-lg);
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
@@ -700,6 +708,101 @@
 }
 .btn-serie-hecha:active { transform: scale(0.98); }
 .btn-serie-hecha:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Registro de serie con steppers (P67) ────────────────────────────────── */
+.registro-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.registro-campo {
+  display: grid;
+  grid-template-columns: 4.75rem 56px minmax(0, 1fr) 56px;
+  align-items: center;
+  gap: 8px;
+}
+.registro-campo .quick-log-input { height: 56px; font-size: 24px; }
+.registro-paso {
+  display: block;
+  margin-top: 2px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.stepper-btn {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--fg);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+.stepper-btn:active { background: var(--card-hover); }
+.btn-deshacer-serie {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.btn-deshacer-serie:hover { color: var(--fg); }
+
+/* ── Hoja de paso de carga (P67) ─────────────────────────────────────────── */
+.paso-carga-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+.paso-carga-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.paso-carga-body .filter-chip { min-height: 44px; min-width: 52px; font-size: 15px; }
+
+/* ── Confirmación de reinicio (P67) ──────────────────────────────────────── */
+.confirmar-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 16px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+.confirmar-titulo { margin: 0; font-size: 17px; font-weight: 700; }
+.confirmar-texto  { margin: 0 0 8px; font-size: 14px; color: var(--muted); }
+.confirmar-acciones { display: flex; gap: 10px; }
+.confirmar-acciones > button { flex: 1; min-height: 48px; }
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-danger:hover { opacity: 0.88; }
 
 /* ── Modo scroll — bloque item ───────────────────────────────────────────── */
 .bloque-scroll {

@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 import {
   collection, doc, getDocs, getDoc, setDoc, updateDoc,
-  query, orderBy, serverTimestamp,
+  query, orderBy, serverTimestamp, deleteField,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { Ejercicio, FirestoreTimestamp } from "../types/models";
@@ -89,14 +89,21 @@ export async function crearEjercicio(
   }
 }
 
-/** Actualiza campos de un ejercicio existente y recalcula nombreCanonico si cambia el nombre. */
+/**
+ * Actualiza campos de un ejercicio existente y recalcula nombreCanonico si cambia el nombre.
+ * `pasoCargaKg: null` borra el campo (vuelve al default del equipo): con
+ * `ignoreUndefinedProperties`, un `undefined` no borraría nada.
+ */
 export async function actualizarEjercicio(
   id: string,
-  data: Partial<EjercicioInput>,
+  data: Partial<Omit<EjercicioInput, "pasoCargaKg">> & { pasoCargaKg?: number | null },
 ): Promise<Result<void>> {
   try {
+    const { pasoCargaKg, ...resto } = data;
     await updateDoc(doc(db, "ejercicios", id), {
-      ...data,
+      ...resto,
+      ...(pasoCargaKg === null ? { pasoCargaKg: deleteField() }
+        : pasoCargaKg !== undefined ? { pasoCargaKg } : {}),
       ...(data.nombre ? { nombreCanonico: normalizeText(data.nombre) } : {}),
       ultimaModificacion: serverTimestamp(),
     });

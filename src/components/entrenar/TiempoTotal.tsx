@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 
 interface Props {
-  startMs:     number;
+  /** `EntrenarState.inicioMs`: inicio de la sesión, persistido. `null` mientras no se selló. */
+  startMs:     number | null;
   estimadoMin: number | null;
 }
 
-/** Reloj de sesión transcurrida (desde el primer `serieInicioMs`) + estimado de la rutina. */
+/**
+ * Reloj de sesión transcurrida desde `EntrenarState.inicioMs` (sellado al
+ * empezar y persistido, así que reanudar no lo reinicia) + estimado de la rutina.
+ */
 export function TiempoTotal({ startMs, estimadoMin }: Props) {
   const [now, setNow] = useState(() => Date.now());
 
@@ -14,7 +18,7 @@ export function TiempoTotal({ startMs, estimadoMin }: Props) {
     return () => clearInterval(id);
   }, []);
 
-  const elapsedSec = Math.max(0, Math.floor((now - startMs) / 1000));
+  const elapsedSec = startMs != null ? Math.max(0, Math.floor((now - startMs) / 1000)) : 0;
   const h = Math.floor(elapsedSec / 3600);
   const m = Math.floor((elapsedSec % 3600) / 60);
   const s = elapsedSec % 60;

@@ -7,6 +7,7 @@ import {
   saltarDescanso as _saltarDescanso,
   ajustarDescanso as _ajustarDescanso,
   asegurarInicioSerie as _asegurarInicioSerie,
+  asegurarInicioSesion as _asegurarInicioSesion,
   ajustarTrabajo as _ajustarTrabajo,
   irABloque as _irABloque,
   siguienteBloque as _siguienteBloque,
@@ -55,10 +56,20 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
       dispatch((s) => _saltarDescanso(s, now));
     },
     ajustarDescanso(deltaSeg: number) {
-      dispatch((s) => _ajustarDescanso(s, deltaSeg));
+      const now = Date.now();
+      dispatch((s) => _ajustarDescanso(s, deltaSeg, now));
     },
     asegurarInicioSerie(idx: number) {
       dispatch((s) => _asegurarInicioSerie(s, idx));
+    },
+    /**
+     * Sella el inicio de la sesión si todavía no lo tiene. Llamado después de
+     * `reiniciar()` en el mismo handler, se aplica sobre el estado reiniciado:
+     * React procesa las actualizaciones encoladas en orden.
+     */
+    asegurarInicioSesion() {
+      const now = Date.now();
+      dispatch((s) => _asegurarInicioSesion(s, now));
     },
     ajustarTrabajo(idx: number, deltaSeg: number) {
       dispatch((s) => _ajustarTrabajo(s, idx, deltaSeg));

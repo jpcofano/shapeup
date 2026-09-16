@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { X, AlignJustify, Zap, RotateCcw, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Bicep } from "../components/Bicep";
@@ -7,11 +7,14 @@ import { finalizarSesion } from "../data/historial";
 import { getEjercicio } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
 import {
-  rutinaCompleta, seriesObjetivo,
+  rutinaCompleta, seriesHechasTotales,
   buildBloqueLibre, buildVirtualRutina,
 } from "../lib/entrenarState";
 import { useEntrenarState } from "../hooks/useEntrenarState";
+import { useConfirmarReinicio } from "../hooks/useConfirmarReinicio";
 import { ExercisePicker } from "../components/rutina/ExercisePicker";
+import { RegistroSerie } from "../components/entrenar/RegistroSerie";
+import { ConfirmarReinicio } from "../components/entrenar/ConfirmarReinicio";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
 import { SerieTimer } from "../components/entrenar/SerieTimer";
 import { TiempoTotal } from "../components/entrenar/TiempoTotal";
@@ -80,7 +83,19 @@ export function EntrenarSesionLibre() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [logReps,   setLogReps]   = useState("");
   const [logCarga,  setLogCarga]  = useState("");
-  const startRef = useRef<number>(Date.now());
+
+  /**
+   * Reinicia el estado y sella el inicio de la sesión nueva. Las dos
+   * actualizaciones se encolan en orden: el sello se aplica sobre el estado ya
+   * reiniciado.
+   */
+  function reiniciarYSellar() {
+    session.reiniciar();
+    session.asegurarInicioSesion();
+  }
+
+  // Reiniciar (header y pantalla de fin): confirma si hay series registradas.
+  const reinicio = useConfirmarReinicio(seriesHechasTotales(state), reiniciarYSellar);
 
   // Pre-seed: si entramos por /entrenar/ejercicio/:idEjercicio, cargá ese
   // ejercicio y arrancá directo en fase 2. Sin id → no hace nada (selector normal).
@@ -93,8 +108,7 @@ export function EntrenarSesionLibre() {
         setEjercicios([result.value]);
         setEjDefaults([defaultsParaEj(result.value)]);
         setViaAtajo(true);
-        session.reiniciar();
-        startRef.current = Date.now();
+        reiniciarYSellar();
         setSesionIniciada(true);
       }
       if (activo) setCargandoAtajo(false);
@@ -159,8 +173,7 @@ export function EntrenarSesionLibre() {
   }
 
   function empezarSesion() {
-    session.reiniciar();
-    startRef.current = Date.now();
+    reiniciarYSellar();
     setSesionIniciada(true);
   }
 
@@ -358,7 +371,9 @@ export function EntrenarSesionLibre() {
               if (!memberId) { session.reiniciar(); salir(); return; }
               setSaving(true);
               setSaveError(null);
-              const durMin = Math.round((Date.now() - startRef.current) / 60_000);
+              const durMin = state.inicioMs != null
+                ? Math.round((Date.now() - state.inicioMs) / 60_000)
+                : null;
               const result = await finalizarSesion({
                 tipo:        "libre",
                 nombreLibre: "Sesión libre",
@@ -379,7 +394,7 @@ export function EntrenarSesionLibre() {
             <Plus size={16} /> Sumar otro ejercicio
           </button>
           <button className="btn-secondary" style={{ width: "100%" }}
-            onClick={() => session.reiniciar()}>
+            onClick={reinicio.pedir}>
             Empezar de nuevo
           </button>
         </div>
@@ -388,6 +403,14 @@ export function EntrenarSesionLibre() {
           <ExercisePicker
             onSelect={sumarYContinuar}
             onClose={() => setSumarAbierto(false)}
+          />
+        )}
+
+        {reinicio.abierto && (
+          <ConfirmarReinicio
+            series={seriesHechasTotales(state)}
+            onConfirmar={reinicio.confirmar}
+            onCancelar={reinicio.cancelar}
           />
         )}
       </div>
@@ -408,12 +431,13 @@ export function EntrenarSesionLibre() {
           <X size={18} />
         </button>
         <p className="workout-title">Sesión libre</p>
-        <TiempoTotal startMs={startRef.current} estimadoMin={virtualRutina.duracionEstimadaMin} />
+        <TiempoTotal startMs={state.inicioMs} estimadoMin={virtualRutina.duracionEstimadaMin} />
         <button className="btn-icon-sm" onClick={session.toggleModo}
           title={state.modoVista === "guiada" ? "Modo scroll" : "Modo guiado"}>
           {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
         </button>
-        <button className="btn-icon-sm" onClick={() => session.reiniciar()} title="Reiniciar sesión">
+        {/* Separado del toggle de modo (P67). P68 lo mueve a la hoja de salida. */}
+        <button className="btn-icon-sm danger workout-header-reset" onClick={reinicio.pedir} title="Reiniciar sesión">
           <RotateCcw size={16} />
         </button>
       </div>
@@ -461,45 +485,29 @@ export function EntrenarSesionLibre() {
           </div>
 
           {!state.descanso && (
-            <div className="workout-footer">
-              {blq.modalidad === "Fuerza" && (
-                <div className="quick-log">
-                  <div className="quick-log-field">
-                    <span className="quick-log-label">Reps</span>
-                    <input className="quick-log-input" type="number" min={1}
-                      placeholder={String(
-                        (blq.prescripcion as { repsObjetivo: { value: number } }).repsObjetivo?.value ?? "—",
-                      )}
-                      value={logReps}
-                      onChange={(e) => setLogReps(e.target.value)}
-                    />
-                  </div>
-                  <div className="quick-log-field">
-                    <span className="quick-log-label">Carga (kg)</span>
-                    <input className="quick-log-input" type="number" min={0} step={0.5}
-                      placeholder="—"
-                      value={logCarga}
-                      onChange={(e) => setLogCarga(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-              <button
-                className="btn-serie-hecha"
-                onClick={handleSerie}
-                disabled={(state.seriesHechas[state.bloqueActual] ?? 0) >= seriesObjetivo(blq.prescripcion)}
-              >
-                Serie {(state.seriesHechas[state.bloqueActual] ?? 0) + 1} hecha ✓
-              </button>
-              {(state.seriesHechas[state.bloqueActual] ?? 0) > 0 && (
-                <button className="btn-secondary" style={{ marginTop: 8, width: "100%" }}
-                  onClick={() => session.deshacerSerie(state.bloqueActual)}>
-                  Deshacer última serie
-                </button>
-              )}
-            </div>
+            <RegistroSerie
+              bloque={blq}
+              ejercicio={ejercicio}
+              seriesHechas={state.seriesHechas[state.bloqueActual] ?? 0}
+              reps={logReps}
+              carga={logCarga}
+              onRepsChange={setLogReps}
+              onCargaChange={setLogCarga}
+              onSerie={handleSerie}
+              onDeshacer={() => session.deshacerSerie(state.bloqueActual)}
+              onEjercicioChange={(ej) =>
+                setEjercicios((prev) => prev.map((e) => (e.idEjercicio === ej.idEjercicio ? ej : e)))}
+            />
           )}
         </>
+      )}
+
+      {reinicio.abierto && (
+        <ConfirmarReinicio
+          series={seriesHechasTotales(state)}
+          onConfirmar={reinicio.confirmar}
+          onCancelar={reinicio.cancelar}
+        />
       )}
     </div>
   );

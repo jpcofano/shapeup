@@ -29,10 +29,16 @@ export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
     }
   }, []);
 
+  // Se re-ejecuta con cada cambio de `state.descanso` (nuevo descanso o ±30 s).
+  // `beeped` vuelve a false, pero la alarma solo suena si la cuenta llega a 0:
+  // −30 s se deshabilita con ≤ 30 s y +30 s en estado terminado arranca una
+  // cuenta nueva (ajustarDescanso), así que suena una vez por fin de cuenta.
   useEffect(() => {
     if (!state.descanso) return;
     beeped.current      = false;
     lastTickSec.current = null;
+    // Sin esto, el primer cuarto de segundo muestra el `remaining` del descanso anterior.
+    setRemaining(descansoRestanteMs(state));
 
     const id = setInterval(() => {
       const rem = descansoRestanteMs(state);
@@ -66,8 +72,11 @@ export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
 
   if (!state.descanso) return null;
 
-  const urgent = remaining <= 5000;
+  const urgent    = remaining <= 5000;
+  const terminado = remaining === 0;
 
+  // Sin auto-advance: el descanso nunca avanza solo. "Seguir" y "Saltar" son la
+  // misma acción (saltarDescanso), que sella el inicio de la serie al tocarlo.
   return (
     <>
       {flashing && <div className="descanso-flash-overlay" aria-hidden />}
@@ -77,11 +86,21 @@ export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
           {fmt(remaining)}
         </span>
         <div className="descanso-actions">
-          <button className="btn-secondary" style={{ flex: 1 }} onClick={() => onAjustar(30)}>
+          <button
+            className="btn-secondary descanso-ajuste"
+            disabled={remaining <= 30_000}
+            onClick={() => onAjustar(-30)}
+          >
+            −30 s
+          </button>
+          <button className="btn-secondary descanso-ajuste" onClick={() => onAjustar(30)}>
             +30 s
           </button>
-          <button className="btn-primary" style={{ flex: 1 }} onClick={onSkip}>
-            Saltar
+          <button
+            className={`btn-primary descanso-principal${terminado ? " descanso-seguir" : ""}`}
+            onClick={onSkip}
+          >
+            {terminado ? "Seguir" : "Saltar"}
           </button>
         </div>
       </div>
