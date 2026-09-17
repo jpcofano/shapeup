@@ -427,12 +427,18 @@ export interface SerieRegistro {
   fcFinSerie?: number;
   recuperacionBpm?: number;
 }
+/** Motivo opcional al saltear un ejercicio en la sesión (P68b). */
+export type MotivoSalto = "dolor" | "equipo-ocupado" | "sin-tiempo" | "otro";
+
 export interface BloqueRegistro {
   orden: number;
   idEjercicio: string;
   nombreEjercicio: string;
   modalidad: Modalidad;
   series: SerieRegistro[];
+  /** Solo presentes si el bloque se salteó (P68b). */
+  saltado?: boolean;
+  motivoSalto?: MotivoSalto;
 }
 /** Enriquecimiento biométrico de una sesión ShapeUp cruzada con Samsung Health. */
 export interface BiometriaSesion {

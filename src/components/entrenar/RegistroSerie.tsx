@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { X } from "lucide-react";
-import type { BloqueEjercicio, Ejercicio } from "../../types/models";
+import type { BloqueEjercicio, Ejercicio, MotivoSalto } from "../../types/models";
 import { seriesObjetivo } from "../../lib/entrenarState";
+import { SaltarEjercicio } from "./SaltarEjercicio";
 import {
   aplicarPaso, pasoCarga, pasoCargaPorEquipo, PASOS_CARGA_OPCIONES,
 } from "../../lib/pasoCarga";
@@ -21,7 +22,11 @@ interface Props {
   onRepsChange:  (v: string) => void;
   onCargaChange: (v: string) => void;
   onSerie:      () => void;
+  /** Con el bloque completo, el botón principal registra una serie de más (P68b). */
+  onSerieExtra: () => void;
   onDeshacer:   () => void;
+  /** Saltea el bloque actual con motivo opcional (P68b). */
+  onSaltar:     (motivo: MotivoSalto | null) => void;
   /** Reemplaza la copia local del ejercicio al cambiar el paso (sin esperar la escritura). */
   onEjercicioChange: (ej: Ejercicio) => void;
   pulsing?:     boolean;
@@ -29,14 +34,17 @@ interface Props {
 
 /**
  * Footer del modo guiado: steppers de reps y carga (solo Fuerza), "Serie N hecha"
- * y "Deshacer". Compartido por la sesión de rutina y la sesión libre (P67).
+ * (o "+ Serie extra" con el bloque completo), "Deshacer" y "Saltar ejercicio".
+ * Compartido por la sesión de rutina y la sesión libre (P67, P68b).
  */
 export function RegistroSerie({
   bloque, ejercicio, seriesHechas, reps, carga,
-  onRepsChange, onCargaChange, onSerie, onDeshacer, onEjercicioChange, pulsing,
+  onRepsChange, onCargaChange, onSerie, onSerieExtra, onDeshacer, onSaltar,
+  onEjercicioChange, pulsing,
 }: Props) {
-  const [pasoAbierto, setPasoAbierto] = useState(false);
-  const [pasoError,   setPasoError]   = useState<string | null>(null);
+  const [pasoAbierto,   setPasoAbierto]   = useState(false);
+  const [pasoError,     setPasoError]     = useState<string | null>(null);
+  const [saltarAbierto, setSaltarAbierto] = useState(false);
   const longPress = useLongPress(() => setPasoAbierto(true), !!ejercicio);
 
   const p  = bloque.prescripcion;
@@ -71,6 +79,7 @@ export function RegistroSerie({
   }
 
   const objetivo = seriesObjetivo(p);
+  const completo = seriesHechas >= objetivo;
 
   return (
     <div className="workout-footer">
@@ -130,16 +139,32 @@ export function RegistroSerie({
 
       <button
         className={`btn-serie-hecha${pulsing ? " btn-pulsing" : ""}`}
-        onClick={onSerie}
-        disabled={seriesHechas >= objetivo}
+        onClick={completo ? onSerieExtra : onSerie}
       >
-        Serie {seriesHechas + 1} hecha ✓
+        {completo ? "+ Serie extra" : `Serie ${seriesHechas + 1} hecha ✓`}
       </button>
 
-      {seriesHechas > 0 && (
-        <button type="button" className="btn-deshacer-serie" onClick={onDeshacer}>
-          Deshacer última serie
-        </button>
+      {(seriesHechas > 0 || !completo) && (
+        <div className="registro-secundarios">
+          {seriesHechas > 0 ? (
+            <button type="button" className="btn-deshacer-serie" onClick={onDeshacer}>
+              Deshacer última serie
+            </button>
+          ) : <span />}
+          {!completo && (
+            <button type="button" className="btn-deshacer-serie" onClick={() => setSaltarAbierto(true)}>
+              Saltar ejercicio
+            </button>
+          )}
+        </div>
+      )}
+
+      {saltarAbierto && (
+        <SaltarEjercicio
+          nombre={bloque.nombreEjercicio}
+          onSaltar={(motivo) => { setSaltarAbierto(false); onSaltar(motivo); }}
+          onCancelar={() => setSaltarAbierto(false)}
+        />
       )}
 
       {pasoAbierto && ejercicio && (

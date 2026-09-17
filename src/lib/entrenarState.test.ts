@@ -12,6 +12,8 @@ import {
   asegurarInicioSesion, seriesHechasTotales, loadEntrenarState,
   estadoReiniciado, asignarIdSesion, duracionParcialMin, sesionVieja, quitarBloques,
   UMBRAL_SESION_VIEJA_MS,
+  saltarBloque, retomarBloque, bloqueSaltado, bloqueResuelto, rutinaTerminada,
+  siguientePendiente, aContinuacionDescanso,
 } from "./entrenarState";
 import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
 
@@ -308,6 +310,253 @@ describe("quitarBloques", () => {
 
   it("sin quitados devuelve el mismo estado", () => {
     expect(quitarBloques(s0, [], 3)).toBe(s0);
+  });
+});
+
+// ── P68b: saltar, retomar, extras, navegación ─────────────────────────────────
+const rutina3: Rutina = {
+  ...rutina,
+  bloques: [
+    ...rutina.bloques,
+    {
+      orden: 3,
+      idEjercicio: "EJ-0003",
+      nombreEjercicio: "Plancha",
+      modalidad: "Fuerza",
+      prescripcion: { modalidad: "Fuerza", series: 2, repsObjetivo: { value: 10, raw: "10" }, descansoSeg: 60 },
+    },
+  ],
+};
+
+/** Completa todas las series del bloque `idx` (3 series en los bloques de prueba 0 y 1). */
+function completarBloque(s: typeof s0, r: Rutina, idx: number, series: number, t0 = 1000) {
+  let x = s;
+  for (let i = 0; i < series; i++) x = completarSerie(x, r, idx, undefined, t0 + i);
+  return x;
+}
+
+describe("saltarBloque", () => {
+  it("marca el salto con motivo", () => {
+    const s = saltarBloque(s0, rutina3, 0, "dolor", 5000);
+    expect(s.saltados).toEqual({ 0: "dolor" });
+    expect(bloqueSaltado(s, 0)).toBe(true);
+  });
+
+  it("marca el salto sin motivo (null)", () => {
+    const s = saltarBloque(s0, rutina3, 0, null, 5000);
+    expect(s.saltados).toEqual({ 0: null });
+    expect(bloqueSaltado(s, 0)).toBe(true);
+    expect(bloqueResuelto(s, rutina3, 0)).toBe(true);
+  });
+
+  it("cancela el descanso de ese bloque y borra su inicio de serie", () => {
+    const conDescanso = completarSerie({ ...s0, serieInicioMs: { 0: 900 } }, rutina3, 0, undefined, 1000);
+    expect(conDescanso.descanso?.bloqueIdx).toBe(0);
+    const s = saltarBloque({ ...conDescanso, serieInicioMs: { 0: 1500 } }, rutina3, 0, null, 2000);
+    expect(s.descanso).toBeNull();
+    expect(s.serieInicioMs[0]).toBeUndefined();
+  });
+
+  it("avanza al próximo pendiente, sella su inicio y deja ultimoBloqueCerrado", () => {
+    const s = saltarBloque(s0, rutina3, 0, "otro", 5000);
+    expect(s.bloqueActual).toBe(1);
+    expect(s.serieInicioMs[1]).toBe(5000);
+    expect(s.ultimoBloqueCerrado).toBe(0);
+  });
+
+  it("no hace nada en un bloque completo", () => {
+    const completo = completarBloque(s0, rutina3, 0, 3);
+    expect(saltarBloque(completo, rutina3, 0, "dolor", 9000)).toBe(completo);
+  });
+
+  it("si era el último pendiente: terminada pero no completa", () => {
+    let s = completarBloque(s0, rutina3, 0, 3);
+    s = completarBloque(s, rutina3, 1, 3);
+    expect(rutinaTerminada(s, rutina3)).toBe(false);
+    s = saltarBloque(s, rutina3, 2, "sin-tiempo", 9000);
+    expect(rutinaTerminada(s, rutina3)).toBe(true);
+    expect(rutinaCompleta(s, rutina3)).toBe(false);
+  });
+});
+
+describe("retomarBloque", () => {
+  it("conserva las series, quita el salto y limpia ultimoBloqueCerrado", () => {
+    let s = completarSerie(s0, rutina3, 0, { reps: 8 }, 1000);
+    s = saltarBloque(s, rutina3, 0, "equipo-ocupado", 2000);
+    expect(s.ultimoBloqueCerrado).toBe(0);
+    s = retomarBloque({ ...s, modoVista: "scroll" }, 0);
+    expect(bloqueSaltado(s, 0)).toBe(false);
+    expect(s.seriesHechas[0]).toBe(1);
+    expect(s.registro[0]).toHaveLength(1);
+    expect(s.bloqueActual).toBe(0);
+    expect(s.modoVista).toBe("guiada");
+    expect(s.ultimoBloqueCerrado).toBeNull();
+  });
+});
+
+describe("completarSerie con extra", () => {
+  it("registra por encima del objetivo, sin descanso ni avance, numerando 4 y 5", () => {
+    const completo = completarBloque(s0, rutina3, 0, 3);
+    const enBloque0 = { ...completo, bloqueActual: 0, ultimoBloqueCerrado: 0 };
+    let s = completarSerie(enBloque0, rutina3, 0, { reps: 12 }, 5000, { extra: true });
+    s = completarSerie(s, rutina3, 0, undefined, 6000, { extra: true });
+    expect(s.seriesHechas[0]).toBe(5);
+    expect(s.registro[0].map((r) => r.serie)).toEqual([1, 2, 3, 4, 5]);
+    expect(s.descanso).toBeNull();
+    expect(s.bloqueActual).toBe(0);
+    expect(s.ultimoBloqueCerrado).toBe(0);
+  });
+
+  it("sin extra, un bloque completo no registra más", () => {
+    const completo = completarBloque(s0, rutina3, 0, 3);
+    expect(completarSerie(completo, rutina3, 0, undefined, 5000)).toBe(completo);
+  });
+
+  it("una extra sobre otro bloque no toca ultimoBloqueCerrado ni el bloque actual", () => {
+    const s = completarBloque(s0, rutina3, 0, 3);
+    expect(s.bloqueActual).toBe(1);
+    const x = completarSerie(s, rutina3, 0, undefined, 5000, { extra: true });
+    expect(x.bloqueActual).toBe(1);
+    expect(x.ultimoBloqueCerrado).toBe(0);
+    expect(x.serieInicioMs[0]).toBeUndefined();
+  });
+});
+
+describe("ultimoBloqueCerrado", () => {
+  it("se setea al completar un bloque", () => {
+    const s = completarBloque(s0, rutina3, 0, 3);
+    expect(s.ultimoBloqueCerrado).toBe(0);
+    expect(s.bloqueActual).toBe(1);
+  });
+
+  it("se setea al saltear", () => {
+    expect(saltarBloque(s0, rutina3, 1, null, 1).ultimoBloqueCerrado).toBe(1);
+  });
+
+  it("se limpia al completar una serie de otro bloque", () => {
+    const s = completarBloque(s0, rutina3, 0, 3);
+    const x = completarSerie(s, rutina3, 1, undefined, 5000);
+    expect(x.ultimoBloqueCerrado).toBeNull();
+  });
+
+  it("no se limpia con una serie del mismo bloque", () => {
+    const s = { ...s0, ultimoBloqueCerrado: 1 };
+    expect(completarSerie(s, rutina3, 1, undefined, 5000).ultimoBloqueCerrado).toBe(1);
+  });
+
+  it("se limpia con irABloque y al retomar", () => {
+    const s = completarBloque(s0, rutina3, 0, 3);
+    expect(irABloque(s, 2).ultimoBloqueCerrado).toBeNull();
+    const saltado = saltarBloque(s0, rutina3, 0, null, 1);
+    expect(retomarBloque(saltado, 0).ultimoBloqueCerrado).toBeNull();
+  });
+});
+
+describe("proximoBloqueIncompleto con salteados", () => {
+  it("saltea los salteados hacia adelante", () => {
+    const s = { ...s0, saltados: { 1: null } };
+    expect(proximoBloqueIncompleto(s, rutina3, 0)).toBe(2);
+  });
+
+  it("saltea los salteados al volver a buscar desde el principio", () => {
+    let s = completarBloque(s0, rutina3, 2, 2);
+    s = { ...s, saltados: { 0: "dolor" } };
+    // Después del último bloque no hay nada: vuelve al principio, saltea el 0 y cae en el 1.
+    expect(proximoBloqueIncompleto(s, rutina3, 2)).toBe(1);
+  });
+
+  it("devuelve -1 si todo está resuelto", () => {
+    let s = completarBloque(s0, rutina3, 0, 3);
+    s = { ...s, saltados: { 1: null, 2: "otro" } };
+    expect(proximoBloqueIncompleto(s, rutina3, 0)).toBe(-1);
+  });
+
+  it("siguientePendiente no devuelve el bloque actual", () => {
+    let s = completarBloque(s0, rutina3, 1, 3);
+    s = completarBloque(s, rutina3, 2, 2);
+    // Solo queda el 0: para "A continuación" desde el 0 no hay otro.
+    expect(proximoBloqueIncompleto(s, rutina3, 0)).toBe(0);
+    expect(siguientePendiente(s, rutina3, 0)).toBe(-1);
+  });
+});
+
+describe("aContinuacionDescanso", () => {
+  it("solo en el descanso previo a la última serie", () => {
+    const una = completarSerie(s0, rutina3, 0, undefined, 1000);
+    expect(aContinuacionDescanso(una, rutina3)).toBeUndefined();
+    const dos = completarSerie(una, rutina3, 0, undefined, 2000);
+    expect(aContinuacionDescanso(dos, rutina3)).toBe("Remo");
+  });
+});
+
+describe("irABloque (P68b)", () => {
+  it("borra el inicio de serie del bloque que se deja y cancela su descanso", () => {
+    const s = {
+      ...s0,
+      bloqueActual: 0,
+      serieInicioMs: { 0: 1000, 1: 2000 },
+      descanso: { bloqueIdx: 0, startMs: 0, durMs: 60_000 },
+    };
+    const x = irABloque(s, 2);
+    expect(x.bloqueActual).toBe(2);
+    expect(x.serieInicioMs).toEqual({ 1: 2000 });
+    expect(x.descanso).toBeNull();
+  });
+
+  it("no cancela un descanso de otro bloque", () => {
+    const s = { ...s0, bloqueActual: 0, descanso: { bloqueIdx: 1, startMs: 0, durMs: 1 } };
+    expect(irABloque(s, 2).descanso).toEqual({ bloqueIdx: 1, startMs: 0, durMs: 1 });
+  });
+});
+
+describe("quitarBloques (P68b)", () => {
+  it("reindexa saltados y ajusta ultimoBloqueCerrado", () => {
+    const s = { ...s0, saltados: { 0: null, 2: "dolor" as const }, ultimoBloqueCerrado: 2 };
+    const r = quitarBloques(s, [1], 2);
+    expect(r.saltados).toEqual({ 0: null, 1: "dolor" });
+    expect(r.ultimoBloqueCerrado).toBe(1);
+  });
+
+  it("si se quitó el último bloque cerrado, queda en null", () => {
+    const s = { ...s0, ultimoBloqueCerrado: 1 };
+    expect(quitarBloques(s, [1], 2).ultimoBloqueCerrado).toBeNull();
+  });
+});
+
+describe("construirBloquesRegistro (P68b)", () => {
+  it("marca saltado y motivoSalto solo donde corresponde", () => {
+    const s = { ...s0, saltados: { 1: "dolor" as const, 2: null } };
+    const bloques = construirBloquesRegistro(s, rutina3);
+    expect(bloques[0]).not.toHaveProperty("saltado");
+    expect(bloques[0]).not.toHaveProperty("motivoSalto");
+    expect(bloques[1]).toMatchObject({ saltado: true, motivoSalto: "dolor" });
+    expect(bloques[2]).toMatchObject({ saltado: true });
+    expect(bloques[2]).not.toHaveProperty("motivoSalto");
+  });
+});
+
+describe("loadEntrenarState (P68b)", () => {
+  it("un estado previo sin saltados ni ultimoBloqueCerrado carga con los iniciales", () => {
+    const viejo: Record<string, unknown> = { ...s0, seriesHechas: { 0: 1 } };
+    delete viejo.saltados;
+    delete viejo.ultimoBloqueCerrado;
+    localStorage.setItem("entrenar:test-p68b", JSON.stringify(viejo));
+    try {
+      const cargado = loadEntrenarState("test-p68b");
+      expect(cargado.saltados).toEqual({});
+      expect(cargado.ultimoBloqueCerrado).toBeNull();
+      expect(cargado.seriesHechas).toEqual({ 0: 1 });
+    } finally {
+      localStorage.removeItem("entrenar:test-p68b");
+    }
+  });
+
+  it("estadoReiniciado limpia saltados y ultimoBloqueCerrado", () => {
+    const s = { ...s0, saltados: { 0: null }, ultimoBloqueCerrado: 0, idSesion: "SES-9" };
+    const r = estadoReiniciado(s);
+    expect(r.saltados).toEqual({});
+    expect(r.ultimoBloqueCerrado).toBeNull();
+    expect(r.idSesion).toBe("SES-9");
   });
 });
 

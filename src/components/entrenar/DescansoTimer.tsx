@@ -7,6 +7,8 @@ interface Props {
   state:     EntrenarState;
   onSkip:    () => void;
   onAjustar: (delta: number) => void;
+  /** Próximo ejercicio; la ruta lo pasa solo en el descanso previo a la última serie. */
+  aContinuacion?: string;
 }
 
 function fmt(ms: number): string {
@@ -16,7 +18,7 @@ function fmt(ms: number): string {
   return `${min}:${String(sec).padStart(2, "0")}`;
 }
 
-export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
+export function DescansoTimer({ state, onSkip, onAjustar, aContinuacion }: Props) {
   const [remaining, setRemaining] = useState(() => descansoRestanteMs(state));
   const [flashing,  setFlashing]  = useState(false);
   const beeped      = useRef(false);
@@ -85,6 +87,9 @@ export function DescansoTimer({ state, onSkip, onAjustar }: Props) {
         <span className={`timer-big${urgent ? " urgent" : ""}`}>
           {fmt(remaining)}
         </span>
+        {aContinuacion && (
+          <span className="descanso-siguiente">A continuación: {aContinuacion}</span>
+        )}
         <div className="descanso-actions">
           <button
             className="btn-secondary descanso-ajuste"

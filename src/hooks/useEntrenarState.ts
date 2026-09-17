@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Rutina, SerieRegistro } from "../types/models";
+import type { MotivoSalto, Rutina, SerieRegistro } from "../types/models";
 import {
   loadEntrenarState, persistEntrenarState, clearEntrenarState,
   completarSerie as _completarSerie,
@@ -14,6 +14,8 @@ import {
   anteriorBloque as _anteriorBloque,
   toggleModoVista as _toggleModoVista,
   estadoReiniciado,
+  saltarBloque as _saltarBloque,
+  retomarBloque as _retomarBloque,
   asignarIdSesion as _asignarIdSesion,
   quitarBloques as _quitarBloques,
   construirBloquesRegistro,
@@ -47,9 +49,19 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
   return {
     state,
 
-    completarSerie(idx: number, reg?: Partial<SerieRegistro>) {
+    /** Con `{ extra: true }` registra una serie de más sobre un bloque completo (P68b). */
+    completarSerie(idx: number, reg?: Partial<SerieRegistro>, opts?: { extra?: boolean }) {
       if (!rutina) return;
-      dispatch((s) => _completarSerie(s, rutina, idx, reg));
+      const now = Date.now();
+      dispatch((s) => _completarSerie(s, rutina, idx, reg, now, opts));
+    },
+    saltarBloque(idx: number, motivo: MotivoSalto | null) {
+      if (!rutina) return;
+      const now = Date.now();
+      dispatch((s) => _saltarBloque(s, rutina, idx, motivo, now));
+    },
+    retomarBloque(idx: number) {
+      dispatch((s) => _retomarBloque(s, idx));
     },
     deshacerSerie(idx: number) {
       dispatch((s) => _deshacerSerie(s, idx));

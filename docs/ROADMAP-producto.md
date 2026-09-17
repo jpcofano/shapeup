@@ -41,6 +41,18 @@ y carga en un teclado numérico** con las manos ocupadas.
 - **`+ serie`** habilitado al alcanzar `seriesObjetivo()`, para AMRAP o una serie de más.
 - **"Saltar ejercicio"** con motivo **opcional** en chips: *dolor · equipo ocupado · sin
   tiempo · otro*. El motivo alimenta la sustitución del bloque 3.
+- **Información y orden en la sesión** (P68b). Saber qué hay y poder cambiar el orden:
+  - el objetivo dice **"Serie N de M"** (o "Serie extra" con el bloque completo);
+  - **"A continuación: {ejercicio}"** debajo del objetivo, y en el descanso previo a la
+    última serie;
+  - **vista del día**: todos los ejercicios con su estado (hecho, en curso, parcial,
+    salteado, pendiente). Se abre sola al entrar a una rutina sin series, se abre también
+    tocando el contador "Ejercicio X de N", y permite ir a cualquier ejercicio. Es donde
+    después va a vivir **"recortar la rutina"** del bloque 8;
+  - los ejercicios salteados se pueden **retomar** desde la vista del día, desde el chip
+    "Saltaste X · Volver" o desde la pantalla de fin, que ahora aparece cuando todo está
+    hecho o salteado ("Sesión terminada" si algo quedó salteado);
+  - el **"atrás" del sistema** (navegador o Android) pasa por la hoja de salida.
 - **Dos arreglos que van acá:**
   - `startRef = useRef(Date.now())` se sella al montar; como el estado persiste en
     localStorage, reanudar reinicia el cronómetro y `duracionRealMin` queda corta. Sellar
@@ -481,9 +493,10 @@ silencioso toda la sesión.
 | Prompt | Contenido | Depende de |
 |---|---|---|
 | P67 | Bloque 1 — botones, steppers, descanso, los dos arreglos | — |
-| P68 | Bloque 1 — hoja de salida, sesión parcial, `+ serie`, saltar con motivo | P67 |
-| P69 | Bloque 4 — sin señal (chico y evita perder sesiones) | P68 |
-| P70 | Bloque 2 — resumen post-entreno y RIR | P68 |
+| P68 | Bloque 1 — hoja de salida, sesión parcial, una `SesionProgramada` por sesión, sesión libre persistida | P67 |
+| P68b | Bloque 1 — información y orden en la sesión: "Serie N de M", "A continuación", vista del día, `+ serie`, saltar con motivo y retomar, "atrás" por la hoja de salida | P68 |
+| P69 | Bloque 4 — sin señal (chico y evita perder sesiones) | P68b |
+| P70 | Bloque 2 — resumen post-entreno y RIR | P68b |
 | P71 | Auditoría de traducciones (script, sin UI) | — |
 | P72 | Perfil editable + equipo por lugar **+ script de migración del doc sembrado** | — |
 | P73 | Bloque 3 — `lib/sustitucion.ts` y UI **+ filtro por equipo escrito desde cero** | P71, P72 |

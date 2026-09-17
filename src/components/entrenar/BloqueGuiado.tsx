@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import type { BloqueEjercicio, Ejercicio } from "../../types/models";
-import { seriesObjetivo, objetivoSerieLabel } from "../../lib/entrenarState";
+import { ChevronDown, ChevronRight, List } from "lucide-react";
+import type { BloqueEjercicio, Ejercicio, MotivoSalto } from "../../types/models";
+import { seriesObjetivo, objetivoSerieLabel, motivoSaltoLabel } from "../../lib/entrenarState";
 import { ProgressDots } from "./ProgressDots";
 import { MediaTabs } from "./MediaTabs";
 
@@ -12,18 +12,31 @@ interface Props {
   seriesHechas: number;
   ejercicio?:   Ejercicio;   // cargado del catálogo (instrucciones, puntos, errores)
   onIrASerie:   (serieIdx: number) => void;
+  /** Nombre del próximo pendiente; `null` si este es el último. */
+  aContinuacion: string | null;
+  /** Motivo si el bloque está salteado (`null` = sin motivo); `undefined` si no lo está. */
+  saltado?:     MotivoSalto | null;
+  /** Abre la vista del día (el contador "Ejercicio X de N"). */
+  onAbrirDia:   () => void;
+  onRetomar:    () => void;
 }
 
 /**
- * Vista guiada de un bloque: nombre, dots de progreso, objetivo de la serie,
- * instrucciones, puntos clave (verde) y errores comunes (ámbar).
+ * Vista guiada de un bloque: contador (abre la vista del día), nombre, dots de
+ * progreso, objetivo de la serie, qué viene después, instrucciones, puntos
+ * clave (verde) y errores comunes (ámbar).
  */
-export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio, onIrASerie }: Props) {
+export function BloqueGuiado({
+  bloque, bloqueIdx, total, seriesHechas, ejercicio, onIrASerie,
+  aContinuacion, saltado, onAbrirDia, onRetomar,
+}: Props) {
   const [instrOpen, setInstrOpen] = useState(false);
 
   const objetivo = objetivoSerieLabel(bloque.prescripcion);
   const serieNum = seriesHechas + 1;
   const totalSeries = seriesObjetivo(bloque.prescripcion);
+  const esSaltado = saltado !== undefined;
+  const motivo = motivoSaltoLabel(saltado);
 
   const instrucciones = ejercicio?.instrucciones ?? [];
   const puntosClave   = ejercicio?.puntosClave   ?? [];
@@ -31,10 +44,12 @@ export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio
 
   return (
     <div className="bloque-guiado">
-      {/* Contador */}
-      <span className="bloque-counter">
+      {/* Contador — abre la vista del día */}
+      <button type="button" className="bloque-counter bloque-counter-btn" onClick={onAbrirDia}>
+        <List size={13} aria-hidden />
         Ejercicio {bloqueIdx + 1} de {total}
-      </span>
+        <ChevronDown size={13} aria-hidden />
+      </button>
 
       {/* Nombre */}
       <h2 className="bloque-nombre-grande">{bloque.nombreEjercicio}</h2>
@@ -64,10 +79,27 @@ export function BloqueGuiado({ bloque, bloqueIdx, total, seriesHechas, ejercicio
         onGoTo={onIrASerie}
       />
 
-      {/* Objetivo */}
-      <span className="objetivo-chip">
-        Serie {serieNum} · {objetivo}
-      </span>
+      {/* Objetivo, o estado de salteado */}
+      {esSaltado ? (
+        <div className="bloque-saltado">
+          <span className="objetivo-chip objetivo-chip-saltado">
+            Salteado{motivo ? ` · ${motivo}` : ""}
+          </span>
+          <button type="button" className="btn-primary" onClick={onRetomar}>
+            Retomar
+          </button>
+        </div>
+      ) : (
+        <span className="objetivo-chip">
+          {seriesHechas >= totalSeries
+            ? `Serie extra · ${objetivo}`
+            : `Serie ${serieNum} de ${totalSeries} · ${objetivo}`}
+        </span>
+      )}
+
+      <p className="bloque-siguiente">
+        {aContinuacion != null ? `A continuación: ${aContinuacion}` : "Último ejercicio"}
+      </p>
 
       {/* Instrucciones colapsables */}
       {instrucciones.length > 0 && (

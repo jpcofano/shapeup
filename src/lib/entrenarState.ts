@@ -17,7 +17,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import type {
-  Rutina, BloqueEjercicio, Prescripcion, SerieRegistro, Modalidad, Ejercicio,
+  Rutina, BloqueEjercicio, BloqueRegistro, Prescripcion, SerieRegistro, Modalidad, Ejercicio,
+  MotivoSalto,
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
 export { seriesObjetivo } from "./metricas";
@@ -50,6 +51,13 @@ export interface EntrenarState {
    * y se reusa al reanudar; reiniciar la conserva. `null` en la sesión libre.
    */
   idSesion: string | null;
+  /** Bloques salteados → motivo (`null` = salteado sin motivo). P68b. */
+  saltados: Record<number, MotivoSalto | null>;
+  /**
+   * Último bloque que se dejó por completarlo o saltearlo (chip "+ serie de…" /
+   * "Saltaste… · Volver"). Se limpia al trabajar otro bloque, al navegar o al retomar.
+   */
+  ultimoBloqueCerrado: number | null;
 }
 
 export const INITIAL_ENTRENAR_STATE: EntrenarState = {
@@ -62,7 +70,23 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   ultimoLog: {},
   inicioMs: null,
   idSesion: null,
+  saltados: {},
+  ultimoBloqueCerrado: null,
 };
+
+/** Etiquetas de los motivos de salto, en el orden en que se ofrecen. */
+export const MOTIVOS_SALTO: ReadonlyArray<readonly [MotivoSalto, string]> = [
+  ["dolor",          "Dolor"],
+  ["equipo-ocupado", "Equipo ocupado"],
+  ["sin-tiempo",     "Sin tiempo"],
+  ["otro",           "Otro"],
+];
+
+/** "Dolor", "Equipo ocupado"… o `null` si el salto no tiene motivo. */
+export function motivoSaltoLabel(m: MotivoSalto | null | undefined): string | null {
+  if (!m) return null;
+  return MOTIVOS_SALTO.find(([v]) => v === m)?.[1] ?? null;
+}
 
 /** Una sesión abierta hace más de esto se considera abandonada (P68). */
 export const UMBRAL_SESION_VIEJA_MS = 12 * 60 * 60 * 1000;
@@ -192,21 +216,67 @@ export function bloquesCompletados(state: EntrenarState, rutina: Rutina): number
   return rutina.bloques.reduce((n, _b, idx) => n + (bloqueCompleto(state, rutina, idx) ? 1 : 0), 0);
 }
 
-/** ¿La rutina entera está completa? */
+/** ¿La rutina entera está completa (todos los bloques con sus series)? Decide la completitud. */
 export function rutinaCompleta(state: EntrenarState, rutina: Rutina): boolean {
   return rutina.bloques.length > 0 && bloquesCompletados(state, rutina) === rutina.bloques.length;
 }
 
-/** Próximo bloque incompleto después de `desde` (para auto-avance). -1 si no hay. */
+/** ¿El bloque se salteó? */
+export function bloqueSaltado(state: EntrenarState, idx: number): boolean {
+  return state.saltados[idx] !== undefined;
+}
+
+/** Bloque resuelto: completo o salteado. */
+export function bloqueResuelto(state: EntrenarState, rutina: Rutina, idx: number): boolean {
+  return bloqueCompleto(state, rutina, idx) || bloqueSaltado(state, idx);
+}
+
+/** Todos los bloques resueltos: decide cuándo se muestra la pantalla de fin (P68b). */
+export function rutinaTerminada(state: EntrenarState, rutina: Rutina): boolean {
+  return rutina.bloques.length > 0
+    && rutina.bloques.every((_b, idx) => bloqueResuelto(state, rutina, idx));
+}
+
+/**
+ * Próximo bloque pendiente (ni completo ni salteado) después de `desde`, para el
+ * auto-avance. Si no hay más adelante, vuelve a buscar desde el principio (puede
+ * devolver `desde` mismo). -1 si todos están resueltos.
+ */
 export function proximoBloqueIncompleto(state: EntrenarState, rutina: Rutina, desde: number): number {
   for (let i = desde + 1; i < rutina.bloques.length; i++) {
-    if (!bloqueCompleto(state, rutina, i)) return i;
+    if (!bloqueResuelto(state, rutina, i)) return i;
   }
-  // fallback: cualquier incompleto desde el inicio (si quedaron salteados)
+  // fallback: cualquier pendiente desde el inicio
   for (let i = 0; i < rutina.bloques.length; i++) {
-    if (!bloqueCompleto(state, rutina, i)) return i;
+    if (!bloqueResuelto(state, rutina, i)) return i;
   }
   return -1;
+}
+
+/** Próximo pendiente distinto de `idx` ("A continuación"). -1 si no hay otro. */
+export function siguientePendiente(state: EntrenarState, rutina: Rutina, idx: number): number {
+  const prox = proximoBloqueIncompleto(state, rutina, idx);
+  return prox === idx ? -1 : prox;
+}
+
+/** Nombre del próximo pendiente después de `idx`, o `null` si es el último. */
+export function nombreSiguientePendiente(state: EntrenarState, rutina: Rutina, idx: number): string | null {
+  const s = siguientePendiente(state, rutina, idx);
+  return s >= 0 ? rutina.bloques[s].nombreEjercicio : null;
+}
+
+/**
+ * "A continuación" del descanso: solo en el descanso previo a la última serie
+ * del bloque, con el nombre del próximo pendiente. `undefined` en cualquier otro caso.
+ */
+export function aContinuacionDescanso(state: EntrenarState, rutina: Rutina): string | undefined {
+  const d = state.descanso;
+  if (!d) return undefined;
+  const b = rutina.bloques[d.bloqueIdx];
+  if (!b) return undefined;
+  const hechas = state.seriesHechas[d.bloqueIdx] ?? 0;
+  if (hechas !== seriesObjetivo(b.prescripcion) - 1) return undefined;
+  return nombreSiguientePendiente(state, rutina, d.bloqueIdx) ?? undefined;
 }
 
 /** Tiempo restante del descanso (ms). 0 si no hay descanso o ya venció. */
@@ -227,6 +297,14 @@ export function descansoRestanteMs(state: EntrenarState, now: number = Date.now(
  *
  * `reg` es el log opcional de la serie (reps/carga reales). Si no se captura,
  * se guarda { serie, completada:true } para poder reconstruir el Historial.
+ *
+ * `ultimoBloqueCerrado` (P68b): una serie de otro bloque lo limpia; completar
+ * el bloque lo setea en `idx`.
+ *
+ * Con `{ extra: true }` (P68b) registra aunque el bloque ya esté completo —
+ * serie de más, numerada a continuación—, sin descanso, sin avanzar y sin tocar
+ * `ultimoBloqueCerrado`. Si es el bloque actual, sella el inicio de la próxima
+ * extra en `now` (no hay descanso que lo selle).
  */
 export function completarSerie(
   state: EntrenarState,
@@ -234,13 +312,15 @@ export function completarSerie(
   idx: number,
   reg?: Partial<SerieRegistro>,
   now: number = Date.now(),
+  opts: { extra?: boolean } = {},
 ): EntrenarState {
   const bloque = rutina.bloques[idx];
   if (!bloque) return state;
 
   const objetivo = seriesObjetivo(bloque.prescripcion);
   const hechasPrev = state.seriesHechas[idx] ?? 0;
-  if (hechasPrev >= objetivo) return state; // ya estaba completo
+  const extra = opts.extra === true;
+  if (hechasPrev >= objetivo && !extra) return state; // ya estaba completo
 
   const hechas = hechasPrev + 1;
   const serieNum = hechas;
@@ -279,6 +359,15 @@ export function completarSerie(
       : state.ultimoLog,
   };
 
+  if (extra) {
+    if (idx === state.bloqueActual) next.serieInicioMs = { ...serieInicioMs, [idx]: now };
+    return next;
+  }
+
+  if (state.ultimoBloqueCerrado != null && state.ultimoBloqueCerrado !== idx) {
+    next.ultimoBloqueCerrado = null;
+  }
+
   if (hechas < objetivo) {
     // Quedan series → descanso
     const d = descansoSeg(bloque.prescripcion);
@@ -288,6 +377,7 @@ export function completarSerie(
 
   // Bloque completo → cortar descanso y avanzar
   next.descanso = null;
+  next.ultimoBloqueCerrado = idx;
   const prox = proximoBloqueIncompleto(next, rutina, idx);
   if (prox >= 0) next.bloqueActual = prox;
   return next;
@@ -425,14 +515,17 @@ export function quitarBloques(
   const descanso = state.descanso && !fuera.has(state.descanso.bloqueIdx)
     ? { ...state.descanso, bloqueIdx: nuevoIdx(state.descanso.bloqueIdx) }
     : null;
+  const cerrado = state.ultimoBloqueCerrado;
   return {
     ...state,
     seriesHechas:  remap(state.seriesHechas),
     registro:      remap(state.registro),
     serieInicioMs: remap(state.serieInicioMs),
     ultimoLog:     remap(state.ultimoLog),
+    saltados:      remap(state.saltados),
     descanso,
     bloqueActual:  Math.max(0, Math.min(nuevoIdx(state.bloqueActual), totalRestante - 1)),
+    ultimoBloqueCerrado: cerrado == null || fuera.has(cerrado) ? null : nuevoIdx(cerrado),
   };
 }
 
@@ -466,9 +559,66 @@ export function ajustarTrabajo(state: EntrenarState, idx: number, deltaSeg: numb
   return { ...state, serieInicioMs: { ...state.serieInicioMs, [idx]: inicio + deltaSeg * 1000 } };
 }
 
-/** Ir a un bloque puntual (tap en el dot de progreso). */
+/**
+ * Ir a un bloque puntual (vista del día). Del bloque que se deja borra el inicio
+ * de serie sellado y cancela su descanso; limpia `ultimoBloqueCerrado`.
+ */
 export function irABloque(state: EntrenarState, idx: number): EntrenarState {
-  return { ...state, bloqueActual: idx };
+  const deja = state.bloqueActual;
+  const next: EntrenarState = { ...state, bloqueActual: idx, ultimoBloqueCerrado: null };
+  if (deja !== idx) {
+    const serieInicioMs = { ...state.serieInicioMs };
+    delete serieInicioMs[deja];
+    next.serieInicioMs = serieInicioMs;
+    if (state.descanso?.bloqueIdx === deja) next.descanso = null;
+  }
+  return next;
+}
+
+/**
+ * Saltea el bloque `idx` con motivo opcional. Cancela su descanso, borra su
+ * inicio de serie, lo deja como `ultimoBloqueCerrado` y avanza al próximo
+ * pendiente (sellándole el inicio de serie). No-op si el bloque ya está completo.
+ */
+export function saltarBloque(
+  state: EntrenarState,
+  rutina: Rutina,
+  idx: number,
+  motivo: MotivoSalto | null,
+  now: number = Date.now(),
+): EntrenarState {
+  if (!rutina.bloques[idx] || bloqueCompleto(state, rutina, idx)) return state;
+  const serieInicioMs = { ...state.serieInicioMs };
+  delete serieInicioMs[idx];
+  const next: EntrenarState = {
+    ...state,
+    saltados: { ...state.saltados, [idx]: motivo },
+    descanso: state.descanso?.bloqueIdx === idx ? null : state.descanso,
+    serieInicioMs,
+    ultimoBloqueCerrado: idx,
+  };
+  const prox = proximoBloqueIncompleto(next, rutina, idx);
+  if (prox >= 0) {
+    next.bloqueActual = prox;
+    return asegurarInicioSerie(next, prox, now);
+  }
+  return next;
+}
+
+/**
+ * Vuelve a un bloque salteado: quita el salto, lo pone como actual en modo
+ * guiado y limpia `ultimoBloqueCerrado`. Las series ya hechas se conservan.
+ */
+export function retomarBloque(state: EntrenarState, idx: number): EntrenarState {
+  const saltados = { ...state.saltados };
+  delete saltados[idx];
+  return {
+    ...state,
+    saltados,
+    bloqueActual: idx,
+    modoVista: "guiada",
+    ultimoBloqueCerrado: null,
+  };
 }
 
 /** Bloque siguiente (sin completar nada). */
@@ -529,17 +679,23 @@ export function clearEntrenarState(sessionKey: string): void {
 //  Lo consume data/sesiones.finalizarSesion(), análogo a marcarCocinada +
 //  _cerrarEvaluacion del original.
 // ════════════════════════════════════════════════════════════════════════════
-export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina) {
-  return rutina.bloques.map((b, idx) => ({
-    orden: b.orden,
-    idEjercicio: b.idEjercicio,
-    nombreEjercicio: b.nombreEjercicio,
-    modalidad: b.modalidad as Modalidad,
-    series: state.registro[idx]
-      ?? Array.from({ length: state.seriesHechas[idx] ?? 0 }, (_v, i) => ({
-        serie: i + 1, completada: true,
-      })),
-  }));
+export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): BloqueRegistro[] {
+  return rutina.bloques.map((b, idx) => {
+    const motivo = state.saltados[idx];
+    return {
+      orden: b.orden,
+      idEjercicio: b.idEjercicio,
+      nombreEjercicio: b.nombreEjercicio,
+      modalidad: b.modalidad as Modalidad,
+      series: state.registro[idx]
+        ?? Array.from({ length: state.seriesHechas[idx] ?? 0 }, (_v, i) => ({
+          serie: i + 1, completada: true,
+        })),
+      // Solo en bloques salteados (P68b).
+      ...(motivo !== undefined ? { saltado: true } : {}),
+      ...(motivo ? { motivoSalto: motivo } : {}),
+    };
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════════════

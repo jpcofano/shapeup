@@ -7,6 +7,7 @@ import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
 import { consolidarNoches } from "../lib/sueno";
 import type { NocheSueno } from "../lib/sueno";
 import { compararConPrevias } from "../lib/costoCardiaco";
+import { motivoSaltoLabel } from "../lib/entrenarState";
 import type { ComparativaCardiaca } from "../lib/costoCardiaco";
 
 function formatFecha(s: string): string {
@@ -142,6 +143,14 @@ export function HistorialDetalle() {
                   {completadas.length}/{b.series.length} series
                   {detalle ? ` · ${detalle}` : ""}
                 </p>
+                {b.saltado && (
+                  <p className="bloque-prescripcion" style={{ color: "var(--warning)" }}>
+                    {(() => {
+                      const motivo = motivoSaltoLabel(b.motivoSalto);
+                      return motivo ? `Salteado · ${motivo}` : "Salteado";
+                    })()}
+                  </p>
+                )}
               </div>
             </div>
           );

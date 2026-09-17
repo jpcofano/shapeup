@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Bicep } from "../components/Bicep";
 import type { Ejercicio, SerieRegistro, PrescripcionFuerza } from "../types/models";
@@ -7,9 +7,10 @@ import { finalizarSesion } from "../data/historial";
 import { getEjercicio, getEjerciciosPorId } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
 import {
-  rutinaCompleta, seriesHechasTotales,
+  rutinaCompleta, rutinaTerminada, seriesHechasTotales,
   buildBloqueLibre, buildVirtualRutina,
   duracionParcialMin, sesionVieja, mensajeSesionVieja, quitarBloques,
+  bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
   type EntrenarState,
 } from "../lib/entrenarState";
 import {
@@ -23,6 +24,9 @@ import { ExercisePicker } from "../components/rutina/ExercisePicker";
 import { RegistroSerie } from "../components/entrenar/RegistroSerie";
 import { ConfirmarReinicio } from "../components/entrenar/ConfirmarReinicio";
 import { HojaSalida } from "../components/entrenar/HojaSalida";
+import { VistaDia } from "../components/entrenar/VistaDia";
+import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
+import { ResumenSalteados } from "../components/entrenar/ResumenSalteados";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
 import { SerieTimer } from "../components/entrenar/SerieTimer";
 import { TiempoTotal } from "../components/entrenar/TiempoTotal";
@@ -82,6 +86,11 @@ export function EntrenarSesionLibre() {
   const [salida,          setSalida]          = useState<{ contexto?: string } | null>(null);
   const [guardandoSalida, setGuardandoSalida] = useState(false);
   const [errorSalida,     setErrorSalida]     = useState<string | null>(null);
+  /** true antes de navegar desde la hoja, la pantalla de fin o el atajo: el bloqueo del "atrás" no aplica. */
+  const saliendo = useRef(false);
+
+  // Vista del día (P68b): en la sesión libre solo se abre desde el contador.
+  const [vistaDiaAbierta, setVistaDiaAbierta] = useState(false);
 
   // ── Fase 2 — workout ──────────────────────────────────────────────────────
   const bloques = ejercicios.map((ej, i) => {
@@ -237,9 +246,24 @@ export function EntrenarSesionLibre() {
 
   /** Salida (hoja / fin de sesión): si entramos por el atajo, volvemos al catálogo. */
   function salir() {
+    saliendo.current = true;
     if (viaAtajo) navigate(-1);
     else navigate("/entrenar");
   }
+
+  // "Atrás" del sistema (P68b): con la sesión en curso, pasa por la hoja de salida.
+  const blocker = useBlocker(({ currentLocation, nextLocation }) =>
+    !restaurando
+    && sesionIniciada
+    && state.inicioMs != null
+    && !saliendo.current
+    && currentLocation.pathname !== nextLocation.pathname);
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    blocker.reset();
+    abrirSalida();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocker]);
 
   /** Borra el progreso y la lista guardados. Usar justo antes de salir. */
   function cerrarSesionLocal() {
@@ -280,6 +304,7 @@ export function EntrenarSesionLibre() {
     if (!result.ok) { setErrorSalida(result.error); return; }
     if (atajoPendiente) { continuarConAtajo(atajoPendiente); return; }
     cerrarSesionLocal();
+    saliendo.current = true;
     navigate("/historial");
   }
 
@@ -512,9 +537,33 @@ export function EntrenarSesionLibre() {
 
   // ── Render: fase 2 — workout terminado ────────────────────────────────────
 
-  const terminada = virtualRutina ? rutinaCompleta(state, virtualRutina) : false;
+  if (!virtualRutina) return null;
 
-  if (terminada && virtualRutina) {
+  // Chip del último bloque cerrado (P68b). "+ serie" repite los valores de su última serie.
+  const rutinaLibre = virtualRutina;
+  const idxCerrado  = state.ultimoBloqueCerrado;
+  function chipAnterior(soloExtra: boolean) {
+    if (idxCerrado == null) return null;
+    if (soloExtra && !bloqueCompleto(state, rutinaLibre, idxCerrado)) return null;
+    const b = rutinaLibre.bloques[idxCerrado];
+    return (
+      <BloqueAnteriorChip
+        rutina={rutinaLibre}
+        state={state}
+        idx={idxCerrado}
+        onExtra={(i) => session.completarSerie(i, state.ultimoLog[i], { extra: true })}
+        onDeshacerExtra={(i) => {
+          if (b && (state.seriesHechas[i] ?? 0) > seriesObjetivo(b.prescripcion)) session.deshacerSerie(i);
+        }}
+        onVolver={(i) => session.retomarBloque(i)}
+      />
+    );
+  }
+
+  const terminada = rutinaTerminada(state, virtualRutina);
+  const completa  = rutinaCompleta(state, virtualRutina);
+
+  if (terminada) {
     return (
       <div className="workout-screen">
         <div className="workout-header">
@@ -524,10 +573,13 @@ export function EntrenarSesionLibre() {
           <span style={{ color: "var(--accent)", lineHeight: 0, display: "block" }}>
             <Bicep size={52} />
           </span>
-          <h2 className="finish-title">¡Sesión completada!</h2>
+          <h2 className="finish-title">{completa ? "¡Sesión completada!" : "Sesión terminada"}</h2>
           <p style={{ color: "var(--muted)", fontSize: 14, margin: 0 }}>
             {virtualRutina.bloques.reduce((acc, _, i) => acc + (state.seriesHechas[i] ?? 0), 0)} series totales
           </p>
+
+          <ResumenSalteados rutina={virtualRutina} state={state} onRetomar={session.retomarBloque} />
+          {chipAnterior(true) && <div style={{ width: "100%" }}>{chipAnterior(true)}</div>}
 
           <div style={{ width: "100%", textAlign: "left" }}>
             <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>
@@ -562,10 +614,11 @@ export function EntrenarSesionLibre() {
                 bloques:     session.bloquesRegistro(),
                 rpe,
                 duracionMin: durMin || null,
-                completitud: "completa",
+                completitud: completa ? "completa" : "parcial",
               });
               if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
               cerrarSesionLocal();
+              saliendo.current = true;
               navigate("/historial");
             }}
           >
@@ -602,10 +655,17 @@ export function EntrenarSesionLibre() {
 
   // ── Render: fase 2 — workout en curso ─────────────────────────────────────
 
-  if (!virtualRutina) return null;
-
   const blq      = virtualRutina.bloques[state.bloqueActual];
   const ejercicio = blq ? ejercicios.find((e) => e.idEjercicio === blq.idEjercicio) : undefined;
+  const saltadoActual = state.saltados[state.bloqueActual];
+  const mostrarChipAnterior =
+    !state.descanso && idxCerrado != null && idxCerrado !== state.bloqueActual;
+
+  function handleSerieExtra() {
+    session.completarSerie(state.bloqueActual, getLogValues(), { extra: true });
+    setLogReps("");
+    setLogCarga("");
+  }
 
   return (
     <div className="workout-screen">
@@ -645,7 +705,9 @@ export function EntrenarSesionLibre() {
               state={state}
               onSkip={session.saltarDescanso}
               onAjustar={session.ajustarDescanso}
+              aContinuacion={aContinuacionDescanso(state, virtualRutina)}
             />
+            {mostrarChipAnterior && chipAnterior(false)}
             {!state.descanso && (
               <SerieTimer
                 state={state}
@@ -661,11 +723,15 @@ export function EntrenarSesionLibre() {
                 seriesHechas={state.seriesHechas[state.bloqueActual] ?? 0}
                 ejercicio={ejercicio}
                 onIrASerie={(i) => void i}
+                aContinuacion={nombreSiguientePendiente(state, virtualRutina, state.bloqueActual)}
+                saltado={saltadoActual}
+                onAbrirDia={() => setVistaDiaAbierta(true)}
+                onRetomar={() => session.retomarBloque(state.bloqueActual)}
               />
             )}
           </div>
 
-          {!state.descanso && (
+          {!state.descanso && saltadoActual === undefined && (
             <RegistroSerie
               bloque={blq}
               ejercicio={ejercicio}
@@ -675,7 +741,9 @@ export function EntrenarSesionLibre() {
               onRepsChange={setLogReps}
               onCargaChange={setLogCarga}
               onSerie={handleSerie}
+              onSerieExtra={handleSerieExtra}
               onDeshacer={() => session.deshacerSerie(state.bloqueActual)}
+              onSaltar={(motivo) => session.saltarBloque(state.bloqueActual, motivo)}
               onEjercicioChange={(ej) =>
                 setEjercicios((prev) => prev.map((e) => (e.idEjercicio === ej.idEjercicio ? ej : e)))}
             />
@@ -683,6 +751,16 @@ export function EntrenarSesionLibre() {
         </>
       )}
 
+      {vistaDiaAbierta && (
+        <VistaDia
+          titulo="Sesión libre"
+          minutos={null}
+          rutina={virtualRutina}
+          state={state}
+          onIr={(i) => { session.irABloque(i); setVistaDiaAbierta(false); }}
+          onCerrar={() => setVistaDiaAbierta(false)}
+        />
+      )}
       {hojaSalida}
       {reinicio.abierto && (
         <ConfirmarReinicio

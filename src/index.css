@@ -545,6 +545,107 @@
 
 .bloque-counter { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
 
+/* ── Información y orden en la sesión (P68b) ─────────────────────────────── */
+.bloque-counter-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.bloque-counter-btn:hover { color: var(--fg); border-color: var(--muted); }
+.bloque-siguiente { margin: -4px 0 0; font-size: 13px; color: var(--muted); }
+.descanso-siguiente { font-size: 13px; color: var(--muted); text-align: center; }
+.bloque-saltado { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.objetivo-chip.objetivo-chip-saltado {
+  background: rgba(251,191,36,0.12);
+  color: var(--warning);
+  align-self: center;
+}
+.bloque-saltado .btn-primary { padding: 10px 20px; }
+
+.bloque-anterior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 13px;
+}
+.bloque-anterior-texto { color: var(--muted); min-width: 0; }
+.bloque-anterior-accion,
+.bloque-anterior-deshacer {
+  min-height: 36px;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+.bloque-anterior-accion   { color: var(--accent); }
+.bloque-anterior-deshacer { color: var(--muted); font-weight: 400; text-decoration: underline; text-underline-offset: 3px; }
+
+.vista-dia-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+.vista-dia-fila:hover { background: var(--card-hover); }
+.vista-dia-fila.actual { background: var(--accent-dim); border-left-color: var(--accent); }
+.vista-dia-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.vista-dia-nombre { font-size: 14px; font-weight: 600; }
+.vista-dia-presc { font-size: 12px; color: var(--muted); }
+.vista-dia-estado {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.vista-dia-estado.hecho   { color: var(--accent); font-weight: 600; }
+.vista-dia-estado.saltado { color: var(--warning); }
+.vista-dia-pie {
+  padding: 12px 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.vista-dia-pie .btn-primary { width: 100%; }
+
+.fin-saltados { width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.fin-saltado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.fin-saltado-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fin-saltado-nombre { font-size: 14px; font-weight: 600; }
+.fin-saltado-motivo { font-size: 12px; color: var(--warning); }
+.fin-saltado .btn-secondary { width: auto; padding: 8px 14px; }
+.motivo-chip { min-height: 44px; font-size: 14px; }
+
 .bloque-nombre-grande {
   font-size: 28px;
   font-weight: 800;
@@ -747,11 +848,17 @@
   touch-action: manipulation;
 }
 .stepper-btn:active { background: var(--card-hover); }
-.btn-deshacer-serie {
-  display: block;
-  width: 100%;
+/* Deshacer (izquierda) y Saltar ejercicio (derecha), a 20 px del botón principal (P68b). */
+.registro-secundarios {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   margin-top: 20px;
-  padding: 8px;
+}
+.btn-deshacer-serie {
+  min-height: 40px;
+  padding: 8px 4px;
   background: none;
   border: none;
   color: var(--muted);

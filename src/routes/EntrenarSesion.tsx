@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap } from "lucide-react";
 import { Bicep } from "../components/Bicep";
 import type { Rutina, Ejercicio, SerieRegistro, Historial } from "../types/models";
@@ -9,9 +9,11 @@ import { finalizarSesion, getHistorialMiembro } from "../data/historial";
 import { crearSesion, iniciarSesion, descartarSesion } from "../data/sesiones";
 import { useAuth } from "../auth/useAuth";
 import {
-  rutinaCompleta, seriesHechasTotales, valorPrefillSerie,
+  rutinaCompleta, rutinaTerminada, seriesHechasTotales, valorPrefillSerie,
   duracionParcialMin, sesionVieja, mensajeSesionVieja,
+  bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
 } from "../lib/entrenarState";
+import { estimarDuracionMin } from "../lib/metricas";
 import { sugerirProgresion } from "../lib/progresion";
 import { useEntrenarState } from "../hooks/useEntrenarState";
 import { useConfirmarReinicio } from "../hooks/useConfirmarReinicio";
@@ -26,6 +28,9 @@ import { SugerenciaChip } from "../components/entrenar/SugerenciaChip";
 import { RegistroSerie } from "../components/entrenar/RegistroSerie";
 import { ConfirmarReinicio } from "../components/entrenar/ConfirmarReinicio";
 import { HojaSalida } from "../components/entrenar/HojaSalida";
+import { VistaDia } from "../components/entrenar/VistaDia";
+import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
+import { ResumenSalteados } from "../components/entrenar/ResumenSalteados";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
 
 /**
@@ -48,6 +53,11 @@ export function EntrenarSesion() {
   const [salida,          setSalida]          = useState<{ contexto?: string } | null>(null);
   const [guardandoSalida, setGuardandoSalida] = useState(false);
   const [errorSalida,     setErrorSalida]     = useState<string | null>(null);
+  /** true antes de navegar desde la hoja o la pantalla de fin: el bloqueo del "atrás" no aplica. */
+  const saliendo = useRef(false);
+
+  // Vista del día (P68b)
+  const [vistaDiaAbierta, setVistaDiaAbierta] = useState(false);
 
   // Progresión de cargas (I3): historial del miembro para sugerir doble progresión.
   const [historialMiembro, setHistorialMiembro] = useState<Historial[]>([]);
@@ -85,6 +95,7 @@ export function EntrenarSesion() {
     const idSesion = state.idSesion;
     session.limpiar();
     if (idSesion) void descartarSesion(idSesion);
+    saliendo.current = true;
     navigate("/entrenar");
   }
 
@@ -105,20 +116,41 @@ export function EntrenarSesion() {
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
     session.limpiar();
+    saliendo.current = true;
     navigate("/historial");
   }
 
-  // Sesión vieja al volver (P68), una vez por montaje con el estado recién
-  // cargado: con series se ofrece guardarla; sin series se reinicia sola.
-  const evaluoSesionVieja = useRef(false);
+  // Al montar, una vez, con el estado recién cargado:
+  //  - sesión vieja con series → hoja de salida (P68);
+  //  - sesión vieja sin series → se reinicia sola (P68);
+  //  - sin series y en modo guiado (o recién reiniciada) → vista del día (P68b).
+  const evaluoMontaje = useRef(false);
   useEffect(() => {
-    if (evaluoSesionVieja.current) return;
-    evaluoSesionVieja.current = true;
-    if (!sesionVieja(state, Date.now()) || state.inicioMs == null) return;
-    if (seriesHechasTotales(state) > 0) abrirSalida(mensajeSesionVieja(state.inicioMs));
-    else reiniciarYSellar();
+    if (evaluoMontaje.current) return;
+    evaluoMontaje.current = true;
+    const series = seriesHechasTotales(state);
+    const vieja  = sesionVieja(state, Date.now());
+    if (vieja && series > 0 && state.inicioMs != null) {
+      abrirSalida(mensajeSesionVieja(state.inicioMs));
+      return;
+    }
+    if (vieja) reiniciarYSellar();
+    if (series === 0 && (vieja || state.modoVista === "guiada")) setVistaDiaAbierta(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // "Atrás" del sistema (P68b): con la sesión en curso, pasa por la hoja de salida.
+  const blocker = useBlocker(({ currentLocation, nextLocation }) =>
+    !loading
+    && state.inicioMs != null
+    && !saliendo.current
+    && currentLocation.pathname !== nextLocation.pathname);
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    blocker.reset();
+    abrirSalida();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocker]);
 
   // Mantener pantalla encendida durante toda la sesión
   useWakeLock(!loading && !!rutina);
@@ -251,7 +283,28 @@ export function EntrenarSesion() {
     );
   }
 
-  const terminada = rutinaCompleta(state, rutina);
+  // Chip del último bloque cerrado (P68b). "+ serie" repite los valores de su última serie.
+  const idxCerrado = state.ultimoBloqueCerrado;
+  function chipAnterior(soloExtra: boolean) {
+    if (idxCerrado == null || !rutina) return null;
+    if (soloExtra && !bloqueCompleto(state, rutina, idxCerrado)) return null;
+    const b = rutina.bloques[idxCerrado];
+    return (
+      <BloqueAnteriorChip
+        rutina={rutina}
+        state={state}
+        idx={idxCerrado}
+        onExtra={(i) => session.completarSerie(i, state.ultimoLog[i], { extra: true })}
+        onDeshacerExtra={(i) => {
+          if (b && (state.seriesHechas[i] ?? 0) > seriesObjetivo(b.prescripcion)) session.deshacerSerie(i);
+        }}
+        onVolver={(i) => session.retomarBloque(i)}
+      />
+    );
+  }
+
+  const terminada = rutinaTerminada(state, rutina);
+  const completa  = rutinaCompleta(state, rutina);
 
   // ── Pantalla de finalización ──────────────────────────────────────────────
   if (terminada) {
@@ -264,10 +317,13 @@ export function EntrenarSesion() {
           <span style={{ color: "var(--accent)", lineHeight: 0, display: "block" }}>
             <Bicep size={52} />
           </span>
-          <h2 className="finish-title">¡Sesión completada!</h2>
+          <h2 className="finish-title">{completa ? "¡Sesión completada!" : "Sesión terminada"}</h2>
           <p style={{ color: "var(--muted)", fontSize: 14, margin: 0 }}>
             {rutina.bloques.reduce((acc, _, i) => acc + (state.seriesHechas[i] ?? 0), 0)} series totales
           </p>
+
+          <ResumenSalteados rutina={rutina} state={state} onRetomar={session.retomarBloque} />
+          {chipAnterior(true) && <div style={{ width: "100%" }}>{chipAnterior(true)}</div>}
 
           <div style={{ width: "100%", textAlign: "left" }}>
             <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>
@@ -292,7 +348,12 @@ export function EntrenarSesion() {
             style={{ width: "100%", marginTop: 8 }}
             disabled={saving}
             onClick={async () => {
-              if (!rutinaId || !memberId) { session.limpiar(); navigate("/entrenar"); return; }
+              if (!rutinaId || !memberId) {
+                session.limpiar();
+                saliendo.current = true;
+                navigate("/entrenar");
+                return;
+              }
               setSaving(true);
               setSaveError(null);
               const durMin = state.inicioMs != null
@@ -305,12 +366,13 @@ export function EntrenarSesion() {
                 rpe,
                 duracionMin: durMin || null,
                 idSesion: state.idSesion ?? undefined,
-                completitud: "completa",
+                completitud: completa ? "completa" : "parcial",
               });
               if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
               // limpiar, no reiniciar: reiniciar conserva idSesion y la próxima
               // sesión reusaría una SesionProgramada ya Registrada.
               session.limpiar();
+              saliendo.current = true;
               navigate("/historial");
             }}
           >
@@ -353,6 +415,17 @@ export function EntrenarSesion() {
     // No reset: los valores quedan para la próxima serie del mismo bloque
     // (herencia). El useEffect los actualiza solo al cambiar de bloque.
   }
+
+  function handleSerieExtra() {
+    if (!blq) return;
+    setSeriePulsing(true);
+    window.setTimeout(() => setSeriePulsing(false), 220);
+    session.completarSerie(state.bloqueActual, getLogValues(), { extra: true });
+  }
+
+  const saltadoActual = state.saltados[state.bloqueActual];
+  const mostrarChipAnterior =
+    !state.descanso && idxCerrado != null && idxCerrado !== state.bloqueActual;
 
   // ── Render modo guiado ────────────────────────────────────────────────────
   return (
@@ -400,7 +473,11 @@ export function EntrenarSesion() {
                 state={state}
                 onSkip={session.saltarDescanso}
                 onAjustar={session.ajustarDescanso}
+                aContinuacion={aContinuacionDescanso(state, rutina)}
               />
+
+              {/* Último bloque cerrado: "+ serie de…" / "Saltaste… · Volver" (P68b) */}
+              {mostrarChipAnterior && chipAnterior(false)}
 
               {/* Cronómetro de trabajo (cardio en intervalos / isométrico) */}
               {!state.descanso && (
@@ -429,14 +506,18 @@ export function EntrenarSesion() {
                   seriesHechas={state.seriesHechas[state.bloqueActual] ?? 0}
                   ejercicio={ejercicio}
                   onIrASerie={(i) => void i}
+                  aContinuacion={nombreSiguientePendiente(state, rutina, state.bloqueActual)}
+                  saltado={saltadoActual}
+                  onAbrirDia={() => setVistaDiaAbierta(true)}
+                  onRetomar={() => session.retomarBloque(state.bloqueActual)}
                 />
               )}
             </div>
             {showScrim && <div className="workout-scrim" />}
           </div>
 
-          {/* Footer con registro de la serie */}
-          {!state.descanso && (
+          {/* Footer con registro de la serie (no en un bloque salteado) */}
+          {!state.descanso && saltadoActual === undefined && (
             <RegistroSerie
               bloque={blq}
               ejercicio={ejercicio}
@@ -446,7 +527,9 @@ export function EntrenarSesion() {
               onRepsChange={setLogReps}
               onCargaChange={setLogCarga}
               onSerie={handleSerie}
+              onSerieExtra={handleSerieExtra}
               onDeshacer={() => session.deshacerSerie(state.bloqueActual)}
+              onSaltar={(motivo) => session.saltarBloque(state.bloqueActual, motivo)}
               onEjercicioChange={(ej) => setCatalogo((prev) => new Map(prev).set(ej.idEjercicio, ej))}
               pulsing={seriePulsing}
             />
@@ -454,6 +537,16 @@ export function EntrenarSesion() {
         </>
       )}
 
+      {vistaDiaAbierta && (
+        <VistaDia
+          titulo={rutina.nombre}
+          minutos={rutina.duracionEstimadaMin ?? estimarDuracionMin(rutina)}
+          rutina={rutina}
+          state={state}
+          onIr={(i) => { session.irABloque(i); setVistaDiaAbierta(false); }}
+          onCerrar={() => setVistaDiaAbierta(false)}
+        />
+      )}
       {hojaSalida}
       {reinicio.abierto && (
         <ConfirmarReinicio
