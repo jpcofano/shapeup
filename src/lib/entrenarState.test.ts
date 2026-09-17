@@ -814,6 +814,28 @@ describe("valorPrefillSerie", () => {
   });
 });
 
+describe("P70: e1rmKg y rir en el registro", () => {
+  it("construirBloquesRegistro escribe e1rmKg solo si hay valor", () => {
+    let s = completarSerie(s0, rutina, 0, { reps: 5, cargaKg: 100 }, 1000);
+    s = completarSerie(s, rutina, 1, { reps: 12 }, 2000); // sin carga: sin 1RM
+    const reg = construirBloquesRegistro(s, rutina);
+    expect(reg[0].e1rmKg).toBe(116.7);
+    expect(reg[1]).not.toHaveProperty("e1rmKg");
+  });
+
+  it("no calcula e1rmKg en bloques que no son de Fuerza", () => {
+    const vr = buildVirtualRutina([buildBloqueLibre({ ...ejFuerza, modalidad: "Isométrico" }, 1)]);
+    const s = completarSerie(s0, vr, 0, { reps: 5, cargaKg: 20 }, 1000);
+    expect(construirBloquesRegistro(s, vr)[0]).not.toHaveProperty("e1rmKg");
+  });
+
+  it("completarSerie conserva el rir que viene en reg", () => {
+    const s = completarSerie(s0, rutina, 0, { reps: 8, cargaKg: 40, rir: 2 }, 1000);
+    expect(s.registro[0][0]).toMatchObject({ reps: 8, cargaKg: 40, rir: 2 });
+    expect(construirBloquesRegistro(s, rutina)[0].series[0].rir).toBe(2);
+  });
+});
+
 describe("construirBloquesRegistro con rutina virtual", () => {
   it("arma BloqueRegistro a partir del estado", () => {
     const bloques = [buildBloqueLibre(ejFuerza, 1)];

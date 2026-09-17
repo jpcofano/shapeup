@@ -24,7 +24,7 @@ export interface SugerenciaProgresion {
   basadoEnFecha: string;       // última sesión que fundamenta
 }
 
-interface SesionEjercicio {
+export interface SesionEjercicio {
   fecha: string;
   series: SerieRegistro[];
 }
@@ -48,8 +48,11 @@ function pesoDeSesion(series: SerieRegistro[]): number | undefined {
   return mejor;
 }
 
-/** Sesiones (más reciente primero) donde el miembro hizo este ejercicio de Fuerza con series completadas. */
-function sesionesDelEjercicio(idEjercicio: string, historial: Historial[]): SesionEjercicio[] {
+/**
+ * Sesiones (más reciente primero) donde el miembro hizo este ejercicio de Fuerza
+ * con series completadas (y reps registradas). También la usa `lib/resumenSesion` (P70).
+ */
+export function sesionesDelEjercicio(idEjercicio: string, historial: Historial[]): SesionEjercicio[] {
   const sesiones: SesionEjercicio[] = [];
   for (const h of historial) {
     const bloque = h.bloques.find((b) => b.idEjercicio === idEjercicio && b.modalidad === "Fuerza");

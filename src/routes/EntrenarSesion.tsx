@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap } from "lucide-react";
-import { Bicep } from "../components/Bicep";
 import type { Rutina, Ejercicio, SerieRegistro, Historial } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
@@ -30,7 +29,8 @@ import { ConfirmarReinicio } from "../components/entrenar/ConfirmarReinicio";
 import { HojaSalida } from "../components/entrenar/HojaSalida";
 import { VistaDia } from "../components/entrenar/VistaDia";
 import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
-import { ResumenSalteados } from "../components/entrenar/ResumenSalteados";
+import { ResumenSesion } from "../components/entrenar/ResumenSesion";
+import { historialPrevio } from "../lib/resumenSesion";
 import { SinConexion } from "../components/entrenar/SinConexion";
 import { GuardadoPendiente } from "../components/entrenar/GuardadoPendiente";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
@@ -47,7 +47,6 @@ export function EntrenarSesion() {
   const [rutina,   setRutina]   = useState<Rutina | null>(null);
   const [catalogo, setCatalogo] = useState<Map<string, Ejercicio>>(new Map());
   const [loading,  setLoading]  = useState(true);
-  const [rpe,      setRpe]      = useState<number | null>(null);
   const [saving,   setSaving]   = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   /** Motivo por el que no cargó la rutina (sin conexión y sin caché, P69). */
@@ -66,7 +65,8 @@ export function EntrenarSesion() {
   const [vistaDiaAbierta, setVistaDiaAbierta] = useState(false);
 
   // Progresión de cargas (I3): historial del miembro para sugerir doble progresión.
-  const [historialMiembro, setHistorialMiembro] = useState<Historial[]>([]);
+  // `null` mientras no cargó (o si falló): la pantalla de fin no muestra deltas (P70).
+  const [historialMiembro, setHistorialMiembro] = useState<Historial[] | null>(null);
   const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState<Set<number>>(new Set());
 
   // Log rápido para modo guiado
@@ -272,7 +272,7 @@ export function EntrenarSesion() {
   const sugerencia = useMemo(() => {
     if (!blq || blq.modalidad !== "Fuerza") return null;
     if (sugerenciasDescartadas.has(state.bloqueActual)) return null;
-    return sugerirProgresion(blq.idEjercicio, historialMiembro, blq.prescripcion);
+    return sugerirProgresion(blq.idEjercicio, historialMiembro ?? [], blq.prescripcion);
   }, [blq, historialMiembro, sugerenciasDescartadas, state.bloqueActual]);
 
   function usarSugerencia() {
@@ -336,6 +336,7 @@ export function EntrenarSesion() {
 
   const terminada = rutinaTerminada(state, rutina);
   const completa  = rutinaCompleta(state, rutina);
+  const bloquesFin = terminada ? session.bloquesRegistro() : [];
 
   // ── Pantalla de finalización ──────────────────────────────────────────────
   if (terminada) {
@@ -345,76 +346,46 @@ export function EntrenarSesion() {
           <p className="workout-title">{rutina.nombre}</p>
           <SinConexion />
         </div>
-        <div className="finish-screen">
-          <span style={{ color: "var(--accent)", lineHeight: 0, display: "block" }}>
-            <Bicep size={52} />
-          </span>
-          <h2 className="finish-title">{completa ? "¡Sesión completada!" : "Sesión terminada"}</h2>
-          <p style={{ color: "var(--muted)", fontSize: 14, margin: 0 }}>
-            {rutina.bloques.reduce((acc, _, i) => acc + (state.seriesHechas[i] ?? 0), 0)} series totales
-          </p>
-
-          <ResumenSalteados rutina={rutina} state={state} onRetomar={session.retomarBloque} />
-          {chipAnterior(true) && <div style={{ width: "100%" }}>{chipAnterior(true)}</div>}
-
-          <div style={{ width: "100%", textAlign: "left" }}>
-            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>
-              ¿Cómo fue el esfuerzo? (RPE)
-            </p>
-            <div className="rpe-selector">
-              {[1,2,3,4,5,6,7,8,9,10].map((n) => (
-                <button
-                  key={n}
-                  className={`rpe-btn${rpe === n ? " selected" : ""}`}
-                  onClick={() => setRpe(n)}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {saveError && <p className="inline-error">{saveError}</p>}
-          <button
-            className="btn-primary"
-            style={{ width: "100%", marginTop: 8 }}
-            disabled={saving}
-            onClick={async () => {
-              if (!rutinaId || !memberId) {
-                session.limpiar();
-                saliendo.current = true;
-                navigate("/entrenar");
-                return;
-              }
-              setSaving(true);
-              setSaveError(null);
-              const durMin = state.inicioMs != null
-                ? Math.round((Date.now() - state.inicioMs) / 60_000)
-                : null;
-              const result = await finalizarSesion({
-                rutinaId,
-                nombreRutina: rutina.nombre,
-                miembro: memberId,
-                bloques: session.bloquesRegistro(),
-                rpe,
-                duracionMin: durMin || null,
-                idSesion: state.idSesion ?? undefined,
-                completitud: completa ? "completa" : "parcial",
-              });
-              if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
-              // limpiar (dentro de salirTrasGuardar), no reiniciar: reiniciar
-              // conserva idSesion y la próxima sesión reusaría una
-              // SesionProgramada ya Registrada.
-              salirTrasGuardar(result.value.pendiente);
-            }}
-          >
-            {saving ? "Guardando…" : "Finalizar y guardar"}
-          </button>
-          <button className="btn-secondary" style={{ width: "100%" }}
-            onClick={reinicio.pedir}>
-            Empezar de nuevo
-          </button>
-        </div>
+        <ResumenSesion
+          rutina={rutina}
+          state={state}
+          bloques={bloquesFin}
+          historial={historialMiembro && historialPrevio(historialMiembro, bloquesFin, state.idSesion)}
+          completa={completa}
+          saving={saving}
+          saveError={saveError}
+          onRetomar={session.retomarBloque}
+          onEmpezarDeNuevo={reinicio.pedir}
+          chipAnterior={chipAnterior(true)}
+          onFinalizar={async (datos) => {
+            if (!rutinaId || !memberId) {
+              session.limpiar();
+              saliendo.current = true;
+              navigate("/entrenar");
+              return;
+            }
+            setSaving(true);
+            setSaveError(null);
+            const durMin = state.inicioMs != null
+              ? Math.round((Date.now() - state.inicioMs) / 60_000)
+              : null;
+            const result = await finalizarSesion({
+              rutinaId,
+              nombreRutina: rutina.nombre,
+              miembro: memberId,
+              bloques: bloquesFin,
+              ...datos,
+              duracionMin: durMin || null,
+              idSesion: state.idSesion ?? undefined,
+              completitud: completa ? "completa" : "parcial",
+            });
+            if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
+            // limpiar (dentro de salirTrasGuardar), no reiniciar: reiniciar
+            // conserva idSesion y la próxima sesión reusaría una
+            // SesionProgramada ya Registrada.
+            salirTrasGuardar(result.value.pendiente);
+          }}
+        />
 
         {hojaSalida}
         {avisoPendiente}
@@ -440,11 +411,11 @@ export function EntrenarSesion() {
     return { reps, cargaKg: carga };
   }
 
-  function handleSerie() {
+  function handleSerie(rir?: number) {
     if (!blq) return;
     setSeriePulsing(true);
     window.setTimeout(() => setSeriePulsing(false), 220);
-    session.completarSerie(state.bloqueActual, getLogValues());
+    session.completarSerie(state.bloqueActual, { ...getLogValues(), ...(rir != null ? { rir } : {}) });
     // No reset: los valores quedan para la próxima serie del mismo bloque
     // (herencia). El useEffect los actualiza solo al cambiar de bloque.
   }

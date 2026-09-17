@@ -12,6 +12,9 @@ import { actualizarEjercicio } from "../../data/ejercicios";
 const LONG_PRESS_MS = 500;
 const LONG_PRESS_TOLERANCIA_PX = 10;
 
+/** Opciones de RIR en la última serie (P70). "3+" se guarda como 3. */
+const OPCIONES_RIR: ReadonlyArray<readonly [number, string]> = [[0, "0"], [1, "1"], [2, "2"], [3, "3+"]];
+
 interface Props {
   bloque:       BloqueEjercicio;
   /** Ejercicio resuelto del catálogo. Sin él, el toque largo no abre el editor de paso. */
@@ -21,7 +24,8 @@ interface Props {
   carga:        string;
   onRepsChange:  (v: string) => void;
   onCargaChange: (v: string) => void;
-  onSerie:      () => void;
+  /** `rir` solo viene en la última serie de un bloque de Fuerza, si se eligió (P70). */
+  onSerie:      (rir?: number) => void;
   /** Con el bloque completo, el botón principal registra una serie de más (P68b). */
   onSerieExtra: () => void;
   onDeshacer:   () => void;
@@ -45,6 +49,8 @@ export function RegistroSerie({
   const [pasoAbierto,   setPasoAbierto]   = useState(false);
   const [pasoError,     setPasoError]     = useState<string | null>(null);
   const [saltarAbierto, setSaltarAbierto] = useState(false);
+  // RIR elegido, atado a (bloque, serie): cambiar de bloque o de serie lo limpia solo.
+  const [rirSel, setRirSel] = useState<{ clave: string; valor: number } | null>(null);
   const longPress = useLongPress(() => setPasoAbierto(true), !!ejercicio);
 
   const p  = bloque.prescripcion;
@@ -80,6 +86,20 @@ export function RegistroSerie({
 
   const objetivo = seriesObjetivo(p);
   const completo = seriesHechas >= objetivo;
+
+  // RIR solo en la última serie del objetivo de un bloque de Fuerza (P70).
+  const pideRir  = pf != null && seriesHechas + 1 === objetivo;
+  const claveRir = `${bloque.orden}:${bloque.idEjercicio}:${seriesHechas}`;
+  const rir      = pideRir && rirSel?.clave === claveRir ? rirSel.valor : null;
+
+  function elegirRir(valor: number) {
+    setRirSel(rir === valor ? null : { clave: claveRir, valor });
+  }
+
+  function serieHecha() {
+    onSerie(rir ?? undefined);
+    setRirSel(null);
+  }
 
   return (
     <div className="workout-footer">
@@ -137,9 +157,28 @@ export function RegistroSerie({
         </div>
       )}
 
+      {pideRir && (
+        <div className="registro-rir" role="group" aria-label="¿Cuántas te quedaban?">
+          <span className="quick-log-label">¿Cuántas te quedaban?</span>
+          <div className="registro-rir-opciones">
+            {OPCIONES_RIR.map(([valor, label]) => (
+              <button
+                key={valor}
+                type="button"
+                className={`filter-chip rir-chip${rir === valor ? " active" : ""}`}
+                aria-pressed={rir === valor}
+                onClick={() => elegirRir(valor)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         className={`btn-serie-hecha${pulsing ? " btn-pulsing" : ""}`}
-        onClick={completo ? onSerieExtra : onSerie}
+        onClick={completo ? onSerieExtra : serieHecha}
       >
         {completo ? "+ Serie extra" : `Serie ${seriesHechas + 1} hecha ✓`}
       </button>

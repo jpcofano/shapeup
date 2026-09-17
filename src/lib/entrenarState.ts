@@ -21,6 +21,7 @@ import type {
   MotivoSalto,
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
+import { e1rmKg } from "./resumenSesion";
 export { seriesObjetivo } from "./metricas";
 
 // ─── Estado (serializable; espejo de ProgresoSesion) ──────────────────────────
@@ -682,18 +683,22 @@ export function clearEntrenarState(sessionKey: string): void {
 export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): BloqueRegistro[] {
   return rutina.bloques.map((b, idx) => {
     const motivo = state.saltados[idx];
+    const series: SerieRegistro[] = state.registro[idx]
+      ?? Array.from({ length: state.seriesHechas[idx] ?? 0 }, (_v, i) => ({
+        serie: i + 1, completada: true,
+      }));
+    // 1RM estimado, solo Fuerza y solo si hay valor (P70).
+    const e1rm = b.modalidad === "Fuerza" ? e1rmKg(series) : undefined;
     return {
       orden: b.orden,
       idEjercicio: b.idEjercicio,
       nombreEjercicio: b.nombreEjercicio,
       modalidad: b.modalidad as Modalidad,
-      series: state.registro[idx]
-        ?? Array.from({ length: state.seriesHechas[idx] ?? 0 }, (_v, i) => ({
-          serie: i + 1, completada: true,
-        })),
+      series,
       // Solo en bloques salteados (P68b).
       ...(motivo !== undefined ? { saltado: true } : {}),
       ...(motivo ? { motivoSalto: motivo } : {}),
+      ...(e1rm !== undefined ? { e1rmKg: e1rm } : {}),
     };
   });
 }

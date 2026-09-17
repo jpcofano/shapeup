@@ -14,7 +14,7 @@ import {
   query, where, orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { Historial, BloqueRegistro, BiometriaSesion, MiembroId } from "../types/models";
+import type { Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 import { tonelajeKg, totalSeriesHechas, ventanaDeBloques } from "../lib/metricas";
@@ -49,6 +49,10 @@ export interface FinalizarSesionOpts {
   programaId?:  string;
   /** Solo se escribe si viene. Ausente se lee como "completa" (P68). */
   completitud?: "completa" | "parcial";
+  /** Cierre de la sesión (P70). Se escriben solo si vienen; molestias, solo si no está vacío. */
+  comoMeSenti?: string;
+  queMejorar?:  string;
+  molestias?:   ZonaMolestia[];
 }
 
 /**
@@ -75,7 +79,7 @@ export async function finalizarSesion(
 ): Promise<Result<{ idHist: string; pendiente: boolean }>> {
   const {
     rutinaId, tipo, nombreLibre, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
-    completitud,
+    completitud, comoMeSenti, queMejorar, molestias,
   } = opts;
   const fecha   = ymdLocal();
   const semana  = lunesDeSemana(fecha);
@@ -107,6 +111,9 @@ export async function finalizarSesion(
     ...(ventana.finMs    != null ? { finMs:    ventana.finMs    } : {}),
     bloques,
     notas:                   notas ?? "",
+    ...(comoMeSenti ? { comoMeSenti } : {}),
+    ...(queMejorar ? { queMejorar } : {}),
+    ...(molestias && molestias.length > 0 ? { molestias } : {}),
   };
   const sesion: PayloadSesion | null = idSesion
     ? { miembro, estado: "Registrada", rpeSesion: rpe }

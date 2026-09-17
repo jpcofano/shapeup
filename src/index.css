@@ -1064,12 +1064,18 @@
 /* ── Pantalla de finalización ────────────────────────────────────────────── */
 .finish-screen {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* P70: el resumen puede ser más alto que la pantalla; "safe" evita que el
+     centrado corte el principio. Navegadores sin soporte se quedan con center. */
+  justify-content: safe center;
+  overflow-y: auto;
   gap: 16px;
   padding: 24px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
   text-align: center;
 }
 .finish-emoji { font-size: 56px; }
@@ -1089,6 +1095,89 @@
 }
 .rpe-btn.selected { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 .rpe-btn:hover:not(.selected) { border-color: var(--muted); color: var(--fg); }
+.rpe-leyenda { margin: 8px 0 0; font-size: 13px; color: var(--muted); text-align: center; min-height: 1.4em; }
+
+/* ── Resumen post-entreno (P70) ──────────────────────────────────────────── */
+.resumen-cifras {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.resumen-cifra {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.resumen-cifra-valor { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.resumen-cifra-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.resumen-ejercicios {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+.resumen-ejercicio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.resumen-ejercicio-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.resumen-ejercicio-nombre { font-size: 14px; font-weight: 600; }
+.resumen-ejercicio-detalle { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.resumen-delta {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.resumen-delta.positivo { color: var(--accent); }
+.resumen-pr {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.resumen-pliegue { width: 100%; text-align: left; }
+.resumen-pliegue-cuerpo { display: flex; flex-direction: column; gap: 14px; padding-top: 12px; }
+.resumen-grupo { display: flex; flex-direction: column; gap: 6px; }
+
+/* RIR en la última serie (P70) */
+.registro-rir {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.registro-rir-opciones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rir-chip {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+}
 
 /* ══════════════════════════════════════════════════════════════════════════ */
 /*  D9 — Home Aurora+                                                         */

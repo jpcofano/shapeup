@@ -8,6 +8,7 @@ import { consolidarNoches } from "../lib/sueno";
 import type { NocheSueno } from "../lib/sueno";
 import { compararConPrevias } from "../lib/costoCardiaco";
 import { motivoSaltoLabel } from "../lib/entrenarState";
+import { ZONAS_MOLESTIA } from "../lib/resumenSesion";
 import type { ComparativaCardiaca } from "../lib/costoCardiaco";
 
 function formatFecha(s: string): string {
@@ -130,8 +131,11 @@ export function HistorialDetalle() {
         {h.bloques.map((b, i) => {
           const completadas = b.series.filter((s) => s.completada);
           const detalle = completadas
-            .filter((s) => s.cargaKg != null)
-            .map((s) => `${s.reps ?? "?"}×${s.cargaKg}kg`)
+            .filter((s) => s.cargaKg != null || s.rir != null)
+            .map((s) => [
+              s.cargaKg != null ? `${s.reps ?? "?"}×${s.cargaKg}kg` : `${s.reps ?? "?"} reps`,
+              s.rir != null ? `RIR ${s.rir}` : null,
+            ].filter(Boolean).join(" "))
             .join(", ");
 
           return (
@@ -156,6 +160,36 @@ export function HistorialDetalle() {
           );
         })}
       </div>
+
+      {/* Cómo te sentiste (P70) — solo si hay algo cargado */}
+      {(h.comoMeSenti || (h.molestias && h.molestias.length > 0) || h.queMejorar || h.notas) && (
+        <div className="card">
+          <p className="section-title" style={{ marginBottom: 8 }}>Cómo te sentiste</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 14 }}>
+            {h.comoMeSenti && (
+              <p style={{ margin: 0 }}>
+                <span style={{ color: "var(--muted)" }}>Sensación: </span>{h.comoMeSenti}
+              </p>
+            )}
+            {h.molestias && h.molestias.length > 0 && (
+              <p style={{ margin: 0 }}>
+                <span style={{ color: "var(--muted)" }}>Molestias: </span>
+                {h.molestias
+                  .map((z) => ZONAS_MOLESTIA.find(([v]) => v === z)?.[1] ?? z)
+                  .join(", ")}
+              </p>
+            )}
+            {h.queMejorar && (
+              <p style={{ margin: 0 }}>
+                <span style={{ color: "var(--muted)" }}>Qué mejorar: </span>{h.queMejorar}
+              </p>
+            )}
+            {h.notas && (
+              <p style={{ margin: 0, color: "var(--muted)", lineHeight: 1.5 }}>{h.notas}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Biometría de Samsung Health */}
       {h.biometria && (
@@ -254,12 +288,6 @@ export function HistorialDetalle() {
         </div>
       )}
 
-      {h.notas && (
-        <div className="card">
-          <p className="section-title" style={{ marginBottom: 6 }}>Notas</p>
-          <p style={{ margin: 0, fontSize: 14, color: "var(--muted)", lineHeight: 1.5 }}>{h.notas}</p>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
-import { Bicep } from "../components/Bicep";
-import type { Ejercicio, SerieRegistro, PrescripcionFuerza } from "../types/models";
-import { finalizarSesion } from "../data/historial";
+import type { Ejercicio, Historial, SerieRegistro, PrescripcionFuerza } from "../types/models";
+import { finalizarSesion, getHistorialMiembro } from "../data/historial";
+import { historialPrevio } from "../lib/resumenSesion";
 import { getEjercicio, getEjerciciosPorId } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
 import {
@@ -26,7 +26,7 @@ import { ConfirmarReinicio } from "../components/entrenar/ConfirmarReinicio";
 import { HojaSalida } from "../components/entrenar/HojaSalida";
 import { VistaDia } from "../components/entrenar/VistaDia";
 import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
-import { ResumenSalteados } from "../components/entrenar/ResumenSalteados";
+import { ResumenSesion } from "../components/entrenar/ResumenSesion";
 import { SinConexion } from "../components/entrenar/SinConexion";
 import { GuardadoPendiente } from "../components/entrenar/GuardadoPendiente";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
@@ -122,7 +122,12 @@ export function EntrenarSesionLibre() {
   const session    = useEntrenarState(SESSION_KEY, virtualRutina);
   const state      = session.state;
 
-  const [rpe,       setRpe]       = useState<number | null>(null);
+  // Historial del miembro para los deltas del resumen (P70). `null` si no cargó.
+  const [historialMiembro, setHistorialMiembro] = useState<Historial[] | null>(null);
+  useEffect(() => {
+    if (!memberId) return;
+    getHistorialMiembro(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
+  }, [memberId]);
   const [saving,    setSaving]    = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [logReps,   setLogReps]   = useState("");
@@ -394,8 +399,8 @@ export function EntrenarSesionLibre() {
     };
   }
 
-  function handleSerie() {
-    session.completarSerie(state.bloqueActual, getLogValues());
+  function handleSerie(rir?: number) {
+    session.completarSerie(state.bloqueActual, { ...getLogValues(), ...(rir != null ? { rir } : {}) });
     setLogReps("");
     setLogCarga("");
   }
@@ -590,6 +595,7 @@ export function EntrenarSesionLibre() {
 
   const terminada = rutinaTerminada(state, virtualRutina);
   const completa  = rutinaCompleta(state, virtualRutina);
+  const bloquesFin = terminada ? session.bloquesRegistro() : [];
 
   if (terminada) {
     return (
@@ -598,74 +604,49 @@ export function EntrenarSesionLibre() {
           <p className="workout-title">Sesión libre</p>
           <SinConexion />
         </div>
-        <div className="finish-screen">
-          <span style={{ color: "var(--accent)", lineHeight: 0, display: "block" }}>
-            <Bicep size={52} />
-          </span>
-          <h2 className="finish-title">{completa ? "¡Sesión completada!" : "Sesión terminada"}</h2>
-          <p style={{ color: "var(--muted)", fontSize: 14, margin: 0 }}>
-            {virtualRutina.bloques.reduce((acc, _, i) => acc + (state.seriesHechas[i] ?? 0), 0)} series totales
-          </p>
-
-          <ResumenSalteados rutina={virtualRutina} state={state} onRetomar={session.retomarBloque} />
-          {chipAnterior(true) && <div style={{ width: "100%" }}>{chipAnterior(true)}</div>}
-
-          <div style={{ width: "100%", textAlign: "left" }}>
-            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>
-              ¿Cómo fue el esfuerzo? (RPE)
-            </p>
-            <div className="rpe-selector">
-              {[1,2,3,4,5,6,7,8,9,10].map((n) => (
-                <button key={n} className={`rpe-btn${rpe === n ? " selected" : ""}`}
-                  onClick={() => setRpe(n)}>
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {saveError && <p className="inline-error">{saveError}</p>}
-          <button
-            className="btn-primary"
-            style={{ width: "100%", marginTop: 8 }}
-            disabled={saving}
-            onClick={async () => {
-              if (!memberId) { cerrarSesionLocal(); salir(); return; }
-              setSaving(true);
-              setSaveError(null);
-              const durMin = state.inicioMs != null
-                ? Math.round((Date.now() - state.inicioMs) / 60_000)
-                : null;
-              const result = await finalizarSesion({
-                tipo:        "libre",
-                nombreLibre: "Sesión libre",
-                miembro:     memberId,
-                bloques:     session.bloquesRegistro(),
-                rpe,
-                duracionMin: durMin || null,
-                completitud: completa ? "completa" : "parcial",
-              });
-              if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
-              cerrarSesionLocal();
-              saliendo.current = true;
-              if (result.value.pendiente) {
-                setAvisoPendiente({ destino: "/historial" });
-                return;
-              }
-              navigate("/historial");
-            }}
-          >
-            {saving ? "Guardando…" : "Finalizar y guardar"}
-          </button>
-          <button className="btn-secondary" style={{ width: "100%" }}
-            onClick={() => setSumarAbierto(true)}>
-            <Plus size={16} /> Sumar otro ejercicio
-          </button>
-          <button className="btn-secondary" style={{ width: "100%" }}
-            onClick={reinicio.pedir}>
-            Empezar de nuevo
-          </button>
-        </div>
+        <ResumenSesion
+          rutina={virtualRutina}
+          state={state}
+          bloques={bloquesFin}
+          historial={historialMiembro && historialPrevio(historialMiembro, bloquesFin, state.idSesion)}
+          completa={completa}
+          saving={saving}
+          saveError={saveError}
+          onRetomar={session.retomarBloque}
+          onEmpezarDeNuevo={reinicio.pedir}
+          chipAnterior={chipAnterior(true)}
+          accionesExtra={
+            <button className="btn-secondary" style={{ width: "100%" }}
+              onClick={() => setSumarAbierto(true)}>
+              <Plus size={16} /> Sumar otro ejercicio
+            </button>
+          }
+          onFinalizar={async (datos) => {
+            if (!memberId) { cerrarSesionLocal(); salir(); return; }
+            setSaving(true);
+            setSaveError(null);
+            const durMin = state.inicioMs != null
+              ? Math.round((Date.now() - state.inicioMs) / 60_000)
+              : null;
+            const result = await finalizarSesion({
+              tipo:        "libre",
+              nombreLibre: "Sesión libre",
+              miembro:     memberId,
+              bloques:     bloquesFin,
+              ...datos,
+              duracionMin: durMin || null,
+              completitud: completa ? "completa" : "parcial",
+            });
+            if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
+            cerrarSesionLocal();
+            saliendo.current = true;
+            if (result.value.pendiente) {
+              setAvisoPendiente({ destino: "/historial" });
+              return;
+            }
+            navigate("/historial");
+          }}
+        />
 
         {sumarAbierto && (
           <ExercisePicker

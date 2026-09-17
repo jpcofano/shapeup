@@ -439,7 +439,13 @@ export interface BloqueRegistro {
   /** Solo presentes si el bloque se salteó (P68b). */
   saltado?: boolean;
   motivoSalto?: MotivoSalto;
+  /** 1RM estimado (Epley) de las series del día, solo Fuerza y solo si hay valor (P70). No se muestra. */
+  e1rmKg?: number;
 }
+
+/** Zona de molestia marcada al cerrar la sesión (P70). */
+export type ZonaMolestia =
+  | "hombro" | "codo" | "muñeca" | "espalda" | "cadera" | "rodilla" | "tobillo" | "otra";
 /** Enriquecimiento biométrico de una sesión ShapeUp cruzada con Samsung Health. */
 export interface BiometriaSesion {
   fuente: FuenteDato;                  // "samsung-health-csv"
@@ -491,6 +497,8 @@ export interface Historial {
 
   comoMeSenti?: string;
   queMejorar?: string;
+  /** Zonas con molestia, estructuradas para poder contarlas (P70). */
+  molestias?: ZonaMolestia[];
   notas?: string;
 }
 
