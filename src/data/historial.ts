@@ -33,6 +33,8 @@ export interface FinalizarSesionOpts {
   /** idSesion real (de crearSesion). Si se provee, la sesión pasa a "Registrada" en la misma tx. */
   idSesion?:    string;
   programaId?:  string;
+  /** Solo se escribe si viene. Ausente se lee como "completa" (P68). */
+  completitud?: "completa" | "parcial";
 }
 
 /**
@@ -48,7 +50,10 @@ export interface FinalizarSesionOpts {
 export async function finalizarSesion(
   opts: FinalizarSesionOpts,
 ): Promise<Result<string>> {
-  const { rutinaId, tipo, nombreLibre, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId } = opts;
+  const {
+    rutinaId, tipo, nombreLibre, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
+    completitud,
+  } = opts;
   const fecha   = ymdLocal();
   const semana  = lunesDeSemana(fecha);
   const idHist  = `H-${fecha.replace(/-/g, "")}-${Date.now()}`;
@@ -83,6 +88,7 @@ export async function finalizarSesion(
         ...(rutinaId ? { idRutina: rutinaId } : {}),
         nombreRutina,
         ...(tipo === "libre" ? { tipo: "libre" as const } : {}),
+        ...(completitud ? { completitud } : {}),
         idPrograma:              programaId,
         semanaInicio:            semana,
         miembro,

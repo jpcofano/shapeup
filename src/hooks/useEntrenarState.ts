@@ -13,6 +13,9 @@ import {
   siguienteBloque as _siguienteBloque,
   anteriorBloque as _anteriorBloque,
   toggleModoVista as _toggleModoVista,
+  estadoReiniciado,
+  asignarIdSesion as _asignarIdSesion,
+  quitarBloques as _quitarBloques,
   construirBloquesRegistro,
   type EntrenarState,
 } from "../lib/entrenarState";
@@ -89,10 +92,27 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
       dispatch((s) => _toggleModoVista(s, rutina));
     },
 
-    /** Reinicia la sesión (borra localStorage y estado). */
+    /** Guarda el id de la `SesionProgramada` creada para esta sesión. */
+    asignarIdSesion(idSesion: string) {
+      dispatch((s) => _asignarIdSesion(s, idSesion));
+    },
+    /** Saca bloques (sesión libre con ejercicios que ya no existen) y corre los índices. */
+    quitarBloques(quitados: number[], totalRestante: number) {
+      dispatch((s) => _quitarBloques(s, quitados, totalRestante));
+    },
+
+    /** Empieza la sesión de nuevo: todo en cero, conserva `idSesion` (P68). */
     reiniciar() {
+      dispatch(estadoReiniciado);
+    },
+
+    /**
+     * Borra el estado persistido sin tocar el que está en memoria. Usar justo
+     * antes de salir de la pantalla (sesión guardada o descartada): como el estado
+     * no cambia, nada vuelve a persistirlo, y la próxima visita arranca de cero.
+     */
+    limpiar() {
       clearEntrenarState(sessionKey);
-      setState(loadEntrenarState(sessionKey));
     },
 
     /** Construye BloqueRegistro[] para escribir al Historial. */

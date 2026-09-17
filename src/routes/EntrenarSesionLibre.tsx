@@ -1,20 +1,28 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { X, AlignJustify, Zap, RotateCcw, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { X, AlignJustify, Zap, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Bicep } from "../components/Bicep";
 import type { Ejercicio, SerieRegistro, PrescripcionFuerza } from "../types/models";
 import { finalizarSesion } from "../data/historial";
-import { getEjercicio } from "../data/ejercicios";
+import { getEjercicio, getEjerciciosPorId } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, seriesHechasTotales,
   buildBloqueLibre, buildVirtualRutina,
+  duracionParcialMin, sesionVieja, mensajeSesionVieja, quitarBloques,
+  type EntrenarState,
 } from "../lib/entrenarState";
+import {
+  cargarConfigLibre, guardarConfigLibre, borrarConfigLibre,
+  mismosEjercicios, restaurarConfig,
+  type EjDefaults, type Restauracion,
+} from "../lib/sesionLibre";
 import { useEntrenarState } from "../hooks/useEntrenarState";
 import { useConfirmarReinicio } from "../hooks/useConfirmarReinicio";
 import { ExercisePicker } from "../components/rutina/ExercisePicker";
 import { RegistroSerie } from "../components/entrenar/RegistroSerie";
 import { ConfirmarReinicio } from "../components/entrenar/ConfirmarReinicio";
+import { HojaSalida } from "../components/entrenar/HojaSalida";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
 import { SerieTimer } from "../components/entrenar/SerieTimer";
 import { TiempoTotal } from "../components/entrenar/TiempoTotal";
@@ -22,12 +30,19 @@ import { BloqueGuiado } from "../components/entrenar/BloqueGuiado";
 import { BloqueScroll } from "../components/entrenar/BloqueScroll";
 
 const SESSION_KEY = "libre:temp";
-
-type EjDefaults = { series: number; reps: number };
+const CONTEXTO_ATAJO = "Tenés una sesión libre sin cerrar";
+const AVISO_NO_RESTAURADA =
+  "No se pudo recuperar la sesión libre guardada. Revisá la conexión y volvé a entrar.";
 
 /** Defaults del atajo F4 y de "Sumá ejercicio": 3 series × 10 reps. Exportado para test. */
 export function defaultsParaEj(ej: Ejercicio): EjDefaults {
   return { series: 3, reps: ej.modalidad === "Fuerza" ? 10 : 10 };
+}
+
+function avisoQuitados(n: number): string {
+  return n === 1
+    ? "1 ejercicio ya no está en el catálogo"
+    : `${n} ejercicios ya no están en el catálogo`;
 }
 
 /**
@@ -38,7 +53,10 @@ export function defaultsParaEj(ej: Ejercicio): EjDefaults {
  * También sirve de atajo "Empezar este ejercicio" (F4) vía
  * /entrenar/ejercicio/:idEjercicio — pre-carga ese único ejercicio (3×10)
  * y entra directo a fase 2. Si el id no carga (inválido/offline), degrada
- * al selector vacío normal.
+ * al selector vacío normal (o a la sesión libre guardada, si hay).
+ *
+ * La lista de ejercicios se guarda en `lib/sesionLibre` (P68): una recarga
+ * retoma la sesión en vez de volver al selector.
  */
 export function EntrenarSesionLibre() {
   const navigate         = useNavigate();
@@ -51,10 +69,19 @@ export function EntrenarSesionLibre() {
   const [pickerAbierto,  setPickerAbierto]  = useState(false);
   const [sesionIniciada, setSesionIniciada] = useState(false);
 
-  // ── Atajo F4 — pre-seed de 1 ejercicio ───────────────────────────────────
-  const [viaAtajo,      setViaAtajo]      = useState(false);
-  const [cargandoAtajo, setCargandoAtajo] = useState(!!idEjercicioAtajo);
-  const [sumarAbierto,  setSumarAbierto]  = useState(false);
+  // ── Restauración y atajo F4 ───────────────────────────────────────────────
+  const [viaAtajo,       setViaAtajo]       = useState(false);
+  const [restaurando,    setRestaurando]    = useState(
+    () => !!idEjercicioAtajo || cargarConfigLibre() != null,
+  );
+  const [avisoLibre,     setAvisoLibre]     = useState<string | null>(null);
+  const [atajoPendiente, setAtajoPendiente] = useState<Ejercicio | null>(null);
+  const [sumarAbierto,   setSumarAbierto]   = useState(false);
+
+  // ── Hoja de salida (P68) ──────────────────────────────────────────────────
+  const [salida,          setSalida]          = useState<{ contexto?: string } | null>(null);
+  const [guardandoSalida, setGuardandoSalida] = useState(false);
+  const [errorSalida,     setErrorSalida]     = useState<string | null>(null);
 
   // ── Fase 2 — workout ──────────────────────────────────────────────────────
   const bloques = ejercicios.map((ej, i) => {
@@ -94,24 +121,108 @@ export function EntrenarSesionLibre() {
     session.asegurarInicioSesion();
   }
 
-  // Reiniciar (header y pantalla de fin): confirma si hay series registradas.
+  // Reiniciar (hoja de salida y pantalla de fin): confirma si hay series registradas.
   const reinicio = useConfirmarReinicio(seriesHechasTotales(state), reiniciarYSellar);
 
-  // Pre-seed: si entramos por /entrenar/ejercicio/:idEjercicio, cargá ese
-  // ejercicio y arrancá directo en fase 2. Sin id → no hace nada (selector normal).
+  function abrirSalida(contexto?: string) {
+    setErrorSalida(null);
+    setSalida({ contexto });
+  }
+
+  /** Arranca el atajo con un solo ejercicio: sesión nueva y config guardada. */
+  function arrancarAtajo(ej: Ejercicio) {
+    const defaults = [defaultsParaEj(ej)];
+    guardarConfigLibre({ idsEjercicio: [ej.idEjercicio], defaults });
+    setEjercicios([ej]);
+    setEjDefaults(defaults);
+    setAvisoLibre(null);
+    reiniciarYSellar();
+    setSesionIniciada(true);
+  }
+
+  /**
+   * Retoma una sesión guardada. Si faltan ejercicios, los saca del progreso
+   * también (corre los índices). Con `evaluarVieja`, aplica la regla de sesión
+   * vieja (P68) sobre el estado recién cargado.
+   */
+  function retomar(r: Restauracion<Ejercicio>, inicial: EntrenarState, evaluarVieja: boolean) {
+    setEjercicios(r.ejercicios);
+    setEjDefaults(r.defaults);
+    setSesionIniciada(true);
+
+    let s = inicial;
+    if (r.quitados.length > 0) {
+      session.quitarBloques(r.quitados, r.ejercicios.length);
+      s = quitarBloques(inicial, r.quitados, r.ejercicios.length);
+      guardarConfigLibre({ idsEjercicio: r.ejercicios.map((e) => e.idEjercicio), defaults: r.defaults });
+      setAvisoLibre(avisoQuitados(r.quitados.length));
+    }
+
+    if (evaluarVieja && s.inicioMs != null && sesionVieja(s, Date.now())) {
+      if (seriesHechasTotales(s) > 0) abrirSalida(mensajeSesionVieja(s.inicioMs));
+      else reiniciarYSellar();
+      return;
+    }
+    session.asegurarInicioSesion();
+  }
+
+  // Al montar: restaurar la sesión guardada y resolver el atajo (P68). Todo lo
+  // que decide lee el estado recién cargado (`inicial`), una vez por montaje.
   useEffect(() => {
-    if (!idEjercicioAtajo) return;
     let activo = true;
+    const inicial = state;
     (async () => {
-      const result = await getEjercicio(idEjercicioAtajo);
-      if (activo && result.ok) {
-        setEjercicios([result.value]);
-        setEjDefaults([defaultsParaEj(result.value)]);
-        setViaAtajo(true);
-        reiniciarYSellar();
-        setSesionIniciada(true);
+      const config = cargarConfigLibre();
+      let restaurada: Restauracion<Ejercicio> | null = null;
+      let fallo = false;
+      if (config) {
+        const r = await getEjerciciosPorId(config.idsEjercicio);
+        if (!activo) return;
+        if (r.ok) {
+          restaurada = restaurarConfig(config, r.value.encontrados);
+          if (restaurada.ejercicios.length === 0) {
+            borrarConfigLibre();
+            restaurada = null;
+          }
+        } else {
+          fallo = true;
+        }
       }
-      if (activo) setCargandoAtajo(false);
+      const seriesGuardadas = seriesHechasTotales(inicial);
+
+      if (idEjercicioAtajo) {
+        const ra = await getEjercicio(idEjercicioAtajo);
+        if (!activo) return;
+        if (ra.ok) {
+          const ej = ra.value;
+          setViaAtajo(true);
+          if (config && mismosEjercicios(config.idsEjercicio, [ej.idEjercicio])) {
+            // Misma sesión: se retoma sin reiniciar.
+            retomar(restaurada ?? { ejercicios: [ej], defaults: config.defaults, quitados: [] }, inicial, true);
+          } else if (fallo && seriesGuardadas > 0) {
+            // No se pudo leer la sesión guardada: no se pisa con el atajo.
+            setAvisoLibre(AVISO_NO_RESTAURADA);
+          } else if (restaurada && seriesGuardadas > 0) {
+            // Otra sesión con series: primero se guarda o se descarta.
+            retomar(restaurada, inicial, false);
+            setAtajoPendiente(ej);
+            abrirSalida(CONTEXTO_ATAJO);
+          } else {
+            if (config) borrarConfigLibre();
+            arrancarAtajo(ej);
+          }
+        } else if (restaurada) {
+          retomar(restaurada, inicial, true);
+        } else if (fallo) {
+          setAvisoLibre(AVISO_NO_RESTAURADA);
+        }
+      } else if (restaurada) {
+        retomar(restaurada, inicial, true);
+      } else if (fallo) {
+        setAvisoLibre(AVISO_NO_RESTAURADA);
+      }
+
+      setRestaurando(false);
     })();
     return () => { activo = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,10 +235,57 @@ export function EntrenarSesionLibre() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.bloqueActual, virtualRutina]);
 
-  /** Salida (X / fin de sesión): si entramos por el atajo, volvemos al catálogo. */
+  /** Salida (hoja / fin de sesión): si entramos por el atajo, volvemos al catálogo. */
   function salir() {
     if (viaAtajo) navigate(-1);
     else navigate("/entrenar");
+  }
+
+  /** Borra el progreso y la lista guardados. Usar justo antes de salir. */
+  function cerrarSesionLocal() {
+    session.limpiar();
+    borrarConfigLibre();
+  }
+
+  /** Con un atajo en espera, la sesión guardada se cerró: arranca el atajo en su lugar. */
+  function continuarConAtajo(ej: Ejercicio) {
+    setSalida(null);
+    setAtajoPendiente(null);
+    borrarConfigLibre();
+    arrancarAtajo(ej);
+  }
+
+  function salirSinGuardar() {
+    if (atajoPendiente) { continuarConAtajo(atajoPendiente); return; }
+    cerrarSesionLocal();
+    salir();
+  }
+
+  /** Guardar y salir: parcial, salvo que justo esté completa. RPE va en P70. */
+  async function guardarYSalir() {
+    if (!virtualRutina) return;
+    if (!memberId) { setErrorSalida("No se pudo identificar al miembro."); return; }
+    setGuardandoSalida(true);
+    setErrorSalida(null);
+    const result = await finalizarSesion({
+      tipo:        "libre",
+      nombreLibre: "Sesión libre",
+      miembro:     memberId,
+      bloques:     session.bloquesRegistro(),
+      rpe:         null,
+      duracionMin: duracionParcialMin(state) || null,
+      completitud: rutinaCompleta(state, virtualRutina) ? "completa" : "parcial",
+    });
+    setGuardandoSalida(false);
+    if (!result.ok) { setErrorSalida(result.error); return; }
+    if (atajoPendiente) { continuarConAtajo(atajoPendiente); return; }
+    cerrarSesionLocal();
+    navigate("/historial");
+  }
+
+  function seguirEntrenando() {
+    setSalida(null);
+    setAtajoPendiente(null);
   }
 
   // ── Handlers fase 1 ───────────────────────────────────────────────────────
@@ -140,9 +298,12 @@ export function EntrenarSesionLibre() {
 
   /** "Sumar otro ejercicio" desde la pantalla de fin: agrega el bloque y sigue la sesión. */
   function sumarYContinuar(ej: Ejercicio) {
-    const nuevoIdx = ejercicios.length;
-    setEjercicios((prev) => [...prev, ej]);
-    setEjDefaults((prev) => [...prev, defaultsParaEj(ej)]);
+    const nuevoIdx      = ejercicios.length;
+    const nuevosEj      = [...ejercicios, ej];
+    const nuevosDefault = [...ejDefaults, defaultsParaEj(ej)];
+    setEjercicios(nuevosEj);
+    setEjDefaults(nuevosDefault);
+    guardarConfigLibre({ idsEjercicio: nuevosEj.map((e) => e.idEjercicio), defaults: nuevosDefault });
     setSumarAbierto(false);
     session.irABloque(nuevoIdx);
   }
@@ -173,6 +334,8 @@ export function EntrenarSesionLibre() {
   }
 
   function empezarSesion() {
+    guardarConfigLibre({ idsEjercicio: ejercicios.map((e) => e.idEjercicio), defaults: ejDefaults });
+    setAvisoLibre(null);
     reiniciarYSellar();
     setSesionIniciada(true);
   }
@@ -194,9 +357,26 @@ export function EntrenarSesionLibre() {
     setLogCarga("");
   }
 
-  // ── Render: cargando el atajo (pre-seed de 1 ejercicio) ───────────────────
+  const hojaSalida = salida && (
+    <HojaSalida
+      series={seriesHechasTotales(state)}
+      contexto={salida.contexto}
+      guardando={guardandoSalida}
+      error={errorSalida}
+      onGuardar={() => void guardarYSalir()}
+      onDescartar={salirSinGuardar}
+      onSeguir={seguirEntrenando}
+      onReiniciar={() => { seguirEntrenando(); reinicio.pedir(); }}
+    />
+  );
 
-  if (cargandoAtajo) {
+  const aviso = avisoLibre && (
+    <p className="banner banner-amber" style={{ margin: 0 }}>{avisoLibre}</p>
+  );
+
+  // ── Render: restaurando la sesión guardada / cargando el atajo ────────────
+
+  if (restaurando) {
     return (
       <div className="workout-screen">
         <div className="loading-screen">
@@ -220,6 +400,7 @@ export function EntrenarSesionLibre() {
         </div>
 
         <div className="workout-content" style={{ padding: "16px 16px 0" }}>
+          {aviso}
           {ejercicios.length === 0 ? (
             <div className="empty-state" style={{ minHeight: 120 }}>
               <p>Sumá ejercicios del catálogo para empezar.</p>
@@ -368,7 +549,7 @@ export function EntrenarSesionLibre() {
             style={{ width: "100%", marginTop: 8 }}
             disabled={saving}
             onClick={async () => {
-              if (!memberId) { session.reiniciar(); salir(); return; }
+              if (!memberId) { cerrarSesionLocal(); salir(); return; }
               setSaving(true);
               setSaveError(null);
               const durMin = state.inicioMs != null
@@ -381,9 +562,10 @@ export function EntrenarSesionLibre() {
                 bloques:     session.bloquesRegistro(),
                 rpe,
                 duracionMin: durMin || null,
+                completitud: "completa",
               });
               if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
-              session.reiniciar();
+              cerrarSesionLocal();
               navigate("/historial");
             }}
           >
@@ -406,6 +588,7 @@ export function EntrenarSesionLibre() {
           />
         )}
 
+        {hojaSalida}
         {reinicio.abierto && (
           <ConfirmarReinicio
             series={seriesHechasTotales(state)}
@@ -427,7 +610,7 @@ export function EntrenarSesionLibre() {
   return (
     <div className="workout-screen">
       <div className="workout-header">
-        <button className="btn-icon-sm" onClick={salir} title="Salir">
+        <button className="btn-icon-sm" onClick={() => abrirSalida()} title="Salir">
           <X size={18} />
         </button>
         <p className="workout-title">Sesión libre</p>
@@ -436,14 +619,11 @@ export function EntrenarSesionLibre() {
           title={state.modoVista === "guiada" ? "Modo scroll" : "Modo guiado"}>
           {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
         </button>
-        {/* Separado del toggle de modo (P67). P68 lo mueve a la hoja de salida. */}
-        <button className="btn-icon-sm danger workout-header-reset" onClick={reinicio.pedir} title="Reiniciar sesión">
-          <RotateCcw size={16} />
-        </button>
       </div>
 
       {state.modoVista === "scroll" && (
         <div className="workout-content">
+          {aviso}
           {virtualRutina.bloques.map((b, i) => (
             <BloqueScroll
               key={i}
@@ -460,6 +640,7 @@ export function EntrenarSesionLibre() {
       {state.modoVista === "guiada" && blq && (
         <>
           <div className="workout-content">
+            {aviso}
             <DescansoTimer
               state={state}
               onSkip={session.saltarDescanso}
@@ -502,6 +683,7 @@ export function EntrenarSesionLibre() {
         </>
       )}
 
+      {hojaSalida}
       {reinicio.abierto && (
         <ConfirmarReinicio
           series={seriesHechasTotales(state)}

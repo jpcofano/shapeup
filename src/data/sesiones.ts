@@ -3,7 +3,7 @@
 //  Estados: Programada → En curso → Completada → Registrada
 // ════════════════════════════════════════════════════════════════════════════
 import {
-  collection, doc, getDocs, getDoc, setDoc, updateDoc,
+  collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc,
   query, where, orderBy, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
@@ -102,6 +102,16 @@ export async function iniciarSesion(
       estado:   "En curso" as EstadoSesion,
       progreso: progreso ?? null,
     });
+    return ok(undefined);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/** Borra una sesión que se abandonó sin guardar (hoja de salida, P68). */
+export async function descartarSesion(id: string): Promise<Result<void>> {
+  try {
+    await deleteDoc(doc(db, "sesiones", id));
     return ok(undefined);
   } catch (e) {
     return err(firebaseErrorMessage(e));

@@ -10,6 +10,8 @@ import {
   trabajoObjetivoSeg, trabajoRestanteMs, asegurarInicioSerie, ajustarTrabajo,
   objetivoSerieLabel,
   asegurarInicioSesion, seriesHechasTotales, loadEntrenarState,
+  estadoReiniciado, asignarIdSesion, duracionParcialMin, sesionVieja, quitarBloques,
+  UMBRAL_SESION_VIEJA_MS,
 } from "./entrenarState";
 import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
 
@@ -200,6 +202,112 @@ describe("asegurarInicioSesion", () => {
     } finally {
       localStorage.removeItem("entrenar:test-viejo");
     }
+  });
+});
+
+// ── P68: sesión única, parcial, vieja ─────────────────────────────────────────
+describe("estadoReiniciado", () => {
+  it("conserva idSesion y vuelve todo lo demás al estado inicial", () => {
+    let s = asignarIdSesion(s0, "SES-1");
+    s = asegurarInicioSesion(s, 1000);
+    s = completarSerie(s, rutina, 0, { reps: 8, cargaKg: 20 }, 2000);
+    s = { ...s, modoVista: "scroll" };
+    expect(estadoReiniciado(s)).toEqual({ ...INITIAL_ENTRENAR_STATE, idSesion: "SES-1" });
+  });
+
+  it("sin idSesion devuelve el estado inicial", () => {
+    expect(estadoReiniciado(completarSerie(s0, rutina, 0))).toEqual(INITIAL_ENTRENAR_STATE);
+  });
+
+  it("un estado viejo en localStorage sin idSesion carga con null", () => {
+    const viejo: Record<string, unknown> = { ...s0, inicioMs: 1000 };
+    delete viejo.idSesion;
+    localStorage.setItem("entrenar:test-sin-id", JSON.stringify(viejo));
+    try {
+      const cargado = loadEntrenarState("test-sin-id");
+      expect(cargado.idSesion).toBeNull();
+      expect(cargado.inicioMs).toBe(1000);
+    } finally {
+      localStorage.removeItem("entrenar:test-sin-id");
+    }
+  });
+});
+
+describe("duracionParcialMin", () => {
+  const MIN = 60_000;
+
+  it("mide desde el inicio hasta el fin de la última serie", () => {
+    let s = asegurarInicioSesion(s0, 0);
+    s = completarSerie(s, rutina, 0, undefined, 10 * MIN);
+    s = completarSerie(s, rutina, 0, undefined, 14 * MIN);
+    expect(duracionParcialMin(s)).toBe(14);
+  });
+
+  it("sin series devuelve null", () => {
+    expect(duracionParcialMin(asegurarInicioSesion(s0, 0))).toBeNull();
+  });
+
+  it("sin inicioMs devuelve null", () => {
+    expect(duracionParcialMin(completarSerie(s0, rutina, 0, undefined, 5 * MIN))).toBeNull();
+  });
+
+  it("con varios bloques usa el finMs más alto, no el último bloque", () => {
+    let s = asegurarInicioSesion(s0, 0);
+    s = completarSerie(s, rutina, 1, undefined, 30 * MIN);
+    s = completarSerie(s, rutina, 0, undefined, 12 * MIN);
+    expect(duracionParcialMin(s)).toBe(30);
+  });
+});
+
+describe("sesionVieja", () => {
+  const inicio = 1_000_000;
+  const s = asegurarInicioSesion(s0, inicio);
+
+  it("justo en el umbral no es vieja", () => {
+    expect(sesionVieja(s, inicio + UMBRAL_SESION_VIEJA_MS)).toBe(false);
+  });
+
+  it("por debajo del umbral no es vieja", () => {
+    expect(sesionVieja(s, inicio + UMBRAL_SESION_VIEJA_MS - 1)).toBe(false);
+  });
+
+  it("por encima del umbral es vieja", () => {
+    expect(sesionVieja(s, inicio + UMBRAL_SESION_VIEJA_MS + 1)).toBe(true);
+  });
+
+  it("sin inicioMs no es vieja", () => {
+    expect(sesionVieja(s0, Number.MAX_SAFE_INTEGER)).toBe(false);
+  });
+
+  it("el umbral es de 12 h y se puede pasar otro", () => {
+    expect(UMBRAL_SESION_VIEJA_MS).toBe(12 * 60 * 60 * 1000);
+    expect(sesionVieja(s, inicio + 11, 10)).toBe(true);
+  });
+});
+
+describe("quitarBloques", () => {
+  it("saca el bloque y corre los índices del resto", () => {
+    const s = {
+      ...s0,
+      bloqueActual: 2,
+      seriesHechas: { 0: 1, 1: 2, 2: 3 },
+      ultimoLog: { 2: { reps: 5 } },
+      descanso: { bloqueIdx: 2, startMs: 0, durMs: 1000 },
+    };
+    const r = quitarBloques(s, [1], 2);
+    expect(r.seriesHechas).toEqual({ 0: 1, 1: 3 });
+    expect(r.ultimoLog).toEqual({ 1: { reps: 5 } });
+    expect(r.descanso?.bloqueIdx).toBe(1);
+    expect(r.bloqueActual).toBe(1);
+  });
+
+  it("si el descanso era de un bloque quitado, lo corta", () => {
+    const s = { ...s0, descanso: { bloqueIdx: 0, startMs: 0, durMs: 1000 } };
+    expect(quitarBloques(s, [0], 1).descanso).toBeNull();
+  });
+
+  it("sin quitados devuelve el mismo estado", () => {
+    expect(quitarBloques(s0, [], 3)).toBe(s0);
   });
 });
 

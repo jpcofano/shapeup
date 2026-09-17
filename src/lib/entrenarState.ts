@@ -45,6 +45,11 @@ export interface EntrenarState {
    * con `asegurarInicioSesion`.
    */
   inicioMs: number | null;
+  /**
+   * `SesionProgramada` de esta sesión en /sesiones (P68). Se crea una sola vez
+   * y se reusa al reanudar; reiniciar la conserva. `null` en la sesión libre.
+   */
+  idSesion: string | null;
 }
 
 export const INITIAL_ENTRENAR_STATE: EntrenarState = {
@@ -56,7 +61,11 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   serieInicioMs: {},
   ultimoLog: {},
   inicioMs: null,
+  idSesion: null,
 };
+
+/** Una sesión abierta hace más de esto se considera abandonada (P68). */
+export const UMBRAL_SESION_VIEJA_MS = 12 * 60 * 60 * 1000;
 
 // ════════════════════════════════════════════════════════════════════════════
 //  Helpers de prescripción — "¿cuántas series tiene este bloque?" etc.
@@ -342,6 +351,89 @@ export function asegurarInicioSesion(state: EntrenarState, now: number = Date.no
 /** Total de series marcadas como hechas en toda la sesión. */
 export function seriesHechasTotales(state: EntrenarState): number {
   return Object.values(state.seriesHechas).reduce((acc, n) => acc + n, 0);
+}
+
+/** Estado de una sesión empezada de nuevo: todo en cero, pero la misma `SesionProgramada`. */
+export function estadoReiniciado(state: EntrenarState): EntrenarState {
+  return { ...INITIAL_ENTRENAR_STATE, idSesion: state.idSesion };
+}
+
+/** Guarda el id de la `SesionProgramada` creada para esta sesión. */
+export function asignarIdSesion(state: EntrenarState, idSesion: string): EntrenarState {
+  return { ...state, idSesion };
+}
+
+/**
+ * Duración (min) de una sesión guardada como parcial: desde `inicioMs` hasta el
+ * `finMs` más alto entre las series registradas. No cuenta el tiempo entre la
+ * última serie y el momento de salir. `null` si falta alguno de los dos.
+ */
+export function duracionParcialMin(state: EntrenarState): number | null {
+  if (state.inicioMs == null) return null;
+  let fin: number | null = null;
+  for (const series of Object.values(state.registro)) {
+    for (const s of series) {
+      if (s.finMs != null && (fin == null || s.finMs > fin)) fin = s.finMs;
+    }
+  }
+  if (fin == null) return null;
+  return Math.max(0, Math.round((fin - state.inicioMs) / 60_000));
+}
+
+/** ¿La sesión se abrió hace más de `umbralMs`? Falso si no tiene inicio. */
+export function sesionVieja(
+  state: EntrenarState,
+  now: number,
+  umbralMs: number = UMBRAL_SESION_VIEJA_MS,
+): boolean {
+  return state.inicioMs != null && now - state.inicioMs > umbralMs;
+}
+
+/** Contexto de la hoja de salida para una sesión vieja, en hora local. */
+export function mensajeSesionVieja(inicioMs: number): string {
+  const d   = new Date(inicioMs);
+  const dia = d.toLocaleDateString("es-AR", { weekday: "long" });
+  const dd  = String(d.getDate()).padStart(2, "0");
+  const mm  = String(d.getMonth() + 1).padStart(2, "0");
+  const hh  = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `Esta sesión quedó abierta desde el ${dia} ${dd}/${mm} a las ${hh}:${min}.`;
+}
+
+/**
+ * Saca bloques de la sesión y corre los índices del resto (sesión libre cuyo
+ * ejercicio ya no está en el catálogo). Sin esto, el progreso guardado por
+ * índice quedaría asignado al ejercicio equivocado. `totalRestante` es la
+ * cantidad de bloques que quedan, para acotar `bloqueActual`.
+ */
+export function quitarBloques(
+  state: EntrenarState,
+  quitados: number[],
+  totalRestante: number,
+): EntrenarState {
+  if (quitados.length === 0) return state;
+  const fuera = new Set(quitados);
+  const nuevoIdx = (i: number) => i - quitados.filter((q) => q < i).length;
+  function remap<T>(rec: Record<number, T>): Record<number, T> {
+    const out: Record<number, T> = {};
+    for (const [k, v] of Object.entries(rec)) {
+      const i = Number(k);
+      if (!fuera.has(i)) out[nuevoIdx(i)] = v;
+    }
+    return out;
+  }
+  const descanso = state.descanso && !fuera.has(state.descanso.bloqueIdx)
+    ? { ...state.descanso, bloqueIdx: nuevoIdx(state.descanso.bloqueIdx) }
+    : null;
+  return {
+    ...state,
+    seriesHechas:  remap(state.seriesHechas),
+    registro:      remap(state.registro),
+    serieInicioMs: remap(state.serieInicioMs),
+    ultimoLog:     remap(state.ultimoLog),
+    descanso,
+    bloqueActual:  Math.max(0, Math.min(nuevoIdx(state.bloqueActual), totalRestante - 1)),
+  };
 }
 
 /**

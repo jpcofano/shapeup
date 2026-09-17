@@ -517,9 +517,6 @@
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
-/* Reiniciar: al final del header, ≥ 16 px del toggle de modo (gap 10 + 8). */
-.workout-header-reset { margin-left: 8px; }
-
 /* ── Dots de progreso ────────────────────────────────────────────────────── */
 .progress-dots {
   display: flex;
@@ -803,6 +800,41 @@
   cursor: pointer;
 }
 .btn-danger:hover { opacity: 0.88; }
+
+/* ── Hoja de salida (P68) ────────────────────────────────────────────────── */
+.hoja-salida {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 16px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+.hoja-salida > .btn-primary { width: 100%; min-height: 52px; }
+.hoja-salida > .btn-secondary { min-height: 48px; }
+.hoja-salida > button:disabled { opacity: 0.45; cursor: default; }
+.hoja-salida-contexto {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(251,191,36,0.1);
+  border: 1px solid rgba(251,191,36,0.2);
+  color: var(--warning);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.hoja-salida-nota { margin: -4px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
+.hoja-salida-reiniciar {
+  align-self: center;
+  margin-top: 6px;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 
 /* ── Modo scroll — bloque item ───────────────────────────────────────────── */
 .bloque-scroll {

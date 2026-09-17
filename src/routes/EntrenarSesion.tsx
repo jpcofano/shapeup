@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { X, AlignJustify, Zap, RotateCcw } from "lucide-react";
+import { X, AlignJustify, Zap } from "lucide-react";
 import { Bicep } from "../components/Bicep";
 import type { Rutina, Ejercicio, SerieRegistro, Historial } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
 import { finalizarSesion, getHistorialMiembro } from "../data/historial";
-import { crearSesion, iniciarSesion } from "../data/sesiones";
+import { crearSesion, iniciarSesion, descartarSesion } from "../data/sesiones";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, seriesHechasTotales, valorPrefillSerie,
+  duracionParcialMin, sesionVieja, mensajeSesionVieja,
 } from "../lib/entrenarState";
 import { sugerirProgresion } from "../lib/progresion";
 import { useEntrenarState } from "../hooks/useEntrenarState";
@@ -24,6 +25,7 @@ import { BloqueScroll } from "../components/entrenar/BloqueScroll";
 import { SugerenciaChip } from "../components/entrenar/SugerenciaChip";
 import { RegistroSerie } from "../components/entrenar/RegistroSerie";
 import { ConfirmarReinicio } from "../components/entrenar/ConfirmarReinicio";
+import { HojaSalida } from "../components/entrenar/HojaSalida";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
 
 /**
@@ -41,7 +43,11 @@ export function EntrenarSesion() {
   const [rpe,      setRpe]      = useState<number | null>(null);
   const [saving,   setSaving]   = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [sesionId, setSesionId] = useState<string | null>(null);
+
+  // Hoja de salida (P68)
+  const [salida,          setSalida]          = useState<{ contexto?: string } | null>(null);
+  const [guardandoSalida, setGuardandoSalida] = useState(false);
+  const [errorSalida,     setErrorSalida]     = useState<string | null>(null);
 
   // Progresión de cargas (I3): historial del miembro para sugerir doble progresión.
   const [historialMiembro, setHistorialMiembro] = useState<Historial[]>([]);
@@ -60,13 +66,59 @@ export function EntrenarSesion() {
   const session    = useEntrenarState(sessionKey, rutina);
   const state      = session.state;
 
-  // Reiniciar (header y pantalla de fin): confirma si hay series. Sella el inicio
-  // de la sesión nueva en el mismo handler: si ya estábamos en el bloque 0, el
-  // efecto de montaje no se vuelve a disparar.
-  const reinicio = useConfirmarReinicio(seriesHechasTotales(state), () => {
+  // Reiniciar (hoja de salida y pantalla de fin): confirma si hay series. Sella
+  // el inicio de la sesión nueva en el mismo handler: si ya estábamos en el
+  // bloque 0, el efecto de montaje no se vuelve a disparar.
+  function reiniciarYSellar() {
     session.reiniciar();
     session.asegurarInicioSesion();
-  });
+  }
+  const reinicio = useConfirmarReinicio(seriesHechasTotales(state), reiniciarYSellar);
+
+  function abrirSalida(contexto?: string) {
+    setErrorSalida(null);
+    setSalida({ contexto });
+  }
+
+  /** Salir sin guardar: borra el estado local y la SesionProgramada, sin esperar. */
+  function salirSinGuardar() {
+    const idSesion = state.idSesion;
+    session.limpiar();
+    if (idSesion) void descartarSesion(idSesion);
+    navigate("/entrenar");
+  }
+
+  /** Guardar y salir: parcial, salvo que justo esté completa. RPE va en P70. */
+  async function guardarYSalir() {
+    if (!rutina || !rutinaId) return;
+    if (!memberId) { setErrorSalida("No se pudo identificar al miembro."); return; }
+    setGuardandoSalida(true);
+    setErrorSalida(null);
+    const result = await finalizarSesion({
+      rutinaId,
+      miembro:     memberId,
+      bloques:     session.bloquesRegistro(),
+      rpe:         null,
+      duracionMin: duracionParcialMin(state) || null,
+      idSesion:    state.idSesion ?? undefined,
+      completitud: rutinaCompleta(state, rutina) ? "completa" : "parcial",
+    });
+    if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
+    session.limpiar();
+    navigate("/historial");
+  }
+
+  // Sesión vieja al volver (P68), una vez por montaje con el estado recién
+  // cargado: con series se ofrece guardarla; sin series se reinicia sola.
+  const evaluoSesionVieja = useRef(false);
+  useEffect(() => {
+    if (evaluoSesionVieja.current) return;
+    evaluoSesionVieja.current = true;
+    if (!sesionVieja(state, Date.now()) || state.inicioMs == null) return;
+    if (seriesHechasTotales(state) > 0) abrirSalida(mensajeSesionVieja(state.inicioMs));
+    else reiniciarYSellar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Mantener pantalla encendida durante toda la sesión
   useWakeLock(!loading && !!rutina);
@@ -110,9 +162,11 @@ export function EntrenarSesion() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.bloqueActual, rutina]);
 
-  // Cargar rutina, pre-fetch ejercicios y crear sesión en Firestore
+  // Cargar rutina, pre-fetch ejercicios y crear sesión en Firestore — una sola
+  // SesionProgramada por sesión: si el estado guardado ya tiene una, se reusa (P68).
   useEffect(() => {
     if (!rutinaId || !memberId) return;
+    const idSesionGuardada = state.idSesion;
     getRutina(rutinaId).then(async (r) => {
       if (!r.ok) { setLoading(false); return; }
       const rutina = r.value;
@@ -129,21 +183,25 @@ export function EntrenarSesion() {
       setCatalogo(map);
 
       // Crear sesión real (Programada → En curso) para que finalizarSesion la cierre
-      const hoy     = new Date();
-      const lunes   = lunesDeSemana(hoy);
-      const domingo = new Date(hoy); domingo.setDate(hoy.getDate() + (7 - (hoy.getDay() || 7)));
-      const semanaFin = ymdLocal(domingo);
-      const sesRes = await crearSesion({
-        miembro: memberId, rutinaId, nombreRutina: rutina.nombre,
-        tipoSeleccion: "rutina", semanaInicio: lunes, semanaFin,
-      });
-      if (sesRes.ok) {
-        setSesionId(sesRes.value.idSesion);
-        iniciarSesion(sesRes.value.idSesion); // fire-and-forget: Programada → En curso
+      if (!idSesionGuardada) {
+        const hoy     = new Date();
+        const lunes   = lunesDeSemana(hoy);
+        const domingo = new Date(hoy); domingo.setDate(hoy.getDate() + (7 - (hoy.getDay() || 7)));
+        const semanaFin = ymdLocal(domingo);
+        const sesRes = await crearSesion({
+          miembro: memberId, rutinaId, nombreRutina: rutina.nombre,
+          tipoSeleccion: "rutina", semanaInicio: lunes, semanaFin,
+        });
+        if (sesRes.ok) {
+          session.asignarIdSesion(sesRes.value.idSesion);
+          iniciarSesion(sesRes.value.idSesion); // fire-and-forget: Programada → En curso
+        }
       }
 
       setLoading(false);
     });
+    // Solo al montar (o al cambiar de rutina/miembro): state.idSesion se lee una vez.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rutinaId, memberId]);
 
   // Historial del miembro para la sugerencia de progresión (I3) — una sola carga.
@@ -163,6 +221,19 @@ export function EntrenarSesion() {
     if (sugerencia.pesoKg != null) setLogCarga(String(sugerencia.pesoKg));
     if (sugerencia.repsObjetivo != null) setLogReps(String(sugerencia.repsObjetivo));
   }
+
+  const hojaSalida = salida && (
+    <HojaSalida
+      series={seriesHechasTotales(state)}
+      contexto={salida.contexto}
+      guardando={guardandoSalida}
+      error={errorSalida}
+      onGuardar={() => void guardarYSalir()}
+      onDescartar={salirSinGuardar}
+      onSeguir={() => setSalida(null)}
+      onReiniciar={() => { setSalida(null); reinicio.pedir(); }}
+    />
+  );
 
   if (loading) {
     return (
@@ -221,7 +292,7 @@ export function EntrenarSesion() {
             style={{ width: "100%", marginTop: 8 }}
             disabled={saving}
             onClick={async () => {
-              if (!rutinaId || !memberId) { session.reiniciar(); navigate("/entrenar"); return; }
+              if (!rutinaId || !memberId) { session.limpiar(); navigate("/entrenar"); return; }
               setSaving(true);
               setSaveError(null);
               const durMin = state.inicioMs != null
@@ -233,10 +304,13 @@ export function EntrenarSesion() {
                 bloques: session.bloquesRegistro(),
                 rpe,
                 duracionMin: durMin || null,
-                idSesion: sesionId ?? undefined,
+                idSesion: state.idSesion ?? undefined,
+                completitud: "completa",
               });
               if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
-              session.reiniciar();
+              // limpiar, no reiniciar: reiniciar conserva idSesion y la próxima
+              // sesión reusaría una SesionProgramada ya Registrada.
+              session.limpiar();
               navigate("/historial");
             }}
           >
@@ -248,6 +322,7 @@ export function EntrenarSesion() {
           </button>
         </div>
 
+        {hojaSalida}
         {reinicio.abierto && (
           <ConfirmarReinicio
             series={seriesHechasTotales(state)}
@@ -285,7 +360,7 @@ export function EntrenarSesion() {
     <div className="workout-screen" onPointerDown={unlockAudio}>
       {/* Header */}
       <div className="workout-header">
-        <button className="btn-icon-sm" onClick={() => navigate("/entrenar")} title="Salir">
+        <button className="btn-icon-sm" onClick={() => abrirSalida()} title="Salir">
           <X size={18} />
         </button>
         <p className="workout-title">{rutina.nombre}</p>
@@ -296,10 +371,6 @@ export function EntrenarSesion() {
           title={state.modoVista === "guiada" ? "Modo scroll" : "Modo guiado"}
         >
           {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
-        </button>
-        {/* Separado del toggle de modo (P67). P68 lo mueve a la hoja de salida. */}
-        <button className="btn-icon-sm danger workout-header-reset" onClick={reinicio.pedir} title="Reiniciar sesión">
-          <RotateCcw size={16} />
         </button>
       </div>
 
@@ -383,6 +454,7 @@ export function EntrenarSesion() {
         </>
       )}
 
+      {hojaSalida}
       {reinicio.abierto && (
         <ConfirmarReinicio
           series={seriesHechasTotales(state)}

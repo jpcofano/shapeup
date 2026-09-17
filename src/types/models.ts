@@ -463,6 +463,8 @@ export interface Historial {
   idRutina?: string;            // ausente en sesiones libres
   nombreRutina: string;
   tipo?: "rutina" | "libre";   // "rutina" por defecto (retrocompat)
+  /** "parcial" si se guardó desde la hoja de salida (P68). Ausente = "completa". */
+  completitud?: "completa" | "parcial";
   idPrograma?: string;
   semanaInicio: string;
   miembro: MiembroId;

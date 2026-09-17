@@ -60,6 +60,31 @@ export async function getEjercicio(id: string): Promise<Result<Ejercicio>> {
   }
 }
 
+/**
+ * Trae varios ejercicios por id. Los que no existen van a `faltantes`; un error
+ * de red o de permisos devuelve `err` (no se confunde con "no existe").
+ */
+export async function getEjerciciosPorId(
+  ids: string[],
+): Promise<Result<{ encontrados: Map<string, Ejercicio>; faltantes: string[] }>> {
+  try {
+    const encontrados = new Map<string, Ejercicio>();
+    const faltantes: string[] = [];
+    await Promise.all([...new Set(ids)].map(async (id) => {
+      const enCache = _cache?.get(id);
+      if (enCache) { encontrados.set(id, enCache); return; }
+      const snap = await getDoc(doc(db, "ejercicios", id));
+      if (!snap.exists()) { faltantes.push(id); return; }
+      const ej = snap.data() as Ejercicio;
+      _cache?.set(id, ej);
+      encontrados.set(id, ej);
+    }));
+    return ok({ encontrados, faltantes });
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
 // ── Escrituras (solo owner) ───────────────────────────────────────────────────
 
 export type EjercicioInput = Omit<

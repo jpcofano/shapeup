@@ -60,6 +60,7 @@ function SesionesList({ entries, navigate, editMode, onDeleteOne }: {
                 <span style={{ fontWeight: 600, color: "var(--fg)" }}>· {h.tonelajeKg.toLocaleString("es")} kg</span>
               )}
               {h.tipo === "libre" && <span className="badge badge-muted">Libre</span>}
+              {h.completitud === "parcial" && <span className="badge badge-warn">Parcial</span>}
             </div>
           </div>
           {editMode && (

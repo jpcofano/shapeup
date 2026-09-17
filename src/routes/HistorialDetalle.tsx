@@ -84,6 +84,9 @@ export function HistorialDetalle() {
           {h.tipo === "libre" && (
             <span className="badge badge-muted">Libre</span>
           )}
+          {h.completitud === "parcial" && (
+            <span className="badge badge-warn">Parcial</span>
+          )}
         </div>
         <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
           {formatFecha(h.fechaRealizada)}
