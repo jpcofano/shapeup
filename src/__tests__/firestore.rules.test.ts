@@ -187,6 +187,187 @@ describe("borrado de historial y sesiones", () => {
   });
 });
 
+// ── Ingesta cruda del puente Android (PU2) ────────────────────────────────────
+// En estos tests el uid del contexto es el nombre del miembro (ver `as()`).
+
+function registroSdk(extra: Record<string, unknown> = {}) {
+  return {
+    dataType: "EXERCISE",
+    uidSamsung: "1ed92d6b-3280-4e02-a05c-7123cda97205",
+    leidoMs: 1789418092506,
+    versionPuente: "0.2.0",
+    crudo: JSON.stringify({ log: [[1, 118], [2, 119]] }),
+    ...extra,
+  };
+}
+const idRegistro = "EXERCISE_1ed92d6b-3280-4e02-a05c-7123cda97205";
+
+describe("ingesta-sdk", () => {
+  it("un miembro escribe y lee en su propio uid", async () => {
+    const ref = doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro);
+    await assertSucceeds(setDoc(ref, registroSdk()));
+    await assertSucceeds(getDoc(ref));
+  });
+
+  it("volver a subir el mismo registro lo pisa (update)", async () => {
+    const ref = doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro);
+    await assertSucceeds(setDoc(ref, registroSdk()));
+    await assertSucceeds(setDoc(ref, registroSdk({ leidoMs: 1789418099999 })));
+  });
+
+  it("un miembro borra su propio registro", async () => {
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "ingesta-sdk", "maria", "registros", idRegistro), registroSdk()));
+    return assertSucceeds(deleteDoc(doc(as("maria").firestore(), "ingesta-sdk", "maria", "registros", idRegistro)));
+  });
+
+  it("no puede escribir en el uid de otro", () =>
+    assertFails(setDoc(
+      doc(as("sofia").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro), registroSdk())));
+
+  it("no puede leer ni borrar en el uid de otro", async () => {
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro), registroSdk()));
+    const ref = doc(as("sofia").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro);
+    await assertFails(getDoc(ref));
+    await assertFails(deleteDoc(ref));
+  });
+
+  it("sin auth no puede leer ni escribir", async () => {
+    const ref = doc(anonymous().firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro);
+    await assertFails(setDoc(ref, registroSdk()));
+    await assertFails(getDoc(ref));
+  });
+
+  it("un no-miembro no puede escribir ni en su propio uid", () =>
+    assertFails(setDoc(
+      doc(stranger().firestore(), "ingesta-sdk", "stranger", "registros", idRegistro), registroSdk())));
+
+  it("un campo extra se rechaza", () =>
+    assertFails(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro),
+      registroSdk({ memberId: "juanpablo" }))));
+
+  it("crudo que no es string se rechaza", () =>
+    assertFails(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro),
+      registroSdk({ crudo: { log: [] } }))));
+
+  it("crudo de 1.000.000 caracteres o más se rechaza", () =>
+    assertFails(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro),
+      registroSdk({ crudo: "x".repeat(1_000_000) }))));
+
+  it("crudo apenas por debajo del límite se acepta", () =>
+    assertSucceeds(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "registros", idRegistro),
+      registroSdk({ crudo: "x".repeat(999_999) }))));
+});
+
+// ── Registros partidos del puente (PU3) ───────────────────────────────────────
+
+describe("ingesta-sdk: registros partidos", () => {
+  const ref = () =>
+    doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "registros", `${idRegistro}_2`);
+
+  it("parte 2 de 3 se acepta", () =>
+    assertSucceeds(setDoc(ref(), registroSdk({ parte: 2, totalPartes: 3 }))));
+
+  it("parte 50 de 50 se acepta", () =>
+    assertSucceeds(setDoc(ref(), registroSdk({ parte: 50, totalPartes: 50 }))));
+
+  it("se rechaza si viene solo parte", () =>
+    assertFails(setDoc(ref(), registroSdk({ parte: 2 }))));
+
+  it("se rechaza si viene solo totalPartes", () =>
+    assertFails(setDoc(ref(), registroSdk({ totalPartes: 3 }))));
+
+  it("se rechaza parte 0", () =>
+    assertFails(setDoc(ref(), registroSdk({ parte: 0, totalPartes: 3 }))));
+
+  it("se rechaza parte mayor que totalPartes", () =>
+    assertFails(setDoc(ref(), registroSdk({ parte: 4, totalPartes: 3 }))));
+
+  it("se rechaza totalPartes 51", () =>
+    assertFails(setDoc(ref(), registroSdk({ parte: 1, totalPartes: 51 }))));
+
+  it("se rechaza parte como string", () =>
+    assertFails(setDoc(ref(), registroSdk({ parte: "1", totalPartes: 3 }))));
+
+  it("se rechaza parte con decimales (no es int)", () =>
+    assertFails(setDoc(ref(), registroSdk({ parte: 1.5, totalPartes: 3 }))));
+
+  it("un registro sin partes sigue aceptándose", () =>
+    assertSucceeds(setDoc(ref(), registroSdk())));
+});
+
+// ── Estado del puente (PU3) ───────────────────────────────────────────────────
+
+function estadoPuente(extra: Record<string, unknown> = {}) {
+  return {
+    ultimaCorridaMs: 1789500000000,
+    versionPuente: "0.3.0",
+    origen: "segundo-plano",
+    leidos: 12,
+    subidos: 3,
+    sinCambios: 9,
+    omitidos: 0,
+    errores: 0,
+    duracionMs: 4200,
+    ...extra,
+  };
+}
+
+describe("ingesta-sdk: estado del puente", () => {
+  it("el dueño escribe y lee estado/puente", async () => {
+    const ref = doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente");
+    await assertSucceeds(setDoc(ref, estadoPuente()));
+    await assertSucceeds(getDoc(ref));
+  });
+
+  it("acepta mensaje y origen manual", () =>
+    assertSucceeds(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"),
+      estadoPuente({ origen: "manual", errores: 1, mensaje: "Permiso de lectura revocado" }))));
+
+  it("se rechaza otro docId", () =>
+    assertFails(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "otro"),
+      estadoPuente())));
+
+  it("se rechaza un campo extra", () =>
+    assertFails(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"),
+      estadoPuente({ memberId: "juanpablo" }))));
+
+  it("se rechaza origen desconocido", () =>
+    assertFails(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"),
+      estadoPuente({ origen: "otro" }))));
+
+  it("se rechaza ultimaCorridaMs que no es int", () =>
+    assertFails(setDoc(
+      doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"),
+      estadoPuente({ ultimaCorridaMs: "ayer" }))));
+
+  it("otro uid no puede escribir", () =>
+    assertFails(setDoc(
+      doc(as("sofia").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"),
+      estadoPuente())));
+
+  it("otro uid no puede leer", async () => {
+    await env.withSecurityRulesDisabled((unsafe) =>
+      setDoc(doc(unsafe.firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"), estadoPuente()));
+    return assertFails(getDoc(doc(as("sofia").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente")));
+  });
+
+  it("sin auth no puede leer ni escribir", async () => {
+    const ref = doc(anonymous().firestore(), "ingesta-sdk", "juanpablo", "estado", "puente");
+    await assertFails(setDoc(ref, estadoPuente()));
+    await assertFails(getDoc(ref));
+  });
+});
+
 // ── Login (resolución memberId via get() interno) ─────────────────────────────
 
 describe("resolución de memberId (login)", () => {

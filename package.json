@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "test:rules": "firebase emulators:exec --only firestore --project shapeup-41e74 -- npx vitest run --config vitest.rules.config.ts",
+    "test:rules": "firebase emulators:exec --only firestore --project shapeup-41e74 \"npx vitest run --config vitest.rules.config.ts\"",
     "test:all": "npm run test:run && npm run test:rules",
     "seed:config": "npx tsx scripts/seed-config.ts",
     "seed:ejercicios": "npx tsx scripts/seed-ejercicios.ts",

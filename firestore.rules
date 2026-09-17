@@ -78,5 +78,46 @@ service cloud.firestore {
       allow update: if isFamilyMember() && (request.auth.uid == uid || isOwner());
       allow delete: if isOwner();
     }
+
+    // Ingesta cruda del puente Android (PU2). Solo el propio usuario, por uid.
+    // El puente vuelca crudo; el adaptador TS (PU4) lo interpreta.
+    match /ingesta-sdk/{uid}/registros/{docId} {
+      // Registros partidos (PU3): `parte` y `totalPartes` son opcionales; si vienen,
+      // vienen los dos, son int y 1 <= parte <= totalPartes <= 50.
+      function sinPartes(d) {
+        return !('parte' in d) && !('totalPartes' in d);
+      }
+      function partesValidas(d) {
+        return 'parte' in d && 'totalPartes' in d
+          && d.parte is int && d.totalPartes is int
+          && d.parte >= 1 && d.parte <= d.totalPartes && d.totalPartes <= 50;
+      }
+
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && isFamilyMember()
+        && request.resource.data.keys().hasOnly(
+             ['dataType', 'uidSamsung', 'leidoMs', 'versionPuente', 'crudo',
+              'parte', 'totalPartes'])
+        && (sinPartes(request.resource.data) || partesValidas(request.resource.data))
+        && request.resource.data.crudo is string
+        && request.resource.data.crudo.size() < 1000000
+        && request.resource.data.dataType is string
+        && request.resource.data.uidSamsung is string;
+    }
+
+    // Estado de la última corrida del puente (PU3). Un solo documento: "puente".
+    match /ingesta-sdk/{uid}/estado/{docId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && isFamilyMember()
+        && docId == 'puente'
+        && request.resource.data.keys().hasOnly([
+             'ultimaCorridaMs', 'versionPuente', 'origen',
+             'leidos', 'subidos', 'sinCambios', 'omitidos', 'errores',
+             'duracionMs', 'mensaje'])
+        && request.resource.data.ultimaCorridaMs is int
+        && request.resource.data.origen in ['manual', 'segundo-plano'];
+    }
   }
 }
