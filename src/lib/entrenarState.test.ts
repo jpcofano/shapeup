@@ -14,6 +14,7 @@ import {
   UMBRAL_SESION_VIEJA_MS,
   saltarBloque, retomarBloque, bloqueSaltado, bloqueResuelto, rutinaTerminada,
   siguientePendiente, aContinuacionDescanso,
+  sellarLugar, cambiarLugar,
 } from "./entrenarState";
 import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
 
@@ -957,5 +958,59 @@ describe("objetivoSerieLabel — Cardio Intervalos con juegoSugerido", () => {
   it("sin juegoSugerido mantiene el label genérico", () => {
     const p: PrescripcionCardio = { modalidad: "Cardio", formato: "Intervalos", rondas: 5, trabajoSeg: 30, descansoSeg: 15 };
     expect(objetivoSerieLabel(p)).toBe("30 s fuerte / 15 s suave");
+  });
+});
+
+// ── Lugar de la sesión (P72) ──────────────────────────────────────────────────
+describe("sellarLugar", () => {
+  it("regla 1: manda el lugar de la rutina", () => {
+    expect(sellarLugar(INITIAL_ENTRENAR_STATE, "Gimnasio", "Casa").lugar).toBe("Gimnasio");
+  });
+
+  it("regla 2: sin lugar de rutina, el lugar habitual del perfil", () => {
+    expect(sellarLugar(INITIAL_ENTRENAR_STATE, undefined, "Aire libre").lugar).toBe("Aire libre");
+  });
+
+  it("regla 3: sin rutina ni perfil, Casa", () => {
+    expect(sellarLugar(INITIAL_ENTRENAR_STATE, undefined, undefined).lugar).toBe("Casa");
+  });
+
+  it("no pisa un lugar ya sellado", () => {
+    const sellado = sellarLugar(INITIAL_ENTRENAR_STATE, "VR", undefined);
+    const otra    = sellarLugar(sellado, "Gimnasio", "Casa");
+    expect(otra.lugar).toBe("VR");
+    expect(otra).toBe(sellado);
+  });
+
+  it("cambiarLugar lo cambia a mano sin tocar nada más", () => {
+    const s = completarSerie(sellarLugar(INITIAL_ENTRENAR_STATE, "Casa", undefined), rutina, 0);
+    const c = cambiarLugar(s, "Gimnasio");
+    expect(c.lugar).toBe("Gimnasio");
+    expect(c.seriesHechas).toEqual(s.seriesHechas);
+    expect(c.registro).toEqual(s.registro);
+  });
+
+  it("estadoReiniciado conserva el lugar, igual que idSesion", () => {
+    const s = completarSerie(
+      cambiarLugar(asignarIdSesion(INITIAL_ENTRENAR_STATE, "SES-1"), "Gimnasio"),
+      rutina, 0,
+    );
+    const r = estadoReiniciado(s);
+    expect(r.lugar).toBe("Gimnasio");
+    expect(r.idSesion).toBe("SES-1");
+    expect(r.seriesHechas).toEqual({});
+  });
+
+  it("un estado viejo en localStorage sin el campo carga con lugar null", () => {
+    const { lugar: _sin, ...viejo } = INITIAL_ENTRENAR_STATE;
+    localStorage.setItem("entrenar:test-p72", JSON.stringify(viejo));
+    try {
+      const cargado = loadEntrenarState("test-p72");
+      expect(cargado.lugar).toBeNull();
+      // Y sellarlo después funciona igual que en una sesión nueva.
+      expect(sellarLugar(cargado, undefined, "VR").lugar).toBe("VR");
+    } finally {
+      localStorage.removeItem("entrenar:test-p72");
+    }
   });
 });

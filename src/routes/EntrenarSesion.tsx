@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap } from "lucide-react";
-import type { Rutina, Ejercicio, SerieRegistro, Historial } from "../types/models";
+import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
 import { finalizarSesion, getHistorialMiembro } from "../data/historial";
 import { crearSesion, iniciarSesion, descartarSesion } from "../data/sesiones";
+import { getPerfiles } from "../data/perfiles";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, rutinaTerminada, seriesHechasTotales, valorPrefillSerie,
@@ -63,6 +64,12 @@ export function EntrenarSesion() {
 
   // Vista del día (P68b)
   const [vistaDiaAbierta, setVistaDiaAbierta] = useState(false);
+
+  /**
+   * Lugar habitual del perfil, para sellar el lugar de la sesión (P72).
+   * `undefined` mientras no resolvió: sellar antes daría Casa por error.
+   */
+  const [lugarHabitual, setLugarHabitual] = useState<{ valor: Lugar | undefined } | null>(null);
 
   // Progresión de cargas (I3): historial del miembro para sugerir doble progresión.
   // `null` mientras no cargó (o si falló): la pantalla de fin no muestra deltas (P70).
@@ -268,6 +275,25 @@ export function EntrenarSesion() {
     if (!memberId) return;
     getHistorialMiembro(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
   }, [memberId]);
+
+  // Lugar habitual del perfil (P72). Si falla, se resuelve sin valor: la sesión
+  // igual se sella con el lugar de la rutina o Casa, nunca se queda sin lugar.
+  useEffect(() => {
+    if (!memberId) { setLugarHabitual({ valor: undefined }); return; }
+    getPerfiles().then((r) => {
+      setLugarHabitual({
+        valor: r.ok ? r.value[memberId as MiembroId]?.lugarHabitual : undefined,
+      });
+    });
+  }, [memberId]);
+
+  // Sella el lugar de la sesión una vez que hay rutina y el perfil resolvió (P72):
+  // rutina > lugar habitual > Casa. `sellarLugar` no pisa un lugar ya sellado.
+  useEffect(() => {
+    if (!rutina || !lugarHabitual) return;
+    session.sellarLugar(rutina.lugar, lugarHabitual.valor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rutina, lugarHabitual]);
 
   const sugerencia = useMemo(() => {
     if (!blq || blq.modalidad !== "Fuerza") return null;
@@ -550,6 +576,7 @@ export function EntrenarSesion() {
           state={state}
           onIr={(i) => { session.irABloque(i); setVistaDiaAbierta(false); }}
           onCerrar={() => setVistaDiaAbierta(false)}
+          onCambiarLugar={session.cambiarLugar}
         />
       )}
       {hojaSalida}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { MotivoSalto, Rutina, SerieRegistro } from "../types/models";
+import type { Lugar, MotivoSalto, Rutina, SerieRegistro } from "../types/models";
 import {
   loadEntrenarState, persistEntrenarState, clearEntrenarState,
   completarSerie as _completarSerie,
@@ -18,6 +18,8 @@ import {
   retomarBloque as _retomarBloque,
   asignarIdSesion as _asignarIdSesion,
   quitarBloques as _quitarBloques,
+  sellarLugar as _sellarLugar,
+  cambiarLugar as _cambiarLugar,
   construirBloquesRegistro,
   type EntrenarState,
 } from "../lib/entrenarState";
@@ -111,6 +113,18 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
     /** Saca bloques (sesión libre con ejercicios que ya no existen) y corre los índices. */
     quitarBloques(quitados: number[], totalRestante: number) {
       dispatch((s) => _quitarBloques(s, quitados, totalRestante));
+    },
+
+    /**
+     * Sella el lugar de la sesión si todavía no lo tiene (P72). Idempotente:
+     * llamarlo de nuevo con otro perfil no pisa el lugar ya sellado.
+     */
+    sellarLugar(lugarRutina: Lugar | undefined, lugarHabitual: Lugar | undefined) {
+      dispatch((s) => _sellarLugar(s, lugarRutina, lugarHabitual));
+    },
+    /** Cambia el lugar a mano (chip de la vista del día). */
+    cambiarLugar(lugar: Lugar) {
+      dispatch((s) => _cambiarLugar(s, lugar));
     },
 
     /** Empieza la sesión de nuevo: todo en cero, conserva `idSesion` (P68). */

@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
-import type { Ejercicio, Historial, SerieRegistro, PrescripcionFuerza } from "../types/models";
+import type {
+  Ejercicio, Historial, SerieRegistro, PrescripcionFuerza, Lugar, MiembroId,
+} from "../types/models";
 import { finalizarSesion, getHistorialMiembro } from "../data/historial";
+import { getPerfiles } from "../data/perfiles";
 import { historialPrevio } from "../lib/resumenSesion";
 import { getEjercicio, getEjerciciosPorId } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
@@ -128,6 +131,26 @@ export function EntrenarSesionLibre() {
     if (!memberId) return;
     getHistorialMiembro(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
   }, [memberId]);
+
+  /**
+   * Lugar de la sesión (P72). La rutina virtual de la sesión libre no declara un
+   * lugar real, así que acá manda el `lugarHabitual` del perfil (o Casa).
+   * `null` mientras el perfil no resolvió: sellar antes daría Casa por error.
+   */
+  const [lugarHabitual, setLugarHabitual] = useState<{ valor: Lugar | undefined } | null>(null);
+  useEffect(() => {
+    if (!memberId) { setLugarHabitual({ valor: undefined }); return; }
+    getPerfiles().then((r) => {
+      setLugarHabitual({
+        valor: r.ok ? r.value[memberId as MiembroId]?.lugarHabitual : undefined,
+      });
+    });
+  }, [memberId]);
+  useEffect(() => {
+    if (!virtualRutina || !lugarHabitual) return;
+    session.sellarLugar(undefined, lugarHabitual.valor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!virtualRutina, lugarHabitual]);
   const [saving,    setSaving]    = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [logReps,   setLogReps]   = useState("");
@@ -775,6 +798,7 @@ export function EntrenarSesionLibre() {
           state={state}
           onIr={(i) => { session.irABloque(i); setVistaDiaAbierta(false); }}
           onCerrar={() => setVistaDiaAbierta(false)}
+          onCambiarLugar={session.cambiarLugar}
         />
       )}
       {hojaSalida}

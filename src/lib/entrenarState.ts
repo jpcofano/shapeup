@@ -18,7 +18,7 @@
 
 import type {
   Rutina, BloqueEjercicio, BloqueRegistro, Prescripcion, SerieRegistro, Modalidad, Ejercicio,
-  MotivoSalto,
+  MotivoSalto, Lugar,
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
 import { e1rmKg } from "./resumenSesion";
@@ -59,6 +59,12 @@ export interface EntrenarState {
    * "Saltaste… · Volver"). Se limpia al trabajar otro bloque, al navegar o al retomar.
    */
   ultimoBloqueCerrado: number | null;
+  /**
+   * Dónde se está entrenando esta sesión (P72). `null` hasta sellarlo con
+   * `sellarLugar` al montar. Reiniciar lo conserva: seguís en el mismo lugar.
+   * En P72 no filtra nada todavía — lo usa la sustitución de P73.
+   */
+  lugar: Lugar | null;
 }
 
 export const INITIAL_ENTRENAR_STATE: EntrenarState = {
@@ -73,6 +79,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   idSesion: null,
   saltados: {},
   ultimoBloqueCerrado: null,
+  lugar: null,
 };
 
 /** Etiquetas de los motivos de salto, en el orden en que se ofrecen. */
@@ -91,6 +98,9 @@ export function motivoSaltoLabel(m: MotivoSalto | null | undefined): string | nu
 
 /** Una sesión abierta hace más de esto se considera abandonada (P68). */
 export const UMBRAL_SESION_VIEJA_MS = 12 * 60 * 60 * 1000;
+
+/** Último recurso al sellar el lugar: ni la rutina ni el perfil lo dicen (P72). */
+export const LUGAR_SESION_POR_DEFECTO: Lugar = "Casa";
 
 // ════════════════════════════════════════════════════════════════════════════
 //  Helpers de prescripción — "¿cuántas series tiene este bloque?" etc.
@@ -446,7 +456,31 @@ export function seriesHechasTotales(state: EntrenarState): number {
 
 /** Estado de una sesión empezada de nuevo: todo en cero, pero la misma `SesionProgramada`. */
 export function estadoReiniciado(state: EntrenarState): EntrenarState {
-  return { ...INITIAL_ENTRENAR_STATE, idSesion: state.idSesion };
+  return { ...INITIAL_ENTRENAR_STATE, idSesion: state.idSesion, lugar: state.lugar };
+}
+
+// ─── Lugar de la sesión (P72) ────────────────────────────────────────────────
+
+/**
+ * Sella el lugar al montar, con la primera regla que aplique: el de la rutina,
+ * el `lugarHabitual` del perfil, o Casa. Una vez sellado no se vuelve a tocar
+ * acá — cambiarlo es decisión del usuario (`cambiarLugar`).
+ *
+ * `lugarRutina` es `undefined` en la sesión libre: su rutina virtual no declara
+ * un lugar real, así que ahí manda el perfil.
+ */
+export function sellarLugar(
+  state: EntrenarState,
+  lugarRutina: Lugar | undefined,
+  lugarHabitual: Lugar | undefined,
+): EntrenarState {
+  if (state.lugar !== null) return state;
+  return { ...state, lugar: lugarRutina ?? lugarHabitual ?? LUGAR_SESION_POR_DEFECTO };
+}
+
+/** Cambia el lugar a mano desde la vista del día. No toca nada más. */
+export function cambiarLugar(state: EntrenarState, lugar: Lugar): EntrenarState {
+  return { ...state, lugar };
 }
 
 /** Guarda el id de la `SesionProgramada` creada para esta sesión. */

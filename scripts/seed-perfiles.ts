@@ -1,9 +1,12 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  scripts/seed-perfiles.ts — Escribe /config/perfiles (PerfilesConfig de models.ts).
 //
-//  Por cada miembro: color, equipo disponible, objetivos, lugar habitual, FC máxima
-//  teórica y zonas de FC. Las zonas se calculan con FCmáx ≈ 220 − edad (estimación
-//  poblacional; para precisión, reemplazar por un test de campo o el dato del reloj).
+//  Por cada miembro: color, equipo POR LUGAR (P72), objetivos, lugar habitual, FC
+//  máxima teórica y zonas de FC. Las zonas se calculan con FCmáx ≈ 220 − edad
+//  (estimación poblacional; para precisión, un test de campo o el dato del reloj).
+//
+//  Siembra `equipoPorLugar`, no el `equipoDisponible` plano y obsoleto: así un
+//  reseed no deshace la migración de scripts/migrar-equipo-por-lugar.ts.
 //
 //  Zonas (% de FCmáx): Z1 50–60 · Z2 60–70 · Z3 70–80 · Z4 80–90 · Z5 90–100.
 //
@@ -68,7 +71,9 @@ function perfilDoc(m: MiembroPerfil) {
   const { fcMaxTeorica, zonasFC } = zonasDeEdad(m.edad);
   return {
     color: m.color,
-    equipoDisponible: m.equipo,
+    // El equipo de cada uno está en su lugar habitual; los otros lugares quedan
+    // sin declarar (la app cae a peso corporal hasta que el miembro los complete).
+    equipoPorLugar: { [m.lugar]: m.equipo },
     objetivos: m.objetivos,
     lugarHabitual: m.lugar,
     fcMaxTeorica,

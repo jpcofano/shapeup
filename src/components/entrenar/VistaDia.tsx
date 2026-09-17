@@ -1,5 +1,6 @@
-import { X } from "lucide-react";
-import type { Rutina } from "../../types/models";
+import { useState } from "react";
+import { MapPin, X } from "lucide-react";
+import { LUGARES, type Lugar, type Rutina } from "../../types/models";
 import {
   bloqueCompleto, motivoSaltoLabel, objetivoSerieLabel, seriesHechasTotales, seriesObjetivo,
   type EntrenarState,
@@ -13,13 +14,19 @@ interface Props {
   state:    EntrenarState;
   onIr:     (idx: number) => void;
   onCerrar: () => void;
+  /** Cambia el lugar de la sesión (P72). El chip no se muestra sin sellar. */
+  onCambiarLugar: (lugar: Lugar) => void;
 }
 
 /**
  * Vista del día (P68b): todos los ejercicios con su estado. Tocar una fila va a
  * ese ejercicio. Acá va a vivir "recortar la rutina" del bloque 8.
  */
-export function VistaDia({ titulo, minutos, rutina, state, onIr, onCerrar }: Props) {
+export function VistaDia({
+  titulo, minutos, rutina, state, onIr, onCerrar, onCambiarLugar,
+}: Props) {
+  // Selector de lugar plegado: el chip muestra dónde estás; tocarlo abre los cuatro.
+  const [eligiendoLugar, setEligiendoLugar] = useState(false);
   const n = rutina.bloques.length;
   const encabezado = [
     titulo,
@@ -42,6 +49,36 @@ export function VistaDia({ titulo, minutos, rutina, state, onIr, onCerrar }: Pro
             <X size={18} />
           </button>
         </div>
+
+        {/* Lugar de la sesión (P72). En P72 no filtra nada: lo usa la sustitución de P73. */}
+        {state.lugar && (
+          <div className="vista-dia-lugar">
+            <button
+              type="button"
+              className={`filter-chip${eligiendoLugar ? " active" : ""}`}
+              aria-expanded={eligiendoLugar}
+              onClick={() => setEligiendoLugar((v) => !v)}
+            >
+              <MapPin size={12} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+              {state.lugar}
+            </button>
+            {eligiendoLugar && (
+              <div className="filter-scroll" style={{ marginTop: 8 }}>
+                {LUGARES.map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    className={`filter-chip${state.lugar === l ? " active" : ""}`}
+                    aria-pressed={state.lugar === l}
+                    onClick={() => { onCambiarLugar(l); setEligiendoLugar(false); }}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="modal-list">
           {rutina.bloques.map((b, idx) => {

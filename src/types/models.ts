@@ -630,10 +630,20 @@ export interface FamiliaConfig {
   semanaArrancaEn: "lunes" | "domingo";
 }
 
-// Perfil por miembro: equipo disponible, objetivos, zonas de FC personalizadas, color.
+// Perfil por miembro: equipo por lugar, objetivos, zonas de FC personalizadas, color.
 export interface PerfilMiembro {
   color?: string;
+  /**
+   * OBSOLETO (P72) — lista plana, sin distinguir dónde se entrena. Se conserva
+   * porque los perfiles todavía sin migrar la tienen; `lib/perfil.equipoDe()` la
+   * lee como el equipo del `lugarHabitual`. Para escribir, usar `equipoPorLugar`.
+   */
   equipoDisponible?: Equipo[];
+  /**
+   * Equipo declarado por lugar (P72). Una lista vacía es una decisión explícita
+   * ("acá no tengo nada"), distinta de no declarar el lugar.
+   */
+  equipoPorLugar?: Partial<Record<Lugar, Equipo[]>>;
   objetivos?: Objetivo[];
   lugarHabitual?: Lugar;
   zonasFC?: Partial<Record<ZonaFC, { min: number; max: number }>>;

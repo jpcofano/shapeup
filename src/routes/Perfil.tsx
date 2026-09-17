@@ -7,7 +7,8 @@ import { getPerfiles } from "../data/perfiles";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { useTheme, type ThemeName, type Modo } from "../contexts/ThemeProvider";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
-import { MIEMBRO_IDS, type MiembroId } from "../types/models";
+import { MIEMBRO_IDS, type MiembroId, type PerfilMiembro } from "../types/models";
+import { EditorPerfil } from "../components/perfil/EditorPerfil";
 import { getHomeLayout, setHomeLayout, type HomeLayout } from "../lib/homeLayout";
 
 // Hex dark/light por tema (P65) — mismos valores que src/styles/tokens.css
@@ -35,18 +36,18 @@ export function Perfil() {
   const { user, memberId }              = useAuth();
   const { tema, setTema, modo, setModo, modoEfectivo } = useTheme();
   const { canInstall, isInstalled, isIOS, promptInstall } = useInstallPrompt();
-  const [color,    setColor]      = useState<string | undefined>(undefined);
-  const [objetivos, setObjetivos] = useState<string[]>([]);
+  /** Perfil propio; `null` mientras carga (el editor espera a tenerlo). */
+  const [perfil,   setPerfil]     = useState<PerfilMiembro | undefined | null>(null);
   const [homeLayout, setHomeLayoutState] = useState<HomeLayout>("aurora");
+
+  const color     = perfil?.color;
+  const objetivos = perfil?.objetivos ?? [];
 
   useEffect(() => {
     if (!memberId) return;
     setHomeLayoutState(getHomeLayout(memberId));
     getPerfiles().then((r) => {
-      if (!r.ok) return;
-      const perfil = r.value[memberId];
-      setColor(perfil?.color);
-      setObjetivos(perfil?.objetivos ?? []);
+      setPerfil(r.ok ? r.value[memberId] : undefined);
     });
   }, [memberId]);
 
@@ -82,6 +83,16 @@ export function Perfil() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Entrenamiento: lugar habitual, equipo por lugar, objetivos (P72) ─ *
+         Solo el perfil propio se edita; los de los demás son de solo lectura.  */}
+      {memberId && perfil !== null && (
+        <EditorPerfil
+          miembro={memberId as MiembroId}
+          perfil={perfil}
+          onGuardado={setPerfil}
+        />
       )}
 
       {/* ── Apariencia: modo claro/oscuro/sistema + tema (P65) ────────────── *
