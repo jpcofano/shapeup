@@ -5,6 +5,7 @@ import { Trophy, Trash2 } from "lucide-react";
 import type { Historial } from "../types/models";
 import { getHistorialMiembro, borrarSesionHistorial, borrarHistorialMiembro } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
+import { soloShapeUp } from "../lib/tipoHistorial";
 import { Bicep } from "../components/Bicep";
 import { Sparkline } from "../components/Sparkline";
 
@@ -119,9 +120,13 @@ function ConfirmBorrarSheet({ titulo, onConfirm, onCancel, busy }: {
 // ── Tab Progreso ──────────────────────────────────────────────────────────────
 
 function ProgresoTab({ entries }: { entries: Historial[] }) {
+  // Mixto (P74): volumen y PR son del plan — solo ShapeUp; los totales de
+  // sesiones y minutos hablan de moverse — cuentan todo, externas incluidas.
+  const propias = soloShapeUp(entries);
+
   // Volumen semanal
   const byWeek = new Map<string, number>();
-  for (const h of entries) {
+  for (const h of propias) {
     if (!h.semanaInicio) continue;
     byWeek.set(h.semanaInicio, (byWeek.get(h.semanaInicio) ?? 0) + (h.tonelajeKg ?? 0));
   }
@@ -141,7 +146,7 @@ function ProgresoTab({ entries }: { entries: Historial[] }) {
 
   // Records personales (PR): max tonelaje por rutina
   const prByRutina = new Map<string, { nombre: string; kg: number; fecha: string }>();
-  for (const h of entries) {
+  for (const h of propias) {
     if (!h.idRutina || !h.tonelajeKg || h.tonelajeKg <= 0) continue;
     const cur = prByRutina.get(h.idRutina);
     if (!cur || h.tonelajeKg > cur.kg) {

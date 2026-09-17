@@ -1,4 +1,5 @@
 import type { Programa, Historial } from "../types/models";
+import { soloShapeUp } from "./tipoHistorial";
 
 /** 0 = Lunes … 6 = Domingo (igual que JS: getDay() con conversión). */
 export type DiaSemanaNum = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -37,8 +38,9 @@ export function sesionDeHoy(
   if (hoy.tipo === "descanso") return { tipo: "descanso" };
 
   const rid = hoy.idRutina ?? "";
+  // Solo ShapeUp: "ya la hiciste" es haber hecho la rutina del plan en la app (P74).
   const yaHecha = rid
-    ? historialSemana.some((h) => h.idRutina === rid)
+    ? soloShapeUp(historialSemana).some((h) => h.idRutina === rid)
     : false;
 
   return { tipo: "rutina", idRutina: rid, etiqueta: hoy.etiqueta, yaHecha };

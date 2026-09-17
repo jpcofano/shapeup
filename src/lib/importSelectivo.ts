@@ -19,6 +19,7 @@ import type { Historial } from "../types/models";
 import type { CardioInput } from "../import/samsungHealth";
 import { TOLERANCIA_MS } from "./matchBiometrico";
 import { ventanaDeHistorial } from "./enriquecerImport";
+import { soloShapeUp } from "./tipoHistorial";
 
 // ── Tipos públicos ─────────────────────────────────────────────────────────
 
@@ -119,9 +120,13 @@ function clasificar<
 function solapaConHistorial<
   T extends CardioInput & { _startMs?: number; _endMs?: number },
 >(c: T, historial: Historial[]): boolean {
+  // Solo ShapeUp: "este cardio corresponde a algo que entrené" se decide contra
+  // sesiones de la app. Una externa vino del mismo export — si contara, cada
+  // cardio se declararía relevante por sí mismo (P74).
+  const propias = soloShapeUp(historial);
   if (c._startMs != null && c._endMs != null) {
     // Tiene timestamps: chequeá solapamiento con tolerancia
-    for (const h of historial) {
+    for (const h of propias) {
       const ventana = ventanaDeHistorial(h);
       if (!ventana) continue;
       if (
@@ -133,7 +138,7 @@ function solapaConHistorial<
     }
   } else {
     // Sin timestamps: fallback por fecha (mismo día = solape)
-    for (const h of historial) {
+    for (const h of propias) {
       if (c.fecha === h.fechaRealizada) return true;
     }
   }

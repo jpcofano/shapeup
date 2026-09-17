@@ -21,6 +21,7 @@ import type { ZipExtraccion } from "../import/samsungZip";
 import type { SesionApp } from "./matchBiometrico";
 import type { LiveDataPoint } from "../import/samsungLiveData";
 import { stripUndef } from "../import/samsungHealth";
+import { soloShapeUp } from "./tipoHistorial";
 import {
   elegirSesionSamsung, construirBiometriaSesion, construirBiometriaRango,
   enriquecerSerie, topeInicioSiguiente,
@@ -151,8 +152,11 @@ export function calcularEnriquecimiento(
   // Pool de datauuid disponibles (evitar doble asignación — ADR #021)
   const datauuidsUsados = new Set<string>();
 
-  // Ordenar cronológicamente para procesar en orden y asignar 1:1
-  const ordenado = [...historial].sort((a, b) => a.fechaRealizada.localeCompare(b.fechaRealizada));
+  // Solo ShapeUp: el enriquecimiento cruza sesiones HECHAS EN LA APP con las de
+  // Samsung. Una externa ya nació de ese mismo dato — matchearla sería circular,
+  // y encima le robaría el datauuid a la sesión real (pool 1:1). P74.
+  const ordenado = soloShapeUp(historial)
+    .sort((a, b) => a.fechaRealizada.localeCompare(b.fechaRealizada));
 
   for (const h of ordenado) {
     // ADR #021: si ya tiene granularidad "serie", omitir

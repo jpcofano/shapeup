@@ -14,6 +14,11 @@ export interface WeekChip {
 /**
  * Chips L→D de la semana que arranca en `semanaInicio` (lunes, "YYYY-MM-DD").
  * "done" = hay un Historial con esa `fechaRealizada`; "today" = es la fecha de hoy.
+ *
+ * Cuenta TODO, externas incluidas (P74): la tira responde "¿me moví este día?",
+ * no "¿cumplí el plan?" — de eso se ocupan la adherencia y `rachaDelPlan`, que
+ * sí filtran. Marcar en gris un día que saliste a caminar sería quitarte el
+ * crédito por haberte movido.
  */
 export function calcularWeekChips(
   historial: Historial[],

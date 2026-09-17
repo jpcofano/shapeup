@@ -13,6 +13,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import type { Historial } from "../types/models";
+import { soloShapeUp } from "./tipoHistorial";
 
 export interface ComparativaCardiaca {
   fcMediaActual: number;
@@ -64,7 +65,9 @@ export function compararConPrevias(
   const fcMediaActual = sesion.biometria?.fcMedia;
   if (fcMediaActual == null) return null;
 
-  const previas = historial.filter((h) =>
+  // Solo ShapeUp: compara el costo de HACER LA MISMA RUTINA. Una externa no
+  // tiene idRutina, pero el filtro explícito no depende de eso (P74).
+  const previas = soloShapeUp(historial).filter((h) =>
     h.idRutina === sesion.idRutina &&
     h.idHist !== sesion.idHist &&
     h.biometria?.fcMedia != null &&
@@ -93,7 +96,8 @@ export function compararConPrevias(
 
 /** Serie cronológica de FC media (y kcal/min si hay dato) para una rutina, lista para graficar. */
 export function serieCostoRutina(idRutina: string, historial: Historial[]): PuntoCosto[] {
-  return historial
+  // Solo ShapeUp, por el mismo motivo que `compararConPrevias` (P74).
+  return soloShapeUp(historial)
     .filter((h) => h.idRutina === idRutina && h.biometria?.fcMedia != null)
     .map((h) => ({
       fecha: h.fechaRealizada,

@@ -19,6 +19,13 @@ import type {
   GrupoMuscular, RegionMuscular, Ejercicio, Historial, RangoNumerico,
 } from "../types/models";
 import { GRUPOS_MUSCULARES_REGION } from "../types/models";
+import { esShapeUp } from "./tipoHistorial";
+
+/**
+ * Una sesión de la que se pueden contar series. `bloques` es opcional porque
+ * una entrada externa (P75) no lo trae: estas métricas devuelven 0, no rompen.
+ */
+type SesionConBloques = Partial<Pick<Historial, "bloques" | "tipo">>;
 
 // Tiempo "de trabajo" por defecto de una serie de fuerza cuando no hay tempo,
 // para estimar duración (segundos por serie, sin contar descanso).
@@ -142,7 +149,9 @@ export function avisoBalanceEmpujeTraccion(
 // ════════════════════════════════════════════════════════════════════════════
 
 /** Tonelaje total de una sesión: Σ (reps × carga) sobre todas las series. */
-export function tonelajeKg(historial: Pick<Historial, "bloques">): number {
+export function tonelajeKg(historial: SesionConBloques): number {
+  // Solo ShapeUp: una externa no tiene bloques ni carga que sumar (P74).
+  if (!esShapeUp(historial) || !historial.bloques) return 0;
   let total = 0;
   for (const b of historial.bloques) {
     for (const s of b.series) {
@@ -154,8 +163,10 @@ export function tonelajeKg(historial: Pick<Historial, "bloques">): number {
   return Math.round(total);
 }
 
-/** Series efectivamente completadas en la sesión. */
-export function totalSeriesHechas(historial: Pick<Historial, "bloques">): number {
+/** Series efectivamente completadas en la sesión. Solo ShapeUp: una externa no
+ *  tiene series, y cuenta 0 en vez de romperse (P74). */
+export function totalSeriesHechas(historial: SesionConBloques): number {
+  if (!esShapeUp(historial) || !historial.bloques) return 0;
   return historial.bloques.reduce(
     (acc, b) => acc + b.series.filter((s) => s.completada).length, 0,
   );

@@ -6,6 +6,7 @@ import type {
   MedicionCorporal, Historial, MetricaSalud, RegistroSueno,
 } from "../../types/models";
 import { consolidarNoches } from "../../lib/sueno";
+import { soloShapeUp } from "../../lib/tipoHistorial";
 import { serieTendencia, alcanzaMinimoChip, type RangoTendencia } from "../../lib/tendencias";
 
 // ── Tendencias de salud (I1) ──────────────────────────────────────────────────
@@ -160,7 +161,8 @@ export function ProgresoTab({
   metricasError?: string | null;
   onReintentarMetricas?: () => void;
 }) {
-  const tonelaje = historial
+  // Tonelaje: solo ShapeUp. Una externa no tiene carga que sumar (P74).
+  const tonelaje = soloShapeUp(historial)
     .filter((h) => h.tonelajeKg != null)
     .slice(0, 20)
     .map((h) => ({ fecha: h.fechaRealizada, kg: h.tonelajeKg! }));

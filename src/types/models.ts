@@ -474,7 +474,13 @@ export interface Historial {
   idSesion: string;
   idRutina?: string;            // ausente en sesiones libres
   nombreRutina: string;
-  tipo?: "rutina" | "libre";   // "rutina" por defecto (retrocompat)
+  /**
+   * Origen de la entrada. Si falta se lee como `"rutina"` (retrocompat con el
+   * historial anterior a P74). `"externa"` la crea P75 a partir de datos de
+   * salud (una caminata, un partido): **no tiene bloques ni tonelaje**, así que
+   * ninguna métrica de plan o de progresión la cuenta — ver `lib/tipoHistorial.ts`.
+   */
+  tipo?: "rutina" | "libre" | "externa";
   /** "parcial" si se guardó desde la hoja de salida (P68). Ausente = "completa". */
   completitud?: "completa" | "parcial";
   idPrograma?: string;

@@ -1,4 +1,5 @@
 import type { Programa, DiaPrograma, Historial } from "../types/models";
+import { soloShapeUp } from "./tipoHistorial";
 
 export interface ProximaSesionResult {
   /** El día del programa que sigue (no descanso). */
@@ -29,9 +30,10 @@ export function proximaSesion(
   const total = activos.length;
   if (total === 0) return null;
 
-  // Sesiones de la semana agrupadas por idRutina
+  // Sesiones de la semana agrupadas por idRutina.
+  // Solo ShapeUp: cubrir un día del plan es haberlo entrenado en la app (P74).
   const realizadas = new Map<string, number>();
-  for (const h of historialSemana) {
+  for (const h of soloShapeUp(historialSemana)) {
     if (h.idRutina) realizadas.set(h.idRutina, (realizadas.get(h.idRutina) ?? 0) + 1);
   }
 

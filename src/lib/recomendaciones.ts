@@ -2,6 +2,7 @@ import type { Historial, MiembroId, Recomendacion, SenalSalud as SenalSaludModel
 import type { SenalSalud as SenalSaludResumen, EstadoSenal } from "./resumenSalud";
 import { CLAVES_SIN_SEMAFORO, senalPeor } from "./resumenSalud";
 import { lunesDeSemana } from "./semana";
+import { soloShapeUp } from "./tipoHistorial";
 
 export const RUTINAS_RECOMENDADAS = {
   z2:      "RUT-0023",
@@ -41,10 +42,12 @@ export function semanasSinDescarga(
   hoy: string,
   semanaArrancaEn: "lunes" | "domingo" = "lunes",
 ): number {
+  // Solo ShapeUp: mide carga acumulada del plan, y una externa no tiene bloques
+  // que mirar (P74).
   const esFuerza = (h: Historial) => h.bloques.some((b) => b.modalidad === "Fuerza");
 
   const porSemana = new Map<string, Historial[]>();
-  for (const h of historial) {
+  for (const h of soloShapeUp(historial)) {
     // Usamos fechaRealizada para calcular la semana según la config (puro, no depende de semanaInicio almacenado)
     const sem = semanaInicioDe(h.fechaRealizada, semanaArrancaEn);
     const arr = porSemana.get(sem) ?? [];
@@ -167,7 +170,10 @@ export function calcularRecomendacion(
     const d = new Date(hoy + "T12:00:00");
     d.setDate(d.getDate() - 7);
     const desde = d.toISOString().slice(0, 10);
-    const recientes = historial.filter((h) => h.fechaRealizada >= desde && h.fechaRealizada <= hoy);
+    // Solo ShapeUp: la felicitación se apoya en adherencia y propone intensidad
+    // — dos caminatas no son "venís entrenando" a estos efectos (P74).
+    const recientes = soloShapeUp(historial)
+      .filter((h) => h.fechaRealizada >= desde && h.fechaRealizada <= hoy);
     if (recientes.length >= 2) {
       return {
         idRecom: `REC-${hoy}-hiit`, miembro, fecha: hoy,

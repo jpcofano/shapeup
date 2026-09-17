@@ -84,6 +84,8 @@ function esSustituido(bloque: BloqueRegistro): boolean {
  * Compara el bloque de hoy con la última sesión anterior del mismo ejercicio
  * (Fuerza, con series completadas). `historial` no debe incluir la sesión actual.
  * Un bloque que no es de Fuerza no tiene comparación de carga: `sin-carga`.
+ *
+ * Solo ShapeUp: el filtro por tipo lo aplica `sesionesDelEjercicio` (P74).
  */
 export function deltaEjercicio(bloque: BloqueRegistro, historial: Historial[]): DeltaEjercicio {
   if (esSustituido(bloque)) return { tipo: "sustituido" };
@@ -109,6 +111,8 @@ export function deltaEjercicio(bloque: BloqueRegistro, historial: Historial[]): 
 /**
  * ¿La carga máxima de hoy supera la de todas las sesiones anteriores del
  * ejercicio? La primera vez nunca es PR; un empate tampoco.
+ *
+ * Solo ShapeUp, vía `sesionesDelEjercicio`: un PR es de lo levantado en la app (P74).
  */
 export function esPR(bloque: BloqueRegistro, historial: Historial[]): boolean {
   if (bloque.modalidad !== "Fuerza" || esSustituido(bloque)) return false;
@@ -136,6 +140,9 @@ export function e1rmKg(series: SerieRegistro[]): number | undefined {
  * Historial sin la sesión actual (P70): si un guardado pendiente ya dejó el
  * documento en la caché, no tiene que compararse consigo mismo. Se reconoce
  * por `idSesion` o por el inicio de la ventana de series.
+ *
+ * NO filtra por tipo a propósito (P74): solo saca la sesión actual. Quien
+ * consume el resultado (`deltaEjercicio`, `esPR`) ya filtra adentro.
  */
 export function historialPrevio(
   historial: Historial[],

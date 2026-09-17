@@ -23,6 +23,8 @@ import { lunesDeSemana, ymdLocal } from "../lib/semana";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
 import { getHomeLayout, type HomeLayout } from "../lib/homeLayout";
 import { calcularWeekChips } from "../lib/weekChips";
+import { rachaDelPlan } from "../lib/racha";
+import { soloShapeUp } from "../lib/tipoHistorial";
 import { HomeReduxContent, type HomeReduxData, type HomeReduxButton } from "../components/homeRedux/HomeReduxContent";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -47,17 +49,6 @@ function diasEntrenamiento(programa: Programa): number[] {
     .filter((d) => d.tipo !== "descanso" && d.diaSemana)
     .map((d) => DIA_SEMANA_IDX[d.diaSemana!])
     .filter((i): i is number => i !== undefined);
-}
-
-function calcRacha(hist: Historial[], semanaActual: string): number {
-  const porSemana = new Set(hist.map((h) => h.semanaInicio));
-  let racha = 0;
-  const d = new Date(semanaActual + "T00:00:00");
-  while (porSemana.has(ymdLocal(d))) {
-    racha++;
-    d.setDate(d.getDate() - 7);
-  }
-  return racha;
 }
 
 function fmtKg(kg: number): string {
@@ -308,17 +299,22 @@ export function Home() {
       if (histR.ok) {
         const hist = histR.value;
         const esta = hist.filter((h) => h.semanaInicio === semanaInicio);
+        // Adherencia y volumen son del plan: solo lo entrenado en la app (P74).
+        // `estaSemana` queda completo — los chips cuentan días con actividad.
+        const estaShapeUp = soloShapeUp(esta);
 
         const prog = progR.ok ? progR.value : null;
         const obj  = prog ? prog.dias.filter((d) => d.tipo !== "descanso").length : 0;
 
-        setSesHechas(esta.length);
+        setSesHechas(estaShapeUp.length);
         setEstaSemana(esta);
         setSesObj(obj);
-        setVolumen(esta.reduce((s, h) => s + (h.tonelajeKg ?? 0), 0));
-        setRacha(calcRacha(hist, semanaInicio));
+        setVolumen(estaShapeUp.reduce((s, h) => s + (h.tonelajeKg ?? 0), 0));
+        setRacha(rachaDelPlan(hist, semanaInicio));
 
-        const semanas = [...new Set(hist.map((h) => h.semanaInicio).filter((s): s is string => !!s))].sort();
+        // Número de semana del plan: se cuenta desde la primera semana entrenada
+        // en la app, no desde la primera caminata importada (P74).
+        const semanas = [...new Set(soloShapeUp(hist).map((h) => h.semanaInicio).filter((s): s is string => !!s))].sort();
         if (semanas.length > 0) {
           const diff = new Date(semanaInicio + "T12:00:00").getTime() - new Date(semanas[0] + "T12:00:00").getTime();
           setNumSemana(Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1);

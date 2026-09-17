@@ -13,6 +13,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import type { Historial, Prescripcion, SerieRegistro } from "../types/models";
+import { soloShapeUp } from "./tipoHistorial";
 
 export type TipoSugerencia = "subir-peso" | "subir-reps" | "repetir" | "bajar-peso";
 
@@ -54,7 +55,10 @@ function pesoDeSesion(series: SerieRegistro[]): number | undefined {
  */
 export function sesionesDelEjercicio(idEjercicio: string, historial: Historial[]): SesionEjercicio[] {
   const sesiones: SesionEjercicio[] = [];
-  for (const h of historial) {
+  // Solo ShapeUp: progresar en un ejercicio es cosa de lo hecho en la app. Una
+  // externa ni siquiera tiene bloques — el filtro explícito evita depender de
+  // ese efecto colateral (P74). `sugerirProgresion` lo hereda de acá.
+  for (const h of soloShapeUp(historial)) {
     const bloque = h.bloques.find((b) => b.idEjercicio === idEjercicio && b.modalidad === "Fuerza");
     if (!bloque) continue;
     const series = bloque.series.filter((s) => s.completada && s.reps != null);
