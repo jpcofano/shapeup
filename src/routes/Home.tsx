@@ -5,7 +5,10 @@ import type { Programa, Historial, MedicionCorporal, MetricaSalud, RegistroSueno
 import type { MiembroId } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
 import { getPerfiles } from "../data/perfiles";
-import { getHistorialMiembro } from "../data/historial";
+import { getHistorialMiembro, conciliarPendientes } from "../data/historial";
+import { barrerSesionesHuerfanas } from "../data/sesiones";
+import { usePendientes } from "../hooks/usePendientes";
+import { PendientesChip } from "../components/PendientesChip";
 import { getMediciones, getMetricasSalud, getRegistrosSueno } from "../data/salud";
 import { calcularResumenSalud, type SenalSalud } from "../lib/resumenSalud";
 import { calcularRecomendacion, seleccionarEstadoDiario, type EstadoDiario } from "../lib/recomendaciones";
@@ -23,6 +26,9 @@ import { calcularWeekChips } from "../lib/weekChips";
 import { HomeReduxContent, type HomeReduxData, type HomeReduxButton } from "../components/homeRedux/HomeReduxContent";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** El barrido de sesiones huérfanas corre una vez por carga de la app (P69). */
+let barridoHuerfanasHecho = false;
 
 const DIA_SEMANA_IDX: Partial<Record<string, number>> = {
   lunes: 0, martes: 1, "miércoles": 2, jueves: 3, viernes: 4, sábado: 5, domingo: 6,
@@ -256,6 +262,25 @@ export function Home() {
 
   const semanaRef = useRef(lunesDeSemana());
 
+  // Sesiones guardadas en el teléfono que faltan subir (P69).
+  const pendientes = usePendientes();
+
+  // Conciliación de pendientes: una vez por montaje, solo con señal, sin bloquear.
+  useEffect(() => {
+    if (!navigator.onLine) return;
+    void conciliarPendientes();
+  }, []);
+
+  // Barrido de sesiones huérfanas: una vez por carga de la app, solo con señal.
+  useEffect(() => {
+    if (!memberId || barridoHuerfanasHecho || !navigator.onLine) return;
+    barridoHuerfanasHecho = true;
+    void barrerSesionesHuerfanas(memberId as MiembroId).then((r) => {
+      if (r.ok) console.info(`Barrido de sesiones huérfanas: ${r.value} borrada(s).`);
+      else console.warn("Barrido de sesiones huérfanas:", r.error);
+    });
+  }, [memberId]);
+
   useEffect(() => {
     if (!memberId) return;
     setLayout(getHomeLayout(memberId));
@@ -439,6 +464,7 @@ export function Home() {
 
     return (
       <div className={`page ${direccion === "pulse" ? "dir-a" : "dir-c v21"}`} data-mode={modoEfectivo} data-accent={tema}>
+        <PendientesChip pendientes={pendientes} />
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
@@ -463,6 +489,7 @@ export function Home() {
           )}
         </div>
 
+        <PendientesChip pendientes={pendientes} />
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
@@ -561,6 +588,7 @@ export function Home() {
           Dale, {primerNombre}<span style={{ color: "var(--accent)" }}>.</span>
         </h1>
 
+        <PendientesChip pendientes={pendientes} />
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
@@ -662,6 +690,7 @@ export function Home() {
         <div className="loading-screen" style={{ minHeight: 120 }}><div className="spinner" /></div>
       )}
 
+      <PendientesChip pendientes={pendientes} />
       {!loading && recVisible && (
         <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
       )}

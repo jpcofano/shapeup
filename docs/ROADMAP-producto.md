@@ -137,11 +137,14 @@ elegís el tercero, el orden está mal.
 
 ## Bloque 4 — Sin señal
 
-Firestore tiene caché persistente activada, así que una escritura sin conexión **se guarda
-local y se encola sola**, pero la promesa de `setDoc` no resuelve hasta que el servidor
-confirma. En el subsuelo de un gimnasio, el botón queda en "Guardando…" indefinidamente: no
-falla, no avanza, y por eso tampoco muestra el error que el código sí maneja
-(`if (!result.ok) setSaveError(...)`, que además conserva el estado local).
+Firestore tiene caché persistente activada, así que una escritura simple (`setDoc`,
+`writeBatch`) sin conexión se guarda local y se encola sola, pero su promesa no resuelve
+hasta que el servidor confirma. **Las transacciones no se encolan: sin conexión fallan.**
+Por eso el guardado de la sesión (`finalizarSesion`) pasó de `runTransaction` a
+`writeBatch` en P69. Sin el timeout, en el subsuelo de un gimnasio el botón quedaría en
+"Guardando…" indefinidamente: no falla, no avanza, y por eso tampoco muestra el error que
+el código sí maneja (`if (!result.ok) setSaveError(...)`, que además conserva el estado
+local).
 
 - **Timeout de 8 s** en el guardado. Vencido, mensaje del tipo "Guardado en el teléfono, se
   sincroniza cuando haya señal" y te deja salir.

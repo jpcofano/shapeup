@@ -1,28 +1,42 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  data/historial.ts — Escritura y lectura de /historial.
 //
-//  finalizarSesion (v2): la transacción escribe SOLO documentos del miembro
-//  (/historial y /sesiones). Los contadores de /ejercicios y /rutinas se sacan
-//  de la tx para que no-owners puedan cerrar sus sesiones (ejercicios es
-//  owner-only por las reglas de Firestore).
-//  Ver ADR #014 en MAPEO-IMPLEMENTACION.md.
+//  finalizarSesion (v3, P69): un writeBatch escribe SOLO documentos del miembro
+//  (/historial y /sesiones). Los contadores de /ejercicios y /rutinas no se
+//  tocan para que no-owners puedan cerrar sus sesiones (ejercicios es
+//  owner-only por las reglas de Firestore). Ver ADR #014.
+//  Es batch y no transacción porque las transacciones no se encolan sin
+//  conexión: fallan. Un batch sí queda en la cola local de Firestore.
 // ════════════════════════════════════════════════════════════════════════════
 import {
-  collection, doc, getDocs, getDoc,
-  runTransaction, serverTimestamp, updateDoc, writeBatch,
+  collection, doc, getDocs, getDoc, getDocFromServer,
+  serverTimestamp, updateDoc, writeBatch,
   query, where, orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { Historial, BloqueRegistro, BiometriaSesion, MiembroId, FirestoreTimestamp } from "../types/models";
+import type { Historial, BloqueRegistro, BiometriaSesion, MiembroId } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 import { tonelajeKg, totalSeriesHechas, ventanaDeBloques } from "../lib/metricas";
 import { ymdLocal, lunesDeSemana } from "../lib/semana";
+import { conTimeout } from "../lib/conTimeout";
+import {
+  agregarPendiente, quitarPendiente, marcarErrorPendiente, listarPendientes,
+  type PayloadHistorial, type PayloadSesion, type SesionPendiente,
+} from "../lib/pendientes";
 
-// ── Escritura con transacción ─────────────────────────────────────────────────
+// ── Escritura (batch que se encola sin conexión) ──────────────────────────────
+
+/** Si el servidor no confirma en este tiempo, la sesión queda "sin subir" (P69). */
+export const TIMEOUT_GUARDADO_MS = 8000;
+
+/** Una pendiente sin confirmar después de esto se reenvía al conciliar (P69). */
+const ESPERA_REENVIO_MS = 2 * 60 * 1000;
 
 export interface FinalizarSesionOpts {
   rutinaId?:    string;          // ausente en sesiones libres
+  /** Nombre de la rutina, que la ruta ya tiene en memoria. Si falta, se usa `rutinaId`. */
+  nombreRutina?: string;
   tipo?:        "rutina" | "libre";
   nombreLibre?: string;          // título de la sesión libre
   miembro:      MiembroId;
@@ -38,10 +52,19 @@ export interface FinalizarSesionOpts {
 }
 
 /**
- * Cierra una sesión de entrenamiento.
- * La transacción escribe solo documentos del propio miembro:
+ * Cierra una sesión de entrenamiento. Un writeBatch escribe solo documentos del
+ * propio miembro:
  *   1. Crea el documento Historial.
- *   2. Si se pasa `idSesion`, marca esa SesionProgramada como "Registrada".
+ *   2. Si se pasa `idSesion`, marca esa SesionProgramada como "Registrada" con
+ *      `set(..., { merge: true })`: si el documento nunca llegó a crearse (sin
+ *      señal), un `update` haría fallar el batch y se perdería el historial.
+ *
+ * El commit compite con un timeout de 8 s (P69):
+ *   - confirma a tiempo → `{ pendiente: false }`;
+ *   - vence → `{ pendiente: true }`: la escritura ya está en la cola local de
+ *     Firestore; se registra en `lib/pendientes` y se quita (o se marca con
+ *     error) cuando el commit termine;
+ *   - falla antes → `err`.
  *
  * Los contadores de /ejercicios y /rutinas (vecesUsado, vecesEntrenada) NO se
  * actualizan aquí: /ejercicios es owner-only por las reglas de Firestore, y ambos
@@ -49,7 +72,7 @@ export interface FinalizarSesionOpts {
  */
 export async function finalizarSesion(
   opts: FinalizarSesionOpts,
-): Promise<Result<string>> {
+): Promise<Result<{ idHist: string; pendiente: boolean }>> {
   const {
     rutinaId, tipo, nombreLibre, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
     completitud,
@@ -59,60 +82,107 @@ export async function finalizarSesion(
   const idHist  = `H-${fecha.replace(/-/g, "")}-${Date.now()}`;
   // Si no se pasa idSesion, generamos uno "huérfano" (legado, sin doc en /sesiones).
   const sesionId = idSesion ?? `SES-${fecha.replace(/-/g, "")}-${Date.now()}`;
+  // Sesión de rutina: el nombre lo pasa la ruta. Sesión libre: nombreLibre.
+  const nombreRutina = rutinaId
+    ? (opts.nombreRutina ?? rutinaId)
+    : (nombreLibre ?? "Sesión libre");
+
+  const ventana = ventanaDeBloques(bloques);
+  const historial: PayloadHistorial = {
+    idHist,
+    fechaRealizada:          fecha,
+    idSesion:                sesionId,
+    ...(rutinaId ? { idRutina: rutinaId } : {}),
+    nombreRutina,
+    ...(tipo === "libre" ? { tipo: "libre" as const } : {}),
+    ...(completitud ? { completitud } : {}),
+    idPrograma:              programaId,
+    semanaInicio:            semana,
+    miembro,
+    duracionRealMin:         duracionMin,
+    rpe,
+    tonelajeKg:              tonelajeKg({ bloques }),
+    totalSeriesHechas:       totalSeriesHechas({ bloques }),
+    ...(ventana.inicioMs != null ? { inicioMs: ventana.inicioMs } : {}),
+    ...(ventana.finMs    != null ? { finMs:    ventana.finMs    } : {}),
+    bloques,
+    notas:                   notas ?? "",
+  };
+  const sesion: PayloadSesion | null = idSesion
+    ? { miembro, estado: "Registrada", rpeSesion: rpe }
+    : null;
+
+  let commit: Promise<void>;
+  try {
+    commit = escribirHistorial(historial, sesionId, sesion);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
 
   try {
-    await runTransaction(db, async (tx) => {
-      // Para sesiones de rutina, leer el nombre desde Firestore.
-      // Para sesiones libres, usar nombreLibre (no hay Rutina en /rutinas).
-      let nombreRutina: string;
-      if (rutinaId) {
-        const rutinaSnap = await tx.get(doc(db, "rutinas", rutinaId));
-        nombreRutina = rutinaSnap.exists()
-          ? (rutinaSnap.data() as { nombre: string }).nombre
-          : rutinaId;
-      } else {
-        nombreRutina = nombreLibre ?? "Sesión libre";
-      }
+    const r = await conTimeout(commit, TIMEOUT_GUARDADO_MS);
+    if (r.tipo === "ok") return ok({ idHist, pendiente: false });
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
 
-      const tonelaje    = tonelajeKg({ bloques });
-      const seriesHechas = totalSeriesHechas({ bloques });
+  // Venció el timeout: queda en la cola local de Firestore. Se registra para
+  // poder avisar y reenviar si la caché se pierde antes de sincronizar.
+  agregarPendiente({
+    idHist, idSesion: sesionId, nombreRutina, fecha, creadoMs: Date.now(), historial, sesion,
+  });
+  commit.then(
+    () => quitarPendiente(idHist),
+    (e: unknown) => marcarErrorPendiente(idHist, firebaseErrorMessage(e)),
+  );
+  return ok({ idHist, pendiente: true });
+}
 
-      // Escribir Historial (colección del miembro: cualquier miembro puede escribir)
-      const ventana = ventanaDeBloques(bloques);
+/** Escribe el historial (con el mismo `idHist`, así no se duplica) y el merge de la sesión. */
+function escribirHistorial(
+  historial: PayloadHistorial,
+  idSesion: string,
+  sesion: PayloadSesion | null,
+): Promise<void> {
+  const batch = writeBatch(db);
+  batch.set(doc(db, "historial", historial.idHist), {
+    ...historial,
+    fechaRealizadaTimestamp: serverTimestamp(),
+  });
+  if (sesion) batch.set(doc(db, "sesiones", idSesion), sesion, { merge: true });
+  return batch.commit();
+}
 
-      const histData: Omit<Historial, "fechaRealizadaTimestamp"> & { fechaRealizadaTimestamp: unknown } = {
-        idHist,
-        fechaRealizada:          fecha,
-        fechaRealizadaTimestamp: serverTimestamp(),
-        idSesion:                sesionId,
-        ...(rutinaId ? { idRutina: rutinaId } : {}),
-        nombreRutina,
-        ...(tipo === "libre" ? { tipo: "libre" as const } : {}),
-        ...(completitud ? { completitud } : {}),
-        idPrograma:              programaId,
-        semanaInicio:            semana,
-        miembro,
-        duracionRealMin:         duracionMin,
-        rpe,
-        tonelajeKg:              tonelaje,
-        totalSeriesHechas:       seriesHechas,
-        ...(ventana.inicioMs != null ? { inicioMs: ventana.inicioMs } : {}),
-        ...(ventana.finMs    != null ? { finMs:    ventana.finMs    } : {}),
-        bloques,
-        notas:                   notas ?? "",
-      };
-      tx.set(doc(db, "historial", idHist), histData);
+/**
+ * Concilia las sesiones sin subir (P69). Llamar solo con señal; no bloquea.
+ * Para cada pendiente: si el historial ya está en el servidor, se quita; si no
+ * está y pasaron más de 2 min, se reenvía con el mismo id (si confirma se
+ * quita, si falla se marca el error). Si la consulta falla, no se toca nada.
+ */
+export async function conciliarPendientes(): Promise<void> {
+  for (const p of listarPendientes()) {
+    let existe: boolean;
+    try {
+      existe = (await getDocFromServer(doc(db, "historial", p.idHist))).exists();
+    } catch {
+      continue;
+    }
+    if (existe) {
+      quitarPendiente(p.idHist);
+      continue;
+    }
+    if (Date.now() - p.creadoMs <= ESPERA_REENVIO_MS) continue;
+    const r = await reenviarPendiente(p);
+    if (r.ok) quitarPendiente(p.idHist);
+    else marcarErrorPendiente(p.idHist, r.error);
+  }
+}
 
-      // Marcar la sesión como Registrada (si existe en /sesiones)
-      if (idSesion) {
-        tx.update(doc(db, "sesiones", idSesion), {
-          estado:    "Registrada",
-          rpeSesion: rpe,
-        });
-      }
-    });
-
-    return ok(idHist);
+/** Reenvía una pendiente con el mismo `idHist` y el mismo merge de la sesión. */
+export async function reenviarPendiente(p: SesionPendiente): Promise<Result<void>> {
+  try {
+    await escribirHistorial(p.historial, p.idSesion, p.sesion);
+    return ok(undefined);
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }

@@ -27,6 +27,8 @@ import { HojaSalida } from "../components/entrenar/HojaSalida";
 import { VistaDia } from "../components/entrenar/VistaDia";
 import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
 import { ResumenSalteados } from "../components/entrenar/ResumenSalteados";
+import { SinConexion } from "../components/entrenar/SinConexion";
+import { GuardadoPendiente } from "../components/entrenar/GuardadoPendiente";
 import { DescansoTimer } from "../components/entrenar/DescansoTimer";
 import { SerieTimer } from "../components/entrenar/SerieTimer";
 import { TiempoTotal } from "../components/entrenar/TiempoTotal";
@@ -88,6 +90,12 @@ export function EntrenarSesionLibre() {
   const [errorSalida,     setErrorSalida]     = useState<string | null>(null);
   /** true antes de navegar desde la hoja, la pantalla de fin o el atajo: el bloqueo del "atrás" no aplica. */
   const saliendo = useRef(false);
+
+  /**
+   * Guardado que no confirmó a tiempo (P69). `destino` es a dónde navega "Listo";
+   * `null` si ya estamos donde iba (el atajo en espera arrancó).
+   */
+  const [avisoPendiente, setAvisoPendiente] = useState<{ destino: string | null } | null>(null);
 
   // Vista del día (P68b): en la sesión libre solo se abre desde el contador.
   const [vistaDiaAbierta, setVistaDiaAbierta] = useState(false);
@@ -302,9 +310,19 @@ export function EntrenarSesionLibre() {
     });
     setGuardandoSalida(false);
     if (!result.ok) { setErrorSalida(result.error); return; }
-    if (atajoPendiente) { continuarConAtajo(atajoPendiente); return; }
+    const { pendiente } = result.value;
+    if (atajoPendiente) {
+      continuarConAtajo(atajoPendiente);
+      if (pendiente) setAvisoPendiente({ destino: null });
+      return;
+    }
     cerrarSesionLocal();
     saliendo.current = true;
+    if (pendiente) {
+      setSalida(null);
+      setAvisoPendiente({ destino: "/historial" });
+      return;
+    }
     navigate("/historial");
   }
 
@@ -395,6 +413,15 @@ export function EntrenarSesionLibre() {
     />
   );
 
+  const hojaPendiente = avisoPendiente && (
+    <GuardadoPendiente
+      onListo={() => {
+        if (avisoPendiente.destino) navigate(avisoPendiente.destino);
+        else setAvisoPendiente(null);
+      }}
+    />
+  );
+
   const aviso = avisoLibre && (
     <p className="banner banner-amber" style={{ margin: 0 }}>{avisoLibre}</p>
   );
@@ -422,6 +449,7 @@ export function EntrenarSesionLibre() {
           </button>
           <p className="workout-title">Armá tu sesión</p>
           <div style={{ width: 32 }} />
+          <SinConexion />
         </div>
 
         <div className="workout-content" style={{ padding: "16px 16px 0" }}>
@@ -568,6 +596,7 @@ export function EntrenarSesionLibre() {
       <div className="workout-screen">
         <div className="workout-header">
           <p className="workout-title">Sesión libre</p>
+          <SinConexion />
         </div>
         <div className="finish-screen">
           <span style={{ color: "var(--accent)", lineHeight: 0, display: "block" }}>
@@ -619,6 +648,10 @@ export function EntrenarSesionLibre() {
               if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
               cerrarSesionLocal();
               saliendo.current = true;
+              if (result.value.pendiente) {
+                setAvisoPendiente({ destino: "/historial" });
+                return;
+              }
               navigate("/historial");
             }}
           >
@@ -642,6 +675,7 @@ export function EntrenarSesionLibre() {
         )}
 
         {hojaSalida}
+        {hojaPendiente}
         {reinicio.abierto && (
           <ConfirmarReinicio
             series={seriesHechasTotales(state)}
@@ -679,6 +713,7 @@ export function EntrenarSesionLibre() {
           title={state.modoVista === "guiada" ? "Modo scroll" : "Modo guiado"}>
           {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
         </button>
+        <SinConexion />
       </div>
 
       {state.modoVista === "scroll" && (
@@ -762,6 +797,7 @@ export function EntrenarSesionLibre() {
         />
       )}
       {hojaSalida}
+      {hojaPendiente}
       {reinicio.abierto && (
         <ConfirmarReinicio
           series={seriesHechasTotales(state)}

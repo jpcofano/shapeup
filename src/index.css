@@ -480,6 +480,7 @@
   overflow: hidden;
 }
 .workout-header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -487,6 +488,70 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+/* "Sin conexión" (P69): sobre el borde inferior del header, fuera del flujo. */
+.chip-sin-conexion {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid rgba(251,191,36,0.35);
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── Sesiones sin subir en Home (P69) ────────────────────────────────────── */
+.pendientes-chip {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+}
+.pendientes-chip-boton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.25);
+  color: var(--warning);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pendientes-chip.error .pendientes-chip-boton {
+  background: rgba(248,113,113,0.1);
+  border-color: rgba(248,113,113,0.25);
+  color: var(--danger);
+}
+.pendientes-detalle {
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+}
+.pendientes-detalle li { display: flex; flex-direction: column; gap: 2px; }
+.pendientes-nombre { font-weight: 600; color: var(--fg); }
+.pendientes-estado { color: var(--muted); overflow-wrap: anywhere; }
 .workout-title {
   flex: 1;
   font-size: 15px;

@@ -3,8 +3,8 @@
 //  Estados: Programada → En curso → Completada → Registrada
 // ════════════════════════════════════════════════════════════════════════════
 import {
-  collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp,
+  collection, doc, getDocs, getDocsFromServer, getDoc, setDoc, updateDoc, deleteDoc,
+  query, where, orderBy, serverTimestamp, writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type {
@@ -12,10 +12,7 @@ import type {
 } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
-
-function idSesion(): string {
-  return `SES-${new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 14)}`;
-}
+import { esSesionHuerfana, generarIdSesion, idsSesionLocales } from "../lib/sesionesHuerfanas";
 
 // ── Lecturas ──────────────────────────────────────────────────────────────────
 
@@ -62,47 +59,83 @@ export interface SesionInput {
   semanaFin:       string;
 }
 
-/** Crea una sesión en estado "Programada". */
-export async function crearSesion(input: SesionInput): Promise<Result<SesionProgramada>> {
-  try {
-    const id = idSesion();
-    const sesion: SesionProgramada = {
-      idSesion:          id,
-      miembro:           input.miembro,
-      semanaInicio:      input.semanaInicio,
-      semanaFin:         input.semanaFin,
-      fecha:             input.fecha,
-      tipoSeleccion:     input.tipoSeleccion,
-      tipoSesion:        "Rutina",
-      idSeleccion:       input.programaId ?? input.rutinaId,
-      idRutina:          input.rutinaId,
-      nombreRutina:      input.nombreRutina,
-      diaProgramaOrden:  input.diaProgramaOrden,
-      estado:            "Programada",
-      origen:            input.programaId ? `programa:${input.programaId}` : null,
-      fechaProgramacion: serverTimestamp() as unknown as FirestoreTimestamp,
-      progreso:          null,
-      rpeSesion:         null,
-      notas:             "",
-    };
-    await setDoc(doc(db, "sesiones", id), sesion);
-    return ok(sesion);
-  } catch (e) {
-    return err(firebaseErrorMessage(e));
-  }
+/**
+ * Crea una sesión en estado "Programada".
+ *
+ * Cambio de firma (P69): ya no es async ni devuelve `Result`. Genera el id en
+ * el cliente, devuelve la sesión enseguida y hace el `setDoc` sin esperarlo
+ * (sin señal queda en la cola local de Firestore). Un error se loguea en
+ * consola; si el documento nunca se crea, `finalizarSesion` lo crea con merge.
+ */
+export function crearSesion(input: SesionInput): SesionProgramada {
+  const id = generarIdSesion();
+  const sesion: SesionProgramada = {
+    idSesion:          id,
+    miembro:           input.miembro,
+    semanaInicio:      input.semanaInicio,
+    semanaFin:         input.semanaFin,
+    fecha:             input.fecha,
+    tipoSeleccion:     input.tipoSeleccion,
+    tipoSesion:        "Rutina",
+    idSeleccion:       input.programaId ?? input.rutinaId,
+    idRutina:          input.rutinaId,
+    nombreRutina:      input.nombreRutina,
+    diaProgramaOrden:  input.diaProgramaOrden,
+    estado:            "Programada",
+    origen:            input.programaId ? `programa:${input.programaId}` : null,
+    fechaProgramacion: serverTimestamp() as unknown as FirestoreTimestamp,
+    progreso:          null,
+    rpeSesion:         null,
+    notas:             "",
+  };
+  setDoc(doc(db, "sesiones", id), sesion).catch((e: unknown) => {
+    console.error(`crearSesion ${id}:`, firebaseErrorMessage(e));
+  });
+  return sesion;
 }
 
-/** Marca la sesión como "En curso" y guarda progreso opcional. */
-export async function iniciarSesion(
-  id: string,
-  progreso?: ProgresoSesion,
-): Promise<Result<void>> {
+/**
+ * Marca la sesión como "En curso" y guarda progreso opcional.
+ * Cambio de firma (P69): no se espera; un error se loguea en consola.
+ */
+export function iniciarSesion(id: string, progreso?: ProgresoSesion): void {
+  updateDoc(doc(db, "sesiones", id), {
+    estado:   "En curso" as EstadoSesion,
+    progreso: progreso ?? null,
+  }).catch((e: unknown) => {
+    console.error(`iniciarSesion ${id}:`, firebaseErrorMessage(e));
+  });
+}
+
+/**
+ * Borra las SesionProgramada huérfanas del miembro (P69): en "Programada" o
+ * "En curso", programadas hace más de 24 h y no abiertas en este teléfono
+ * (ningún estado `entrenar:*` de localStorage las referencia). Llamar solo con
+ * señal. Lee del servidor, no de la caché, para no borrar una sesión que ya
+ * está Registrada. Si una seguía abierta en otro dispositivo, al guardarla el
+ * merge de `finalizarSesion` la vuelve a crear. Devuelve cuántas borró.
+ */
+export async function barrerSesionesHuerfanas(miembro: MiembroId): Promise<Result<number>> {
   try {
-    await updateDoc(doc(db, "sesiones", id), {
-      estado:   "En curso" as EstadoSesion,
-      progreso: progreso ?? null,
+    const snap = await getDocsFromServer(query(
+      collection(db, "sesiones"),
+      where("miembro", "==", miembro),
+      where("estado", "in", ["Programada", "En curso"] satisfies EstadoSesion[]),
+    ));
+    const locales = idsSesionLocales(localStorage);
+    const ahora = Date.now();
+    const batch = writeBatch(db);
+    let borradas = 0;
+    snap.forEach((d) => {
+      const fecha = (d.data() as Partial<SesionProgramada>).fechaProgramacion;
+      const fechaMs = fecha && typeof fecha.seconds === "number" ? fecha.seconds * 1000 : null;
+      if (esSesionHuerfana({ idSesion: d.id, fechaProgramacionMs: fechaMs }, locales, ahora)) {
+        batch.delete(d.ref);
+        borradas++;
+      }
     });
-    return ok(undefined);
+    if (borradas > 0) await batch.commit();
+    return ok(borradas);
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }

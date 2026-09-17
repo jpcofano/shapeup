@@ -31,6 +31,8 @@ import { HojaSalida } from "../components/entrenar/HojaSalida";
 import { VistaDia } from "../components/entrenar/VistaDia";
 import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
 import { ResumenSalteados } from "../components/entrenar/ResumenSalteados";
+import { SinConexion } from "../components/entrenar/SinConexion";
+import { GuardadoPendiente } from "../components/entrenar/GuardadoPendiente";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
 
 /**
@@ -48,6 +50,10 @@ export function EntrenarSesion() {
   const [rpe,      setRpe]      = useState<number | null>(null);
   const [saving,   setSaving]   = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  /** Motivo por el que no cargó la rutina (sin conexión y sin caché, P69). */
+  const [errorCarga, setErrorCarga] = useState<string | null>(null);
+  /** Guardado que no confirmó a tiempo: destino al tocar "Listo" (P69). */
+  const [destinoPendiente, setDestinoPendiente] = useState<string | null>(null);
 
   // Hoja de salida (P68)
   const [salida,          setSalida]          = useState<{ contexto?: string } | null>(null);
@@ -107,6 +113,7 @@ export function EntrenarSesion() {
     setErrorSalida(null);
     const result = await finalizarSesion({
       rutinaId,
+      nombreRutina: rutina.nombre,
       miembro:     memberId,
       bloques:     session.bloquesRegistro(),
       rpe:         null,
@@ -115,8 +122,21 @@ export function EntrenarSesion() {
       completitud: rutinaCompleta(state, rutina) ? "completa" : "parcial",
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
+    salirTrasGuardar(result.value.pendiente);
+  }
+
+  /**
+   * Después de guardar: se borra el estado local. Si confirmó, se va al
+   * historial; si quedó pendiente (P69), primero se avisa y "Listo" navega.
+   */
+  function salirTrasGuardar(pendiente: boolean) {
     session.limpiar();
     saliendo.current = true;
+    if (pendiente) {
+      setSalida(null);
+      setDestinoPendiente("/historial");
+      return;
+    }
     navigate("/historial");
   }
 
@@ -199,38 +219,45 @@ export function EntrenarSesion() {
   useEffect(() => {
     if (!rutinaId || !memberId) return;
     const idSesionGuardada = state.idSesion;
-    getRutina(rutinaId).then(async (r) => {
-      if (!r.ok) { setLoading(false); return; }
+    getRutina(rutinaId).then((r) => {
+      if (!r.ok) {
+        // Sin conexión y sin la rutina en caché: se dice, en vez de "no encontrada" (P69).
+        if (!navigator.onLine) {
+          setErrorCarga("Sin conexión y esta rutina no está guardada en el teléfono. Abrila una vez con señal.");
+        }
+        setLoading(false);
+        return;
+      }
       const rutina = r.value;
       setRutina(rutina);
 
-      // Pre-fetch ejercicios en paralelo (para instrucciones/puntos/errores)
-      const map = new Map<string, Ejercicio>();
-      await Promise.all(
-        rutina.bloques.map(async (b) => {
-          const ej = await getEjercicio(b.idEjercicio);
-          if (ej.ok) map.set(b.idEjercicio, ej.value);
-        }),
-      );
-      setCatalogo(map);
-
-      // Crear sesión real (Programada → En curso) para que finalizarSesion la cierre
+      // Crear sesión real (Programada → En curso) para que finalizarSesion la cierre.
+      // No espera al servidor: sin señal queda en la cola local (P69).
       if (!idSesionGuardada) {
         const hoy     = new Date();
         const lunes   = lunesDeSemana(hoy);
         const domingo = new Date(hoy); domingo.setDate(hoy.getDate() + (7 - (hoy.getDay() || 7)));
         const semanaFin = ymdLocal(domingo);
-        const sesRes = await crearSesion({
+        const ses = crearSesion({
           miembro: memberId, rutinaId, nombreRutina: rutina.nombre,
           tipoSeleccion: "rutina", semanaInicio: lunes, semanaFin,
         });
-        if (sesRes.ok) {
-          session.asignarIdSesion(sesRes.value.idSesion);
-          iniciarSesion(sesRes.value.idSesion); // fire-and-forget: Programada → En curso
-        }
+        session.asignarIdSesion(ses.idSesion);
+        iniciarSesion(ses.idSesion); // Programada → En curso
       }
 
+      // La pantalla no espera a los ejercicios (media, instrucciones, paso de
+      // carga): sin conexión, los que no están en caché fallan y el bloque se
+      // muestra sin ellos (P69).
       setLoading(false);
+      const map = new Map<string, Ejercicio>();
+      void Promise.all(
+        rutina.bloques.map(async (b) => {
+          const ej = await getEjercicio(b.idEjercicio);
+          if (ej.ok) map.set(b.idEjercicio, ej.value);
+        }),
+      // Lo que ya está en memoria (p. ej. un paso de carga editado) gana.
+      ).then(() => setCatalogo((prev) => new Map([...map, ...prev])));
     });
     // Solo al montar (o al cambiar de rutina/miembro): state.idSesion se lee una vez.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -253,6 +280,10 @@ export function EntrenarSesion() {
     if (sugerencia.pesoKg != null) setLogCarga(String(sugerencia.pesoKg));
     if (sugerencia.repsObjetivo != null) setLogReps(String(sugerencia.repsObjetivo));
   }
+
+  const avisoPendiente = destinoPendiente && (
+    <GuardadoPendiente onListo={() => navigate(destinoPendiente)} />
+  );
 
   const hojaSalida = salida && (
     <HojaSalida
@@ -278,7 +309,7 @@ export function EntrenarSesion() {
   if (!rutina) {
     return (
       <div className="workout-screen">
-        <div className="empty-state"><p>Rutina no encontrada.</p></div>
+        <div className="empty-state"><p>{errorCarga ?? "Rutina no encontrada."}</p></div>
       </div>
     );
   }
@@ -312,6 +343,7 @@ export function EntrenarSesion() {
       <div className="workout-screen">
         <div className="workout-header">
           <p className="workout-title">{rutina.nombre}</p>
+          <SinConexion />
         </div>
         <div className="finish-screen">
           <span style={{ color: "var(--accent)", lineHeight: 0, display: "block" }}>
@@ -361,6 +393,7 @@ export function EntrenarSesion() {
                 : null;
               const result = await finalizarSesion({
                 rutinaId,
+                nombreRutina: rutina.nombre,
                 miembro: memberId,
                 bloques: session.bloquesRegistro(),
                 rpe,
@@ -369,11 +402,10 @@ export function EntrenarSesion() {
                 completitud: completa ? "completa" : "parcial",
               });
               if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
-              // limpiar, no reiniciar: reiniciar conserva idSesion y la próxima
-              // sesión reusaría una SesionProgramada ya Registrada.
-              session.limpiar();
-              saliendo.current = true;
-              navigate("/historial");
+              // limpiar (dentro de salirTrasGuardar), no reiniciar: reiniciar
+              // conserva idSesion y la próxima sesión reusaría una
+              // SesionProgramada ya Registrada.
+              salirTrasGuardar(result.value.pendiente);
             }}
           >
             {saving ? "Guardando…" : "Finalizar y guardar"}
@@ -385,6 +417,7 @@ export function EntrenarSesion() {
         </div>
 
         {hojaSalida}
+        {avisoPendiente}
         {reinicio.abierto && (
           <ConfirmarReinicio
             series={seriesHechasTotales(state)}
@@ -445,6 +478,7 @@ export function EntrenarSesion() {
         >
           {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
         </button>
+        <SinConexion />
       </div>
 
       {/* ── MODO SCROLL ───────────────────────────────────────────────────── */}
@@ -548,6 +582,7 @@ export function EntrenarSesion() {
         />
       )}
       {hojaSalida}
+      {avisoPendiente}
       {reinicio.abierto && (
         <ConfirmarReinicio
           series={seriesHechasTotales(state)}
