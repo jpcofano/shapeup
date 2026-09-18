@@ -14,17 +14,21 @@
 //                     muestra con su explicación.
 //
 //  Reglas en orden; la primera que aplica define el destino:
-//    1. "shapeup"   — _customId en shapeUpCustomIds        → enriquece
+//    1. "shapeup"   — _customId en shapeUpCustomIds        → enriquece,
+//                     o externa si no hay sesión que enriquecer (P75b)
 //    2. "historial" — la ventana solapa con una sesión app → enriquece
 //    3. "vr"        — esVR, SIN mínimo de duración         → externa
 //    4. "actividad" — actividad configurada y ≥ umbral     → externa
 //    5. "duracion"  — ≥ umbral                             → externa
 //    6. "sin-match" — lo demás                             → descartada
 //
+//  P75b: "descartada" ya no significa que el dato se pierda — TODAS las filas
+//  van igual a /cardio. Lo que el destino decide es si además entra al historial.
+//
 //  ADR #009: lógica pura, sin Firebase.
 // ════════════════════════════════════════════════════════════════════════════
 
-import type { Historial } from "../types/models";
+import type { Historial, MotivoIngreso, OrigenExterna } from "../types/models";
 import type { CardioInput } from "../import/samsungHealth";
 import { TOLERANCIA_MS } from "./matchBiometrico";
 import { ventanaDeHistorial } from "./enriquecerImport";
@@ -43,6 +47,8 @@ export interface ItemClasificado<T> {
   motivo: MotivoClasificacion;
   /** Solo si `destino === "enriquece"`: el Historial que este dato enriquece. */
   idHist?: string;
+  /** Solo si `destino === "externa"`: qué regla la hizo entrar al historial. */
+  motivoIngreso?: MotivoIngreso;
   /** Una línea en castellano para mostrarle al usuario. */
   explicacion: string;
 }
@@ -58,7 +64,46 @@ export type CardioClasificable = CardioInput & {
   _startMs?: number;
   _endMs?: number;
   _customId?: string;
+  /** Muestras de la curva de FC de esta sesión, si el origen las entrega. */
+  _muestrasCurva?: number;
 };
+
+// ── ¿La registró el reloj solo? (ADR #035) ─────────────────────────────────
+
+/** Lo mínimo para decidir el `origen` de una actividad. */
+export interface ItemAutodetectable {
+  fcPromedio?: number;
+  fcMaxima?: number;
+  /** Cuántos puntos de curva de FC hay para esta sesión. Ausente o 0 = ninguna. */
+  _muestrasCurva?: number;
+}
+
+/**
+ * ¿La actividad la registró el reloj solo, sin que vos la arrancaras?
+ *
+ * **La condición es la ausencia de FC**: ni curva ni valores. Es la que se
+ * cumple siempre, venga el dato por ZIP o por la vía D del puente — a una
+ * sesión que arrancás a mano el reloj le mide el pulso; a una que detecta solo
+ * (caminatas, sobre todo) no.
+ *
+ * Relación con el ADR #035: el ADR describe tres marcas de las autodetectadas
+ * en el ZIP — `live_data_internal` vacío, sin FC, y los milisegundos del inicio
+ * en `.000`. Las tres se verificaron contra el export del 14/09 (2554 filas):
+ * 987 sin `live_data_internal`, 1036 sin FC media, 800 con los ms en `.000`, y
+ * solo 772 con las tres juntas. Los milisegundos redondos se quedan cortos y
+ * además son un detalle del formato del ZIP, no del hecho: por eso no deciden.
+ * Acá **no se descarta nada** (ese era el planteo del ADR): se marca, que es
+ * reversible, y P76 decide qué hacer con lo marcado.
+ */
+export function esAutodetectada(item: ItemAutodetectable): boolean {
+  if (item.fcPromedio != null || item.fcMaxima != null) return false;
+  return (item._muestrasCurva ?? 0) === 0;
+}
+
+/** El `origen` que le corresponde a una actividad. */
+export function origenDe(item: ItemAutodetectable): OrigenExterna {
+  return esAutodetectada(item) ? "autodetectada" : "declarada";
+}
 
 // ── Defaults de configuración ──────────────────────────────────────────────
 
@@ -118,12 +163,18 @@ function clasificar<T extends CardioClasificable>(
   // Regla 1 — marcada como ShapeUp en el reloj.
   if (shapeUpCustomIds.length > 0 && c._customId && shapeUpCustomIds.includes(c._customId)) {
     const h = buscarHistorialSolapado(c, propias);
+    if (h) {
+      return {
+        item: c, destino: "enriquece", motivo: "shapeup", idHist: h.idHist,
+        explicacion: `Marcada como ShapeUp en el reloj — enriquece tu ${nombreSesion(h)} ${cuando(h.fechaRealizada, now)}`,
+      };
+    }
+    // Sin sesión que enriquecer: es un entrenamiento tuyo real, anterior a la
+    // app. Antes desaparecía en silencio; ahora entra marcado y P76 lo va a
+    // poder convertir en una sesión de verdad (P75b).
     return {
-      item: c, destino: "enriquece", motivo: "shapeup",
-      ...(h ? { idHist: h.idHist } : {}),
-      explicacion: h
-        ? `Marcada como ShapeUp en el reloj — enriquece tu ${nombreSesion(h)} ${cuando(h.fechaRealizada, now)}`
-        : "Marcada como ShapeUp en el reloj — enriquece la sesión que le corresponda",
+      item: c, destino: "externa", motivo: "shapeup", motivoIngreso: "shapeup-sin-sesion",
+      explicacion: `Entrenamiento tuyo${duracionTexto(dur)} sin sesión en la app — entra para poder convertirlo`,
     };
   }
 
@@ -139,7 +190,7 @@ function clasificar<T extends CardioClasificable>(
   // Regla 3 — VR entra siempre: una partida corta también es entrenamiento.
   if (c.esVR) {
     return {
-      item: c, destino: "externa", motivo: "vr",
+      item: c, destino: "externa", motivo: "vr", motivoIngreso: "vr",
       explicacion: `Sesión de VR${duracionTexto(dur)} — entra como entrenamiento`,
     };
   }
@@ -149,7 +200,7 @@ function clasificar<T extends CardioClasificable>(
   // Regla 4 — actividad de la lista configurada, con el piso de duración.
   if (config.actividadesSiempreRelevantes.includes(c.actividad) && llegaAlUmbral) {
     return {
-      item: c, destino: "externa", motivo: "actividad",
+      item: c, destino: "externa", motivo: "actividad", motivoIngreso: "actividad",
       explicacion: `${c.actividad}${duracionTexto(dur)} — actividad que siempre se importa`,
     };
   }
@@ -158,7 +209,7 @@ function clasificar<T extends CardioClasificable>(
   // una caminata de 40 minutos ya no se pierde.
   if (llegaAlUmbral) {
     return {
-      item: c, destino: "externa", motivo: "duracion",
+      item: c, destino: "externa", motivo: "duracion", motivoIngreso: "duracion",
       explicacion: `${c.actividad}${duracionTexto(dur)} — entra por duración`,
     };
   }

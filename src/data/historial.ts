@@ -11,7 +11,8 @@
 import {
   collection, doc, getDocs, getDoc, getDocFromServer,
   serverTimestamp, updateDoc, writeBatch,
-  query, where, orderBy,
+  query, where, orderBy, limit, startAfter,
+  type QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia } from "../types/models";
@@ -19,6 +20,7 @@ import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 import { tonelajeKg, totalSeriesHechas, ventanaDeBloques } from "../lib/metricas";
 import { ymdLocal, lunesDeSemana } from "../lib/semana";
+import { agruparDiasActivos, type DiaActivo } from "../lib/racha";
 import { conTimeout } from "../lib/conTimeout";
 import {
   agregarPendiente, quitarPendiente, marcarErrorPendiente, listarPendientes,
@@ -196,19 +198,122 @@ export async function reenviarPendiente(p: SesionPendiente): Promise<Result<void
 }
 
 // ── Lecturas ──────────────────────────────────────────────────────────────────
+//
+// P75b: ya no existe una consulta que traiga TODO el historial. Con las
+// entradas externas, "todo" pasó de ~decenas a miles de documentos, y lo
+// pedían seis pantallas en cada visita. Ahora hay tres consultas, cada una
+// acotada a lo que su consumidor necesita de verdad.
 
-export async function getHistorialMiembro(
+/**
+ * Tope de sesiones de ShapeUp que se traen de una. Son más de tres años
+ * entrenando cuatro veces por semana: alcanza de sobra para racha, progresión,
+ * PR y costo cardíaco. Si algún día hace falta más, se pagina.
+ */
+export const LIMITE_HISTORIAL_SHAPEUP = 200;
+
+/** Los `tipo` que cuentan como entrenado en la app (ver `lib/tipoHistorial`). */
+const TIPOS_SHAPEUP = ["rutina", "libre"] as const;
+
+/**
+ * Sesiones entrenadas en la app, de la más reciente a la más vieja.
+ *
+ * Requiere el índice (miembro, tipo, fechaRealizadaTimestamp desc) y que todos
+ * los documentos tengan `tipo` — de eso se ocupó
+ * `scripts/backfill-tipo-historial.ts`, porque un documento sin el campo no
+ * entra en un `where("tipo", "in", …)` y quedaría invisible.
+ */
+export async function getHistorialShapeUp(
   miembro: MiembroId,
+  limite: number = LIMITE_HISTORIAL_SHAPEUP,
 ): Promise<Result<Historial[]>> {
   try {
     const snap = await getDocs(
       query(
         collection(db, "historial"),
         where("miembro", "==", miembro),
+        where("tipo", "in", TIPOS_SHAPEUP),
         orderBy("fechaRealizadaTimestamp", "desc"),
+        limit(limite),
       ),
     );
     return ok(snap.docs.map((d) => d.data() as Historial));
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/** Opciones de `getHistorialExternas`. `cursor` sale de `siguienteCursor`. */
+export interface OpcionesExternas {
+  desde?: string;                 // "YYYY-MM-DD" inclusive
+  hasta?: string;                 // "YYYY-MM-DD" inclusive
+  limite?: number;
+  cursor?: QueryDocumentSnapshot;
+}
+
+export interface PaginaExternas {
+  entradas: Historial[];
+  /** Pasalo como `cursor` para traer la página siguiente. `null` = no hay más. */
+  siguienteCursor: QueryDocumentSnapshot | null;
+}
+
+/** Cuántas externas por página si el llamador no dice otra cosa. */
+export const LIMITE_EXTERNAS_POR_PAGINA = 100;
+
+/**
+ * Actividades externas, paginadas y de la más reciente a la más vieja. Son
+ * miles: nunca se traen todas de una.
+ */
+export async function getHistorialExternas(
+  miembro: MiembroId,
+  opciones: OpcionesExternas = {},
+): Promise<Result<PaginaExternas>> {
+  const limite = opciones.limite ?? LIMITE_EXTERNAS_POR_PAGINA;
+  try {
+    const snap = await getDocs(
+      query(
+        collection(db, "historial"),
+        where("miembro", "==", miembro),
+        where("tipo", "==", "externa"),
+        ...(opciones.desde ? [where("fechaRealizada", ">=", opciones.desde)] : []),
+        ...(opciones.hasta ? [where("fechaRealizada", "<=", opciones.hasta)] : []),
+        orderBy("fechaRealizadaTimestamp", "desc"),
+        ...(opciones.cursor ? [startAfter(opciones.cursor)] : []),
+        limit(limite),
+      ),
+    );
+    return ok({
+      entradas: snap.docs.map((d) => d.data() as Historial),
+      // Solo hay más si la página vino llena; si no, ya estamos en el final.
+      siguienteCursor: snap.docs.length === limite ? snap.docs[snap.docs.length - 1] : null,
+    });
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/**
+ * Los días con actividad entre `desde` y `hasta`, cada uno con su origen.
+ *
+ * Trae las dos mitades (ShapeUp y externas) y las agrupa con el núcleo puro
+ * `agruparDiasActivos`. **No decide qué cuenta**: devuelve las tres marcas por
+ * día y el consumidor elige (la racha del plan mira `shapeUp`; "me moví" puede
+ * incluir o no lo autodetectado).
+ */
+export async function getDiasActivos(
+  miembro: MiembroId,
+  desde: string,
+  hasta: string,
+): Promise<Result<DiaActivo[]>> {
+  try {
+    const snap = await getDocs(
+      query(
+        collection(db, "historial"),
+        where("miembro", "==", miembro),
+        where("fechaRealizada", ">=", desde),
+        where("fechaRealizada", "<=", hasta),
+      ),
+    );
+    return ok(agruparDiasActivos(snap.docs.map((d) => d.data() as Historial)));
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -253,15 +358,16 @@ const MAX_OPS_POR_BATCH = 400;
  * Escribe entradas externas (P75) en batches de a `MAX_OPS_POR_BATCH`.
  *
  * `setDoc` sin merge, con el id determinístico `EXT-{datauuid}`: reimportar el
- * mismo ZIP PISA la entrada en vez de duplicarla. `idsExistentes` son los
- * `idHist` que ya estaban en el historial cargado — sirve para informar cuántas
- * fueron actualizaciones y cuántas altas, sin leer de nuevo.
+ * mismo ZIP PISA la entrada en vez de duplicarla.
+ *
+ * No distingue altas de actualizaciones a propósito (P75b): saberlo exigiría
+ * leer las miles de externas que ya están guardadas, que es justo lo que este
+ * prompt vino a evitar. El resultado es el mismo se escriba sobre algo o no.
  */
 export async function guardarEntradasExternas(
   entradas: Historial[],
-  idsExistentes: ReadonlySet<string>,
-): Promise<Result<{ creadas: number; actualizadas: number }>> {
-  if (entradas.length === 0) return ok({ creadas: 0, actualizadas: 0 });
+): Promise<Result<{ escritas: number }>> {
+  if (entradas.length === 0) return ok({ escritas: 0 });
   try {
     let batch = writeBatch(db);
     let ops = 0;
@@ -276,8 +382,7 @@ export async function guardarEntradasExternas(
     }
     if (ops > 0) await batch.commit();
 
-    const actualizadas = entradas.filter((e) => idsExistentes.has(e.idHist)).length;
-    return ok({ creadas: entradas.length - actualizadas, actualizadas });
+    return ok({ escritas: entradas.length });
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }

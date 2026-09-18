@@ -1,22 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { calcularWeekChips } from "./weekChips";
-import type { Historial } from "../types/models";
-
-function hist(fechaRealizada: string): Historial {
-  return { fechaRealizada } as Historial;
-}
 
 describe("calcularWeekChips", () => {
   const semanaInicio = "2026-07-06"; // lunes
 
   it("marca 'today' en la fecha de hoy, aunque haya sesión ese día", () => {
-    const chips = calcularWeekChips([hist("2026-07-08")], semanaInicio, "2026-07-08");
+    const chips = calcularWeekChips(["2026-07-08"], semanaInicio, "2026-07-08");
     expect(chips[2]).toEqual({ letter: "X", fecha: "2026-07-08", estado: "today" });
   });
 
-  it("marca 'done' los días con Historial.fechaRealizada, sin tocar los demás", () => {
+  it("marca 'done' las fechas con actividad, sin tocar las demás", () => {
     const chips = calcularWeekChips(
-      [hist("2026-07-06"), hist("2026-07-09")],
+      ["2026-07-06", "2026-07-09"],
       semanaInicio,
       "2026-07-10",
     );

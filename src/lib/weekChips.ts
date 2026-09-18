@@ -1,4 +1,3 @@
-import type { Historial } from "../types/models";
 import { ymdLocal } from "./semana";
 
 const DAY_LETTERS = ["L", "M", "X", "J", "V", "S", "D"] as const;
@@ -19,13 +18,17 @@ export interface WeekChip {
  * no "¿cumplí el plan?" — de eso se ocupan la adherencia y `rachaDelPlan`, que
  * sí filtran. Marcar en gris un día que saliste a caminar sería quitarte el
  * crédito por haberte movido.
+ *
+ * Recibe las FECHAS con actividad, no el historial (P75b): desde que ninguna
+ * pantalla trae el historial completo, quien llama arma esa lista con
+ * `getDiasActivos` y decide ahí qué orígenes cuentan.
  */
 export function calcularWeekChips(
-  historial: Historial[],
+  fechasConActividad: string[],
   semanaInicio: string,
   hoy: string = ymdLocal(),
 ): WeekChip[] {
-  const fechasConSesion = new Set(historial.map((h) => h.fechaRealizada));
+  const fechasConSesion = new Set(fechasConActividad);
   const lunes = new Date(semanaInicio + "T00:00:00");
 
   return DAY_LETTERS.map((letter, i) => {

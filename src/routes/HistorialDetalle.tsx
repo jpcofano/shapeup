@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { Historial, MetricaSalud, MiembroId, BiometriaSesion } from "../types/models";
-import { getHistorialEntry, getHistorialMiembro } from "../data/historial";
+import { getHistorialEntry, getHistorialShapeUp } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
 import { consolidarNoches } from "../lib/sueno";
 import type { NocheSueno } from "../lib/sueno";
@@ -48,7 +48,7 @@ export function HistorialDetalle() {
       const [sRes, fRes, histRes] = await Promise.all([
         getRegistrosSueno(entry.miembro as MiembroId),
         getMetricasSalud(entry.miembro as MiembroId, "fc-reposo"),
-        getHistorialMiembro(entry.miembro as MiembroId),
+        getHistorialShapeUp(entry.miembro as MiembroId),
       ]);
       if (sRes.ok) {
         // NocheSueno.fecha = mañana del día en que te levantaste = fecha de la sesión

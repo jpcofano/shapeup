@@ -18,8 +18,10 @@
 
 import type {
   Historial, MiembroId, BiometriaSesion, FirestoreTimestamp, FuenteDato, ZonaFC,
+  MotivoIngreso,
 } from "../types/models";
 import { lunesDeSemana } from "./semana";
+import { origenDe } from "./importSelectivo";
 
 /** Lo que el parser de Samsung entrega para una actividad. */
 export interface ItemExterno {
@@ -38,6 +40,8 @@ export interface ItemExterno {
   _startMs?: number;
   _endMs?: number;
   _fcMin?: number;
+  /** Puntos de curva de FC de esta sesión. Sin curva ni FC → autodetectada (P75b). */
+  _muestrasCurva?: number;
 }
 
 /** El `idHist` de una entrada externa. Determinístico: mismo uuid, mismo id. */
@@ -56,8 +60,15 @@ export function esIdEntradaExterna(idHist: string): boolean {
  * `fechaRealizadaTimestamp` se deriva del inicio real (o del mediodía de la
  * fecha si no hay timestamps): es un campo del modelo, y una función pura no
  * puede pedirle la hora al servidor.
+ *
+ * `motivoIngreso` lo trae el clasificador: es la regla que la hizo entrar.
+ * El `origen` se deduce del propio dato con `esAutodetectada` (P75b).
  */
-export function construirEntradaExterna(item: ItemExterno, miembro: MiembroId): Historial {
+export function construirEntradaExterna(
+  item: ItemExterno,
+  miembro: MiembroId,
+  motivoIngreso: MotivoIngreso,
+): Historial {
   const biometria = construirBiometria(item);
 
   return {
@@ -89,6 +100,10 @@ export function construirEntradaExterna(item: ItemExterno, miembro: MiembroId): 
       datauuid: item._uuid,
       fuente: item.fuente,
       ...(item.distanciaKm != null ? { distanciaKm: item.distanciaKm } : {}),
+      // Marcada, no descartada (P75b): una caminata que el reloj registró solo
+      // entra igual, y se ve distinto en la lista.
+      origen: origenDe(item),
+      motivoIngreso,
     },
   };
 }

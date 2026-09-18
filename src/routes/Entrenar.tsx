@@ -5,7 +5,7 @@ import type { Rutina, Programa } from "../types/models";
 import type { MiembroId } from "../types/models";
 import { getRutinasDelMiembro } from "../data/rutinas";
 import { getProgramaActivo } from "../data/programas";
-import { getHistorialMiembro } from "../data/historial";
+import { getHistorialShapeUp } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
@@ -30,7 +30,7 @@ export function Entrenar() {
     Promise.all([
       getRutinasDelMiembro(memberId as MiembroId),
       getProgramaActivo(memberId as MiembroId),
-      getHistorialMiembro(memberId as MiembroId),
+      getHistorialShapeUp(memberId as MiembroId),
     ]).then(([rutinasR, progR, histR]) => {
       if (rutinasR.ok) setRutinas(rutinasR.value);
       else             setError(rutinasR.error);

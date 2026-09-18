@@ -22,8 +22,8 @@ export interface PreviewState {
   zipTotal?:    number;
   /** Cada actividad con su destino y su explicación (P75). */
   clasificadas?: ItemClasificado<CardioEx>[];
-  /** `idHist` que ya estaban en el historial: distingue alta de actualización. */
-  idsHistorial?: ReadonlySet<string>;
+  /** Umbral de duración vigente, para explicar qué queda solo en salud (P75b). */
+  umbralMin?: number;
 }
 
 /** Cuántas descartadas se listan una por una antes de resumir el resto. */
@@ -42,11 +42,9 @@ function GrupoDestino({ n, label, color }: { n: number; label: string; color: st
 // ── ImportPreview ─────────────────────────────────────────────────────────────
 
 export function ImportPreview({
-  preview, importarDescartadas, onToggleDescartadas, onConfirm, onCancel,
+  preview, onConfirm, onCancel,
 }: {
   preview: PreviewState;
-  importarDescartadas: boolean;
-  onToggleDescartadas: (v: boolean) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -62,6 +60,7 @@ export function ImportPreview({
   const enriquecen   = cls?.filter((c) => c.destino === "enriquece")  ?? [];
   const externas     = cls?.filter((c) => c.destino === "externa")    ?? [];
   const descartadas  = cls?.filter((c) => c.destino === "descartada") ?? [];
+  const umbral       = preview.umbralMin;
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
@@ -171,6 +170,10 @@ export function ImportPreview({
                 <strong>Actividades:</strong> {cardioTotal} en el export
               </p>
 
+              {/* Todas se guardan en salud (P75b); esto es a dónde van ADEMÁS. */}
+              <p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--muted)" }}>
+                Todas se guardan. Al historial entran:
+              </p>
               <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 3 }}>
                 <GrupoDestino
                   n={enriquecen.length} color="var(--accent)"
@@ -182,14 +185,14 @@ export function ImportPreview({
                 />
                 <GrupoDestino
                   n={descartadas.length} color="var(--muted)"
-                  label={importarDescartadas ? "descartadas (se importan igual)" : "descartadas"}
+                  label={`quedan solo en salud${umbral != null ? `, por durar menos de ${umbral} min` : ""}`}
                 />
               </ul>
 
               {descartadas.length > 0 && (
                 <details style={{ marginTop: 6 }}>
                   <summary style={{ fontSize: 11, color: "var(--muted)", cursor: "pointer" }}>
-                    Ver por qué no entran
+                    Ver cuáles quedan solo en salud
                   </summary>
                   <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
                     {descartadas.slice(0, MAX_DESCARTADAS_VISIBLES).map((d, i) => (
@@ -206,21 +209,12 @@ export function ImportPreview({
                 </details>
               )}
 
-              <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}>
-                <input
-                  type="checkbox"
-                  checked={importarDescartadas}
-                  onChange={(e) => onToggleDescartadas(e.target.checked)}
-                  style={{ cursor: "pointer" }}
-                />
-                Importar también las descartadas ({descartadas.length})
-              </label>
             </div>
           )}
 
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <button className="btn-primary" style={{ flex: 1 }} onClick={onConfirm}>
-              Importar {importarDescartadas || !cls ? totalItems : (totalItems - descartadas.length)} registros
+              Importar {totalItems} registros
             </button>
             <button className="btn-secondary" onClick={onCancel}>Cancelar</button>
           </div>

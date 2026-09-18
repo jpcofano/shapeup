@@ -24,7 +24,7 @@ import {
   extraerDesdeZip,
 } from "../import/samsungZip";
 import { getPerfiles } from "../data/perfiles";
-import { getHistorialMiembro } from "../data/historial";
+import { getHistorialShapeUp } from "../data/historial";
 import { enriquecerTrasImport } from "../data/enriquecimiento";
 import { clasificarImport, type ItemClasificado } from "../lib/importSelectivo";
 import { getConfigImport, CONFIG_IMPORT_DEFAULT } from "../data/configImport";
@@ -61,12 +61,6 @@ export function Salud() {
   const [preview,           setPreview]           = useState<PreviewState | null>(null);
   const [zipProgress,       setZipProgress]       = useState<number | null>(null);
   const [zipMsg,            setZipMsg]            = useState<string>("");
-  /**
-   * "Importar también las descartadas" (P75). Desde que nada se descarta salvo
-   * lo que no llega al umbral, el viejo "importar todo el cardio" pasó a ser
-   * esto: la escotilla para traer igual las filas cortas a /cardio.
-   */
-  const [importarDescartadas,setImportarDescartadas]= useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const zipRef  = useRef<HTMLInputElement>(null);
 
@@ -77,7 +71,7 @@ export function Salud() {
       getSesionesCardio(memberId),
       getRegistrosSueno(memberId),
       getMetricasSalud(memberId as MiembroId),
-      getHistorialMiembro(memberId as MiembroId),
+      getHistorialShapeUp(memberId as MiembroId),
     ]).then(([m, c, s, met, h]) => {
       if (m.ok)   setMediciones(m.value);
       if (c.ok)   setCardio(c.value);
@@ -104,7 +98,6 @@ export function Salud() {
   // ── ZIP → extracción selectiva → preview ─────────────────────────────────
   async function handleZip(file: File) {
     if (!memberId) return;
-    setImportarDescartadas(false);
     setZipProgress(0);
     setZipMsg("Abriendo ZIP…");
 
@@ -124,7 +117,7 @@ export function Salud() {
     }
 
     const [histRes, cfgRes] = await Promise.all([
-      getHistorialMiembro(memberId as MiembroId),
+      getHistorialShapeUp(memberId as MiembroId),
       getConfigImport(),
     ]);
     const histLocalCache = histRes.ok ? histRes.value : [];
@@ -152,14 +145,13 @@ export function Salud() {
       zipData: result,
       zipTotal: total,
       clasificadas,
-      idsHistorial: new Set(histLocalCache.map((h) => h.idHist)),
+      umbralMin: (cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT).duracionMinimaMin,
     });
   }
 
   // ── CSV suelto → preview ─────────────────────────────────────────────────
   async function handleFile(file: File) {
     if (!memberId) return;
-    setImportarDescartadas(false);
     const tipo = detectarTipoCsv(file.name);
 
     if (tipo === "unknown") {
@@ -196,7 +188,7 @@ export function Salud() {
     } else if (tipo === "exercise") {
       const [perfRes, histRes, cfgRes] = await Promise.all([
         getPerfiles(),
-        getHistorialMiembro(memberId as MiembroId),
+        getHistorialShapeUp(memberId as MiembroId),
         getConfigImport(),
       ]);
       const zonasFC   = (perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined);
@@ -217,7 +209,7 @@ export function Salud() {
       );
       setPreview({
         tipo, file, parsedItems, parsedErrors, previewRows, clasificadas,
-        idsHistorial: new Set(historial2.map((h) => h.idHist)),
+        umbralMin: (cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT).duracionMinimaMin,
       });
       return;
     } else {
@@ -238,29 +230,43 @@ export function Salud() {
    * entran a /cardio si el usuario lo pidió explícitamente.
    */
   function planDeEscritura(cls: ItemClasificado<CardioEx>[]) {
-    const paraCardio = importarDescartadas ? cls : cls.filter((c) => c.destino !== "descartada");
+    // TODAS las filas van a /cardio (P75b): es la fuente cruda, ya es idempotente
+    // por datauuid, y es lo que garantiza que no se pierda nada. El destino solo
+    // decide si además genera una entrada en /historial.
     const externas = cls
       .filter((c) => c.destino === "externa")
-      .map((c) => c.item as unknown as ItemExterno)
-      .filter((i) => !!i._uuid)   // sin datauuid no hay id determinístico posible
-      .map((i) => construirEntradaExterna(i, memberId as MiembroId));
+      .filter((c) => !!(c.item as unknown as ItemExterno)._uuid)  // sin datauuid no hay id determinístico
+      .map((c) => construirEntradaExterna(
+        c.item as unknown as ItemExterno,
+        memberId as MiembroId,
+        c.motivoIngreso ?? "duracion",
+      ));
     return {
-      cardioItems: paraCardio.map((c) => c.item),
+      cardioItems: cls.map((c) => c.item),
       externas,
       enriquecen:  cls.filter((c) => c.destino === "enriquece").length,
       descartadas: cls.filter((c) => c.destino === "descartada").length,
     };
   }
 
-  /** "· 12 enriquecen · 3 externas (1 actualizada) · 40 descartadas" */
-  function resumenClasificacion(
-    enriquecen: number, externas: number, actualizadas: number, descartadas: number,
+  /**
+   * "2554 actividades guardadas. 2246 entraron al historial; 300 quedaron solo
+   * en salud por durar menos de 10 min." — nada se pierde, y se dice adónde fue
+   * cada cosa (P75b).
+   */
+  function resumenActividades(
+    guardadas: number, enriquecen: number, externas: number, descartadas: number,
   ): string {
-    const partes: string[] = [];
-    if (enriquecen  > 0) partes.push(`${enriquecen} enriquecen tus sesiones`);
-    if (externas    > 0) partes.push(`${externas} como actividad externa${actualizadas > 0 ? ` (${actualizadas} actualizada${actualizadas !== 1 ? "s" : ""})` : ""}`);
-    if (descartadas > 0) partes.push(`${descartadas} descartada${descartadas !== 1 ? "s" : ""}${importarDescartadas ? " (importadas igual)" : ""}`);
-    return partes.length > 0 ? ` · ${partes.join(" · ")}` : "";
+    const umbralMin = preview?.umbralMin ?? CONFIG_IMPORT_DEFAULT.duracionMinimaMin;
+    if (guardadas === 0) return "";
+    const alHistorial = enriquecen + externas;
+    const detalle = enriquecen > 0 && externas > 0
+      ? ` (${enriquecen} enriquecen sesiones tuyas, ${externas} como actividad)`
+      : "";
+    const soloSalud = descartadas > 0
+      ? ` ${descartadas} quedaron solo en salud por durar menos de ${umbralMin} min.`
+      : "";
+    return ` · ${guardadas} actividades guardadas. ${alHistorial} entraron al historial${detalle}.${soloSalud}`;
   }
 
   // ── Confirmar import ─────────────────────────────────────────────────────
@@ -294,11 +300,10 @@ export function Salud() {
 
         // Entradas externas (P75): lo que no matcheó ninguna sesión pero pasó el
         // umbral entra al historial como actividad, con id determinístico.
-        const extRes = await guardarEntradasExternas(plan.externas, preview.idsHistorial ?? new Set());
-        const actualizadas = extRes.ok ? extRes.value.actualizadas : 0;
+        const extRes = await guardarEntradasExternas(plan.externas);
 
-        const resumen = resumenClasificacion(
-          plan.enriquecen, plan.externas.length, actualizadas, plan.descartadas,
+        const resumen = resumenActividades(
+          plan.cardioItems.length, plan.enriquecen, plan.externas.length, plan.descartadas,
         );
         let msgBase = importados === 0 && firstErr
           ? `Error: ${firstErr.error}`
@@ -376,9 +381,9 @@ export function Salud() {
       );
       if (r.ok) { importados = r.value.importados; omitidos = r.value.omitidos; const fresh = await getSesionesCardio(memberId); if (fresh.ok) setCardio(fresh.value); }
       else errorMsg = r.error;
-      const extRes = await guardarEntradasExternas(plan.externas, preview.idsHistorial ?? new Set());
-      sufijoCSV = resumenClasificacion(
-        plan.enriquecen, plan.externas.length, extRes.ok ? extRes.value.actualizadas : 0, plan.descartadas,
+      const extRes = await guardarEntradasExternas(plan.externas);
+      sufijoCSV = resumenActividades(
+        plan.cardioItems.length, plan.enriquecen, plan.externas.length, plan.descartadas,
       );
       if (!extRes.ok) sufijoCSV += ` ⚠ Actividades externas: ${extRes.error}`;
     } else if (preview.tipo === ("metricas" as SamsungCsvType)) {
@@ -467,8 +472,6 @@ export function Salud() {
       {preview && (
         <ImportPreview
           preview={preview}
-          importarDescartadas={importarDescartadas}
-          onToggleDescartadas={setImportarDescartadas}
           onConfirm={confirmarImport}
           onCancel={() => setPreview(null)}
         />

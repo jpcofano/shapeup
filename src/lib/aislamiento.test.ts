@@ -30,6 +30,7 @@ import {
 } from "./importSelectivo";
 import { calcularEnriquecimiento } from "./enriquecerImport";
 import { construirEntradaExterna } from "./entradaExterna";
+import { agruparDiasActivos } from "./racha";
 import { soloShapeUp } from "./tipoHistorial";
 
 import {
@@ -262,11 +263,11 @@ describe("diasActivos cuenta todo", () => {
 
 describe("calcularWeekChips cuenta todo", () => {
   it("un día con solo una caminata queda marcado como hecho", () => {
-    const chips = calcularWeekChips(HISTORIAL_MIXTO, SEMANA, HOY);
+    const chips = calcularWeekChips(HISTORIAL_MIXTO.map((h) => h.fechaRealizada), SEMANA, HOY);
     const martes = chips.find((c) => c.fecha === "2026-09-08");
     expect(martes?.estado).toBe("done");
     // Y sin las externas, ese mismo día queda pendiente: la diferencia es real.
-    const sinExternas = calcularWeekChips(SOLO_SHAPEUP, SEMANA, HOY);
+    const sinExternas = calcularWeekChips(SOLO_SHAPEUP.map((h) => h.fechaRealizada), SEMANA, HOY);
     expect(sinExternas.find((c) => c.fecha === "2026-09-08")?.estado).toBe("pending");
   });
 });
@@ -281,7 +282,7 @@ describe("robustez ante entradas externas", () => {
     expect(() => {
       rachaDelPlan(EXTERNAS, SEMANA);
       diasActivos(EXTERNAS, "2026-09-01", "2026-09-30");
-      calcularWeekChips(EXTERNAS, SEMANA, HOY);
+      calcularWeekChips(EXTERNAS.map((h) => h.fechaRealizada), SEMANA, HOY);
       semanasSinDescarga(EXTERNAS, HOY);
       calcularRecomendacion([senal("sueno", "ok")], EXTERNAS, HOY, MIEMBRO);
       sesionesDelEjercicio(ID_EJERCICIO, EXTERNAS);
@@ -323,7 +324,7 @@ describe("aislamiento · entradas externas construidas por el import (P75)", () 
     fecha: a.fecha, actividad: a.actividad, esVR: false, fuente: "samsung-health-csv",
     duracionMin: a.dur, kcal: 200, fcPromedio: 115, _uuid: a.uuid,
     _startMs: a.inicio, _endMs: a.inicio + a.dur * 60_000,
-  }, MIEMBRO));
+  }, MIEMBRO, "duracion"));
 
   const conNuevas = [...SOLO_SHAPEUP, ...nuevas];
 
@@ -366,8 +367,81 @@ describe("aislamiento · entradas externas construidas por el import (P75)", () 
       fecha: h.fechaRealizada, actividad: h.externa!.actividad, esVR: false,
       fuente: "samsung-health-csv", duracionMin: h.duracionRealMin ?? 0,
       _uuid: h.externa!.datauuid,
-    }, MIEMBRO));
+    }, MIEMBRO, "duracion"));
     expect(otraVez.map((h) => h.idHist)).toEqual(nuevas.map((h) => h.idHist));
     expect(new Set([...nuevas, ...otraVez].map((h) => h.idHist)).size).toBe(nuevas.length);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P75b: a escala. El ZIP real da ~2246 externas — si alguna métrica del plan
+//  se mueve con ese volumen, el aislamiento no sirve de nada.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("aislamiento · 2000 externas en el historial (P75b)", () => {
+  /** Dos mil caminatas repartidas en dos años, la mitad autodetectadas. */
+  const muchas: Historial[] = Array.from({ length: 2000 }, (_v, i) => {
+    const dia = new Date(Date.UTC(2025, 0, 1) + i * 12 * 3_600_000);  // dos por día
+    const fecha = dia.toISOString().slice(0, 10);
+    const inicio = dia.getTime();
+    const autodetectada = i % 2 === 0;
+    return construirEntradaExterna({
+      fecha, actividad: "Caminata", esVR: false, fuente: "samsung-health-csv",
+      duracionMin: 20, _uuid: `bulk-${i}`,
+      _startMs: inicio, _endMs: inicio + 20 * 60_000,
+      // Las declaradas traen FC; las autodetectadas, nada (ADR #035).
+      ...(autodetectada ? {} : { fcPromedio: 112, kcal: 90 }),
+    }, MIEMBRO, "duracion");
+  });
+
+  const conMuchas = [...SOLO_SHAPEUP, ...muchas];
+
+  it("la fixture es del tamaño que se esperaba, y mitad autodetectada", () => {
+    expect(muchas).toHaveLength(2000);
+    expect(muchas.filter((h) => h.externa?.origen === "autodetectada")).toHaveLength(1000);
+  });
+
+  it("la racha del plan no se mueve", () => {
+    expect(rachaDelPlan(conMuchas, SEMANA)).toBe(rachaDelPlan(SOLO_SHAPEUP, SEMANA));
+  });
+
+  it("la adherencia de la semana no se mueve", () => {
+    const dela = (hs: Historial[]) => soloShapeUp(hs).filter((h) => h.semanaInicio === SEMANA).length;
+    expect(dela(conMuchas)).toBe(dela(SOLO_SHAPEUP));
+  });
+
+  it("el tonelaje no se mueve", () => {
+    const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
+    expect(suma(conMuchas)).toBe(suma(SOLO_SHAPEUP));
+  });
+
+  it("la progresión no se mueve", () => {
+    expect(sesionesDelEjercicio(ID_EJERCICIO, conMuchas))
+      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP));
+  });
+
+  it("el costo cardíaco no se mueve, aunque 1000 traigan FC", () => {
+    expect(serieCostoRutina(ID_RUTINA, conMuchas)).toEqual(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP));
+  });
+
+  it("semanasSinDescarga no se mueve", () => {
+    expect(semanasSinDescarga(conMuchas, HOY)).toBe(semanasSinDescarga(SOLO_SHAPEUP, HOY));
+  });
+
+  it("los días activos SÍ los cuentan, con su origen separado", () => {
+    const dias = agruparDiasActivos(conMuchas);
+    // Dos actividades por día: 2000 externas caen en 1000 días.
+    expect(dias.filter((d) => d.autodetectada && d.externaDeclarada)).toHaveLength(1000);
+    expect(dias.filter((d) => d.shapeUp)).toHaveLength(
+      new Set(SOLO_SHAPEUP.map((h) => h.fechaRealizada)).size,
+    );
+  });
+
+  it("ninguna explota por no tener bloques", () => {
+    expect(() => {
+      conMuchas.forEach((h) => { tonelajeKg(h); totalSeriesHechas(h); });
+      compararConPrevias(rutinaLunes, conMuchas);
+      calcularRecomendacion([senal("sueno", "ok")], conMuchas, HOY, MIEMBRO);
+    }).not.toThrow();
   });
 });

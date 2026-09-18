@@ -5,7 +5,7 @@ import type { Programa, Historial, MedicionCorporal, MetricaSalud, RegistroSueno
 import type { MiembroId } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
 import { getPerfiles } from "../data/perfiles";
-import { getHistorialMiembro, conciliarPendientes } from "../data/historial";
+import { getHistorialShapeUp, getDiasActivos, conciliarPendientes } from "../data/historial";
 import { barrerSesionesHuerfanas } from "../data/sesiones";
 import { usePendientes } from "../hooks/usePendientes";
 import { PendientesChip } from "../components/PendientesChip";
@@ -24,7 +24,6 @@ import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDe
 import { getHomeLayout, type HomeLayout } from "../lib/homeLayout";
 import { calcularWeekChips } from "../lib/weekChips";
 import { rachaDelPlan } from "../lib/racha";
-import { soloShapeUp } from "../lib/tipoHistorial";
 import { HomeReduxContent, type HomeReduxData, type HomeReduxButton } from "../components/homeRedux/HomeReduxContent";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -249,7 +248,10 @@ export function Home() {
   const [recomendacion, setRecomendacion] = useState<Recomendacion | null>(null);
   const [senalesSalud, setSenalesSalud] = useState<SenalSalud[]>([]);
   const [recDescartada, setRecDescartada] = useState(false);
+  /** Sesiones de la app de esta semana: adherencia, próxima sesión y sesión de hoy. */
   const [estaSemana, setEstaSemana] = useState<Historial[]>([]);
+  /** Fechas con CUALQUIER actividad esta semana — los chips cuentan todo (P74). */
+  const [fechasActivas, setFechasActivas] = useState<string[]>([]);
 
   const semanaRef = useRef(lunesDeSemana());
 
@@ -285,9 +287,16 @@ export function Home() {
     // Cargamos salud solo si el miembro tiene datos importados (evitar 2 queries vacías por visita)
     const loadSalud = sessionStorage.getItem(`su-${memberId}`) !== "0";
 
+    // Los chips de la semana cuentan TODO (P74), pero la adherencia solo lo
+    // entrenado en la app: por eso son dos consultas y no una que traiga todo.
+    const domingo = ymdLocal(new Date(new Date(semanaInicio + "T00:00:00").getTime() + 6 * 86_400_000));
+    getDiasActivos(memberId as MiembroId, semanaInicio, domingo).then((r) => {
+      if (r.ok) setFechasActivas(r.value.map((d) => d.fecha));
+    });
+
     Promise.all([
       getProgramaActivo(memberId as MiembroId),
-      getHistorialMiembro(memberId as MiembroId),
+      getHistorialShapeUp(memberId as MiembroId),
       getMediciones(memberId as MiembroId),
       loadSalud
         ? getMetricasSalud(memberId as MiembroId)
@@ -298,23 +307,22 @@ export function Home() {
     ]).then(([progR, histR, medR, metR, sueR]) => {
       if (histR.ok) {
         const hist = histR.value;
-        const esta = hist.filter((h) => h.semanaInicio === semanaInicio);
-        // Adherencia y volumen son del plan: solo lo entrenado en la app (P74).
-        // `estaSemana` queda completo — los chips cuentan días con actividad.
-        const estaShapeUp = soloShapeUp(esta);
+        // `hist` ya viene solo con sesiones de la app (P75b), así que no hace
+        // falta volver a filtrar por tipo acá.
+        const estaShapeUp = hist.filter((h) => h.semanaInicio === semanaInicio);
 
         const prog = progR.ok ? progR.value : null;
         const obj  = prog ? prog.dias.filter((d) => d.tipo !== "descanso").length : 0;
 
         setSesHechas(estaShapeUp.length);
-        setEstaSemana(esta);
+        setEstaSemana(estaShapeUp);
         setSesObj(obj);
         setVolumen(estaShapeUp.reduce((s, h) => s + (h.tonelajeKg ?? 0), 0));
         setRacha(rachaDelPlan(hist, semanaInicio));
 
         // Número de semana del plan: se cuenta desde la primera semana entrenada
         // en la app, no desde la primera caminata importada (P74).
-        const semanas = [...new Set(soloShapeUp(hist).map((h) => h.semanaInicio).filter((s): s is string => !!s))].sort();
+        const semanas = [...new Set(hist.map((h) => h.semanaInicio).filter((s): s is string => !!s))].sort();
         if (semanas.length > 0) {
           const diff = new Date(semanaInicio + "T12:00:00").getTime() - new Date(semanas[0] + "T12:00:00").getTime();
           setNumSemana(Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1);
@@ -322,9 +330,9 @@ export function Home() {
 
         if (prog) {
           setPrograma(prog);
-          setProxima(proximaSesion(prog, esta));
+          setProxima(proximaSesion(prog, estaShapeUp));
           const hoyNum = jsDayToNum(new Date().getDay());
-          const sesHoy = sesionDeHoy(prog, hoyNum, esta);
+          const sesHoy = sesionDeHoy(prog, hoyNum, estaShapeUp);
           setHoy(sesHoy);
         } else {
           setProxima(null);
@@ -455,7 +463,7 @@ export function Home() {
         racha,
       },
       weekLabel: "Tu semana",
-      weekChips: calcularWeekChips(estaSemana, semanaRef.current, ymdLocal()),
+      weekChips: calcularWeekChips(fechasActivas, semanaRef.current, ymdLocal()),
     };
 
     return (

@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TabBar } from "../components/TabBar";
-import { Trophy, Trash2 } from "lucide-react";
+import { Trophy, Trash2, Footprints } from "lucide-react";
 import type { Historial } from "../types/models";
-import { getHistorialMiembro, borrarSesionHistorial, borrarHistorialMiembro } from "../data/historial";
+import {
+  getHistorialShapeUp, getHistorialExternas, borrarSesionHistorial, borrarHistorialMiembro,
+} from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { soloShapeUp } from "../lib/tipoHistorial";
 import { Bicep } from "../components/Bicep";
@@ -16,8 +18,10 @@ function formatFecha(s: string): string {
 
 // ── Tab Sesiones ──────────────────────────────────────────────────────────────
 
-function SesionesList({ entries, navigate, editMode, onDeleteOne }: {
+function SesionesList({ entries, navigate, editMode, onDeleteOne, hayMas }: {
   entries: Historial[];
+  /** Quedaron externas sin traer: la lista no es todo lo que hay (P75b). */
+  hayMas?: boolean;
   navigate: (to: string) => void;
   editMode: boolean;
   onDeleteOne: (idHist: string) => void;
@@ -31,20 +35,28 @@ function SesionesList({ entries, navigate, editMode, onDeleteOne }: {
   }
   return (
     <div className="card-list">
-      {entries.map((h) => (
+      {entries.map((h) => {
+        // Una externa que el reloj registró solo se ve más tenue y dice que lo
+        // fue (P75b). No se esconde: está para que la veas.
+        const autodetectada = h.externa?.origen === "autodetectada";
+        const externa = h.tipo === "externa";
+        return (
         <div
           key={h.idHist}
           className="rutina-card"
-          style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
+          style={{
+            display: "flex", gap: 12, alignItems: "flex-start",
+            ...(autodetectada ? { opacity: 0.62 } : {}),
+          }}
           onClick={() => { if (!editMode) navigate(`/historial/${h.idHist}`); }}
         >
           <span style={{
             width: 38, height: 38, borderRadius: 10,
-            background: "var(--accent-dim)",
+            background: externa ? "var(--card-hover)" : "var(--accent-dim)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0, color: "var(--accent)",
+            flexShrink: 0, color: externa ? "var(--muted)" : "var(--accent)",
           }}>
-            <Bicep size={20} />
+            {externa ? <Footprints size={20} /> : <Bicep size={20} />}
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
@@ -61,6 +73,7 @@ function SesionesList({ entries, navigate, editMode, onDeleteOne }: {
                 <span style={{ fontWeight: 600, color: "var(--fg)" }}>· {h.tonelajeKg.toLocaleString("es")} kg</span>
               )}
               {h.tipo === "libre" && <span className="badge badge-muted">Libre</span>}
+              {autodetectada && <span className="badge badge-muted">detectada por el reloj</span>}
               {h.completitud === "parcial" && <span className="badge badge-warn">Parcial</span>}
             </div>
           </div>
@@ -74,7 +87,13 @@ function SesionesList({ entries, navigate, editMode, onDeleteOne }: {
             </button>
           )}
         </div>
-      ))}
+        );
+      })}
+      {hayMas && (
+        <p style={{ textAlign: "center", fontSize: 11, color: "var(--muted)", margin: "8px 0 0" }}>
+          Hay más actividades externas sin mostrar.
+        </p>
+      )}
     </div>
   );
 }
@@ -243,14 +262,26 @@ export function Historial() {
 
   const [editMode, setEditMode] = useState(false);
   const [confirm,  setConfirm]  = useState<{ tipo: "uno"; idHist: string } | { tipo: "todo" } | null>(null);
+  /** Quedaron externas sin traer: la lista no es todo lo que hay (P75b). */
+  const [hayMasExternas, setHayMasExternas] = useState(false);
   const [borrando, setBorrando] = useState(false);
   const [errorBorrado, setErrorBorrado] = useState<string | null>(null);
 
+  // Esta pantalla es la única que muestra las dos cosas, así que combina las
+  // dos consultas (P75b): las sesiones de la app completas, y la primera página
+  // de actividades externas — que son miles y nunca se traen todas.
   useEffect(() => {
     if (!memberId) return;
-    getHistorialMiembro(memberId).then((r) => {
-      if (r.ok) setEntries(r.value);
-      else      setError(r.error);
+    Promise.all([
+      getHistorialShapeUp(memberId),
+      getHistorialExternas(memberId),
+    ]).then(([propias, externas]) => {
+      if (!propias.ok)  { setError(propias.error);  setLoading(false); return; }
+      if (!externas.ok) { setError(externas.error); setLoading(false); return; }
+      const todas = [...propias.value, ...externas.value.entradas]
+        .sort((a, b) => b.fechaRealizada.localeCompare(a.fechaRealizada));
+      setEntries(todas);
+      setHayMasExternas(externas.value.siguienteCursor != null);
       setLoading(false);
     });
   }, [memberId]);
@@ -298,6 +329,7 @@ export function Historial() {
             navigate={navigate}
             editMode={editMode}
             onDeleteOne={(idHist) => setConfirm({ tipo: "uno", idHist })}
+            hayMas={hayMasExternas}
           />
           {editMode && entries.length > 0 && (
             <button

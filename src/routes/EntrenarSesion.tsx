@@ -4,7 +4,7 @@ import { X, AlignJustify, Zap } from "lucide-react";
 import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
-import { finalizarSesion, getHistorialMiembro } from "../data/historial";
+import { finalizarSesion, getHistorialShapeUp } from "../data/historial";
 import { crearSesion, iniciarSesion, descartarSesion } from "../data/sesiones";
 import { getPerfiles } from "../data/perfiles";
 import { useAuth } from "../auth/useAuth";
@@ -273,7 +273,7 @@ export function EntrenarSesion() {
   // Historial del miembro para la sugerencia de progresión (I3) — una sola carga.
   useEffect(() => {
     if (!memberId) return;
-    getHistorialMiembro(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
+    getHistorialShapeUp(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
   }, [memberId]);
 
   // Lugar habitual del perfil (P72). Si falla, se resuelve sin valor: la sesión

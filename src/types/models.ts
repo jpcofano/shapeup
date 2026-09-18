@@ -470,6 +470,12 @@ export interface BiometriaSesion {
   finMsEfectivo?: number;
 }
 
+/** Quién registró la actividad: vos al arrancarla, o el reloj solo (P75b). */
+export type OrigenExterna = "declarada" | "autodetectada";
+
+/** Por qué una actividad entró al historial como entrada externa (P75b). */
+export type MotivoIngreso = "shapeup-sin-sesion" | "vr" | "actividad" | "duracion";
+
 export interface Historial {
   idHist: string;
   fechaRealizada: string;
@@ -515,6 +521,14 @@ export interface Historial {
     datauuid: string;              // el de Samsung
     fuente: FuenteDato;
     distanciaKm?: number;
+    /**
+     * `"autodetectada"` = el reloj la registró solo, sin que vos la arrancaras
+     * (ADR #035; el discriminador es `esAutodetectada` en `lib/importSelectivo`).
+     * Se marca, no se descarta: descartar es irreversible (P75b).
+     */
+    origen: OrigenExterna;
+    /** Por qué entró al historial en vez de quedarse solo en salud (P75b). */
+    motivoIngreso: MotivoIngreso;
   };
 
   comoMeSenti?: string;

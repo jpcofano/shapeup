@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import type { Historial } from "../types/models";
-import { soloShapeUp } from "./tipoHistorial";
+import { soloShapeUp, esShapeUp } from "./tipoHistorial";
 import { ymdLocal } from "./semana";
 
 /**
@@ -46,4 +46,50 @@ export function diasActivos(historial: Historial[], desde: string, hasta: string
     if (h.fechaRealizada >= desde && h.fechaRealizada <= hasta) dias.add(h.fechaRealizada);
   }
   return dias.size;
+}
+
+// ── Días activos con su origen (P75b) ────────────────────────────────────────
+
+/**
+ * Un día con actividad y de dónde vino. Las tres marcas no son excluyentes: un
+ * día puede tener una sesión de la app Y una caminata.
+ */
+export interface DiaActivo {
+  fecha: string;               // "YYYY-MM-DD"
+  shapeUp: boolean;            // entrenaste en la app
+  externaDeclarada: boolean;   // actividad que arrancaste vos
+  autodetectada: boolean;      // el reloj la registró solo
+}
+
+/**
+ * Agrupa entradas de historial en días, con las marcas de cada origen.
+ * Núcleo puro de `data/historial.getDiasActivos`.
+ *
+ * **No decide por el consumidor**: devuelve las tres marcas y cada quien elige
+ * qué cuenta. La racha del plan mira `shapeUp`; "me moví" puede incluir o no lo
+ * autodetectado. Ordenado por fecha ascendente.
+ */
+export function agruparDiasActivos(historial: Historial[]): DiaActivo[] {
+  const porFecha = new Map<string, DiaActivo>();
+
+  for (const h of historial) {
+    const fecha = h.fechaRealizada;
+    if (!fecha) continue;
+    const dia = porFecha.get(fecha)
+      ?? { fecha, shapeUp: false, externaDeclarada: false, autodetectada: false };
+
+    if (esShapeUp(h)) {
+      dia.shapeUp = true;
+    } else if (h.externa?.origen === "autodetectada") {
+      dia.autodetectada = true;
+    } else {
+      // Externa sin marca de origen (anterior a P75b): se asume declarada, que
+      // es lo conservador — no la escondemos detrás del filtro de autodetectadas.
+      dia.externaDeclarada = true;
+    }
+
+    porFecha.set(fecha, dia);
+  }
+
+  return [...porFecha.values()].sort((a, b) => a.fecha.localeCompare(b.fecha));
 }

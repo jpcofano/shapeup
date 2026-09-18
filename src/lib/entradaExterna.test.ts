@@ -34,15 +34,15 @@ describe("idEntradaExterna", () => {
 });
 
 describe("construirEntradaExterna — los campos de la tabla", () => {
-  const h = construirEntradaExterna(item(), "juanpablo");
+  const h = construirEntradaExterna(item(), "juanpablo", "duracion");
 
   it("idHist determinístico a partir del datauuid", () => {
     expect(h.idHist).toBe(`EXT-${UUID}`);
   });
 
   it("dos llamadas con el mismo datauuid dan el mismo idHist", () => {
-    const a = construirEntradaExterna(item(), "juanpablo");
-    const b = construirEntradaExterna(item({ duracionMin: 41 }), "juanpablo");
+    const a = construirEntradaExterna(item(), "juanpablo", "duracion");
+    const b = construirEntradaExterna(item({ duracionMin: 41 }), "juanpablo", "duracion");
     expect(a.idHist).toBe(b.idHist);
   });
 
@@ -74,18 +74,19 @@ describe("construirEntradaExterna — los campos de la tabla", () => {
 
   it("semanaInicio es el lunes de esa fecha", () => {
     expect(h.semanaInicio).toBe("2026-09-14");    // el 14/9/2026 es lunes
-    const domingo = construirEntradaExterna(item({ fecha: "2026-09-20" }), "juanpablo");
+    const domingo = construirEntradaExterna(item({ fecha: "2026-09-20" }), "juanpablo", "duracion");
     expect(domingo.semanaInicio).toBe("2026-09-14");
   });
 
   it("guarda el origen en `externa`", () => {
     expect(h.externa).toEqual({
       actividad: "Caminata", datauuid: UUID, fuente: "samsung-health-csv",
+      origen: "autodetectada", motivoIngreso: "duracion",
     });
   });
 
   it("la distancia va en `externa` solo si existe", () => {
-    const conDist = construirEntradaExterna(item({ distanciaKm: 4.2 }), "juanpablo");
+    const conDist = construirEntradaExterna(item({ distanciaKm: 4.2 }), "juanpablo", "duracion");
     expect(conDist.externa?.distanciaKm).toBe(4.2);
     expect(h.externa?.distanciaKm).toBeUndefined();
   });
@@ -97,7 +98,7 @@ describe("construirEntradaExterna — biometría", () => {
   it("lleva FC, zona y calorías con matchPor 'directo'", () => {
     const h = construirEntradaExterna(
       item({ fcPromedio: 108, fcMaxima: 132, _fcMin: 74, kcal: 180, zonaPrincipal: "Z2" }),
-      "juanpablo",
+      "juanpablo", "duracion",
     );
     expect(h.biometria).toEqual({
       fuente: "samsung-health-csv", datauuidSamsung: UUID,
@@ -107,11 +108,11 @@ describe("construirEntradaExterna — biometría", () => {
   });
 
   it("sin ningún dato biométrico, no inventa un objeto vacío", () => {
-    expect(construirEntradaExterna(item(), "juanpablo").biometria).toBeUndefined();
+    expect(construirEntradaExterna(item(), "juanpablo", "duracion").biometria).toBeUndefined();
   });
 
   it("con un solo dato alcanza", () => {
-    const h = construirEntradaExterna(item({ kcal: 90 }), "juanpablo");
+    const h = construirEntradaExterna(item({ kcal: 90 }), "juanpablo", "duracion");
     expect(h.biometria?.kcal).toBe(90);
     expect(h.biometria?.fcMedia).toBeUndefined();
   });
@@ -121,13 +122,13 @@ describe("construirEntradaExterna — robustez", () => {
   it("no muta la entrada", () => {
     const i = item({ kcal: 90 });
     const copia = structuredClone(i);
-    construirEntradaExterna(i, "juanpablo");
+    construirEntradaExterna(i, "juanpablo", "duracion");
     expect(i).toEqual(copia);
   });
 
   it("sin timestamps deriva el timestamp del mediodía de la fecha", () => {
     const h = construirEntradaExterna(
-      item({ _startMs: undefined, _endMs: undefined }), "juanpablo",
+      item({ _startMs: undefined, _endMs: undefined }), "juanpablo", "duracion",
     );
     expect(h.inicioMs).toBeUndefined();
     expect(h.finMs).toBeUndefined();
@@ -136,12 +137,12 @@ describe("construirEntradaExterna — robustez", () => {
   });
 
   it("sin duración, duracionRealMin queda en null", () => {
-    expect(construirEntradaExterna(item({ duracionMin: undefined }), "juanpablo").duracionRealMin)
+    expect(construirEntradaExterna(item({ duracionMin: undefined }), "juanpablo", "duracion").duracionRealMin)
       .toBeNull();
   });
 
   it("ningún campo queda en undefined: Firestore los rechaza", () => {
-    const h = construirEntradaExterna(item({ fcPromedio: 100 }), "juanpablo") as unknown as Record<string, unknown>;
+    const h = construirEntradaExterna(item({ fcPromedio: 100 }), "juanpablo", "duracion") as unknown as Record<string, unknown>;
     for (const [clave, valor] of Object.entries(h)) {
       expect(valor, `${clave} quedó undefined`).not.toBeUndefined();
     }
@@ -149,7 +150,7 @@ describe("construirEntradaExterna — robustez", () => {
 });
 
 describe("una entrada externa no cuenta como entrenamiento del plan", () => {
-  const h = construirEntradaExterna(item({ fcPromedio: 108, kcal: 180 }), "juanpablo");
+  const h = construirEntradaExterna(item({ fcPromedio: 108, kcal: 180 }), "juanpablo", "duracion");
 
   it("los predicados de P74 la reconocen", () => {
     expect(esExterna(h)).toBe(true);
@@ -159,5 +160,38 @@ describe("una entrada externa no cuenta como entrenamiento del plan", () => {
   it("suma 0 al tonelaje y a las series, sin romperse", () => {
     expect(tonelajeKg(h)).toBe(0);
     expect(totalSeriesHechas(h)).toBe(0);
+  });
+});
+
+// ── Marcas de P75b ────────────────────────────────────────────────────────────
+
+describe("construirEntradaExterna — origen y motivoIngreso (P75b)", () => {
+  it("sin FC ni curva, la marca como autodetectada", () => {
+    const h = construirEntradaExterna(item(), "juanpablo", "duracion");
+    expect(h.externa?.origen).toBe("autodetectada");
+  });
+
+  it("con FC media, la marca como declarada", () => {
+    const h = construirEntradaExterna(item({ fcPromedio: 118 }), "juanpablo", "duracion");
+    expect(h.externa?.origen).toBe("declarada");
+  });
+
+  it("con curva pero sin FC media, también es declarada", () => {
+    const h = construirEntradaExterna(item({ _muestrasCurva: 400 }), "juanpablo", "duracion");
+    expect(h.externa?.origen).toBe("declarada");
+  });
+
+  it("guarda el motivoIngreso que le pasa el clasificador", () => {
+    for (const motivo of ["shapeup-sin-sesion", "vr", "actividad", "duracion"] as const) {
+      expect(construirEntradaExterna(item(), "juanpablo", motivo).externa?.motivoIngreso)
+        .toBe(motivo);
+    }
+  });
+
+  it("el idHist sigue siendo determinístico, sin importar las marcas", () => {
+    const a = construirEntradaExterna(item(), "juanpablo", "duracion");
+    const b = construirEntradaExterna(item({ fcPromedio: 120 }), "juanpablo", "vr");
+    expect(a.idHist).toBe(b.idHist);
+    expect(a.idHist).toBe(`EXT-${UUID}`);
   });
 });

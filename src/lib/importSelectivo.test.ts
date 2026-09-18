@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  clasificarImport,
+  clasificarImport, esAutodetectada, origenDe,
   ACTIVIDADES_SIEMPRE_RELEVANTES,
   DURACION_MIN_ACTIVIDAD_MIN,
   type ConfigClasificacion,
@@ -63,9 +63,15 @@ function clasificarUno(
   hist: Historial[] = [],
   customIds: string[] = [],
   config: ConfigClasificacion = CONFIG,
-): { destino: DestinoImport; motivo: MotivoClasificacion; idHist?: string; explicacion: string } {
+) {
   const [r] = clasificarImport([item], hist, customIds, config, NOW);
-  return { destino: r.destino, motivo: r.motivo, idHist: r.idHist, explicacion: r.explicacion };
+  return {
+    destino: r.destino as DestinoImport,
+    motivo: r.motivo as MotivoClasificacion,
+    idHist: r.idHist,
+    motivoIngreso: r.motivoIngreso,
+    explicacion: r.explicacion,
+  };
 }
 
 // ── Regla 1 — ShapeUp custom ID ───────────────────────────────────────────────
@@ -81,14 +87,36 @@ describe("Regla 1 — ShapeUp custom ID", () => {
     expect(r.idHist).toBe("H001");
   });
 
-  it("enriquece aunque no haya historial que solape, y ahí no hay idHist", () => {
+  it("sin sesión que enriquecer entra como externa marcada (P75b)", () => {
+    // Antes se clasificaba como "enriquece" sin idHist y no escribía nada:
+    // entrenamientos tuyos reales, anteriores a la app, que se perdían en
+    // silencio. Ahora entran para que P76 los pueda convertir.
     const r = clasificarUno(
-      cardio({ _customId: "SHP-001", _startMs: 999_000_000, _endMs: 999_100_000 }),
+      cardio({ _customId: "SHP-001", _startMs: 999_000_000, _endMs: 999_100_000, duracionMin: 45 }),
       [], ["SHP-001"],
     );
-    expect(r.destino).toBe("enriquece");
+    expect(r.destino).toBe("externa");
     expect(r.motivo).toBe("shapeup");
+    expect(r.motivoIngreso).toBe("shapeup-sin-sesion");
     expect(r.idHist).toBeUndefined();
+  });
+
+  it("con sesión que enriquecer sigue enriqueciendo", () => {
+    const r = clasificarUno(
+      cardio({ _customId: "SHP-001", _startMs: H_INICIO, _endMs: H_FIN }),
+      [histConVentana], ["SHP-001"],
+    );
+    expect(r.destino).toBe("enriquece");
+    expect(r.idHist).toBe("H001");
+    expect(r.motivoIngreso).toBeUndefined();
+  });
+
+  it("una sesión ShapeUp corta sin historial entra igual: no la frena el umbral", () => {
+    const r = clasificarUno(
+      cardio({ _customId: "SHP-001", duracionMin: 3 }), [], ["SHP-001"],
+    );
+    expect(r.destino).toBe("externa");
+    expect(r.motivoIngreso).toBe("shapeup-sin-sesion");
   });
 
   it("no aplica si la lista de shapeUpCustomIds está vacía", () => {
@@ -154,6 +182,7 @@ describe("Regla 3 — VR", () => {
     const r = clasificarUno(cardio({ esVR: true, actividad: "Beat Saber", duracionMin: 4 }));
     expect(r.destino).toBe("externa");
     expect(r.motivo).toBe("vr");
+    expect(r.motivoIngreso).toBe("vr");
   });
 
   it("VR sin duración también entra", () => {
@@ -168,6 +197,7 @@ describe("Regla 4 — actividad siempre relevante", () => {
     const r = clasificarUno(cardio({ actividad: "Body Combat", duracionMin: 45 }));
     expect(r.destino).toBe("externa");
     expect(r.motivo).toBe("actividad");
+    expect(r.motivoIngreso).toBe("actividad");
   });
 
   it("por debajo del umbral no entra por esta regla ni por duración", () => {
@@ -200,6 +230,7 @@ describe("Regla 5 — duración", () => {
     const r = clasificarUno(cardio({ actividad: "Caminata", duracionMin: 40 }));
     expect(r.destino).toBe("externa");
     expect(r.motivo).toBe("duracion");
+    expect(r.motivoIngreso).toBe("duracion");
     expect(r.explicacion).toBe("Caminata de 40 min — entra por duración");
   });
 
@@ -241,12 +272,14 @@ describe("Regla 6 — descartada", () => {
 
 describe("precedencia: gana la primera regla que aplica", () => {
   it("shapeup gana sobre duracion", () => {
+    // Las dos reglas aplican; manda shapeup. Sin sesión que enriquecer entra
+    // como externa, pero marcada por SU regla, no por la duración (P75b).
     const r = clasificarUno(
       cardio({ _customId: "SHP-001", duracionMin: 45, _startMs: 0, _endMs: 1000 }),
       [], ["SHP-001"],
     );
     expect(r.motivo).toBe("shapeup");
-    expect(r.destino).toBe("enriquece");
+    expect(r.motivoIngreso).toBe("shapeup-sin-sesion");
   });
 
   it("shapeup gana sobre historial", () => {
@@ -320,5 +353,38 @@ describe("clasificarImport", () => {
       [historial({ fechaRealizada: hoy, nombreRutina: "Fuerza A" })],
     );
     expect(r.explicacion).toBe("Ya estaba en tu sesión de Fuerza A de hoy");
+  });
+});
+
+// ── esAutodetectada (ADR #035, P75b) ──────────────────────────────────────────
+
+describe("esAutodetectada", () => {
+  it("sin FC y sin curva es verdadera", () => {
+    expect(esAutodetectada({})).toBe(true);
+    expect(esAutodetectada({ _muestrasCurva: 0 })).toBe(true);
+  });
+
+  it("con FC media es falsa", () => {
+    expect(esAutodetectada({ fcPromedio: 112 })).toBe(false);
+  });
+
+  it("con curva pero sin media es falsa", () => {
+    expect(esAutodetectada({ _muestrasCurva: 640 })).toBe(false);
+  });
+
+  it("con FC máxima sola también es falsa: el reloj midió algo", () => {
+    expect(esAutodetectada({ fcMaxima: 140 })).toBe(false);
+  });
+
+  it("los milisegundos en .000 por sí solos no alcanzan", () => {
+    // La señal existe en el ZIP (800 de 2554 filas del export del 14/09), pero
+    // no decide: 772 la comparten con las otras dos, y sola se queda corta.
+    // El item ni siquiera la expone — la condición es la ausencia de FC.
+    expect(esAutodetectada({ fcPromedio: 105 })).toBe(false);
+  });
+
+  it("origenDe traduce el predicado a la marca del modelo", () => {
+    expect(origenDe({})).toBe("autodetectada");
+    expect(origenDe({ fcPromedio: 112 })).toBe("declarada");
   });
 });
