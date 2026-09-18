@@ -31,6 +31,9 @@ import {
 import { calcularEnriquecimiento } from "./enriquecerImport";
 import { construirEntradaExterna } from "./entradaExterna";
 import { agruparDiasActivos } from "./racha";
+import { adaptarEjercicio } from "./adaptadorSdk";
+import { CRUDO_CAMINATA } from "./__fixtures__/crudoSdk";
+import type { ItemExterno } from "./entradaExterna";
 import { soloShapeUp } from "./tipoHistorial";
 
 import {
@@ -442,6 +445,65 @@ describe("aislamiento · 2000 externas en el historial (P75b)", () => {
       conMuchas.forEach((h) => { tonelajeKg(h); totalSeriesHechas(h); });
       compararConPrevias(rutinaLunes, conMuchas);
       calcularRecomendacion([senal("sueno", "ok")], conMuchas, HOY, MIEMBRO);
+    }).not.toThrow();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PU4: lo que entra por el puente tampoco mueve la aguja. Es la misma prueba
+//  de siempre, pero sobre entradas construidas desde el crudo real del SDK.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("aislamiento · externas que entran por el puente (PU4)", () => {
+  /** Veinte caminatas adaptadas del crudo del puente, con su fecha corrida. */
+  const delPuente: Historial[] = Array.from({ length: 20 }, (_v, i) => {
+    const inicio = Date.UTC(2026, 7, 6, 18, 26) + i * 86_400_000;
+    const crudo = {
+      ...CRUDO_CAMINATA,
+      uid: `puente-${i}`,
+      startTime: { epochMs: inicio, iso: new Date(inicio).toISOString() },
+      startLocalDateTime: new Date(inicio - 3 * 3_600_000).toISOString().slice(0, 19),
+      fields: { sessions: [{ ...CRUDO_CAMINATA.fields.sessions[0] }] },
+    };
+    const item = adaptarEjercicio(crudo, MIEMBRO)!;
+    return construirEntradaExterna(item as unknown as ItemExterno, MIEMBRO, "duracion");
+  });
+
+  const conPuente = [...SOLO_SHAPEUP, ...delPuente];
+
+  it("quedan marcadas como autodetectadas, por el flag del SDK", () => {
+    expect(delPuente.every((h) => h.externa?.origen === "autodetectada")).toBe(true);
+  });
+
+  it("la racha del plan no se mueve", () => {
+    expect(rachaDelPlan(conPuente, SEMANA)).toBe(rachaDelPlan(SOLO_SHAPEUP, SEMANA));
+  });
+
+  it("la adherencia de la semana no se mueve", () => {
+    const dela = (hs: Historial[]) => soloShapeUp(hs).filter((h) => h.semanaInicio === SEMANA).length;
+    expect(dela(conPuente)).toBe(dela(SOLO_SHAPEUP));
+  });
+
+  it("el tonelaje no se mueve", () => {
+    const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
+    expect(suma(conPuente)).toBe(suma(SOLO_SHAPEUP));
+  });
+
+  it("la progresión no se mueve", () => {
+    expect(sesionesDelEjercicio(ID_EJERCICIO, conPuente))
+      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP));
+  });
+
+  it("el costo cardíaco no se mueve, aunque todas traigan FC", () => {
+    expect(delPuente.every((h) => h.biometria?.fcMedia != null)).toBe(true);
+    expect(serieCostoRutina(ID_RUTINA, conPuente)).toEqual(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP));
+  });
+
+  it("ninguna explota por no tener bloques", () => {
+    expect(() => {
+      conPuente.forEach((h) => { tonelajeKg(h); totalSeriesHechas(h); });
+      semanasSinDescarga(conPuente, HOY);
+      compararConPrevias(rutinaLunes, conPuente);
     }).not.toThrow();
   });
 });

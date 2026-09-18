@@ -66,6 +66,8 @@ export type CardioClasificable = CardioInput & {
   _customId?: string;
   /** Muestras de la curva de FC de esta sesión, si el origen las entrega. */
   _muestrasCurva?: number;
+  /** El origen dice que la registró el reloj solo (PU4). Manda sobre lo demás. */
+  _autoDetected?: boolean;
 };
 
 // ── ¿La registró el reloj solo? (ADR #035) ─────────────────────────────────
@@ -76,6 +78,11 @@ export interface ItemAutodetectable {
   fcMaxima?: number;
   /** Cuántos puntos de curva de FC hay para esta sesión. Ausente o 0 = ninguna. */
   _muestrasCurva?: number;
+  /**
+   * Lo que dice el origen, cuando lo dice (PU4). El Data SDK trae un booleano
+   * `autoDetected` por sesión; el ZIP no tiene nada equivalente. Si está, manda.
+   */
+  _autoDetected?: boolean;
 }
 
 /**
@@ -94,8 +101,17 @@ export interface ItemAutodetectable {
  * además son un detalle del formato del ZIP, no del hecho: por eso no deciden.
  * Acá **no se descarta nada** (ese era el planteo del ADR): se marca, que es
  * reversible, y P76 decide qué hacer con lo marcado.
+ *
+ * **Por el puente (PU4) no hay que deducir nada**: el Data SDK trae
+ * `autoDetected` por sesión, y cuando viene decide él. Medido sobre los 79
+ * registros reales del puente, la densidad de muestras NO sirve como criterio
+ * — van de 0,19 a 1,52 puntos/s, así que el umbral de 0,1/s del ADR #034 no
+ * separa nada: las 63 sesiones que el reloj detectó solo también traen curva a
+ * ~1 Hz. La ausencia de FC sigue siendo el criterio de la vía ZIP, que es la
+ * única que no tiene el flag.
  */
 export function esAutodetectada(item: ItemAutodetectable): boolean {
+  if (item._autoDetected != null) return item._autoDetected;
   if (item.fcPromedio != null || item.fcMaxima != null) return false;
   return (item._muestrasCurva ?? 0) === 0;
 }

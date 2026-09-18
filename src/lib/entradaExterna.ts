@@ -42,6 +42,8 @@ export interface ItemExterno {
   _fcMin?: number;
   /** Puntos de curva de FC de esta sesión. Sin curva ni FC → autodetectada (P75b). */
   _muestrasCurva?: number;
+  /** Lo que dice el origen, si lo dice (PU4). Manda sobre la heurística. */
+  _autoDetected?: boolean;
 }
 
 /** El `idHist` de una entrada externa. Determinístico: mismo uuid, mismo id. */

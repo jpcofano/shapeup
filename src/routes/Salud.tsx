@@ -30,6 +30,9 @@ import { clasificarImport, type ItemClasificado } from "../lib/importSelectivo";
 import { getConfigImport, CONFIG_IMPORT_DEFAULT } from "../data/configImport";
 import { construirEntradaExterna, type ItemExterno } from "../lib/entradaExterna";
 import { guardarEntradasExternas } from "../data/historial";
+import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
+import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
+import { PuentePanel, PuentePreview } from "../components/salud/PuentePanel";
 import { useAuth } from "../auth/useAuth";
 import { ResumenTab }    from "../components/salud/ResumenTab";
 import { ComposicionTab } from "../components/salud/ComposicionTab";
@@ -44,7 +47,7 @@ type Tab = "resumen" | "composicion" | "cardio" | "sueno" | "progreso";
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export function Salud() {
-  const { memberId } = useAuth();
+  const { memberId, user } = useAuth();
   const [tab,        setTab]       = useState<Tab>("resumen");
   const [mediciones, setMediciones]= useState<MedicionCorporal[]>([]);
   const [cardio,     setCardio]    = useState<SesionCardio[]>([]);
@@ -61,6 +64,14 @@ export function Salud() {
   const [preview,           setPreview]           = useState<PreviewState | null>(null);
   const [zipProgress,       setZipProgress]       = useState<number | null>(null);
   const [zipMsg,            setZipMsg]            = useState<string>("");
+  // ── Puente Samsung (PU4) ──────────────────────────────────────────────────
+  const [estadoPuente,   setEstadoPuente]   = useState<EstadoPuente | null>(null);
+  const [sincronizando,  setSincronizando]  = useState(false);
+  const [confirmandoSync,setConfirmandoSync]= useState(false);
+  const [previaPuente,   setPreviaPuente]   = useState<ResumenSincronizacion | null>(null);
+  const [errorPuente,    setErrorPuente]    = useState<string | null>(null);
+  const [umbralPuente,   setUmbralPuente]   = useState(CONFIG_IMPORT_DEFAULT.duracionMinimaMin);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const zipRef  = useRef<HTMLInputElement>(null);
 
@@ -93,6 +104,75 @@ export function Salud() {
     const met = await getMetricasSalud(memberId as MiembroId);
     if (met.ok) { setMetricas(met.value); setMetricasError(null); }
     else        setMetricasError(met.error);
+  }
+
+  // El estado del puente se lee solo: es un documento y dice si está corriendo.
+  useEffect(() => {
+    if (!user?.uid) return;
+    leerEstadoPuente(user.uid).then((r) => { if (r.ok) setEstadoPuente(r.value); });
+  }, [user?.uid]);
+
+  /** Lee el puente y muestra la vista previa. No escribe nada todavía. */
+  async function vistaPreviaPuente() {
+    if (!user?.uid || !memberId) return;
+    setSincronizando(true);
+    setErrorPuente(null);
+    const [perfRes, histRes, cfgRes] = await Promise.all([
+      getPerfiles(),
+      getHistorialShapeUp(memberId as MiembroId),
+      getConfigImport(),
+    ]);
+    const config = cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT;
+    setUmbralPuente(config.duracionMinimaMin);
+
+    const r = await sincronizarDesdePuente(
+      user.uid, memberId as MiembroId, histRes.ok ? histRes.value : [], config,
+      {
+        soloVistaPrevia: true,
+        zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined,
+      },
+    );
+    setSincronizando(false);
+    if (!r.ok) { setErrorPuente(r.error); return; }
+    setPreviaPuente(r.value);
+  }
+
+  /** Confirma: escribe cardio, externas y mediciones con el pipeline del ZIP. */
+  async function confirmarPuente() {
+    if (!user?.uid || !memberId || !previaPuente) return;
+    setConfirmandoSync(true);
+    setErrorPuente(null);
+    const [perfRes, histRes, cfgRes] = await Promise.all([
+      getPerfiles(),
+      getHistorialShapeUp(memberId as MiembroId),
+      getConfigImport(),
+    ]);
+    const r = await sincronizarDesdePuente(
+      user.uid, memberId as MiembroId, histRes.ok ? histRes.value : [],
+      cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT,
+      { zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined },
+    );
+    setConfirmandoSync(false);
+    setPreviaPuente(null);
+    if (!r.ok) { setErrorPuente(r.error); return; }
+
+    const v = r.value;
+    setImportMsg(
+      `✅ Puente: ${v.registros} registros · ${v.enriquecen + v.externas} al historial`
+      + ` (${v.enriquecen} enriquecen, ${v.externas} como actividad)`
+      + `${v.soloSalud > 0 ? ` · ${v.soloSalud} solo en salud` : ""}`
+      + `${v.medicionesAEscribir > 0 ? ` · ${v.medicionesAEscribir} mediciones` : ""}`,
+    );
+
+    // Refrescar lo que cambió.
+    const [fm, fc, fh] = await Promise.all([
+      getMediciones(memberId),
+      getSesionesCardio(memberId),
+      getHistorialShapeUp(memberId as MiembroId),
+    ]);
+    if (fm.ok) setMediciones(fm.value);
+    if (fc.ok) setCardio(fc.value);
+    if (fh.ok) setHistorial(fh.value);
   }
 
   // ── ZIP → extracción selectiva → preview ─────────────────────────────────
@@ -468,6 +548,27 @@ export function Salud() {
       )}
       {error   && <p className="inline-error">{error}</p>}
       {loading && <div className="empty-state"><div className="spinner" /></div>}
+
+      {/* Puente Samsung (PU4): lo que sube solo, sin exportar el ZIP a mano. */}
+      {user?.uid && (
+        <PuentePanel
+          estado={estadoPuente}
+          ahora={Date.now()}
+          sincronizando={sincronizando}
+          onSincronizar={vistaPreviaPuente}
+          error={errorPuente}
+        />
+      )}
+
+      {previaPuente && (
+        <PuentePreview
+          resumen={previaPuente}
+          umbralMin={umbralPuente}
+          confirmando={confirmandoSync}
+          onConfirmar={confirmarPuente}
+          onCancelar={() => setPreviaPuente(null)}
+        />
+      )}
 
       {preview && (
         <ImportPreview

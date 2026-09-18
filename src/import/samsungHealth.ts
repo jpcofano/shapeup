@@ -323,6 +323,17 @@ export type EjercicioItem = CardioInput & {
   _customId?: string;
   /** FC mínima de la sesión. */
   _fcMin?: number;
+  /**
+   * Puntos de curva de FC de esta sesión (PU4). El ZIP no lo llena — la curva
+   * viaja aparte, en `live_data.json`; el adaptador del puente sí, contando el
+   * `log`. Se usa para decidir el `origen` de una entrada externa.
+   */
+  _muestrasCurva?: number;
+  /**
+   * Lo registró el reloj solo (PU4). Solo lo llena el adaptador del puente: el
+   * Data SDK lo trae explícito y el ZIP no tiene nada equivalente.
+   */
+  _autoDetected?: boolean;
 };
 
 export function parsearEjercicio(
