@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { importarCardioIdempotente, getMetricasSalud } from "./salud";
+import { importarCardioIdempotente, getMetricasSalud, guardarCardio, idCardioDe } from "./salud";
 
 vi.mock("../firebase", () => ({ db: {} }));
 
@@ -97,5 +97,49 @@ describe("importarCardioIdempotente", () => {
     expect(setDocCalls[0].id).toBe(setDocCalls[1].id);
     expect(setDocCalls[0].data.inicioMs).toBe(1000);
     expect(setDocCalls[1].data.inicioMs).toBe(5000);
+  });
+});
+
+// ── Idempotencia del cardio por datauuid (P75) ────────────────────────────────
+
+describe("idCardioDe", () => {
+  it("con datauuid es determinístico", () => {
+    expect(idCardioDe("abc-123")).toBe("CAR-abc-123");
+    expect(idCardioDe("abc-123")).toBe(idCardioDe("abc-123"));
+  });
+
+  it("sin datauuid genera uno distinto cada vez, aun en el mismo milisegundo", () => {
+    // El sufijo aleatorio: antes, `CAR-${Date.now()}` hacía que dos items
+    // guardados en el mismo tick se pisaran entre sí.
+    const ids = new Set(Array.from({ length: 50 }, () => idCardioDe()));
+    expect(ids.size).toBe(50);
+  });
+});
+
+describe("guardarCardio", () => {
+  const base = {
+    miembro: "juanpablo" as const, fecha: "2026-09-14", actividad: "Caminata",
+    esVR: false, fuente: "samsung-health-csv" as const, duracionMin: 40,
+  };
+
+  it("dos guardados del mismo item de Samsung dan un solo documento", async () => {
+    await guardarCardio({ ...base, _uuid: "uuid-1" });
+    await guardarCardio({ ...base, _uuid: "uuid-1", duracionMin: 41 });
+    expect(setDocCalls).toHaveLength(2);
+    expect(setDocCalls[0].id).toBe("CAR-uuid-1");
+    expect(setDocCalls[1].id).toBe("CAR-uuid-1");   // pisa, no duplica
+  });
+
+  it("no persiste el campo técnico _uuid", async () => {
+    await guardarCardio({ ...base, _uuid: "uuid-1" });
+    expect(setDocCalls[0].data).not.toHaveProperty("_uuid");
+    expect(setDocCalls[0].data.idCardio).toBe("CAR-uuid-1");
+  });
+
+  it("la carga manual (sin uuid) sigue generando un id nuevo", async () => {
+    await guardarCardio(base);
+    await guardarCardio(base);
+    expect(setDocCalls[0].id).not.toBe(setDocCalls[1].id);
+    expect(setDocCalls[0].id.startsWith("CAR-")).toBe(true);
   });
 });

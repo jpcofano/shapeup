@@ -246,9 +246,44 @@ export async function enriquecerHistorial(
   }
 }
 
-// ── Borrado ───────────────────────────────────────────────────────────────────
-
+/** Límite de Firestore: 500 operaciones por batch. Con margen. */
 const MAX_OPS_POR_BATCH = 400;
+
+/**
+ * Escribe entradas externas (P75) en batches de a `MAX_OPS_POR_BATCH`.
+ *
+ * `setDoc` sin merge, con el id determinístico `EXT-{datauuid}`: reimportar el
+ * mismo ZIP PISA la entrada en vez de duplicarla. `idsExistentes` son los
+ * `idHist` que ya estaban en el historial cargado — sirve para informar cuántas
+ * fueron actualizaciones y cuántas altas, sin leer de nuevo.
+ */
+export async function guardarEntradasExternas(
+  entradas: Historial[],
+  idsExistentes: ReadonlySet<string>,
+): Promise<Result<{ creadas: number; actualizadas: number }>> {
+  if (entradas.length === 0) return ok({ creadas: 0, actualizadas: 0 });
+  try {
+    let batch = writeBatch(db);
+    let ops = 0;
+    for (const entrada of entradas) {
+      batch.set(doc(db, "historial", entrada.idHist), entrada);
+      ops++;
+      if (ops >= MAX_OPS_POR_BATCH) {
+        await batch.commit();
+        batch = writeBatch(db);
+        ops = 0;
+      }
+    }
+    if (ops > 0) await batch.commit();
+
+    const actualizadas = entradas.filter((e) => idsExistentes.has(e.idHist)).length;
+    return ok({ creadas: entradas.length - actualizadas, actualizadas });
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+// ── Borrado ───────────────────────────────────────────────────────────────────
 
 /** writeBatch que se auto-flushea cada `MAX_OPS_POR_BATCH` operaciones (límite Firestore: 500). */
 function batchAutoFlush() {

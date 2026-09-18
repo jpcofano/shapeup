@@ -16,7 +16,18 @@ import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 
 function idMedicion(): string { return `MED-${Date.now()}`; }
-function idCardio():   string { return `CAR-${Date.now()}`; }
+
+/**
+ * Id de una sesión de cardio (P75). Con `datauuid` de Samsung es
+ * determinístico — reimportar el mismo ZIP pisa la fila en vez de duplicarla.
+ * Sin uuid (carga manual) se genera uno único: el sufijo aleatorio evita que
+ * dos items guardados en el mismo milisegundo se pisen entre sí.
+ */
+export function idCardioDe(datauuid?: string): string {
+  return datauuid
+    ? `CAR-${datauuid}`
+    : `CAR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 // ── MedicionCorporal ──────────────────────────────────────────────────────────
 
@@ -72,11 +83,19 @@ export async function getSesionesCardio(miembro: MiembroId): Promise<Result<Sesi
   }
 }
 
-export async function guardarCardio(data: CardioInput): Promise<Result<SesionCardio>> {
+/**
+ * Guarda una sesión de cardio. Si el item trae `_uuid` (viene de Samsung), el id
+ * es determinístico y volver a guardarlo pisa la misma fila (P75); la carga
+ * manual, que no tiene uuid, sigue generando uno nuevo.
+ */
+export async function guardarCardio(
+  data: CardioInput & { _uuid?: string },
+): Promise<Result<SesionCardio>> {
   try {
-    const id  = idCardio();
+    const { _uuid, ...limpio } = data;
+    const id  = idCardioDe(_uuid);
     const ses: SesionCardio = {
-      ...data,
+      ...limpio,
       idCardio:      id,
       fechaCreacion: serverTimestamp() as unknown as FirestoreTimestamp,
     };
@@ -105,9 +124,9 @@ export async function importarMediciones(
   }
 }
 
-/** Guarda múltiples sesiones de cardio de una vez. */
+/** Guarda múltiples sesiones de cardio de una vez. Idempotente si traen `_uuid` (P75). */
 export async function importarCardio(
-  items: CardioInput[],
+  items: (CardioInput & { _uuid?: string })[],
 ): Promise<Result<ImportResult>> {
   try {
     const results = await Promise.allSettled(items.map((item) => guardarCardio(item)));
@@ -196,7 +215,7 @@ export async function importarCardioIdempotente(
       items.map((item) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { _uuid, _startMs, _endMs, _customId, _fcMin, ...data } = item;
-        const id = _uuid ? `CAR-${_uuid}` : `CAR-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const id = idCardioDe(_uuid);
         const payload = { ...data, idCardio: id, fechaCreacion: serverTimestamp() } as Record<string, unknown>;
         if (_startMs != null) payload.inicioMs = _startMs;
         if (_endMs   != null) payload.finMs    = _endMs;

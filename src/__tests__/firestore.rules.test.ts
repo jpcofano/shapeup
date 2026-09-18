@@ -103,6 +103,9 @@ describe("config", () => {
   it("owner puede escribir /config/visibilidad",    () => assertSucceeds(setDoc(doc(as("juanpablo").firestore(), "config", "visibilidad"), { test: true })));
   it("no-owner no puede escribir /config/visibilidad",() => assertFails(setDoc(doc(as("maria").firestore(),      "config", "visibilidad"), { test: true })));
   it("cualquier miembro puede escribir /config/perfiles", () => assertSucceeds(setDoc(doc(as("maria").firestore(), "config", "perfiles"), { maria: { color: "#fff" } })));
+  it("miembro puede leer /config/import",           () => assertSucceeds(getDoc(doc(as("sofia").firestore(),     "config", "import"))));
+  it("cualquier miembro puede escribir /config/import", () => assertSucceeds(setDoc(doc(as("maria").firestore(),  "config", "import"), { duracionMinimaMin: 10, actividadesSiempreRelevantes: ["Pádel"] })));
+  it("no-miembro no puede leer /config/import",     () => assertFails(  getDoc(doc(stranger().firestore(),        "config", "import"))));
   it("owner puede escribir /config/metodologia",    () => assertSucceeds(setDoc(doc(as("juanpablo").firestore(), "config", "metodologia"), { version: 1 })));
   it("no-owner no puede escribir /config/metodologia",() => assertFails(setDoc(doc(as("federico").firestore(),   "config", "metodologia"), { version: 1 })));
 });
@@ -147,6 +150,29 @@ describe("finalizar sesion (miembro no-owner)", () => {
   });
   it("no-miembro no puede escribir historial aunque tenga formato válido", () =>
     assertFails(setDoc(doc(stranger().firestore(), "historial", "H-str-001"), { miembro: "sofia" })));
+
+  // P75: una entrada externa no tiene bloques, tonelaje ni idRutina. Las reglas
+  // de /historial no validan campos, así que pasa — este test lo deja fijado.
+  it("un miembro puede crear un historial externo sin bloques ni tonelaje", () =>
+    assertSucceeds(setDoc(doc(as("maria").firestore(), "historial", "EXT-uuid-abc"), {
+      idHist: "EXT-uuid-abc", miembro: "maria", tipo: "externa",
+      fechaRealizada: "2026-09-14", nombreRutina: "Caminata", idSesion: "",
+      semanaInicio: "2026-09-14", duracionRealMin: 40,
+      rpe: null, tonelajeKg: null, totalSeriesHechas: null, bloques: [],
+      externa: { actividad: "Caminata", datauuid: "uuid-abc", fuente: "samsung-health-csv" },
+    })));
+
+  it("reimportar la misma externa la pisa, no falla", async () => {
+    const ctx = as("maria");
+    const ref = doc(ctx.firestore(), "historial", "EXT-uuid-rep");
+    await assertSucceeds(setDoc(ref, { idHist: "EXT-uuid-rep", miembro: "maria", tipo: "externa", duracionRealMin: 40, bloques: [] }));
+    await assertSucceeds(setDoc(ref, { idHist: "EXT-uuid-rep", miembro: "maria", tipo: "externa", duracionRealMin: 41, bloques: [] }));
+  });
+
+  it("un no-miembro no puede crear una entrada externa", () =>
+    assertFails(setDoc(doc(stranger().firestore(), "historial", "EXT-uuid-str"), {
+      idHist: "EXT-uuid-str", miembro: "maria", tipo: "externa", bloques: [],
+    })));
 });
 
 // ── Borrado de historial/sesiones (E45) ───────────────────────────────────────

@@ -1,16 +1,25 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  lib/importSelectivo.ts — filtro puro de cardio por relevancia (ADR #020)
+//  lib/importSelectivo.ts — clasificador puro del import (P75, ADR #020)
 //
-//  Una sesión de cardio es relevante si cumple al menos una de estas reglas
-//  (en orden; el primero que aplica define _motivo):
-//    1. "shapeup"   — _customId en shapeUpCustomIds (sesión propia marcada en el reloj)
-//    2. "historial" — ventana [_startMs, _endMs] solapa ±TOLERANCIA_MS con algún Historial
-//    3. "vr"        — esVR === true (entrenamiento VR de la familia)
-//    4. "actividad" — actividad figura en ACTIVIDADES_SIEMPRE_RELEVANTES Y
-//                     duracionMin ≥ DURACION_MIN_ACTIVIDAD_MIN (S-fix, P55: guarda
-//                     extra tras el bug de mapeo que etiquetaba caminatas de 1 min
-//                     como "HIIT" — una caminata de 1 min jamás es entrenamiento,
-//                     se llame como se llame)
+//  Hasta P74 esto FILTRABA: cada actividad quedaba "relevante" o "descartada",
+//  y lo descartado se perdía sin dejar rastro. Desde P75 **nada se descarta en
+//  silencio**: cada item se clasifica en uno de tres destinos, y el que no
+//  entra dice por qué.
+//
+//    · "enriquece"  — es una sesión que ya entrenaste en la app. El dato se
+//                     suma a ese Historial; NO se crea una entrada nueva.
+//    · "externa"    — no matchea nada, pero es entrenamiento igual. Entra como
+//                     Historial con `tipo: "externa"` (lib/entradaExterna.ts).
+//    · "descartada" — ni matchea ni llega al umbral. No se escribe, pero se
+//                     muestra con su explicación.
+//
+//  Reglas en orden; la primera que aplica define el destino:
+//    1. "shapeup"   — _customId en shapeUpCustomIds        → enriquece
+//    2. "historial" — la ventana solapa con una sesión app → enriquece
+//    3. "vr"        — esVR, SIN mínimo de duración         → externa
+//    4. "actividad" — actividad configurada y ≥ umbral     → externa
+//    5. "duracion"  — ≥ umbral                             → externa
+//    6. "sin-match" — lo demás                             → descartada
 //
 //  ADR #009: lógica pura, sin Firebase.
 // ════════════════════════════════════════════════════════════════════════════
@@ -23,109 +32,157 @@ import { soloShapeUp } from "./tipoHistorial";
 
 // ── Tipos públicos ─────────────────────────────────────────────────────────
 
-export type MotivoRelevancia = "shapeup" | "historial" | "vr" | "actividad";
+export type DestinoImport = "enriquece" | "externa" | "descartada";
 
-export interface FiltroCardio<T> {
-  relevantes: (T & { _motivo: MotivoRelevancia })[];
-  descartadas: T[];
+export type MotivoClasificacion =
+  | "shapeup" | "historial" | "vr" | "actividad" | "duracion" | "sin-match";
+
+export interface ItemClasificado<T> {
+  item: T;
+  destino: DestinoImport;
+  motivo: MotivoClasificacion;
+  /** Solo si `destino === "enriquece"`: el Historial que este dato enriquece. */
+  idHist?: string;
+  /** Una línea en castellano para mostrarle al usuario. */
+  explicacion: string;
 }
 
-// ── Constante editable ─────────────────────────────────────────────────────
+/** Lo que el clasificador necesita de la configuración (`/config/import`). */
+export interface ConfigClasificacion {
+  duracionMinimaMin: number;
+  actividadesSiempreRelevantes: string[];
+}
+
+/** Item de cardio con los campos técnicos que agrega el parser de Samsung. */
+export type CardioClasificable = CardioInput & {
+  _startMs?: number;
+  _endMs?: number;
+  _customId?: string;
+};
+
+// ── Defaults de configuración ──────────────────────────────────────────────
 
 /**
- * Actividades que siempre se importan aunque no haya Historial que las respalde.
- * Los nombres deben coincidir con la salida exacta de resolverActividad().
- * Constante exportada para que el owner pueda ampliarla sin editar la lógica.
+ * DEFAULT de `/config/import.actividadesSiempreRelevantes` — se usa tal cual si
+ * el documento no existe. Los nombres deben coincidir con la salida exacta de
+ * `resolverActividad()`.
  */
 export const ACTIVIDADES_SIEMPRE_RELEVANTES: string[] = [
   "Body Combat",
-  "Aeróbico",           // código 28 en EXERCISE_TYPE
+  "Aeróbico",            // código 28 en EXERCISE_TYPE
   "HIIT",                // nombre libre/custom — el código 1001 es Caminata, no HIIT (S-fix, P55)
   "Entrenamiento en circuito",
   "Entrenamiento de fuerza",
 ];
 
-/** Duración mínima (minutos) para que la regla "actividad" aplique (S-fix, P55). */
+/**
+ * DEFAULT de `/config/import.duracionMinimaMin`. Diez minutos: por debajo de
+ * eso no es entrenamiento, se llame como se llame (S-fix, P55 — el bug de mapeo
+ * etiquetaba caminatas de 1 min como "HIIT"). Configurable desde P75, pero el
+ * valor no cambia.
+ */
 export const DURACION_MIN_ACTIVIDAD_MIN = 10;
 
 // ── Función principal ──────────────────────────────────────────────────────
 
 /**
- * Clasifica cada sesión de cardio en relevante o descartada.
+ * Clasifica cada item del import en enriquece / externa / descartada.
  *
- * @param cardio          Items parseados (pueden traer _startMs/_endMs/_customId).
- * @param historial       Historial del miembro para el match por ventana.
- * @param shapeUpCustomIds IDs custom de ShapeUp ([] si viene de CSV suelto).
+ * `now` (epoch ms) solo se usa para redactar la explicación ("de hoy" vs "del
+ * 14/9"): no cambia ninguna decisión.
  *
- * No muta la entrada. Stripeá `_motivo` antes de persistir:
- *   `relevantes.map(({ _motivo: _, ...rest }) => rest)`
+ * No muta la entrada. Antes de persistir, sacá los campos `_`.
  */
-export function filtrarCardioRelevante<
-  T extends CardioInput & { _startMs?: number; _endMs?: number; _customId?: string },
->(
-  cardio: T[],
+export function clasificarImport<T extends CardioClasificable>(
+  items: T[],
   historial: Historial[],
   shapeUpCustomIds: string[],
-): FiltroCardio<T> {
-  const relevantes: (T & { _motivo: MotivoRelevancia })[] = [];
-  const descartadas: T[] = [];
+  config: ConfigClasificacion,
+  now: number,
+): ItemClasificado<T>[] {
+  // Solo ShapeUp (P74): si una externa de un import anterior contara como
+  // historial, cada actividad se enriquecería a sí misma en la próxima corrida.
+  const propias = soloShapeUp(historial);
+  return items.map((item) => clasificar(item, propias, shapeUpCustomIds, config, now));
+}
 
-  for (const c of cardio) {
-    const motivo = clasificar(c, historial, shapeUpCustomIds);
-    if (motivo !== null) {
-      relevantes.push({ ...c, _motivo: motivo });
-    } else {
-      descartadas.push(c);
-    }
+function clasificar<T extends CardioClasificable>(
+  c: T,
+  propias: Historial[],
+  shapeUpCustomIds: string[],
+  config: ConfigClasificacion,
+  now: number,
+): ItemClasificado<T> {
+  const dur = c.duracionMin;
+
+  // Regla 1 — marcada como ShapeUp en el reloj.
+  if (shapeUpCustomIds.length > 0 && c._customId && shapeUpCustomIds.includes(c._customId)) {
+    const h = buscarHistorialSolapado(c, propias);
+    return {
+      item: c, destino: "enriquece", motivo: "shapeup",
+      ...(h ? { idHist: h.idHist } : {}),
+      explicacion: h
+        ? `Marcada como ShapeUp en el reloj — enriquece tu ${nombreSesion(h)} ${cuando(h.fechaRealizada, now)}`
+        : "Marcada como ShapeUp en el reloj — enriquece la sesión que le corresponda",
+    };
   }
 
-  return { relevantes, descartadas };
+  // Regla 2 — la ventana solapa con una sesión entrenada en la app.
+  const solapada = buscarHistorialSolapado(c, propias);
+  if (solapada) {
+    return {
+      item: c, destino: "enriquece", motivo: "historial", idHist: solapada.idHist,
+      explicacion: `Ya estaba en tu ${nombreSesion(solapada)} ${cuando(solapada.fechaRealizada, now)}`,
+    };
+  }
+
+  // Regla 3 — VR entra siempre: una partida corta también es entrenamiento.
+  if (c.esVR) {
+    return {
+      item: c, destino: "externa", motivo: "vr",
+      explicacion: `Sesión de VR${duracionTexto(dur)} — entra como entrenamiento`,
+    };
+  }
+
+  const llegaAlUmbral = dur != null && dur >= config.duracionMinimaMin;
+
+  // Regla 4 — actividad de la lista configurada, con el piso de duración.
+  if (config.actividadesSiempreRelevantes.includes(c.actividad) && llegaAlUmbral) {
+    return {
+      item: c, destino: "externa", motivo: "actividad",
+      explicacion: `${c.actividad}${duracionTexto(dur)} — actividad que siempre se importa`,
+    };
+  }
+
+  // Regla 5 — cualquier cosa que dure lo suficiente. La regla nueva de P75:
+  // una caminata de 40 minutos ya no se pierde.
+  if (llegaAlUmbral) {
+    return {
+      item: c, destino: "externa", motivo: "duracion",
+      explicacion: `${c.actividad}${duracionTexto(dur)} — entra por duración`,
+    };
+  }
+
+  // Regla 6 — ni matchea ni llega al umbral.
+  return {
+    item: c, destino: "descartada", motivo: "sin-match",
+    explicacion: dur == null
+      ? `${c.actividad} sin duración registrada, sin sesión que la respalde`
+      : `${c.actividad} de ${Math.round(dur)} min, sin sesión que la respalde`,
+  };
 }
 
 // ── Helpers internos ───────────────────────────────────────────────────────
 
-function clasificar<
-  T extends CardioInput & { _startMs?: number; _endMs?: number; _customId?: string },
->(
+/**
+ * El Historial de ShapeUp cuya ventana solapa con la del item, o `null`.
+ * Con timestamps, solapamiento real con `TOLERANCIA_MS`; sin ellos, el mismo día.
+ */
+function buscarHistorialSolapado<T extends CardioClasificable>(
   c: T,
-  historial: Historial[],
-  shapeUpCustomIds: string[],
-): MotivoRelevancia | null {
-  // Regla 1: ShapeUp custom ID (lista no vacía, _customId no vacío)
-  if (shapeUpCustomIds.length > 0 && c._customId && shapeUpCustomIds.includes(c._customId)) {
-    return "shapeup";
-  }
-
-  // Regla 2: Solape con ventana de algún Historial
-  if (solapaConHistorial(c, historial)) {
-    return "historial";
-  }
-
-  // Regla 3: Sesión VR
-  if (c.esVR) {
-    return "vr";
-  }
-
-  // Regla 4: Actividad siempre relevante — pero nunca por debajo del piso de duración
-  if (
-    ACTIVIDADES_SIEMPRE_RELEVANTES.includes(c.actividad) &&
-    c.duracionMin != null && c.duracionMin >= DURACION_MIN_ACTIVIDAD_MIN
-  ) {
-    return "actividad";
-  }
-
-  return null;
-}
-
-function solapaConHistorial<
-  T extends CardioInput & { _startMs?: number; _endMs?: number },
->(c: T, historial: Historial[]): boolean {
-  // Solo ShapeUp: "este cardio corresponde a algo que entrené" se decide contra
-  // sesiones de la app. Una externa vino del mismo export — si contara, cada
-  // cardio se declararía relevante por sí mismo (P74).
-  const propias = soloShapeUp(historial);
+  propias: Historial[],
+): Historial | null {
   if (c._startMs != null && c._endMs != null) {
-    // Tiene timestamps: chequeá solapamiento con tolerancia
     for (const h of propias) {
       const ventana = ventanaDeHistorial(h);
       if (!ventana) continue;
@@ -133,14 +190,30 @@ function solapaConHistorial<
         c._startMs <= ventana.finMs + TOLERANCIA_MS &&
         c._endMs   >= ventana.inicioMs - TOLERANCIA_MS
       ) {
-        return true;
+        return h;
       }
     }
-  } else {
-    // Sin timestamps: fallback por fecha (mismo día = solape)
-    for (const h of propias) {
-      if (c.fecha === h.fechaRealizada) return true;
-    }
+    return null;
   }
-  return false;
+  // Sin timestamps: fallback por fecha (mismo día = solape).
+  return propias.find((h) => c.fecha === h.fechaRealizada) ?? null;
+}
+
+/** "sesión de Fuerza A" / "sesión" — para la explicación. */
+function nombreSesion(h: Historial): string {
+  return h.nombreRutina ? `sesión de ${h.nombreRutina}` : "sesión";
+}
+
+/** "de hoy" o "del 14/9". `fecha` es "YYYY-MM-DD". */
+function cuando(fecha: string, now: number): string {
+  const d = new Date(now);
+  const hoy = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  if (fecha === hoy) return "de hoy";
+  const [, mes, dia] = fecha.split("-");
+  return `del ${Number(dia)}/${Number(mes)}`;
+}
+
+/** " de 40 min", o "" si no hay duración. */
+function duracionTexto(dur: number | undefined): string {
+  return dur != null ? ` de ${Math.round(dur)} min` : "";
 }

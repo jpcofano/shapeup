@@ -21,6 +21,7 @@ const MATCH_POR_LABEL: Record<BiometriaSesion["matchPor"], string> = {
   "ventana":   "por ventana",
   "dia":       "por día (único ShapeUp)",
   "rango":     "por rango horario",
+  "directo":   "dato propio",       // entrada externa: el dato es de ella misma (P75)
 };
 
 

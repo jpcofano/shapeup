@@ -24,8 +24,13 @@ import { compararConPrevias, serieCostoRutina } from "./costoCardiaco";
 import { tonelajeKg, totalSeriesHechas } from "./metricas";
 import { sesionDeHoy } from "./sesionDeHoy";
 import { proximaSesion } from "./proximaSesion";
-import { filtrarCardioRelevante } from "./importSelectivo";
+import {
+  clasificarImport, ACTIVIDADES_SIEMPRE_RELEVANTES, DURACION_MIN_ACTIVIDAD_MIN,
+  type ConfigClasificacion,
+} from "./importSelectivo";
 import { calcularEnriquecimiento } from "./enriquecerImport";
+import { construirEntradaExterna } from "./entradaExterna";
+import { soloShapeUp } from "./tipoHistorial";
 
 import {
   HISTORIAL_MIXTO, SOLO_SHAPEUP, EXTERNAS, ID_EJERCICIO, ID_RUTINA, SEMANA,
@@ -182,23 +187,29 @@ describe("aislamiento · plan de la semana", () => {
 });
 
 describe("aislamiento · import de salud", () => {
+  const CONFIG: ConfigClasificacion = {
+    duracionMinimaMin: DURACION_MIN_ACTIVIDAD_MIN,
+    actividadesSiempreRelevantes: ACTIVIDADES_SIEMPRE_RELEVANTES,
+  };
+  const AHORA = Date.UTC(2026, 8, 13, 12, 0);
   const cardio: CardioInput & { _startMs?: number; _endMs?: number } = {
     miembro: MIEMBRO, fecha: "2026-09-08", actividad: "Ciclismo", esVR: false,
     fuente: "samsung-health-csv", duracionMin: 35,
     _startMs: Date.UTC(2026, 8, 8, 12, 5), _endMs: Date.UTC(2026, 8, 8, 12, 40),
   };
 
-  it("filtrarCardioRelevante no cambia con externas", () => {
-    expect(filtrarCardioRelevante([cardio], HISTORIAL_MIXTO, []))
-      .toEqual(filtrarCardioRelevante([cardio], SOLO_SHAPEUP, []));
+  it("clasificarImport no cambia con externas en el historial", () => {
+    expect(clasificarImport([cardio], HISTORIAL_MIXTO, [], CONFIG, AHORA))
+      .toEqual(clasificarImport([cardio], SOLO_SHAPEUP, [], CONFIG, AHORA));
   });
 
-  it("un cardio que solo solapa con una externa no se declara relevante", () => {
-    // La caminata del martes cubre esa misma ventana: si contara como historial,
-    // el cardio entraría por "historial" y el import selectivo perdería sentido.
-    const { relevantes, descartadas } = filtrarCardioRelevante([cardio], EXTERNAS, []);
-    expect(relevantes).toHaveLength(0);
-    expect(descartadas).toHaveLength(1);
+  it("un cardio que solo solapa con una externa no enriquece: entra como externa", () => {
+    // La caminata del martes cubre esa misma ventana. Si contara como historial,
+    // el dato se enriquecería a sí mismo en cada import (P74 + P75).
+    const [r] = clasificarImport([cardio], EXTERNAS, [], CONFIG, AHORA);
+    expect(r.destino).toBe("externa");
+    expect(r.motivo).toBe("duracion");
+    expect(r.idHist).toBeUndefined();
   });
 
   it("calcularEnriquecimiento no cambia con externas", () => {
@@ -278,7 +289,10 @@ describe("robustez ante entradas externas", () => {
       compararConPrevias(rutinaLunes, EXTERNAS);
       sesionDeHoy(prog, 0, EXTERNAS);
       proximaSesion(prog, EXTERNAS);
-      filtrarCardioRelevante([], EXTERNAS, []);
+      clasificarImport([], EXTERNAS, [], {
+        duracionMinimaMin: DURACION_MIN_ACTIVIDAD_MIN,
+        actividadesSiempreRelevantes: ACTIVIDADES_SIEMPRE_RELEVANTES,
+      }, Date.UTC(2026, 8, 13));
       calcularEnriquecimiento(EXTERNAS, { sesionesSamsung: [], liveData: {}, shapeUpCustomId: undefined });
       EXTERNAS.forEach((h) => { tonelajeKg(h); totalSeriesHechas(h); });
     }).not.toThrow();
@@ -290,5 +304,70 @@ describe("robustez ante entradas externas", () => {
     expect(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP).some((s) => s.fecha === "2026-08-31")).toBe(true);
     expect(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP).some((p) => p.fecha === "2026-08-31")).toBe(true);
     expect(rachaDelPlan(SOLO_SHAPEUP, "2026-08-31")).toBe(1);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P75: las entradas externas REALES (las que construye el import) tampoco
+//  mueven la aguja. La fixture de P74 las simula; esto usa el constructor de
+//  verdad, que es lo que va a escribir el import de acá en más.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("aislamiento · entradas externas construidas por el import (P75)", () => {
+  /** Tres actividades reales, una el mismo día que la rutina del lunes. */
+  const nuevas: Historial[] = [
+    { fecha: "2026-09-07", actividad: "Caminata", uuid: "u-1", dur: 35, inicio: Date.UTC(2026, 8, 7, 19, 0) },
+    { fecha: "2026-09-08", actividad: "Ciclismo", uuid: "u-2", dur: 50, inicio: Date.UTC(2026, 8, 8, 18, 0) },
+    { fecha: "2026-09-12", actividad: "Caminata", uuid: "u-3", dur: 25, inicio: Date.UTC(2026, 8, 12, 9, 0) },
+  ].map((a) => construirEntradaExterna({
+    fecha: a.fecha, actividad: a.actividad, esVR: false, fuente: "samsung-health-csv",
+    duracionMin: a.dur, kcal: 200, fcPromedio: 115, _uuid: a.uuid,
+    _startMs: a.inicio, _endMs: a.inicio + a.dur * 60_000,
+  }, MIEMBRO));
+
+  const conNuevas = [...SOLO_SHAPEUP, ...nuevas];
+
+  it("la racha del plan no cambia", () => {
+    expect(rachaDelPlan(conNuevas, SEMANA)).toBe(rachaDelPlan(SOLO_SHAPEUP, SEMANA));
+  });
+
+  it("la adherencia de la semana no cambia", () => {
+    // Adherencia = sesiones ShapeUp de la semana, como la cuenta Home.
+    const dela = (hs: Historial[]) => soloShapeUp(hs).filter((h) => h.semanaInicio === SEMANA).length;
+    expect(dela(conNuevas)).toBe(dela(SOLO_SHAPEUP));
+  });
+
+  it("el tonelaje no cambia", () => {
+    const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
+    expect(suma(conNuevas)).toBe(suma(SOLO_SHAPEUP));
+  });
+
+  it("la progresión no cambia", () => {
+    expect(sesionesDelEjercicio(ID_EJERCICIO, conNuevas))
+      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP));
+  });
+
+  it("el costo cardíaco de la rutina no cambia", () => {
+    expect(serieCostoRutina(ID_RUTINA, conNuevas)).toEqual(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP));
+  });
+
+  it("semanasSinDescarga no cambia", () => {
+    expect(semanasSinDescarga(conNuevas, HOY)).toBe(semanasSinDescarga(SOLO_SHAPEUP, HOY));
+  });
+
+  it("pero los días activos SÍ suben: te moviste", () => {
+    // El 7/9 ya estaba entrenado, así que suma 8/9 y 12/9: dos días nuevos.
+    expect(diasActivos(conNuevas, "2026-09-07", "2026-09-13"))
+      .toBe(diasActivos(SOLO_SHAPEUP, "2026-09-07", "2026-09-13") + 2);
+  });
+
+  it("reimportar las mismas actividades no duplica nada: mismo idHist", () => {
+    const otraVez = nuevas.map((h) => construirEntradaExterna({
+      fecha: h.fechaRealizada, actividad: h.externa!.actividad, esVR: false,
+      fuente: "samsung-health-csv", duracionMin: h.duracionRealMin ?? 0,
+      _uuid: h.externa!.datauuid,
+    }, MIEMBRO));
+    expect(otraVez.map((h) => h.idHist)).toEqual(nuevas.map((h) => h.idHist));
+    expect(new Set([...nuevas, ...otraVez].map((h) => h.idHist)).size).toBe(nuevas.length);
   });
 });

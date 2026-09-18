@@ -456,7 +456,11 @@ export interface BiometriaSesion {
   fcMin?: number;
   zonaPrincipal?: ZonaFC;             // derivada de fcMedia vs config/perfiles.zonasFC del miembro
   kcal?: number;
-  matchPor: "custom-id" | "ventana" | "dia" | "rango"; // cómo se identificó la sesión Samsung
+  /**
+   * Cómo se identificó la sesión Samsung. `"directo"` es el caso de una entrada
+   * externa (P75): el dato no se matcheó contra nada, ES el de esa entrada.
+   */
+  matchPor: "custom-id" | "ventana" | "dia" | "rango" | "directo";
   granularidad: "serie" | "sesion";  // qué tan fino llegó el enriquecimiento
   /**
    * Fin efectivo usado para los cálculos cuando Samsung siguió grabando de más
@@ -500,6 +504,18 @@ export interface Historial {
 
   /** Enriquecimiento post-hoc con datos de Samsung Health (FC, zona, kcal). */
   biometria?: BiometriaSesion;
+
+  /**
+   * Solo en `tipo: "externa"` (P75): de dónde salió la entrada. El `datauuid` es
+   * lo que la hace idempotente — el `idHist` se deriva de él (`EXT-{datauuid}`),
+   * así que reimportar el mismo ZIP pisa la entrada en vez de duplicarla.
+   */
+  externa?: {
+    actividad: string;             // "Caminata", "Body Combat"
+    datauuid: string;              // el de Samsung
+    fuente: FuenteDato;
+    distanciaKm?: number;
+  };
 
   comoMeSenti?: string;
   queMejorar?: string;

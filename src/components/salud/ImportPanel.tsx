@@ -3,12 +3,14 @@ import { X } from "lucide-react";
 import type { MiembroId } from "../../types/models";
 import type { SamsungCsvType } from "../../import/samsungHealth";
 import type { ZipExtraccion } from "../../import/samsungZip";
-import type { FiltroCardio } from "../../lib/importSelectivo";
+import type { ItemClasificado } from "../../lib/importSelectivo";
 import type { CardioInput } from "../../data/salud";
 
 // ── Tipos compartidos ─────────────────────────────────────────────────────────
 
-export type CardioEx = CardioInput & { _startMs?: number; _endMs?: number; _customId?: string };
+export type CardioEx = CardioInput & {
+  _startMs?: number; _endMs?: number; _customId?: string; _uuid?: string; _fcMin?: number;
+};
 
 export interface PreviewState {
   tipo:         SamsungCsvType | "zip";
@@ -18,17 +20,33 @@ export interface PreviewState {
   previewRows:  Record<string, string>[];
   zipData?:     ZipExtraccion;
   zipTotal?:    number;
-  filtroCardio?: FiltroCardio<CardioEx>;
+  /** Cada actividad con su destino y su explicación (P75). */
+  clasificadas?: ItemClasificado<CardioEx>[];
+  /** `idHist` que ya estaban en el historial: distingue alta de actualización. */
+  idsHistorial?: ReadonlySet<string>;
+}
+
+/** Cuántas descartadas se listan una por una antes de resumir el resto. */
+const MAX_DESCARTADAS_VISIBLES = 20;
+
+/** Una línea del desglose por destino. No se muestra si el grupo está vacío. */
+function GrupoDestino({ n, label, color }: { n: number; label: string; color: string }) {
+  if (n === 0) return null;
+  return (
+    <li style={{ fontSize: 12, color: "var(--muted)" }}>
+      <strong style={{ color }}>{n}</strong> {label}
+    </li>
+  );
 }
 
 // ── ImportPreview ─────────────────────────────────────────────────────────────
 
 export function ImportPreview({
-  preview, importarTodoCardio, onToggleCardio, onConfirm, onCancel,
+  preview, importarDescartadas, onToggleDescartadas, onConfirm, onCancel,
 }: {
   preview: PreviewState;
-  importarTodoCardio: boolean;
-  onToggleCardio: (v: boolean) => void;
+  importarDescartadas: boolean;
+  onToggleDescartadas: (v: boolean) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -39,9 +57,11 @@ export function ImportPreview({
   };
   const totalItems = preview.zipTotal ?? parsedItems.length;
   const cols = previewRows.length > 0 ? Object.keys(previewRows[0]) : [];
-  const f = preview.filtroCardio;
-  const cardioTotal     = f ? f.relevantes.length + f.descartadas.length : 0;
-  const cardioRelevantes = f?.relevantes.length ?? 0;
+  const cls          = preview.clasificadas;
+  const cardioTotal  = cls?.length ?? 0;
+  const enriquecen   = cls?.filter((c) => c.destino === "enriquece")  ?? [];
+  const externas     = cls?.filter((c) => c.destino === "externa")    ?? [];
+  const descartadas  = cls?.filter((c) => c.destino === "descartada") ?? [];
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
@@ -143,42 +163,64 @@ export function ImportPreview({
             <p key={i} style={{ fontSize: 11, color: "var(--warning)", margin: 0 }}>⚠ {e}</p>
           ))}
 
-          {f && cardioTotal > 0 && (
+          {/* Los tres destinos del import (P75). Nada se descarta en silencio:
+              lo que no entra se lista con el motivo por el que no entra. */}
+          {cls && cardioTotal > 0 && (
             <div style={{ marginTop: 10, padding: "8px 10px", borderRadius: "var(--r-sm)", background: "var(--card)", border: "1px solid var(--border)" }}>
-              <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--fg)" }}>
-                <strong>Cardio:</strong>{" "}
-                {importarTodoCardio
-                  ? <>{cardioTotal} <span style={{ color: "var(--muted)" }}>(todos del export)</span></>
-                  : <>{cardioRelevantes > 0 ? <strong>{cardioRelevantes} relevantes</strong> : "0 relevantes"}{" de "}{cardioTotal} en el export
-                    {f.relevantes.length > 0 && (
-                      <span style={{ color: "var(--muted)", fontSize: 11 }}>
-                        {" "}({[
-                          f.relevantes.filter((r) => r._motivo === "shapeup").length   > 0 && `${f.relevantes.filter((r) => r._motivo === "shapeup").length} ShapeUp`,
-                          f.relevantes.filter((r) => r._motivo === "historial").length > 0 && `${f.relevantes.filter((r) => r._motivo === "historial").length} matchean tu historial`,
-                          f.relevantes.filter((r) => r._motivo === "vr").length        > 0 && `${f.relevantes.filter((r) => r._motivo === "vr").length} VR`,
-                          f.relevantes.filter((r) => r._motivo === "actividad").length > 0 && `${f.relevantes.filter((r) => r._motivo === "actividad").length} por actividad`,
-                        ].filter(Boolean).join(", ")})
-                      </span>
-                    )}
-                    {f.descartadas.length > 0 && <span style={{ color: "var(--muted)" }}> · {f.descartadas.length} se omiten</span>}
-                  </>
-                }
+              <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--fg)" }}>
+                <strong>Actividades:</strong> {cardioTotal} en el export
               </p>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}>
+
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 3 }}>
+                <GrupoDestino
+                  n={enriquecen.length} color="var(--accent)"
+                  label="enriquecen sesiones que ya entrenaste"
+                />
+                <GrupoDestino
+                  n={externas.length} color="var(--info)"
+                  label="entran como actividad externa"
+                />
+                <GrupoDestino
+                  n={descartadas.length} color="var(--muted)"
+                  label={importarDescartadas ? "descartadas (se importan igual)" : "descartadas"}
+                />
+              </ul>
+
+              {descartadas.length > 0 && (
+                <details style={{ marginTop: 6 }}>
+                  <summary style={{ fontSize: 11, color: "var(--muted)", cursor: "pointer" }}>
+                    Ver por qué no entran
+                  </summary>
+                  <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+                    {descartadas.slice(0, MAX_DESCARTADAS_VISIBLES).map((d, i) => (
+                      <p key={i} style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
+                        · {d.explicacion}
+                      </p>
+                    ))}
+                    {descartadas.length > MAX_DESCARTADAS_VISIBLES && (
+                      <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)", fontStyle: "italic" }}>
+                        y {descartadas.length - MAX_DESCARTADAS_VISIBLES} más, de {descartadas.length} en total
+                      </p>
+                    )}
+                  </div>
+                </details>
+              )}
+
+              <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}>
                 <input
                   type="checkbox"
-                  checked={importarTodoCardio}
-                  onChange={(e) => onToggleCardio(e.target.checked)}
+                  checked={importarDescartadas}
+                  onChange={(e) => onToggleDescartadas(e.target.checked)}
                   style={{ cursor: "pointer" }}
                 />
-                Importar todo el cardio ({cardioTotal})
+                Importar también las descartadas ({descartadas.length})
               </label>
             </div>
           )}
 
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <button className="btn-primary" style={{ flex: 1 }} onClick={onConfirm}>
-              Importar {importarTodoCardio || !f ? totalItems : (totalItems - f.descartadas.length)} registros
+              Importar {importarDescartadas || !cls ? totalItems : (totalItems - descartadas.length)} registros
             </button>
             <button className="btn-secondary" onClick={onCancel}>Cancelar</button>
           </div>
