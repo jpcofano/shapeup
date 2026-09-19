@@ -30,6 +30,7 @@ import { clasificarImport, type ItemClasificado } from "../lib/importSelectivo";
 import { getConfigImport, CONFIG_IMPORT_DEFAULT } from "../data/configImport";
 import { construirEntradaExterna, type ItemExterno } from "../lib/entradaExterna";
 import { guardarEntradasExternas } from "../data/historial";
+import { firebaseErrorMessage } from "../lib/result";
 import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
 import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
 import { PuentePanel, PuentePreview } from "../components/salud/PuentePanel";
@@ -142,26 +143,40 @@ export function Salud() {
     if (!user?.uid || !memberId || !previaPuente) return;
     setConfirmandoSync(true);
     setErrorPuente(null);
-    const [perfRes, histRes, cfgRes] = await Promise.all([
-      getPerfiles(),
-      getHistorialShapeUp(memberId as MiembroId),
-      getConfigImport(),
-    ]);
-    const r = await sincronizarDesdePuente(
-      user.uid, memberId as MiembroId, histRes.ok ? histRes.value : [],
-      cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT,
-      { zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined },
-    );
-    setConfirmandoSync(false);
+    let r: Awaited<ReturnType<typeof sincronizarDesdePuente>>;
+    try {
+      const [perfRes, histRes, cfgRes] = await Promise.all([
+        getPerfiles(),
+        getHistorialShapeUp(memberId as MiembroId),
+        getConfigImport(),
+      ]);
+      r = await sincronizarDesdePuente(
+        user.uid, memberId as MiembroId, histRes.ok ? histRes.value : [],
+        cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT,
+        { zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined },
+      );
+    } catch (e) {
+      // Cualquier excepción inesperada: antes se comía el `setConfirmandoSync(false)`
+      // y el botón quedaba en "Guardando…" hasta recargar la página (P76a).
+      setErrorPuente(firebaseErrorMessage(e));
+      return;
+    } finally {
+      // Pase lo que pase, el botón se destraba.
+      setConfirmandoSync(false);
+    }
     setPreviaPuente(null);
     if (!r.ok) { setErrorPuente(r.error); return; }
 
     const v = r.value;
+    // Los contadores son los de la escritura real, no los de la clasificación.
     setImportMsg(
-      `✅ Puente: ${v.registros} registros · ${v.enriquecen + v.externas} al historial`
-      + ` (${v.enriquecen} enriquecen, ${v.externas} como actividad)`
-      + `${v.soloSalud > 0 ? ` · ${v.soloSalud} solo en salud` : ""}`
-      + `${v.medicionesAEscribir > 0 ? ` · ${v.medicionesAEscribir} mediciones` : ""}`,
+      (v.enCola
+        ? `⏳ Puente: quedó en cola, se sube cuando haya señal.`
+        : `✅ Puente: ${v.registros} registros`)
+      + ` · ${v.escritos.cardio} en salud`
+      + `${v.escritos.externas > 0 ? ` · ${v.escritos.externas} al historial como actividad` : ""}`
+      + `${v.escritos.mediciones > 0 ? ` · ${v.escritos.mediciones} mediciones` : ""}`
+      + `${v.enriquecen > 0 ? ` · ${v.enriquecen} enriquecen sesiones tuyas` : ""}`,
     );
 
     // Refrescar lo que cambió.

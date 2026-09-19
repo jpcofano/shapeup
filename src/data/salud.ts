@@ -108,8 +108,31 @@ export async function guardarCardio(
 
 // ── Batch import ──────────────────────────────────────────────────────────────
 
-/** Resultado de un import batch resiliente. */
-export interface ImportResult { importados: number; omitidos: number; }
+/**
+ * Resultado de un import batch resiliente.
+ *
+ * `fallidos` y `primerError` son de P76a: antes, un rechazo del servidor
+ * (cuota, permisos, red) se contaba como "omitido" y la función devolvía `ok`,
+ * así que el llamador informaba éxito sobre documentos que nunca se escribieron.
+ */
+export interface ImportResult {
+  importados: number;
+  omitidos: number;
+  fallidos?: number;
+  primerError?: string;
+}
+
+/** Cuenta los rechazos de un `allSettled` y arma el ImportResult. */
+function resultadoDe(results: PromiseSettledResult<unknown>[], total: number): ImportResult {
+  const rechazos = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+  const importados = results.length - rechazos.length;
+  return {
+    importados,
+    omitidos: total - importados,
+    fallidos: rechazos.length,
+    ...(rechazos.length > 0 ? { primerError: firebaseErrorMessage(rechazos[0].reason) } : {}),
+  };
+}
 
 /** Guarda múltiples mediciones de una vez (para import CSV). */
 export async function importarMediciones(
@@ -198,8 +221,7 @@ export async function importarMedicionesIdempotente(
         );
       }),
     );
-    const importados = results.filter((r) => r.status === "fulfilled").length;
-    return ok({ importados, omitidos: items.length - importados });
+    return ok(resultadoDe(results, items.length));
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -219,11 +241,12 @@ export async function importarCardioIdempotente(
         const payload = { ...data, idCardio: id, fechaCreacion: serverTimestamp() } as Record<string, unknown>;
         if (_startMs != null) payload.inicioMs = _startMs;
         if (_endMs   != null) payload.finMs    = _endMs;
+        // P76a: la FC mínima venía del parser y del adaptador y se tiraba acá.
+        if (_fcMin   != null) payload.fcMinima = _fcMin;
         return setDoc(doc(db, "cardio", id), payload, { merge: false });
       }),
     );
-    const importados = results.filter((r) => r.status === "fulfilled").length;
-    return ok({ importados, omitidos: items.length - importados });
+    return ok(resultadoDe(results, items.length));
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }

@@ -6,6 +6,7 @@ import {
 import { esAutodetectada, origenDe, clasificarImport, type ConfigClasificacion } from "./importSelectivo";
 import { construirEntradaExterna, idEntradaExterna, type ItemExterno } from "./entradaExterna";
 import { idCardioDe } from "../data/salud";
+import { parsearEjercicio } from "../import/samsungHealth";
 import type { Historial } from "../types/models";
 import {
   CRUDO_SHAPEUP, CRUDO_CAMINATA, CRUDO_COMPOSICION_GARMIN,
@@ -343,5 +344,67 @@ describe("clasificarImport sobre lo adaptado", () => {
       caminata.item as unknown as ItemExterno, MIEMBRO, caminata.motivoIngreso!,
     );
     expect(h.externa?.origen).toBe("autodetectada");
+  });
+});
+
+// ── Verificación cruzada ZIP ↔ SDK (P76a) ────────────────────────────────────
+//
+// La prueba de fuego del arreglo de hora: la MISMA sesión, entrando por las dos
+// vías, tiene que dar el mismo `inicioMs`. Los datos de abajo son reales, de la
+// sesión de pileta del 10/7/2026 (uuid ca63c94f…): la fila del CSV del export
+// del 14/9 y el crudo que devolvió el Data SDK para el mismo uid.
+//
+// Contra los datos completos: 71 actividades existen por las dos vías, y con el
+// parser corregido coinciden 71/71 (antes, 0/71).
+
+describe("verificación cruzada ZIP ↔ SDK — misma sesión, mismo inicioMs", () => {
+  const UUID = "ca63c94f-dcdd-4232-8055-a0dd09988b37";
+  const INICIO_REAL = 1783701598319;   // 2026-07-10T16:39:58.319Z = 13:39 en -03:00
+
+  const CSV_ZIP =
+    `com.samsung.shealth.exercise,7006011,17\n` +
+    `com.samsung.health.exercise.start_time,com.samsung.health.exercise.end_time,` +
+    `com.samsung.health.exercise.time_offset,com.samsung.health.exercise.datauuid,` +
+    `com.samsung.health.exercise.exercise_type,com.samsung.health.exercise.calorie,` +
+    `com.samsung.health.exercise.duration\n` +
+    `2026-07-10 16:39:58.319,2026-07-10 16:48:30.219,UTC-0300,${UUID},14001,113.08,511900\n`;
+
+  const CRUDO_SDK = {
+    uid: UUID,
+    appId: "com.sec.android.app.shealth",
+    startTime: { epochMs: INICIO_REAL, iso: "2026-07-10T16:39:58.319Z" },
+    endTime:   { epochMs: 1783702110219, iso: "2026-07-10T16:48:30.219Z" },
+    zoneOffset: "-03:00",
+    startLocalDateTime: "2026-07-10T13:39:58.319",
+    fields: {
+      sessions: [{
+        startTime: { epochMs: INICIO_REAL, iso: "2026-07-10T16:39:58.319Z" },
+        endTime:   { epochMs: 1783702110219, iso: "2026-07-10T16:48:30.219Z" },
+        duration:  { ms: 511900, iso: "PT8M31.9S" },
+        exerciseType: "POOL_SWIMMING", customTitle: null,
+        calories: 113.08, distance: null,
+        maxHeartRate: 104, meanHeartRate: 100, minHeartRate: 97,
+        autoDetected: true, logSize: null, logWithHeartRate: null, log: null,
+      }],
+    },
+  };
+
+  const porZip = parsearEjercicio(CSV_ZIP, MIEMBRO).items[0];
+  const porSdk = adaptarEjercicio(CRUDO_SDK, MIEMBRO)!;
+
+  it("el ZIP da el inicioMs real, el mismo que el SDK", () => {
+    expect(porZip._startMs).toBe(INICIO_REAL);
+    expect(porSdk._startMs).toBe(INICIO_REAL);
+  });
+
+  it("las dos vías coinciden en fecha y actividad", () => {
+    expect(porZip.fecha).toBe("2026-07-10");
+    expect(porSdk.fecha).toBe("2026-07-10");
+    expect(porZip.actividad).toBe("Natación");
+    expect(porSdk.actividad).toBe("Natación");
+  });
+
+  it("y por lo tanto caen en el mismo documento de /cardio", () => {
+    expect(idCardioDe(porZip._uuid)).toBe(idCardioDe(porSdk._uuid));
   });
 });

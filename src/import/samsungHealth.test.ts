@@ -382,29 +382,44 @@ describe("derivarZona", () => {
 // ── epochToMs ─────────────────────────────────────────────────────────────────
 
 describe("epochToMs", () => {
-  it("parsea epoch ms como string", () => {
+  it("parsea epoch ms como string (formato viejo)", () => {
     expect(epochToMs("1710488400000")).toBe(1710488400000);
   });
 
-  it("parsea datetime local sin offset (trata como UTC)", () => {
-    // "2024-03-15 11:00:00.000" → 1710500400000 UTC
-    const ms = epochToMs("2024-03-15 11:00:00.000");
-    expect(typeof ms).toBe("number");
-    expect(ms).not.toBeNaN();
+  it("el epoch numérico ignora el offset: ya es UTC", () => {
+    expect(epochToMs("1710488400000", "UTC-0300")).toBe(1710488400000);
+    expect(epochToMs("1710488400000", "UTC+0530")).toBe(1710488400000);
   });
 
-  it("parsea datetime local con offset UTC-0300 y ajusta correctamente", () => {
-    // "2024-03-15 08:00:00.000" hora local con offset -3h → real UTC = 08:00 + 3h = 11:00 UTC
-    const ms = epochToMs("2024-03-15 08:00:00.000", "UTC-0300");
-    const esperado = epochToMs("2024-03-15 11:00:00.000"); // sin offset = UTC directo
-    expect(ms).toBe(esperado);
+  it("el datetime del CSV ya viene en UTC: sin offset", () => {
+    expect(epochToMs("2024-03-15 11:00:00.000")).toBe(Date.parse("2024-03-15T11:00:00.000Z"));
   });
 
-  it("parsea datetime local con offset UTC+0530", () => {
-    // "2024-03-15 16:30:00.000" hora local con +05:30 → UTC = 16:30 - 5:30 = 11:00 UTC
-    const ms = epochToMs("2024-03-15 16:30:00.000", "UTC+0530");
-    const esperado = epochToMs("2024-03-15 11:00:00.000");
-    expect(ms).toBe(esperado);
+  // Los tres offsets sobre el MISMO string tienen que dar el mismo epoch: el
+  // offset describe dónde pasó, no corre el instante. Antes estos tres daban
+  // tres números distintos, y de ahí salió el desfase de P76a.
+  it("el offset no mueve el epoch — negativo", () => {
+    expect(epochToMs("2024-03-15 11:00:00.000", "UTC-0300"))
+      .toBe(Date.parse("2024-03-15T11:00:00.000Z"));
+  });
+
+  it("el offset no mueve el epoch — positivo", () => {
+    expect(epochToMs("2024-03-15 11:00:00.000", "UTC+0530"))
+      .toBe(Date.parse("2024-03-15T11:00:00.000Z"));
+  });
+
+  it("el offset no mueve el epoch — ausente", () => {
+    expect(epochToMs("2024-03-15 11:00:00.000", undefined))
+      .toBe(epochToMs("2024-03-15 11:00:00.000", "UTC-0300"));
+  });
+
+  // ⚠ El caso que destapó el bug. Si este test se pone rojo, la corrección se
+  // deshizo: mirá el comentario de `epochToMs` antes de tocar nada.
+  it("el caso real de P76a: la pileta del 10/7/2026 coincide con el Data SDK", () => {
+    // CSV: uuid ca63c94f-dcdd-4232-8055-a0dd09988b37
+    const ms = epochToMs("2026-07-10 16:39:58.319", "UTC-0300");
+    expect(ms).toBe(1783701598319);                       // el uid del SDK, exacto
+    expect(new Date(ms!).toISOString()).toBe("2026-07-10T16:39:58.319Z");
   });
 
   it("devuelve undefined para string vacío", () => {
@@ -413,6 +428,36 @@ describe("epochToMs", () => {
 
   it("devuelve undefined para string inválido", () => {
     expect(epochToMs("no-es-fecha")).toBeUndefined();
+  });
+});
+
+// ── fecha y hora locales (P76a) ──────────────────────────────────────────────
+
+describe("fecha y hora locales derivadas del CSV", () => {
+  const CSV_EJ = (startTime: string, offset: string) =>
+    `com.samsung.shealth.exercise,7006011,17\n` +
+    `com.samsung.health.exercise.start_time,com.samsung.health.exercise.time_offset,` +
+    `com.samsung.health.exercise.datauuid,com.samsung.health.exercise.exercise_type,` +
+    `com.samsung.health.exercise.duration\n` +
+    `${startTime},${offset},uuid-1,14001,600000\n`;
+
+  it("una sesión nocturna en -03:00 queda en el día local, no en el UTC", () => {
+    // 01:30 UTC del 19/9 = 22:30 local del 18/9
+    const r = parsearEjercicio(CSV_EJ("2026-09-19 01:30:00.000", "UTC-0300"), "juanpablo");
+    expect(r.items[0].fecha).toBe("2026-09-18");
+  });
+
+  it("una sesión de mañana no se mueve", () => {
+    const r = parsearEjercicio(CSV_EJ("2026-09-18 13:30:00.000", "UTC-0300"), "juanpablo");
+    expect(r.items[0].fecha).toBe("2026-09-18");
+  });
+
+  it("14001 resuelve a Natación y 12001 a Aeróbico", () => {
+    const nat = parsearEjercicio(CSV_EJ("2026-07-10 16:39:58.319", "UTC-0300"), "juanpablo");
+    expect(nat.items[0].actividad).toBe("Natación");
+    const csvAero = CSV_EJ("2026-07-09 18:03:49.171", "UTC-0300").replace(",14001,", ",12001,");
+    const aero = parsearEjercicio(csvAero, "juanpablo");
+    expect(aero.items[0].actividad).toBe("Aeróbico");
   });
 });
 

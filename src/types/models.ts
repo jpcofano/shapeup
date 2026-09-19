@@ -570,6 +570,7 @@ export interface SesionCardio {
   kcal?: number;
   fcPromedio?: number;
   fcMaxima?: number;
+  fcMinima?: number;               // P76a: el parser y el adaptador ya la traían; antes se tiraba al guardar
   zonaPrincipal?: ZonaFC;
   sensacion?: number;              // 1–5
   fuente: FuenteDato;

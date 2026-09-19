@@ -61,6 +61,42 @@ describe("importarCardioIdempotente", () => {
     expect(data).not.toHaveProperty("_endMs");
     expect(data).not.toHaveProperty("_customId");
     expect(data).not.toHaveProperty("_fcMin");
+    // P76a: el campo privado no se escribe, pero el dato sí — antes se tiraba.
+    expect(data.fcMinima).toBe(90);
+  });
+
+  it("sin _fcMin no escribe fcMinima (nada de undefined en Firestore)", async () => {
+    await importarCardioIdempotente([
+      {
+        _uuid: "sin-fcmin",
+        miembro: "juanpablo", fecha: "2026-07-08", actividad: "Caminata", esVR: false,
+        fuente: "samsung-health-csv",
+      },
+    ]);
+    expect(setDocCalls[0].data).not.toHaveProperty("fcMinima");
+  });
+
+  // P76a: antes, un rechazo del servidor se contaba como "omitido" y la función
+  // devolvía ok. El puente informaba éxito sobre documentos que nunca escribió.
+  it("un rechazo por documento aparece en fallidos, con el primer error", async () => {
+    const { setDoc } = await import("firebase/firestore");
+    (setDoc as unknown as { mockImplementationOnce: (f: () => Promise<never>) => void })
+      .mockImplementationOnce(() => Promise.reject(
+        Object.assign(new Error("Quota exceeded."), { code: "resource-exhausted" }),
+      ));
+
+    const item = (uuid: string) => ({
+      _uuid: uuid, miembro: "juanpablo" as const, fecha: "2026-07-08",
+      actividad: "Caminata", esVR: false, fuente: "samsung-health-csv" as const,
+    });
+    const r = await importarCardioIdempotente([item("a"), item("b")]);
+
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.fallidos).toBe(1);
+      expect(r.value.importados).toBe(1);
+      expect(r.value.primerError).toContain("cuota diaria");
+    }
   });
 
   it("fila sin _startMs/_endMs → doc sin inicioMs/finMs (no undefined escrito)", async () => {

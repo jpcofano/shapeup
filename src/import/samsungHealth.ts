@@ -106,30 +106,34 @@ function col(row: Record<string, string>, suffix: string): string {
 // ── Helpers de tiempo ─────────────────────────────────────────────────────────
 
 /**
- * Convierte epoch en ms + time_offset a epoch ms numérico.
- * Soporta los mismos dos formatos que epochToDate:
- *   - epoch ms como string numérico ("1703001600000")
- *   - datetime local "YYYY-MM-DD HH:MM:SS.mmm" (Samsung 2024+): requiere offset
- *     para reconstruir el epoch UTC real.
+ * Convierte el `start_time` de Samsung Health a **epoch ms UTC**.
+ *
+ * Dos formatos:
+ *   - epoch ms como string numérico ("1703001600000") — exports viejos.
+ *   - datetime "YYYY-MM-DD HH:MM:SS.mmm" (Samsung 2024+) — **ya viene en UTC**,
+ *     no en hora local. El `time_offset` de la fila dice en qué huso pasó, y
+ *     sirve para derivar la hora local, pero NO hay que aplicárselo al epoch.
+ *
+ * ⚠ CASO REAL FIJADO (P76a) — no lo "arregles" de vuelta al revés:
+ *   uuid `ca63c94f-dcdd-4232-8055-a0dd09988b37`, sesión de pileta del 10/7/2026.
+ *     CSV → start_time = "2026-07-10 16:39:58.319", time_offset = "UTC-0300"
+ *     SDK → startTime.epochMs = 1783701598319 (= 2026-07-10T16:39:58.319Z),
+ *           startLocalDateTime = "2026-07-10T13:39:58.319"
+ *   El string del CSV coincide con la hora **UTC**, no con la local (13:39).
+ *   La versión anterior hacía `asUtc - offMs` y devolvía 1783712398319: tres
+ *   horas de más. Verificado contra las 71 actividades que existen por las dos
+ *   vías (ZIP y Data SDK): 71/71 coinciden con esta interpretación, 0/71 con la
+ *   anterior. Está fijado en el test "el caso real de P76a".
  */
-export function epochToMs(value: string, offset?: string): number | undefined {
+export function epochToMs(value: string, _offset?: string): number | undefined {
   if (!value) return undefined;
-  // Formato nuevo: "YYYY-MM-DD HH:MM:SS[.mmm]" — hora local
+  // Formato nuevo: "YYYY-MM-DD HH:MM:SS[.mmm]" — ya en UTC
   if (/^\d{4}-\d{2}-\d{2} /.test(value)) {
     // YYYY-MM-DD HH:MM:SS.mmm → posición 19 = ".", 20-22 = ms
     const ms = value.slice(20, 23) || "000";
     const isoStr = `${value.slice(0, 10)}T${value.slice(11, 19)}.${ms.padEnd(3, "0")}Z`;
     const asUtc = Date.parse(isoStr);
-    if (isNaN(asUtc)) return undefined;
-    if (offset) {
-      const m = offset.match(/([+-])(\d{2}):?(\d{2})/);
-      if (m) {
-        const sign = m[1] === "+" ? 1 : -1;
-        const offMs = sign * (parseInt(m[2]) * 60 + parseInt(m[3])) * 60_000;
-        return asUtc - offMs; // local_as_utc → real UTC epoch
-      }
-    }
-    return asUtc;
+    return isNaN(asUtc) ? undefined : asUtc;
   }
   // Formato viejo: epoch en ms como string numérico
   const n = parseInt(value, 10);
@@ -137,30 +141,26 @@ export function epochToMs(value: string, offset?: string): number | undefined {
 }
 
 /**
- * Convierte epoch en ms + time_offset a "YYYY-MM-DD" local.
- * time_offset: "UTC-0300", "UTC+0530", "+0300", "-0300"
+ * "YYYY-MM-DD" en hora **local**, a partir de cualquiera de los dos formatos.
+ * time_offset: "UTC-0300", "UTC+0530", "+0300", "-0300".
  *
- * Samsung Health (2024+) exporta start_time como datetime string
- * "YYYY-MM-DD HH:MM:SS.mmm" (hora local) en lugar de epoch ms.
- * En ese caso devolvemos directamente los primeros 10 caracteres.
+ * Pasa por `epochToMs` a propósito: así los dos formatos se reducen al mismo
+ * epoch UTC y la hora local sale de un solo lugar. Antes, el formato datetime
+ * devolvía `slice(0, 10)` del string —o sea la fecha **UTC**—, y eso corría un
+ * día toda actividad que arrancara después de las 21:00 locales en -03:00
+ * (273 documentos de `/cardio`, 181 de `/sueno` y 23 de `/mediciones`).
  */
 function epochToDate(epochMs: string, offset?: string): string {
-  if (!epochMs) return "";
-  // Formato nuevo: datetime string "YYYY-MM-DD …" → ya es hora local
-  if (/^\d{4}-\d{2}-\d{2}/.test(epochMs)) return epochMs.slice(0, 10);
-  const ms = parseInt(epochMs, 10);
-  if (isNaN(ms)) return "";
+  const ms = epochToMs(epochMs, offset);
+  if (ms == null) return "";
   const d = offsetDate(ms, offset);
-  return d ? d.toISOString().slice(0, 10) : new Date(ms).toISOString().slice(0, 10);
+  return (d ?? new Date(ms)).toISOString().slice(0, 10);
 }
 
+/** "HH:MM" en hora **local**. Devuelve "" si no hay offset con el que ubicarla. */
 function epochToTime(epochMs: string, offset?: string): string {
-  if (!epochMs) return "";
-  // Formato nuevo: "YYYY-MM-DD HH:MM:SS.mmm" → extraer HH:MM directamente
-  const dtMatch = epochMs.match(/^\d{4}-\d{2}-\d{2} (\d{2}:\d{2})/);
-  if (dtMatch) return dtMatch[1];
-  const ms = parseInt(epochMs, 10);
-  if (isNaN(ms)) return "";
+  const ms = epochToMs(epochMs, offset);
+  if (ms == null) return "";
   const d = offsetDate(ms, offset);
   if (!d) return "";
   const hh = String(d.getUTCHours()).padStart(2, "0");
@@ -236,6 +236,15 @@ const EXERCISE_TYPE: Record<string, string> = {
   "1002": "Carrera",    // confirmado
   "11007": "Ciclismo",  // confirmado
   "13001": "Senderismo", // confirmado
+  // P76a — confirmados cruzando el `datauuid` del CSV contra el `uid` del Data
+  // SDK, que trae el tipo como enum de texto. No son adivinanzas por prefijo:
+  //   14001 ← POOL_SWIMMING, 4 sesiones (25ddde16…, 7d434674…, 2d6230c3…, ca63c94f…)
+  //   12001 ← AEROBICS,      1 sesión  (511cd17d…)
+  // 14002, 11001 y 10004 siguen SIN mapear: no hay ninguna sesión de esas en la
+  // ventana del puente con la cual verificarlos, y acá los códigos inventados ya
+  // salieron caros una vez.
+  "14001": "Natación",
+  "12001": "Aeróbico",
 };
 
 /**

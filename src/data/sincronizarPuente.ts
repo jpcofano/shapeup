@@ -12,8 +12,9 @@
 //  en la colección del puente, que las reglas tienen cerrada a cinco campos.
 // ════════════════════════════════════════════════════════════════════════════
 import type { Historial, MiembroId, ZonaFC } from "../types/models";
-import { ok, err } from "../lib/result";
+import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
+import { conTimeout } from "../lib/conTimeout";
 import {
   clasificarImport, type ConfigClasificacion, type ItemClasificado,
   type CardioClasificable,
@@ -44,6 +45,19 @@ export interface ResumenSincronizacion {
 
   /** `false` en vista previa: nada se escribió. */
   escrito: boolean;
+
+  /**
+   * Lo que se escribió **de verdad**, paso por paso (P76a). Antes el resumen
+   * mostraba `enriquecen + externas`, que salen de la clasificación y no de la
+   * escritura: decía que había guardado aunque no hubiera guardado nada.
+   */
+  escritos: { cardio: number; externas: number; mediciones: number };
+
+  /**
+   * Algún paso venció los 8 s y quedó en la cola local de Firestore. No es un
+   * error: se sube cuando haya señal (mismo criterio que P69).
+   */
+  enCola: boolean;
 }
 
 export interface OpcionesSincronizacion {
@@ -99,19 +113,42 @@ export async function sincronizarDesdePuente(
     medicionesAEscribir: adaptado.mediciones.length,
     medicionesDescartadas: adaptado.medicionesDescartadas,
     escrito: false,
+    escritos: { cardio: 0, externas: 0, mediciones: 0 },
+    enCola: false,
   };
 
   if (opciones.soloVistaPrevia) return ok(resumen);
 
   // ── Escritura, con las funciones que ya existen ─────────────────────────
+  // Cada paso corre contra un timeout y reporta lo que escribió. Si uno falla
+  // después de que otro escribió, el error dice qué quedó guardado: nada se
+  // deshace, porque todos los ids son determinísticos y reintentar es seguro.
+  const escritos = { cardio: 0, externas: 0, mediciones: 0 };
+  let enCola = false;
+  const yaGuardado = () => {
+    const partes = [
+      escritos.cardio    > 0 ? `${escritos.cardio} de cardio` : null,
+      escritos.externas  > 0 ? `${escritos.externas} actividades externas` : null,
+      escritos.mediciones > 0 ? `${escritos.mediciones} mediciones` : null,
+    ].filter(Boolean);
+    return partes.length > 0 ? ` Ya se habían guardado: ${partes.join(", ")}.` : "";
+  };
+
   // TODAS las actividades van a /cardio (P75b): el destino solo decide si
   // además entra al historial.
   const cardio = clasificadas.map((c) => c.item);
   if (cardio.length > 0) {
-    const r = await importarCardioIdempotente(
-      cardio as Parameters<typeof importarCardioIdempotente>[0],
+    const paso = await escribir(
+      importarCardioIdempotente(cardio as Parameters<typeof importarCardioIdempotente>[0]),
     );
-    if (!r.ok) return err(`Cardio: ${r.error}`);
+    if (paso.tipo === "error") return err(`Cardio: ${paso.error}${yaGuardado()}`);
+    if (paso.tipo === "timeout") { enCola = true; escritos.cardio = cardio.length; }
+    else {
+      escritos.cardio = paso.valor.importados;
+      if (paso.valor.fallidos) {
+        return err(`Cardio: ${paso.valor.fallidos} de ${cardio.length} no se guardaron. ${paso.valor.primerError ?? ""}`.trim());
+      }
+    }
   }
 
   const entradas = externas
@@ -119,16 +156,50 @@ export async function sincronizarDesdePuente(
     .map((c) => construirEntradaExterna(
       c.item as unknown as ItemExterno, miembro, c.motivoIngreso ?? "duracion",
     ));
-  const rExt = await guardarEntradasExternas(entradas);
-  if (!rExt.ok) return err(`Actividades externas: ${rExt.error}`);
+  if (entradas.length > 0) {
+    const paso = await escribir(guardarEntradasExternas(entradas));
+    if (paso.tipo === "error") return err(`Actividades externas: ${paso.error}${yaGuardado()}`);
+    if (paso.tipo === "timeout") { enCola = true; escritos.externas = entradas.length; }
+    else escritos.externas = paso.valor.escritas;
+  }
 
   if (adaptado.mediciones.length > 0) {
     const limpias = adaptado.mediciones.map(({ _appId: _a, _inicioMs: _i, ...resto }) => resto);
-    const r = await importarMedicionesIdempotente(
-      limpias as Parameters<typeof importarMedicionesIdempotente>[0],
+    const paso = await escribir(
+      importarMedicionesIdempotente(limpias as Parameters<typeof importarMedicionesIdempotente>[0]),
     );
-    if (!r.ok) return err(`Mediciones: ${r.error}`);
+    if (paso.tipo === "error") return err(`Mediciones: ${paso.error}${yaGuardado()}`);
+    if (paso.tipo === "timeout") { enCola = true; escritos.mediciones = limpias.length; }
+    else {
+      escritos.mediciones = paso.valor.importados;
+      if (paso.valor.fallidos) {
+        return err(`Mediciones: ${paso.valor.fallidos} de ${limpias.length} no se guardaron. ${paso.valor.primerError ?? ""}`.trim());
+      }
+    }
   }
 
-  return ok({ ...resumen, escrito: true });
+  return ok({ ...resumen, escrito: true, escritos, enCola });
+}
+
+/** Si el servidor no confirma en este tiempo, el paso queda "en cola" (P69). */
+export const TIMEOUT_PASO_MS = 8000;
+
+type PasoEscritura<T> =
+  | { tipo: "ok"; valor: T }
+  | { tipo: "timeout" }
+  | { tipo: "error"; error: string };
+
+/**
+ * Corre un paso de escritura contra el timeout de P69 y normaliza las tres
+ * salidas posibles. Sin esto, con caché persistente la promesa no resuelve
+ * hasta que el servidor confirma y la pantalla queda colgada para siempre.
+ */
+async function escribir<T>(op: Promise<Result<T>>, ms = TIMEOUT_PASO_MS): Promise<PasoEscritura<T>> {
+  try {
+    const r = await conTimeout(op, ms);
+    if (r.tipo === "timeout") return { tipo: "timeout" };
+    return r.valor.ok ? { tipo: "ok", valor: r.valor.value } : { tipo: "error", error: r.valor.error };
+  } catch (e) {
+    return { tipo: "error", error: firebaseErrorMessage(e) };
+  }
 }

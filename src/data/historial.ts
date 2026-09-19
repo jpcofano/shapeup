@@ -368,6 +368,10 @@ export async function guardarEntradasExternas(
   entradas: Historial[],
 ): Promise<Result<{ escritas: number }>> {
   if (entradas.length === 0) return ok({ escritas: 0 });
+  // P76a: se lleva la cuenta de lo ya commiteado para poder decir qué quedó
+  // escrito si falla un batch del medio. Reintentar es seguro: los ids son
+  // determinísticos y el `set` es idempotente.
+  let escritas = 0;
   try {
     let batch = writeBatch(db);
     let ops = 0;
@@ -376,15 +380,17 @@ export async function guardarEntradasExternas(
       ops++;
       if (ops >= MAX_OPS_POR_BATCH) {
         await batch.commit();
+        escritas += ops;
         batch = writeBatch(db);
         ops = 0;
       }
     }
-    if (ops > 0) await batch.commit();
+    if (ops > 0) { await batch.commit(); escritas += ops; }
 
-    return ok({ escritas: entradas.length });
+    return ok({ escritas });
   } catch (e) {
-    return err(firebaseErrorMessage(e));
+    const detalle = escritas > 0 ? ` (${escritas} de ${entradas.length} ya se habían guardado)` : "";
+    return err(`${firebaseErrorMessage(e)}${detalle}`);
   }
 }
 
