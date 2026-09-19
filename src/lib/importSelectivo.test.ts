@@ -13,7 +13,9 @@ import type { CardioInput } from "../import/samsungHealth";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-type CardioEx = CardioInput & { _startMs?: number; _endMs?: number; _customId?: string };
+type CardioEx = CardioInput & {
+  _startMs?: number; _endMs?: number; _customId?: string; _uuid?: string;
+};
 
 const CONFIG: ConfigClasificacion = {
   duracionMinimaMin: DURACION_MIN_ACTIVIDAD_MIN,
@@ -386,5 +388,106 @@ describe("esAutodetectada", () => {
   it("origenDe traduce el predicado a la marca del modelo", () => {
     expect(origenDe({})).toBe("autodetectada");
     expect(origenDe({ fcPromedio: 112 })).toBe("declarada");
+  });
+});
+
+// ── Regla 1b — match exacto por datauuidSamsung (P75c) ───────────────────────
+
+describe("Regla 1b — el uuid ya está en una sesión enriquecida", () => {
+  const UUID = "078f3af5-f086-4b09-9bfd-aeac9305f6a3";
+
+  /** Sesión ya enriquecida SIN `inicioMs`: la regla 2 no la puede encontrar. */
+  function yaEnriquecida(overrides: Partial<Historial> = {}): Historial {
+    return historial({
+      idHist: "H-20260707", fechaRealizada: "2026-07-07", nombreRutina: "Sesión libre",
+      tipo: "libre", inicioMs: undefined, finMs: 1783430907278,
+      biometria: {
+        fuente: "samsung-health-csv", datauuidSamsung: UUID,
+        matchPor: "dia", granularidad: "sesion", fcMedia: 130,
+      },
+      ...overrides,
+    });
+  }
+
+  it("enriquece esa sesión aunque no haya inicioMs", () => {
+    const r = clasificarUno(
+      cardio({ _uuid: UUID, fecha: "2026-07-07", duracionMin: 54 }),
+      [yaEnriquecida()],
+    );
+    expect(r.destino).toBe("enriquece");
+    expect(r.motivo).toBe("datauuid");
+    expect(r.idHist).toBe("H-20260707");
+  });
+
+  it("la explicación dice de qué sesión se trata", () => {
+    const r = clasificarUno(cardio({ _uuid: UUID }), [yaEnriquecida()]);
+    expect(r.explicacion).toBe("Ya estaba en tu sesión de Sesión libre del 7/7");
+  });
+
+  it("sin la regla, ese mismo item entraría como externa duplicando el entrenamiento", () => {
+    // El caso que destapó PU4: mismo item, pero contra un historial que no
+    // guarda el datauuid. Ahí sí entra como externa.
+    const sinBiometria = yaEnriquecida({ biometria: undefined });
+    const r = clasificarUno(
+      cardio({ _uuid: UUID, fecha: "2026-01-01", duracionMin: 54 }), [sinBiometria],
+    );
+    expect(r.destino).toBe("externa");
+  });
+
+  it("precedencia: si además cumple shapeup por custom-id, gana shapeup", () => {
+    const r = clasificarUno(
+      cardio({ _uuid: UUID, _customId: "SHP-001", duracionMin: 54 }),
+      [yaEnriquecida()], ["SHP-001"],
+    );
+    expect(r.motivo).toBe("shapeup");
+    // …y aun así encuentra la sesión por uuid, que es el punto de P75c:
+    // antes caía en "shapeup-sin-sesion" y duplicaba.
+    expect(r.destino).toBe("enriquece");
+    expect(r.idHist).toBe("H-20260707");
+  });
+
+  it("el match por uuid le gana al match por ventana si apuntan a sesiones distintas", () => {
+    const porVentana = historial({
+      idHist: "H-OTRA", fechaRealizada: "2026-07-07",
+      inicioMs: H_INICIO, finMs: H_FIN,
+    });
+    const r = clasificarUno(
+      cardio({ _uuid: UUID, _startMs: H_INICIO, _endMs: H_FIN }),
+      [porVentana, yaEnriquecida()],
+    );
+    expect(r.motivo).toBe("datauuid");
+    expect(r.idHist).toBe("H-20260707");
+  });
+
+  it("sin coincidencia de uuid, todo sigue como antes", () => {
+    const r = clasificarUno(
+      cardio({ _uuid: "otro-uuid", _startMs: H_INICIO, _endMs: H_FIN }),
+      [histConVentana, yaEnriquecida()],
+    );
+    expect(r.motivo).toBe("historial");
+    expect(r.idHist).toBe("H001");
+  });
+
+  it("un item sin _uuid no matchea por esta regla", () => {
+    const r = clasificarUno(cardio({ duracionMin: 40 }), [yaEnriquecida()]);
+    expect(r.destino).toBe("externa");
+    expect(r.motivo).toBe("duracion");
+  });
+
+  it("no matchea contra una externa que guarde el mismo uuid", () => {
+    // Las externas traen su propio datauuid en la biometría; si contaran, cada
+    // actividad se enriquecería a sí misma en el import siguiente (P74).
+    const externaConUuid = historial({
+      idHist: "EXT-vieja", tipo: "externa", fechaRealizada: "2026-07-07",
+      biometria: {
+        fuente: "samsung-health-csv", datauuidSamsung: UUID,
+        matchPor: "directo", granularidad: "sesion",
+      },
+    });
+    const r = clasificarUno(
+      cardio({ _uuid: UUID, duracionMin: 40 }), [externaConUuid],
+    );
+    expect(r.destino).toBe("externa");
+    expect(r.motivo).toBe("duracion");
   });
 });

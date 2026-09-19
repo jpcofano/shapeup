@@ -126,27 +126,35 @@ async function run() {
     console.log(`  ${act.padEnd(24)}: ${n}`);
   }
 
-  // Proxy de "autodetectada por el reloj" (ADR #035): sin curva de FC en el ZIP.
-  type ItemUuid = { _uuid?: string; fcPromedio?: number };
-  const sinCurva = externas.filter((c) => {
-    const u = (c.item as unknown as ItemUuid)._uuid;
-    return !u || !z.liveData[u] || z.liveData[u].length === 0;
-  }).length;
-  const sinFc = externas.filter((c) => (c.item as unknown as ItemUuid).fcPromedio == null).length;
-  console.log("\n  ── Señales de autodetectadas entre las externas ───────────");
-  console.log(`  sin curva de FC en el ZIP : ${sinCurva} de ${externas.length}`);
-  console.log(`  sin FC media              : ${sinFc} de ${externas.length}`);
-
   // ── Qué se escribiría (sin escribir) ─────────────────────────────────────
-  const idsExistentes = new Set(historial.map((h) => h.idHist));
   const entradas = externas
-    .map((c) => c.item as unknown as ItemExterno)
-    .filter((i) => !!i._uuid)
-    .map((i) => construirEntradaExterna(i, miembro));
-  const actualizaciones = entradas.filter((e) => idsExistentes.has(e.idHist)).length;
-  console.log("\n  ── Se escribirían (si confirmaras) ────────────────────────");
-  console.log(`  entradas externas: ${entradas.length} (${entradas.length - actualizaciones} altas, ${actualizaciones} actualizaciones)`);
-  console.log(`  sin datauuid (no se pueden crear): ${externas.length - entradas.length}\n`);
+    .filter((c) => !!(c.item as unknown as ItemExterno)._uuid)
+    .map((c) => construirEntradaExterna(
+      c.item as unknown as ItemExterno, miembro, c.motivoIngreso ?? "duracion",
+    ));
+
+  const porOrigen  = new Map<OrigenExterna, number>();
+  const porIngreso = new Map<MotivoIngreso, number>();
+  for (const e of entradas) {
+    const o = e.externa!.origen;
+    const m = e.externa!.motivoIngreso;
+    porOrigen.set(o, (porOrigen.get(o) ?? 0) + 1);
+    porIngreso.set(m, (porIngreso.get(m) ?? 0) + 1);
+  }
+
+  console.log("\n  -- Externas por origen -------------------------------");
+  for (const [o, n] of [...porOrigen].sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${o.padEnd(16)}: ${n}`);
+  }
+  console.log("\n  -- Externas por motivo de ingreso --------------------");
+  for (const [m, n] of [...porIngreso].sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${m.padEnd(20)}: ${n}`);
+  }
+
+  console.log("\n  -- Se escribirian (si confirmaras) -------------------");
+  console.log(`  a /cardio          : ${clasificadas.length} (TODAS, P75b)`);
+  console.log(`  entradas externas  : ${entradas.length}`);
+  console.log(`  sin datauuid       : ${externas.length - entradas.length}\n`);
 
   // ── Duplicados que YA están en /cardio ───────────────────────────────────
   const cardioSnap = await db.collection("cardio").where("miembro", "==", miembro).get();

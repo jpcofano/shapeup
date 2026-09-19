@@ -16,6 +16,8 @@
 //  Reglas en orden; la primera que aplica define el destino:
 //    1. "shapeup"   — _customId en shapeUpCustomIds        → enriquece,
 //                     o externa si no hay sesión que enriquecer (P75b)
+//    1b."datauuid"  — el uuid ya está en la biometría de   → enriquece
+//                     una sesión (P75c)
 //    2. "historial" — la ventana solapa con una sesión app → enriquece
 //    3. "vr"        — esVR, SIN mínimo de duración         → externa
 //    4. "actividad" — actividad configurada y ≥ umbral     → externa
@@ -39,7 +41,7 @@ import { soloShapeUp } from "./tipoHistorial";
 export type DestinoImport = "enriquece" | "externa" | "descartada";
 
 export type MotivoClasificacion =
-  | "shapeup" | "historial" | "vr" | "actividad" | "duracion" | "sin-match";
+  | "shapeup" | "datauuid" | "historial" | "vr" | "actividad" | "duracion" | "sin-match";
 
 export interface ItemClasificado<T> {
   item: T;
@@ -64,6 +66,8 @@ export type CardioClasificable = CardioInput & {
   _startMs?: number;
   _endMs?: number;
   _customId?: string;
+  /** `datauuid` de Samsung. Es lo que permite el match exacto de P75c. */
+  _uuid?: string;
   /** Muestras de la curva de FC de esta sesión, si el origen las entrega. */
   _muestrasCurva?: number;
   /** El origen dice que la registró el reloj solo (PU4). Manda sobre lo demás. */
@@ -178,7 +182,10 @@ function clasificar<T extends CardioClasificable>(
 
   // Regla 1 — marcada como ShapeUp en el reloj.
   if (shapeUpCustomIds.length > 0 && c._customId && shapeUpCustomIds.includes(c._customId)) {
-    const h = buscarHistorialSolapado(c, propias);
+    // El motivo sigue siendo "shapeup" (le gana a todo), pero para ENCONTRAR la
+    // sesión se prueba primero el uuid: si no, una sesión de ShapeUp ya
+    // enriquecida y sin `inicioMs` se duplicaría igual, que es el caso de P75c.
+    const h = buscarPorUuid(c, propias) ?? buscarHistorialSolapado(c, propias);
     if (h) {
       return {
         item: c, destino: "enriquece", motivo: "shapeup", idHist: h.idHist,
@@ -191,6 +198,22 @@ function clasificar<T extends CardioClasificable>(
     return {
       item: c, destino: "externa", motivo: "shapeup", motivoIngreso: "shapeup-sin-sesion",
       explicacion: `Entrenamiento tuyo${duracionTexto(dur)} sin sesión en la app — entra para poder convertirlo`,
+    };
+  }
+
+  // Regla 1b — el dato YA está en una sesión enriquecida (P75c).
+  //
+  // Es un match exacto: el mismo `datauuid` de Samsung en las dos puntas, no una
+  // ventana que se toca. Va antes que la regla 2 porque le gana a cualquier
+  // match por tiempo, y sobre todo porque la regla 2 **no puede** encontrarla si
+  // el Historial no tiene `inicioMs` — que es justo el caso que destapó PU4: sin
+  // esto, la actividad entraba como externa duplicando un entrenamiento que ya
+  // estaba registrado.
+  const porUuid = buscarPorUuid(c, propias);
+  if (porUuid) {
+    return {
+      item: c, destino: "enriquece", motivo: "datauuid", idHist: porUuid.idHist,
+      explicacion: `Ya estaba en tu ${nombreSesion(porUuid)} ${cuando(porUuid.fechaRealizada, now)}`,
     };
   }
 
@@ -240,6 +263,19 @@ function clasificar<T extends CardioClasificable>(
 }
 
 // ── Helpers internos ───────────────────────────────────────────────────────
+
+/**
+ * El Historial de ShapeUp que YA guarda este `datauuid` en su biometría, o
+ * `undefined`. Match exacto: el mismo identificador de Samsung en las dos
+ * puntas, sin depender de que el documento tenga ventana de tiempo (P75c).
+ */
+function buscarPorUuid<T extends CardioClasificable>(
+  c: T,
+  propias: Historial[],
+): Historial | undefined {
+  if (!c._uuid) return undefined;
+  return propias.find((h) => h.biometria?.datauuidSamsung === c._uuid);
+}
 
 /**
  * El Historial de ShapeUp cuya ventana solapa con la del item, o `null`.
