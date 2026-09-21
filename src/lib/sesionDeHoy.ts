@@ -8,7 +8,14 @@ export type SesionDeHoyResult =
   | { tipo: "descanso" }
   | { tipo: "rutina"; idRutina: string; etiqueta: string; yaHecha: boolean }
   | { tipo: "sin-programa" }
-  | { tipo: "dia-libre" };
+  | { tipo: "dia-libre" }
+  /**
+   * El día de hoy es de entrenamiento pero **no tiene rutina cargada** (P77a).
+   * El modelo lo admite: un `DiaPrograma` con `tipo: "vr"` y `vrSugerido` puede
+   * no traer `idRutina`. Antes esto devolvía `{ tipo: "rutina", idRutina: "" }`
+   * y la app navegaba a `/entrenar/` — una rutina que no existe.
+   */
+  | { tipo: "dia-sin-rutina"; etiqueta: string };
 
 const DIA_SEMANA_MAP: Record<string, DiaSemanaNum> = {
   lunes: 0, martes: 1, "miércoles": 2, jueves: 3,
@@ -20,6 +27,7 @@ const DIA_SEMANA_MAP: Record<string, DiaSemanaNum> = {
  *
  * - "descanso": el día de hoy está marcado como descanso en el programa.
  * - "rutina": hay una sesión activa planificada para hoy.
+ * - "dia-sin-rutina": hoy toca entrenar, pero el día no tiene `idRutina` (P77a).
  * - "dia-libre": el programa tiene días por semana pero hoy no tiene ninguno.
  * - "sin-programa": el programa no tiene días con `diaSemana` → no se puede resolver por día.
  *
@@ -37,11 +45,12 @@ export function sesionDeHoy(
   if (!hoy) return { tipo: "dia-libre" };
   if (hoy.tipo === "descanso") return { tipo: "descanso" };
 
-  const rid = hoy.idRutina ?? "";
+  // Día de entrenamiento sin rutina cargada: se dice, no se navega a la nada.
+  if (!hoy.idRutina) return { tipo: "dia-sin-rutina", etiqueta: hoy.etiqueta };
+
+  const rid = hoy.idRutina;
   // Solo ShapeUp: "ya la hiciste" es haber hecho la rutina del plan en la app (P74).
-  const yaHecha = rid
-    ? soloShapeUp(historialSemana).some((h) => h.idRutina === rid)
-    : false;
+  const yaHecha = soloShapeUp(historialSemana).some((h) => h.idRutina === rid);
 
   return { tipo: "rutina", idRutina: rid, etiqueta: hoy.etiqueta, yaHecha };
 }

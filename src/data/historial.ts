@@ -11,16 +11,19 @@
 import {
   collection, doc, getDocs, getDoc, getDocFromServer,
   serverTimestamp, updateDoc, writeBatch,
-  query, where, orderBy, limit, startAfter,
-  type QueryDocumentSnapshot,
+  query, where, orderBy, limit,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia } from "../types/models";
+import type {
+  Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia, SesionCardio,
+} from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 import { tonelajeKg, totalSeriesHechas, ventanaDeBloques } from "../lib/metricas";
 import { ymdLocal, lunesDeSemana } from "../lib/semana";
+import { leerSemanaCache, guardarSemanaCache } from "../lib/cacheDiasActivos";
 import { agruparDiasActivos, type DiaActivo } from "../lib/racha";
+import { getCardioRango, type CursorCardio } from "./salud";
 import { conTimeout } from "../lib/conTimeout";
 import {
   agregarPendiente, quitarPendiente, marcarErrorPendiente, listarPendientes,
@@ -242,49 +245,60 @@ export async function getHistorialShapeUp(
   }
 }
 
-/** Opciones de `getHistorialExternas`. `cursor` sale de `siguienteCursor`. */
-export interface OpcionesExternas {
-  desde?: string;                 // "YYYY-MM-DD" inclusive
-  hasta?: string;                 // "YYYY-MM-DD" inclusive
-  limite?: number;
-  cursor?: QueryDocumentSnapshot;
-}
-
-export interface PaginaExternas {
-  entradas: Historial[];
-  /** Pasalo como `cursor` para traer la página siguiente. `null` = no hay más. */
-  siguienteCursor: QueryDocumentSnapshot | null;
-}
-
-/** Cuántas externas por página si el llamador no dice otra cosa. */
-export const LIMITE_EXTERNAS_POR_PAGINA = 100;
-
 /**
- * Actividades externas, paginadas y de la más reciente a la más vieja. Son
- * miles: nunca se traen todas de una.
+ * Los días con actividad entre `desde` y `hasta`, cada uno con su origen.
+ *
+ * Lee las **dos fuentes** (P76b): las sesiones de `/historial` y las
+ * actividades de `/cardio`, que desde P76b ya no se copian al historial. Las
+ * agrupa el núcleo puro `agruparDiasActivos`.
+ *
+ * **Sin filtrar por `actividadRelevante`**: ese filtro es para mostrar en el
+ * historial, no para decidir si te moviste. Acá entran TODAS las actividades
+ * del rango, cada una marcando su día según el origen.
+ *
+ * **No decide qué cuenta**: devuelve las tres marcas por día y el consumidor
+ * elige (la racha del plan mira `shapeUp`; "me moví" puede incluir o no lo
+ * autodetectado).
+ *
+ * El rango lo fija el llamador. **Home pide la semana en curso** (P77b: doce
+ * semanas de `/cardio` eran ~300 lecturas por visita a la pantalla de
+ * aterrizaje); Progreso pide las doce, una sola vez, y las cachea.
+ *
+ * `truncado` avisa que se alcanzó el tope de páginas y el rango quedó
+ * incompleto. **No se trunca en silencio** (P77b): dibujar semanas vacías que
+ * no lo están es el bug que venimos persiguiendo.
  */
-export async function getHistorialExternas(
+export interface DiasActivosResult {
+  dias: DiaActivo[];
+  /** Se alcanzó el tope de páginas: faltan actividades del rango. */
+  truncado: boolean;
+}
+
+export async function getDiasActivos(
   miembro: MiembroId,
-  opciones: OpcionesExternas = {},
-): Promise<Result<PaginaExternas>> {
-  const limite = opciones.limite ?? LIMITE_EXTERNAS_POR_PAGINA;
+  desde: string,
+  hasta: string,
+): Promise<Result<DiasActivosResult>> {
   try {
-    const snap = await getDocs(
-      query(
-        collection(db, "historial"),
-        where("miembro", "==", miembro),
-        where("tipo", "==", "externa"),
-        ...(opciones.desde ? [where("fechaRealizada", ">=", opciones.desde)] : []),
-        ...(opciones.hasta ? [where("fechaRealizada", "<=", opciones.hasta)] : []),
-        orderBy("fechaRealizadaTimestamp", "desc"),
-        ...(opciones.cursor ? [startAfter(opciones.cursor)] : []),
-        limit(limite),
+    const [snapHist, cardio] = await Promise.all([
+      getDocs(
+        query(
+          collection(db, "historial"),
+          where("miembro", "==", miembro),
+          where("fechaRealizada", ">=", desde),
+          where("fechaRealizada", "<=", hasta),
+        ),
       ),
-    );
+      todoElCardioDelRango(miembro, desde, hasta),
+    ]);
+    if (!cardio.ok) return err(cardio.error);
+
     return ok({
-      entradas: snap.docs.map((d) => d.data() as Historial),
-      // Solo hay más si la página vino llena; si no, ya estamos en el final.
-      siguienteCursor: snap.docs.length === limite ? snap.docs[snap.docs.length - 1] : null,
+      dias: agruparDiasActivos(
+        snapHist.docs.map((d) => d.data() as Historial),
+        cardio.value.sesiones,
+      ),
+      truncado: cardio.value.truncado,
     });
   } catch (e) {
     return err(firebaseErrorMessage(e));
@@ -292,31 +306,114 @@ export async function getHistorialExternas(
 }
 
 /**
- * Los días con actividad entre `desde` y `hasta`, cada uno con su origen.
+ * Todas las actividades del rango, agotando el paginado de `getCardioRango`.
  *
- * Trae las dos mitades (ShapeUp y externas) y las agrupa con el núcleo puro
- * `agruparDiasActivos`. **No decide qué cuenta**: devuelve las tres marcas por
- * día y el consumidor elige (la racha del plan mira `shapeUp`; "me moví" puede
- * incluir o no lo autodetectado).
+ * Sin esto se perdían días en silencio: `getCardioRango` devuelve **una página**
+ * (200 por defecto), y con la ventana de 12 semanas de P77a el export real la
+ * pasa largo. Un día de movimiento que no se trae no es un día menos en la
+ * pantalla: es un día que la serie declara vacío.
+ *
+ * El tope de páginas es una red de seguridad, no un límite esperado: 12 semanas
+ * de actividades no llegan a 2000 ni de lejos. Si igual se alcanza, se dice
+ * (`truncado`) en vez de devolver un rango incompleto como si fuera completo.
  */
-export async function getDiasActivos(
+const MAX_PAGINAS_CARDIO = 10;
+
+async function todoElCardioDelRango(
   miembro: MiembroId,
   desde: string,
   hasta: string,
-): Promise<Result<DiaActivo[]>> {
-  try {
-    const snap = await getDocs(
-      query(
-        collection(db, "historial"),
-        where("miembro", "==", miembro),
-        where("fechaRealizada", ">=", desde),
-        where("fechaRealizada", "<=", hasta),
-      ),
-    );
-    return ok(agruparDiasActivos(snap.docs.map((d) => d.data() as Historial)));
-  } catch (e) {
-    return err(firebaseErrorMessage(e));
+): Promise<Result<{ sesiones: SesionCardio[]; truncado: boolean }>> {
+  const todas: SesionCardio[] = [];
+  let cursor: CursorCardio | undefined;
+  for (let i = 0; i < MAX_PAGINAS_CARDIO; i++) {
+    const r = await getCardioRango(miembro, { desde, hasta, cursor });
+    if (!r.ok) return err(r.error);
+    todas.push(...r.value.sesiones);
+    if (!r.value.siguienteCursor) return ok({ sesiones: todas, truncado: false });
+    cursor = r.value.siguienteCursor;
   }
+  return ok({ sesiones: todas, truncado: true });
+}
+
+
+/**
+ * Los días activos de un rango de semanas, **leyendo de Firestore solo lo que
+ * la caché no tiene** (P77b).
+ *
+ * Una semana cerrada no cambia nunca salvo import, así que se guarda en
+ * `localStorage` y no se vuelve a pedir. Lo que sí se pide siempre es la
+ * semana en curso, que todavía puede recibir días.
+ *
+ * La consulta que se arma es **una sola y contigua**: desde la semana más
+ * vieja que falte hasta hoy. Firestore no sabe pedir semanas sueltas, y en el
+ * caso normal —todo cacheado menos la semana en curso— eso es exactamente una
+ * semana.
+ *
+ * Steady state: la primera visita después de un import lee las 12 semanas; las
+ * siguientes, solo la semana en curso.
+ */
+export async function cargarDiasActivosConCache(
+  miembro: MiembroId,
+  desdeSemana: string,
+  hoy: string,
+): Promise<Result<DiasActivosResult>> {
+  const semanaHoy = lunesDeSemana(hoy);
+
+  // Las semanas del rango, de la más vieja a la más nueva.
+  const semanas: string[] = [];
+  for (let s = lunesDeSemana(desdeSemana); s <= semanaHoy; s = lunesDeSemana(sumarSemana(s))) {
+    semanas.push(s);
+  }
+
+  // Lo que ya está guardado, y desde dónde hay que leer.
+  const cacheadas = new Map<string, DiaActivo[]>();
+  let primeraFaltante: string | null = null;
+  for (const semana of semanas) {
+    const enCurso = semana === semanaHoy;
+    const guardadas = enCurso ? null : leerSemanaCache(miembro, semana);
+    if (guardadas) cacheadas.set(semana, guardadas);
+    else if (primeraFaltante == null) primeraFaltante = semana;
+  }
+
+  if (primeraFaltante == null) {
+    return ok({ dias: semanas.flatMap((s) => cacheadas.get(s) ?? []), truncado: false });
+  }
+
+  const r = await getDiasActivos(miembro, primeraFaltante, domingoDeSemana(semanaHoy));
+  if (!r.ok) return r;
+
+  // Repartir lo leído por semana y guardar las cerradas.
+  const leidas = new Map<string, DiaActivo[]>();
+  for (const d of r.value.dias) {
+    const semana = lunesDeSemana(d.fecha);
+    leidas.set(semana, [...(leidas.get(semana) ?? []), d]);
+  }
+  for (const semana of semanas) {
+    if (semana < primeraFaltante) continue;
+    // Una semana sin actividad se cachea igual, como lista vacía: "no hubo
+    // nada" es un dato, y si no se guardara se volvería a leer para siempre.
+    guardarSemanaCache(miembro, semana, leidas.get(semana) ?? [], semana === semanaHoy);
+  }
+
+  const dias = semanas.flatMap((s) =>
+    s < primeraFaltante! ? (cacheadas.get(s) ?? []) : (leidas.get(s) ?? []),
+  );
+  return ok({ dias, truncado: r.value.truncado });
+}
+
+/** El lunes siguiente. */
+function sumarSemana(lunes: string): Date {
+  const d = new Date(lunes + "T00:00:00");
+  d.setDate(d.getDate() + 7);
+  return d;
+}
+
+/** El domingo de la semana que arranca en `lunes`. */
+function domingoDeSemana(lunes: string): string {
+  const d = new Date(lunes + "T00:00:00");
+  d.setDate(d.getDate() + 6);
+  return ymdLocal(d);
 }
 
 export async function getHistorialEntry(id: string): Promise<Result<Historial>> {
@@ -354,45 +451,12 @@ export async function enriquecerHistorial(
 /** Límite de Firestore: 500 operaciones por batch. Con margen. */
 const MAX_OPS_POR_BATCH = 400;
 
-/**
- * Escribe entradas externas (P75) en batches de a `MAX_OPS_POR_BATCH`.
- *
- * `setDoc` sin merge, con el id determinístico `EXT-{datauuid}`: reimportar el
- * mismo ZIP PISA la entrada en vez de duplicarla.
- *
- * No distingue altas de actualizaciones a propósito (P75b): saberlo exigiría
- * leer las miles de externas que ya están guardadas, que es justo lo que este
- * prompt vino a evitar. El resultado es el mismo se escriba sobre algo o no.
- */
-export async function guardarEntradasExternas(
-  entradas: Historial[],
-): Promise<Result<{ escritas: number }>> {
-  if (entradas.length === 0) return ok({ escritas: 0 });
-  // P76a: se lleva la cuenta de lo ya commiteado para poder decir qué quedó
-  // escrito si falla un batch del medio. Reintentar es seguro: los ids son
-  // determinísticos y el `set` es idempotente.
-  let escritas = 0;
-  try {
-    let batch = writeBatch(db);
-    let ops = 0;
-    for (const entrada of entradas) {
-      batch.set(doc(db, "historial", entrada.idHist), entrada);
-      ops++;
-      if (ops >= MAX_OPS_POR_BATCH) {
-        await batch.commit();
-        escritas += ops;
-        batch = writeBatch(db);
-        ops = 0;
-      }
-    }
-    if (ops > 0) { await batch.commit(); escritas += ops; }
-
-    return ok({ escritas });
-  } catch (e) {
-    const detalle = escritas > 0 ? ` (${escritas} de ${entradas.length} ya se habían guardado)` : "";
-    return err(`${firebaseErrorMessage(e)}${detalle}`);
-  }
-}
+// P76b: acá vivía `guardarEntradasExternas`, que copiaba cada actividad de
+// salud a /historial como `tipo: "externa"`. Con el import real eran 2257
+// documentos duplicando filas que ya estaban enteras en /cardio, y dos copias
+// que podían divergir. Ahora el historial FILTRA /cardio al leer
+// (`lib/actividadRelevante.ts`): no se escribe nada y mover el umbral no obliga
+// a migrar.
 
 // ── Borrado ───────────────────────────────────────────────────────────────────
 

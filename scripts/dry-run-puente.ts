@@ -21,7 +21,7 @@ import {
   clasificarImport, ACTIVIDADES_SIEMPRE_RELEVANTES, DURACION_MIN_ACTIVIDAD_MIN,
   type ConfigClasificacion, type CardioClasificable, type DestinoImport,
 } from "../src/lib/importSelectivo";
-import { construirEntradaExterna, type ItemExterno } from "../src/lib/entradaExterna";
+import { marcasDe, actividadRelevante } from "../src/lib/actividadRelevante";
 import type { Historial, MiembroId, PerfilMiembro, OrigenExterna, MotivoIngreso } from "../src/types/models";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -134,22 +134,25 @@ async function run() {
   }
 
   // ── Qué se escribiría ───────────────────────────────────────────────────
-  const entradas = por("externa")
-    .filter((c) => !!(c.item as unknown as ItemExterno)._uuid)
-    .map((c) => construirEntradaExterna(
-      c.item as unknown as ItemExterno, miembro, c.motivoIngreso ?? "duracion",
-    ));
+  // P76b: un solo destino, /cardio. Lo que antes eran "entradas externas a
+  // escribir" ahora son actividades que se van a VER en el historial, según el
+  // mismo filtro que usa la pantalla al leer.
+  const conMarcas = clasificadas.map((c) => ({ ...c.item, ...marcasDe(c.item) }));
 
-  const porOrigen = new Map<OrigenExterna, number>();
-  const porIngreso = new Map<MotivoIngreso, number>();
-  for (const e of entradas) {
-    porOrigen.set(e.externa!.origen, (porOrigen.get(e.externa!.origen) ?? 0) + 1);
-    porIngreso.set(e.externa!.motivoIngreso, (porIngreso.get(e.externa!.motivoIngreso) ?? 0) + 1);
+  console.log("\n  -- Marcas que se persisten en /cardio ----------------");
+  console.log(`  esVR            : ${conMarcas.filter((a) => a.esVR).length}`);
+  console.log(`  marcadaShapeUp  : ${conMarcas.filter((a) => a.marcadaShapeUp).length}`);
+  console.log(`  autodetectada   : ${conMarcas.filter((a) => a.autodetectada).length}`);
+
+  console.log("\n  -- Se escribiria -------------------------------------");
+  console.log(`  a /cardio    : ${clasificadas.length} (TODAS)`);
+  console.log(`  a /historial : 0 (el historial filtra, no copia)`);
+
+  console.log("\n  -- Sensibilidad del umbral (filtro de lectura) -------");
+  for (const u of [10, 20, 30, 45]) {
+    const n = conMarcas.filter((a) => actividadRelevante(a, { duracionMinimaMin: u })).length;
+    console.log(`  ${String(u).padStart(2)} min -> ${String(n).padStart(4)} se verian en el historial`);
   }
-  console.log("\n  -- Externas por origen -------------------------------");
-  for (const [o, n] of porOrigen) console.log(`  ${o.padEnd(16)}: ${n}`);
-  console.log("\n  -- Externas por motivo de ingreso --------------------");
-  for (const [m, n] of porIngreso) console.log(`  ${m.padEnd(20)}: ${n}`);
 
   console.log("\n  -- Mediciones ----------------------------------------");
   console.log(`  a escribir : ${adaptado.mediciones.length}`);
@@ -166,7 +169,7 @@ async function run() {
   const cardSnap = await db.collection("cardio").where("miembro", "==", miembro).get();
   const idsCard = new Set(cardSnap.docs.map((d) => d.id));
   const nuevasCard = clasificadas.filter((c) => {
-    const u = (c.item as unknown as ItemExterno)._uuid;
+    const u = (c.item as { _uuid?: string })._uuid;
     return u && !idsCard.has(`CAR-${u}`);
   }).length;
 

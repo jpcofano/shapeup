@@ -131,12 +131,12 @@ export function PuentePreview({
               )}
               {resumen.externas > 0 && (
                 <li style={{ fontSize: 12, color: "var(--muted)" }}>
-                  <strong style={{ color: "var(--info)" }}>{resumen.externas}</strong> entran como actividad externa
+                  <strong style={{ color: "var(--info)" }}>{resumen.externas}</strong> se ven en el historial como actividad
                 </li>
               )}
               {resumen.soloSalud > 0 && (
                 <li style={{ fontSize: 12, color: "var(--muted)" }}>
-                  <strong>{resumen.soloSalud}</strong> quedan solo en salud, por durar menos de {umbralMin} min
+                  <strong>{resumen.soloSalud}</strong> quedan solo en salud, por durar menos de {umbralMin} min o por haberlas detectado el reloj
                 </li>
               )}
             </ul>

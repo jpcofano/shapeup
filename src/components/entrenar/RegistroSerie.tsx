@@ -31,6 +31,8 @@ interface Props {
   onDeshacer:   () => void;
   /** Saltea el bloque actual con motivo opcional (P68b). */
   onSaltar:     (motivo: MotivoSalto | null) => void;
+  /** Abre la hoja de sustitución del bloque actual (P73). */
+  onSustituir?: () => void;
   /** Reemplaza la copia local del ejercicio al cambiar el paso (sin esperar la escritura). */
   onEjercicioChange: (ej: Ejercicio) => void;
   pulsing?:     boolean;
@@ -44,7 +46,7 @@ interface Props {
 export function RegistroSerie({
   bloque, ejercicio, seriesHechas, reps, carga,
   onRepsChange, onCargaChange, onSerie, onSerieExtra, onDeshacer, onSaltar,
-  onEjercicioChange, pulsing,
+  onSustituir, onEjercicioChange, pulsing,
 }: Props) {
   const [pasoAbierto,   setPasoAbierto]   = useState(false);
   const [pasoError,     setPasoError]     = useState<string | null>(null);
@@ -190,6 +192,11 @@ export function RegistroSerie({
               Deshacer última serie
             </button>
           ) : <span />}
+          {!completo && onSustituir && (
+            <button type="button" className="btn-deshacer-serie" onClick={onSustituir}>
+              Sustituir
+            </button>
+          )}
           {!completo && (
             <button type="button" className="btn-deshacer-serie" onClick={() => setSaltarAbierto(true)}>
               Saltar ejercicio

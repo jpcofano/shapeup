@@ -7,13 +7,14 @@ import type {
 } from "../types/models";
 import {
   getMediciones, guardarMedicion,
-  getSesionesCardio, guardarCardio,
+  getCardioRango, contarCardio, guardarCardio,
   getRegistrosSueno,
   importarMedicionesIdempotente,
   importarCardioIdempotente,
   importarSueno,
   importarMetricas,
   getMetricasSalud,
+  type CursorCardio,
 } from "../data/salud";
 import {
   detectarTipoCsv, parsearPeso, parsearEjercicio, parsearSueno,
@@ -28,9 +29,9 @@ import { getHistorialShapeUp } from "../data/historial";
 import { enriquecerTrasImport } from "../data/enriquecimiento";
 import { clasificarImport, type ItemClasificado } from "../lib/importSelectivo";
 import { getConfigImport, CONFIG_IMPORT_DEFAULT } from "../data/configImport";
-import { construirEntradaExterna, type ItemExterno } from "../lib/entradaExterna";
-import { guardarEntradasExternas } from "../data/historial";
 import { firebaseErrorMessage } from "../lib/result";
+import { limpiarCacheDiasActivos } from "../lib/cacheDiasActivos";
+import { correrPaso, resumirPasos } from "../lib/pasoImport";
 import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
 import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
 import { PuentePanel, PuentePreview } from "../components/salud/PuentePanel";
@@ -45,6 +46,29 @@ import type { PreviewState, CardioEx } from "../components/salud/ImportPanel";
 
 type Tab = "resumen" | "composicion" | "cardio" | "sueno" | "progreso";
 
+// ── Fechas del paginado (P76b) ──────────────────────────────────────────────
+// Todo en hora local: la `fecha` de /cardio es local, no UTC (P76a).
+
+function ymd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function hoyYmd(): string { return ymd(new Date()); }
+
+/** Los últimos 12 meses: la ventana que se trae al abrir Salud. */
+function haceUnAno(): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 1);
+  return ymd(d);
+}
+
+/** El día anterior a `fecha`, para pedir lo que quedó más atrás sin repetir. */
+function diaAnterior(fecha: string): string {
+  const [y, m, dd] = fecha.split("-").map(Number);
+  const d = new Date(y, m - 1, dd - 1);
+  return ymd(d);
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export function Salud() {
@@ -58,6 +82,12 @@ export function Salud() {
   const [loading,    setLoading]   = useState(true);
   const [error,      setError]     = useState<string | null>(null);
   const [metricasError, setMetricasError] = useState<string | null>(null);
+  // ── Paginado de /cardio (P76b) ────────────────────────────────────────────
+  // Antes se traía la colección entera al montar: 2563 lecturas por visita.
+  const [cursorCardio,  setCursorCardio]  = useState<CursorCardio | null>(null);
+  const [ventanaDesde,  setVentanaDesde]  = useState<string | null>(null);
+  const [totalCardio,   setTotalCardio]   = useState<number | null>(null);
+  const [cargandoMas,   setCargandoMas]   = useState(false);
 
   // Import state
   const [showManual,        setShowManual]        = useState(false);
@@ -78,15 +108,17 @@ export function Salud() {
 
   useEffect(() => {
     if (!memberId) return;
+    const desde = haceUnAno();
+    setVentanaDesde(desde);
     Promise.all([
       getMediciones(memberId),
-      getSesionesCardio(memberId),
+      getCardioRango(memberId, { desde }),
       getRegistrosSueno(memberId),
       getMetricasSalud(memberId as MiembroId),
       getHistorialShapeUp(memberId as MiembroId),
     ]).then(([m, c, s, met, h]) => {
       if (m.ok)   setMediciones(m.value);
-      if (c.ok)   setCardio(c.value);
+      if (c.ok) { setCardio(c.value.sesiones); setCursorCardio(c.value.siguienteCursor); }
       if (s.ok)   setSueno(s.value);
       if (met.ok) setMetricas(met.value);
       if (h.ok)   setHistorial(h.value);
@@ -98,7 +130,60 @@ export function Salud() {
       setMetricasError(met.ok ? null : met.error);
       setLoading(false);
     });
+    // El total es una sola lectura agregada: alcanza para decir cuántas hay sin
+    // traerlas. Si falla, la pestaña muestra lo que tiene y no dice el total.
+    contarCardio(memberId).then((r) => { if (r.ok) setTotalCardio(r.value); });
   }, [memberId]);
+
+  /**
+   * Trae la página siguiente de actividades, hacia atrás en el tiempo (P76b).
+   *
+   * Primero agota la ventana del último año con el cursor; cuando se terminó,
+   * la ensancha pidiendo lo anterior a esa fecha. Así la primera visita lee
+   * una página y no la colección entera.
+   */
+  async function cargarMasCardio() {
+    if (!memberId || cargandoMas) return;
+    setCargandoMas(true);
+    const opciones = cursorCardio
+      ? { desde: ventanaDesde ?? undefined, cursor: cursorCardio }
+      : { hasta: diaAnterior(ventanaDesde ?? hoyYmd()) };
+    const r = await getCardioRango(memberId, opciones);
+    if (r.ok) {
+      setCardio((prev) => [...prev, ...r.value.sesiones]);
+      setCursorCardio(r.value.siguienteCursor);
+      if (!cursorCardio) setVentanaDesde(null);   // ya no hay piso: seguimos por cursor
+    } else {
+      setError(r.error);
+    }
+    setCargandoMas(false);
+  }
+
+  /** ¿Queda historia más vieja sin traer? */
+  const hayMasCardio = cursorCardio != null || ventanaDesde != null;
+
+  /**
+   * Vuelve a la primera página después de escribir. **No relee /cardio entero**
+   * para verificar lo que se acaba de importar (P76b): el import ya dice
+   * cuántos documentos escribió.
+   *
+   * También tira la caché de días activos (P77b): un import puede reescribir
+   * semanas viejas —el ZIP trae dos años— y una caché que sobreviviera a eso
+   * mostraría esas semanas como estaban antes.
+   */
+  async function refrescarCardio() {
+    if (!memberId) return;
+    limpiarCacheDiasActivos();
+    const desde = haceUnAno();
+    const r = await getCardioRango(memberId, { desde });
+    if (r.ok) {
+      setCardio(r.value.sesiones);
+      setCursorCardio(r.value.siguienteCursor);
+      setVentanaDesde(desde);
+    }
+    const t = await contarCardio(memberId);
+    if (t.ok) setTotalCardio(t.value);
+  }
 
   async function reintentarMetricas() {
     if (!memberId) return;
@@ -173,20 +258,19 @@ export function Salud() {
       (v.enCola
         ? `⏳ Puente: quedó en cola, se sube cuando haya señal.`
         : `✅ Puente: ${v.registros} registros`)
-      + ` · ${v.escritos.cardio} en salud`
-      + `${v.escritos.externas > 0 ? ` · ${v.escritos.externas} al historial como actividad` : ""}`
+      + ` · ${v.escritos.cardio} actividades guardadas`
       + `${v.escritos.mediciones > 0 ? ` · ${v.escritos.mediciones} mediciones` : ""}`
-      + `${v.enriquecen > 0 ? ` · ${v.enriquecen} enriquecen sesiones tuyas` : ""}`,
+      + `${v.enriquecen > 0 ? ` · ${v.enriquecen} enriquecen sesiones tuyas` : ""}`
+      + `${v.externas > 0 ? ` · ${v.externas} se ven en el historial` : ""}`,
     );
 
-    // Refrescar lo que cambió.
-    const [fm, fc, fh] = await Promise.all([
+    // Refrescar lo que cambió — la primera página, no la colección entera.
+    await refrescarCardio();
+    const [fm, fh] = await Promise.all([
       getMediciones(memberId),
-      getSesionesCardio(memberId),
       getHistorialShapeUp(memberId as MiembroId),
     ]);
     if (fm.ok) setMediciones(fm.value);
-    if (fc.ok) setCardio(fc.value);
     if (fh.ok) setHistorial(fh.value);
   }
 
@@ -320,48 +404,40 @@ export function Salud() {
   }
 
   /**
-   * Qué se escribe a partir de la clasificación (P75): el cardio crudo que va a
-   * /cardio y las entradas externas que van a /historial. Las descartadas solo
-   * entran a /cardio si el usuario lo pidió explícitamente.
+   * Qué se escribe a partir de la clasificación.
+   *
+   * **Desde P76b hay un solo destino: /cardio.** Todas las filas van enteras
+   * ahí, que ya es idempotente por datauuid. La clasificación no decide qué se
+   * escribe — solo informa cuántas van a enriquecer una sesión y cuántas se van
+   * a ver en el historial, que ahora es un filtro de lectura.
    */
   function planDeEscritura(cls: ItemClasificado<CardioEx>[]) {
-    // TODAS las filas van a /cardio (P75b): es la fuente cruda, ya es idempotente
-    // por datauuid, y es lo que garantiza que no se pierda nada. El destino solo
-    // decide si además genera una entrada en /historial.
-    const externas = cls
-      .filter((c) => c.destino === "externa")
-      .filter((c) => !!(c.item as unknown as ItemExterno)._uuid)  // sin datauuid no hay id determinístico
-      .map((c) => construirEntradaExterna(
-        c.item as unknown as ItemExterno,
-        memberId as MiembroId,
-        c.motivoIngreso ?? "duracion",
-      ));
     return {
       cardioItems: cls.map((c) => c.item),
-      externas,
       enriquecen:  cls.filter((c) => c.destino === "enriquece").length,
+      externas:    cls.filter((c) => c.destino === "externa").length,
       descartadas: cls.filter((c) => c.destino === "descartada").length,
     };
   }
 
   /**
-   * "2554 actividades guardadas. 2246 entraron al historial; 300 quedaron solo
-   * en salud por durar menos de 10 min." — nada se pierde, y se dice adónde fue
-   * cada cosa (P75b).
+   * "2562 actividades guardadas. 166 se ven en el historial; el resto queda en
+   * salud." — `guardadas` es lo que **se escribió de verdad**, no lo que se
+   * clasificó (P76b, mismo criterio que P76a le aplicó al puente).
    */
   function resumenActividades(
     guardadas: number, enriquecen: number, externas: number, descartadas: number,
   ): string {
     const umbralMin = preview?.umbralMin ?? CONFIG_IMPORT_DEFAULT.duracionMinimaMin;
     if (guardadas === 0) return "";
-    const alHistorial = enriquecen + externas;
-    const detalle = enriquecen > 0 && externas > 0
-      ? ` (${enriquecen} enriquecen sesiones tuyas, ${externas} como actividad)`
-      : "";
+    const detalle = [
+      enriquecen > 0 ? `${enriquecen} enriquecen sesiones tuyas` : null,
+      externas   > 0 ? `${externas} se ven en el historial` : null,
+    ].filter(Boolean).join(", ");
     const soloSalud = descartadas > 0
-      ? ` ${descartadas} quedaron solo en salud por durar menos de ${umbralMin} min.`
+      ? ` ${descartadas} quedan solo en salud (menos de ${umbralMin} min o detectadas por el reloj).`
       : "";
-    return ` · ${guardadas} actividades guardadas. ${alHistorial} entraron al historial${detalle}.${soloSalud}`;
+    return ` · ${guardadas} actividades guardadas${detalle ? `: ${detalle}` : ""}.${soloSalud}`;
   }
 
   // ── Confirmar import ─────────────────────────────────────────────────────
@@ -369,7 +445,6 @@ export function Salud() {
     if (!preview || !memberId) return;
     setPreview(null);
 
-    const EMPTY_OK = { ok: true as const, value: { importados: 0, omitidos: 0 } };
     function fmtImportMsg(importados: number, omitidos: number, sufijo = ""): string {
       const base = `✅ ${importados} importados${omitidos > 0 ? ` · ${omitidos} omitidos` : ""}`;
       return sufijo ? `${base} ${sufijo}` : base;
@@ -380,30 +455,27 @@ export function Salud() {
       try {
         const plan = preview.clasificadas
           ? planDeEscritura(preview.clasificadas)
-          : { cardioItems: z.cardio, externas: [], enriquecen: 0, descartadas: 0 };
+          : { cardioItems: z.cardio, enriquecen: 0, externas: 0, descartadas: 0 };
         const cardioParaImportar = plan.cardioItems as Parameters<typeof importarCardioIdempotente>[0];
 
-        const [r1, r2, r3, r4] = await Promise.all([
-          z.mediciones.length       > 0 ? importarMedicionesIdempotente(z.mediciones as Parameters<typeof importarMedicionesIdempotente>[0]) : EMPTY_OK,
-          cardioParaImportar.length > 0 ? importarCardioIdempotente(cardioParaImportar)                                                       : EMPTY_OK,
-          z.sueno.length            > 0 ? importarSueno(z.sueno as Parameters<typeof importarSueno>[0])                                       : EMPTY_OK,
-          z.metricas.length         > 0 ? importarMetricas(z.metricas)                                                                         : EMPTY_OK,
+        // Cada paso reporta lo que escribió, no lo que clasificó (P76b).
+        const pasos = await Promise.all([
+          correrPaso("mediciones", () => importarMedicionesIdempotente(z.mediciones as Parameters<typeof importarMedicionesIdempotente>[0]), z.mediciones.length),
+          correrPaso("actividades", () => importarCardioIdempotente(cardioParaImportar), cardioParaImportar.length),
+          correrPaso("sueño", () => importarSueno(z.sueno as Parameters<typeof importarSueno>[0]), z.sueno.length),
+          correrPaso("métricas", () => importarMetricas(z.metricas), z.metricas.length),
         ]);
-        const importados = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.importados : 0), 0);
-        const omitidos   = [r1, r2, r3, r4].reduce((s, r) => s + (r.ok ? r.value.omitidos   : 0), 0);
-        const firstErr   = [r1, r2, r3, r4].find((r) => !r.ok) as { ok: false; error: string } | undefined;
 
-        // Entradas externas (P75): lo que no matcheó ninguna sesión pero pasó el
-        // umbral entra al historial como actividad, con id determinístico.
-        const extRes = await guardarEntradasExternas(plan.externas);
+        const { escritos, fallados, sufijo } = resumirPasos(pasos);
+        const guardados = pasos.find((p) => p.nombre === "actividades")?.escritos ?? 0;
 
         const resumen = resumenActividades(
-          plan.cardioItems.length, plan.enriquecen, plan.externas.length, plan.descartadas,
+          guardados, plan.enriquecen, plan.externas, plan.descartadas,
         );
-        let msgBase = importados === 0 && firstErr
-          ? `Error: ${firstErr.error}`
-          : fmtImportMsg(importados, omitidos, `desde ZIP${resumen}`);
-        if (!extRes.ok) msgBase += ` ⚠ Actividades externas: ${extRes.error}`;
+        let msgBase = escritos === 0 && fallados.length > 0
+          ? `❌ ${fallados.map((p) => `${p.nombre}: ${p.error}`).join(" · ")}`
+          : fmtImportMsg(escritos, 0, `desde ZIP${resumen}`);
+        msgBase += sufijo;
 
         // El resultado del enriquecimiento SIEMPRE se suma al mensaje — nunca desaparece
         // en silencio, ni cuando no hay candidatas, ni cuando la llamada tira (S-fix, P55).
@@ -413,7 +485,8 @@ export function Salud() {
             if (enrRes.ok) {
               const {
                 matcheadas, porCustomId, porVentana, porDia, porRango,
-                sinMatch, sinCandidatasEseDia, sinSolape, ambiguas, omitidas,
+                sinMatch, sinCandidatasEseDia, sinSolape, ambiguas, ambiguasDetalle,
+                conTramos, tramosExtra, omitidas,
               } = enrRes.value;
               const evaluadas = matcheadas + sinMatch + ambiguas + omitidas;
               const partes: string[] = [];
@@ -428,7 +501,17 @@ export function Salud() {
                   .filter((d) => !d.startsWith("0 "));
                 partes.push(`${sinMatch} sin match${desglose.length > 0 ? ` (${desglose.join(", ")})` : ""}`);
               }
-              if (ambiguas    > 0) partes.push(`${ambiguas} ambigua${ambiguas !== 1 ? "s" : ""} (2+ ShapeUp el mismo día)`);
+              // Las ambiguas se LISTAN con nombre y fecha (P78): un contador que
+              // nadie mira no sirve para nada. Quedan para enlazar a mano.
+              if (ambiguas > 0) {
+                const cuales = ambiguasDetalle
+                  .map((a) => `${a.nombreRutina} (${a.fecha})`)
+                  .join(", ");
+                partes.push(`${ambiguas} sin resolver, 2+ ShapeUp el mismo día: ${cuales}`);
+              }
+              if (conTramos > 0) {
+                partes.push(`${conTramos} con ${tramosExtra} tramo${tramosExtra !== 1 ? "s" : ""} adicional${tramosExtra !== 1 ? "es" : ""}`);
+              }
               if (omitidas    > 0) partes.push(`${omitidas} ya estaban enriquecidas`);
               msgBase += ` · ${evaluadas} sesión${evaluadas !== 1 ? "es" : ""} evaluada${evaluadas !== 1 ? "s" : ""}${partes.length > 0 ? `: ${partes.join(" · ")}` : ""}`;
             } else {
@@ -442,14 +525,15 @@ export function Salud() {
         }
 
         setImportMsg(msgBase);
-        const [fm, fc, fs, fmet] = await Promise.all([
+        // No se relee /cardio entero para verificar lo importado (P76b): eso
+        // era otra pasada de 2563 lecturas. Se vuelve a la primera página.
+        await refrescarCardio();
+        const [fm, fs, fmet] = await Promise.all([
           getMediciones(memberId),
-          getSesionesCardio(memberId),
           getRegistrosSueno(memberId),
           getMetricasSalud(memberId as MiembroId),
         ]);
         if (fm.ok)   setMediciones(fm.value);
-        if (fc.ok)   setCardio(fc.value);
         if (fs.ok)   setSueno(fs.value);
         if (fmet.ok) setMetricas(fmet.value);
         setMetricasError(fmet.ok ? null : fmet.error);
@@ -470,17 +554,16 @@ export function Salud() {
     } else if (preview.tipo === "exercise") {
       const plan = preview.clasificadas
         ? planDeEscritura(preview.clasificadas)
-        : { cardioItems: preview.parsedItems, externas: [], enriquecen: 0, descartadas: 0 };
-      const r = await importarCardioIdempotente(
-        plan.cardioItems as Parameters<typeof importarCardioIdempotente>[0],
-      );
-      if (r.ok) { importados = r.value.importados; omitidos = r.value.omitidos; const fresh = await getSesionesCardio(memberId); if (fresh.ok) setCardio(fresh.value); }
-      else errorMsg = r.error;
-      const extRes = await guardarEntradasExternas(plan.externas);
+        : { cardioItems: preview.parsedItems, enriquecen: 0, externas: 0, descartadas: 0 };
+      const items = plan.cardioItems as Parameters<typeof importarCardioIdempotente>[0];
+      const paso = await correrPaso("actividades", () => importarCardioIdempotente(items), items.length);
+      importados = paso.escritos;
+      if (paso.error)  errorMsg = paso.error;
+      if (paso.escritos > 0 || paso.enCola) await refrescarCardio();
       sufijoCSV = resumenActividades(
-        plan.cardioItems.length, plan.enriquecen, plan.externas.length, plan.descartadas,
+        paso.escritos, plan.enriquecen, plan.externas, plan.descartadas,
       );
-      if (!extRes.ok) sufijoCSV += ` ⚠ Actividades externas: ${extRes.error}`;
+      if (paso.enCola) sufijoCSV += " ⏳ Quedó en cola, se sube cuando haya señal.";
     } else if (preview.tipo === ("metricas" as SamsungCsvType)) {
       const r = await importarMetricas(preview.parsedItems as MetricaSalud[]);
       if (r.ok) {
@@ -610,7 +693,13 @@ export function Salud() {
       )}
 
       {!loading && tab === "cardio" && (
-        <CardioTab cardio={cardio} historial={historial} />
+        <CardioTab
+          cardio={cardio} historial={historial}
+          total={totalCardio} desde={ventanaDesde}
+          hayMasEnServidor={hayMasCardio}
+          cargandoMas={cargandoMas}
+          onCargarMas={cargarMasCardio}
+        />
       )}
 
       {!loading && tab === "sueno" && (
@@ -636,7 +725,7 @@ export function Salud() {
               if (r.ok) { const f = await getMediciones(memberId); if (f.ok) setMediciones(f.value); }
             } else if (tipo === "cardio") {
               const r = await guardarCardio(data as Parameters<typeof guardarCardio>[0]);
-              if (r.ok) { const f = await getSesionesCardio(memberId); if (f.ok) setCardio(f.value); }
+              if (r.ok) await refrescarCardio();
             }
             setShowManual(false);
           }}

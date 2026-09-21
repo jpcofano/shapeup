@@ -103,6 +103,10 @@ describe("config", () => {
   it("owner puede escribir /config/visibilidad",    () => assertSucceeds(setDoc(doc(as("juanpablo").firestore(), "config", "visibilidad"), { test: true })));
   it("no-owner no puede escribir /config/visibilidad",() => assertFails(setDoc(doc(as("maria").firestore(),      "config", "visibilidad"), { test: true })));
   it("cualquier miembro puede escribir /config/perfiles", () => assertSucceeds(setDoc(doc(as("maria").firestore(), "config", "perfiles"), { maria: { color: "#fff" } })));
+  // P77a: la meta semanal es un campo más del perfil; las reglas no validan
+  // campos, pero el caso queda cubierto por si alguna vez lo hacen.
+  it("un miembro puede escribir su metaSemanalDias", () => assertSucceeds(setDoc(doc(as("maria").firestore(), "config", "perfiles"), { maria: { metaSemanalDias: 4 } }, { merge: true })));
+  it("no-miembro no puede escribir /config/perfiles", () => assertFails(setDoc(doc(stranger().firestore(), "config", "perfiles"), { maria: { metaSemanalDias: 4 } })));
   it("miembro puede leer /config/import",           () => assertSucceeds(getDoc(doc(as("sofia").firestore(),     "config", "import"))));
   it("cualquier miembro puede escribir /config/import", () => assertSucceeds(setDoc(doc(as("maria").firestore(),  "config", "import"), { duracionMinimaMin: 10, actividadesSiempreRelevantes: ["Pádel"] })));
   it("no-miembro no puede leer /config/import",     () => assertFails(  getDoc(doc(stranger().firestore(),        "config", "import"))));

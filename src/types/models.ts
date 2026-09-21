@@ -439,6 +439,28 @@ export interface BloqueRegistro {
   /** Solo presentes si el bloque se salteó (P68b). */
   saltado?: boolean;
   motivoSalto?: MotivoSalto;
+  // ── Sustitución en vivo (P73). Solo si hubo. ──────────────────────────────
+  // `idEjercicio` y `nombreEjercicio` guardan los DEL SUSTITUTO: el bloque
+  // cuenta lo que se hizo. El original queda acá al lado.
+  idEjercicioOriginal?: string;
+  /**
+   * El nombre del original, guardado al sustituir (P73).
+   *
+   * Se guarda en vez de resolverlo contra el catálogo al mostrar: el detalle
+   * del historial no carga el catálogo, y una lectura de Firestore por bloque
+   * para mostrar un nombre no vale la pena.
+   */
+  nombreEjercicioOriginal?: string;
+  motivoSustitucion?: MotivoSustitucion;
+  zonaMolestia?: ZonaMolestia;
+  /**
+   * Qué posición ocupaba el elegido en el ranking, empezando en 1. `0` si vino
+   * del buscador y no estaba entre los candidatos.
+   *
+   * Es el dato que después dice si el algoritmo acierta: si siempre elegís el
+   * tercero, el orden está mal.
+   */
+  posicionSustituto?: number;
   /** 1RM estimado (Epley) de las series del día, solo Fuerza y solo si hay valor (P70). No se muestra. */
   e1rmKg?: number;
 }
@@ -446,6 +468,9 @@ export interface BloqueRegistro {
 /** Zona de molestia marcada al cerrar la sesión (P70). */
 export type ZonaMolestia =
   | "hombro" | "codo" | "muñeca" | "espalda" | "cadera" | "rodilla" | "tobillo" | "otra";
+
+/** Por qué se cambió un ejercicio por otro en el momento (P73). */
+export type MotivoSustitucion = "dolor" | "equipo-ocupado" | "no-me-sale" | "otro";
 /** Enriquecimiento biométrico de una sesión ShapeUp cruzada con Samsung Health. */
 export interface BiometriaSesion {
   fuente: FuenteDato;                  // "samsung-health-csv"
@@ -463,11 +488,48 @@ export interface BiometriaSesion {
   matchPor: "custom-id" | "ventana" | "dia" | "rango" | "directo";
   granularidad: "serie" | "sesion";  // qué tan fino llegó el enriquecimiento
   /**
-   * Fin efectivo usado para los cálculos cuando Samsung siguió grabando de más
-   * (corte olvidado — P57): fcMedia/fcMax/fcMin/kcal se recortan a la ventana
-   * real de la app, no a la fila completa de Samsung. Ausente si no aplicó.
+   * Ventana efectiva usada para los cálculos: la intersección entre la ventana
+   * de la app y la del workout de Samsung (P78). Ausentes si no hubo recorte.
+   *
+   * El principio: **la ventana de la app define el intervalo**; Samsung aporta
+   * muestras, no el contenedor. La fila de Samsung tiene un solo dato
+   * confiable —el inicio, que lo apretaste vos—: el fin no lo es.
    */
   finMsEfectivo?: number;
+  inicioMsEfectivo?: number;
+
+  /**
+   * Las kcal salieron de un prorrateo por tiempo, no de la fila entera (P78).
+   * El detalle las muestra con un `~` adelante.
+   */
+  kcalEstimada?: boolean;
+
+  /** Suma de los tramos medidos, en minutos. NO es el reloj de pared (P78). */
+  duracionMedidaMin?: number;
+
+  /**
+   * Todos los `datauuid` agregados, el principal incluido (P78).
+   *
+   * `datauuidSamsung` sigue guardando **el principal** por compatibilidad con
+   * lo ya escrito. La regla 1b de `clasificarImport` tiene que mirar los dos, o
+   * cada reimport vuelve a meter el segundo tramo como actividad suelta.
+   */
+  tramosSamsung?: string[];
+
+  /**
+   * Qué parte de la ventana de la sesión tiene dato de FC (P78), de 0 a 1.
+   *
+   * · `coberturaFina`  — minutos con curva de ~1/s.
+   * · `coberturaTotal` — la fina más los huecos cubiertos con muestras crudas.
+   *
+   * Existen para que la falla **se vea**: hasta P78, una sesión de 60 min con
+   * el reloj cortado a los 20 se guardaba como si estuviera entera.
+   */
+  coberturaFina?: number;
+  coberturaTotal?: number;
+
+  /** Dónde está el hueco, cuando la cobertura fina no alcanza (P78). */
+  motivoCobertura?: "cortado-antes" | "arranco-tarde" | "hueco-entre-tramos" | "sin-cortar";
 }
 
 /** Quién registró la actividad: vos al arrancarla, o el reloj solo (P75b). */
@@ -486,9 +548,18 @@ export interface Historial {
   nombreRutina: string;
   /**
    * Origen de la entrada. Si falta se lee como `"rutina"` (retrocompat con el
-   * historial anterior a P74). `"externa"` la crea P75 a partir de datos de
-   * salud (una caminata, un partido): **no tiene bloques ni tonelaje**, así que
-   * ninguna métrica de plan o de progresión la cuenta — ver `lib/tipoHistorial.ts`.
+   * historial anterior a P74).
+   *
+   * **`"externa"` está declarado pero NADIE LO ESCRIBE desde P76b.** P75 creaba
+   * una entrada por cada actividad de salud, y con el import real eso eran 2257
+   * documentos duplicando filas que ya estaban en `/cardio`. Ahora las
+   * actividades se muestran filtrando `/cardio` al leer
+   * (`lib/actividadRelevante.ts`) y nada se copia.
+   *
+   * El valor se conserva a propósito, por dos motivos: los predicados de
+   * `lib/tipoHistorial.ts` siguen siendo correctos para cualquier entrada vieja
+   * que haya quedado, y P76 lo va a necesitar cuando convierta una actividad
+   * marcada como ShapeUp en una sesión de verdad.
    */
   tipo?: "rutina" | "libre" | "externa";
   /** "parcial" si se guardó desde la hoja de salida (P68). Ausente = "completa". */
@@ -512,9 +583,11 @@ export interface Historial {
   biometria?: BiometriaSesion;
 
   /**
-   * Solo en `tipo: "externa"` (P75): de dónde salió la entrada. El `datauuid` es
-   * lo que la hace idempotente — el `idHist` se deriva de él (`EXT-{datauuid}`),
-   * así que reimportar el mismo ZIP pisa la entrada en vez de duplicarla.
+   * Solo en `tipo: "externa"`: de dónde salió la entrada.
+   *
+   * **Sin uso desde P76b**, igual que el `tipo` correspondiente: se declara
+   * para leer las entradas que hayan quedado de P75 y para P76, que va a
+   * convertir actividades en sesiones. Nada lo escribe hoy.
    */
   externa?: {
     actividad: string;             // "Caminata", "Body Combat"
@@ -564,7 +637,15 @@ export interface SesionCardio {
   miembro: MiembroId;
   fecha: string;
   actividad: string;               // "Body Combat", "Caminata", "Aeróbic"…
+  // ── Marcas que consulta el filtro de lectura (P76b) ───────────────────────
+  // Se persisten con nombre estable y sin guión bajo porque ahora se consultan
+  // al mostrar el historial (`lib/actividadRelevante.ts`), no son de paso.
+  // Opcionales por los documentos importados antes de P76b, que no las tienen.
   esVR: boolean;
+  /** El reloj la marcó como ShapeUp: `custom_id` por ZIP, `customTitle` por SDK. */
+  marcadaShapeUp?: boolean;
+  /** La registró el reloj solo. Por el SDK viene explícita; por ZIP, sin FC. */
+  autodetectada?: boolean;
   duracionMin?: number;
   distanciaKm?: number;
   kcal?: number;
@@ -685,6 +766,13 @@ export interface PerfilMiembro {
   lugarHabitual?: Lugar;
   zonasFC?: Partial<Record<ZonaFC, { min: number; max: number }>>;
   fcMaxTeorica?: number;
+  /**
+   * Meta de días por semana, si el miembro apunta a algo distinto de lo que
+   * dice el plan (P77a). Ausente = manda el plan. **No se escribe un valor
+   * igual al del plan**: elegir el mismo número borra el override, para que la
+   * meta siga al plan si el plan cambia.
+   */
+  metaSemanalDias?: number;
 }
 export type PerfilesConfig = Partial<Record<MiembroId, PerfilMiembro>>;
 

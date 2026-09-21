@@ -8,8 +8,11 @@
 //
 //    · "enriquece"  — es una sesión que ya entrenaste en la app. El dato se
 //                     suma a ese Historial; NO se crea una entrada nueva.
-//    · "externa"    — no matchea nada, pero es entrenamiento igual. Entra como
-//                     Historial con `tipo: "externa"` (lib/entradaExterna.ts).
+//    · "externa"    — no matchea nada, pero es entrenamiento igual. **No se
+//                     escribe en ningún lado desde P76b**: ya está entera en
+//                     /cardio, y el historial la muestra filtrando al leer
+//                     (lib/actividadRelevante.ts). El destino queda como
+//                     información para la vista previa del import.
 //    · "descartada" — ni matchea ni llega al umbral. No se escribe, pero se
 //                     muestra con su explicación.
 //
@@ -141,12 +144,15 @@ export const ACTIVIDADES_SIEMPRE_RELEVANTES: string[] = [
 ];
 
 /**
- * DEFAULT de `/config/import.duracionMinimaMin`. Diez minutos: por debajo de
- * eso no es entrenamiento, se llame como se llame (S-fix, P55 — el bug de mapeo
- * etiquetaba caminatas de 1 min como "HIIT"). Configurable desde P75, pero el
- * valor no cambia.
+ * DEFAULT de `/config/import.duracionMinimaMin`.
+ *
+ * **Treinta minutos desde P76b.** Era diez, y con el export real de 2562
+ * actividades ese valor dejaba entrar 1326 caminatas al historial. Treinta deja
+ * 157 por duración: las que son una salida y no un traslado. El umbral ya no
+ * decide qué se escribe sino qué se muestra (`lib/actividadRelevante.ts`), así
+ * que cambiarlo no obliga a reimportar ni a migrar nada.
  */
-export const DURACION_MIN_ACTIVIDAD_MIN = 10;
+export const DURACION_MIN_ACTIVIDAD_MIN = 30;
 
 // ── Función principal ──────────────────────────────────────────────────────
 
@@ -268,13 +274,20 @@ function clasificar<T extends CardioClasificable>(
  * El Historial de ShapeUp que YA guarda este `datauuid` en su biometría, o
  * `undefined`. Match exacto: el mismo identificador de Samsung en las dos
  * puntas, sin depender de que el documento tenga ventana de tiempo (P75c).
+ * Mira el principal y los tramos (P78).
  */
 function buscarPorUuid<T extends CardioClasificable>(
   c: T,
   propias: Historial[],
 ): Historial | undefined {
   if (!c._uuid) return undefined;
-  return propias.find((h) => h.biometria?.datauuidSamsung === c._uuid);
+  // `tramosSamsung` también (P78): una sesión puede haber agregado más de un
+  // workout. Si solo se mirara el principal, cada reimport volvería a meter el
+  // segundo tramo como actividad suelta — y en silencio.
+  return propias.find((h) =>
+    h.biometria?.datauuidSamsung === c._uuid
+    || h.biometria?.tramosSamsung?.includes(c._uuid!) === true,
+  );
 }
 
 /**

@@ -4,8 +4,8 @@ import {
   actividadDeTipo, TITULO_SHAPEUP, type MedicionSdk, type RegistroSdk,
 } from "./adaptadorSdk";
 import { esAutodetectada, origenDe, clasificarImport, type ConfigClasificacion } from "./importSelectivo";
-import { construirEntradaExterna, idEntradaExterna, type ItemExterno } from "./entradaExterna";
 import { idCardioDe } from "../data/salud";
+import { marcasDe } from "./actividadRelevante";
 import { parsearEjercicio } from "../import/samsungHealth";
 import type { Historial } from "../types/models";
 import {
@@ -282,11 +282,10 @@ describe("mismo hecho por las dos vías = mismo id", () => {
     expect(idCardioDe(porSdk._uuid)).toBe("CAR-078f3af5-f086-4b09-9bfd-aeac9305f6a3");
   });
 
-  it("el idHist de la entrada externa coincide", () => {
-    const a = construirEntradaExterna(porSdk as unknown as ItemExterno, MIEMBRO, "duracion");
-    const b = construirEntradaExterna(porZip as unknown as ItemExterno, MIEMBRO, "duracion");
-    expect(a.idHist).toBe(b.idHist);
-    expect(a.idHist).toBe(idEntradaExterna(porZip._uuid));
+  it("el id de /cardio coincide en las dos vías", () => {
+    // Desde P76b no hay una segunda copia en /historial: el único id que hay
+    // que hacer coincidir es el de la actividad (P76b).
+    expect(idCardioDe(porSdk._uuid)).toBe(idCardioDe(porZip._uuid));
   });
 
   it("los campos que se guardan coinciden en las dos vías", () => {
@@ -338,12 +337,9 @@ describe("clasificarImport sobre lo adaptado", () => {
     expect(caminata.motivoIngreso).toBe("duracion");
   });
 
-  it("y queda marcada como autodetectada al construir la entrada", () => {
+  it("y queda marcada como autodetectada en el documento de /cardio", () => {
     const [, caminata] = clasificarImport(items, [], [TITULO_SHAPEUP], CONFIG, AHORA);
-    const h = construirEntradaExterna(
-      caminata.item as unknown as ItemExterno, MIEMBRO, caminata.motivoIngreso!,
-    );
-    expect(h.externa?.origen).toBe("autodetectada");
+    expect(marcasDe(caminata.item).autodetectada).toBe(true);
   });
 });
 

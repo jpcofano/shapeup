@@ -4,8 +4,9 @@
 // ════════════════════════════════════════════════════════════════════════════
 import {
   collection, doc, getDocs, setDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp,
+  query, where, orderBy, serverTimestamp, limit, startAfter, getCountFromServer,
 } from "firebase/firestore";
+import type { DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import type {
   MedicionCorporal, SesionCardio, RegistroSueno,
@@ -14,6 +15,7 @@ import type {
 } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
+import { marcasDe } from "../lib/actividadRelevante";
 
 function idMedicion(): string { return `MED-${Date.now()}`; }
 
@@ -72,12 +74,71 @@ export async function eliminarMedicion(id: string): Promise<Result<void>> {
 
 export type CardioInput = Omit<SesionCardio, "idCardio" | "fechaCreacion">;
 
-export async function getSesionesCardio(miembro: MiembroId): Promise<Result<SesionCardio[]>> {
+/** Cursor de paginado de `/cardio`: el último documento de la página anterior. */
+export type CursorCardio = QueryDocumentSnapshot<DocumentData>;
+
+export interface OpcionesCardioRango {
+  /** "YYYY-MM-DD" inclusive. Sin esto, desde el principio de los tiempos. */
+  desde?: string;
+  /** "YYYY-MM-DD" inclusive. */
+  hasta?: string;
+  /** Tope de documentos de esta página. */
+  limite?: number;
+  /** `siguienteCursor` de la página anterior. */
+  cursor?: CursorCardio;
+}
+
+/** Cuántas actividades trae una página si nadie dice otra cosa. */
+export const LIMITE_CARDIO_POR_PAGINA = 200;
+
+/**
+ * Actividades de `/cardio` por rango de fecha, paginadas (P76b).
+ *
+ * Reemplaza a `getSesionesCardio`, que traía la colección entera sin límite:
+ * con 2563 documentos eran 2563 lecturas cada vez que alguien abría Salud, y
+ * es la causa directa de que la cuota diaria se agotara.
+ *
+ * Usa el índice `(miembro, fecha desc)` que ya existe en `firestore.indexes.json`.
+ */
+export async function getCardioRango(
+  miembro: MiembroId,
+  opciones: OpcionesCardioRango = {},
+): Promise<Result<{ sesiones: SesionCardio[]; siguienteCursor: CursorCardio | null }>> {
+  const limite = opciones.limite ?? LIMITE_CARDIO_POR_PAGINA;
   try {
     const snap = await getDocs(
-      query(collection(db, "cardio"), where("miembro", "==", miembro), orderBy("fecha", "desc")),
+      query(
+        collection(db, "cardio"),
+        where("miembro", "==", miembro),
+        ...(opciones.desde ? [where("fecha", ">=", opciones.desde)] : []),
+        ...(opciones.hasta ? [where("fecha", "<=", opciones.hasta)] : []),
+        orderBy("fecha", "desc"),
+        ...(opciones.cursor ? [startAfter(opciones.cursor)] : []),
+        limit(limite),
+      ),
     );
-    return ok(snap.docs.map((d) => d.data() as SesionCardio));
+    return ok({
+      sesiones: snap.docs.map((d) => d.data() as SesionCardio),
+      // Solo hay más si la página vino llena; si no, ya estamos en el final.
+      siguienteCursor: snap.docs.length === limite ? snap.docs[snap.docs.length - 1] : null,
+    });
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/**
+ * Cuántas actividades tiene el miembro en total (P76b).
+ *
+ * Es una lectura agregada: cuenta en el servidor y factura una sola, así la
+ * pestaña Cardio puede decir "mostrando 180 de 2563" sin traer las 2563.
+ */
+export async function contarCardio(miembro: MiembroId): Promise<Result<number>> {
+  try {
+    const snap = await getCountFromServer(
+      query(collection(db, "cardio"), where("miembro", "==", miembro)),
+    );
+    return ok(snap.data().count);
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -96,6 +157,11 @@ export async function guardarCardio(
     const id  = idCardioDe(_uuid);
     const ses: SesionCardio = {
       ...limpio,
+      // Carga manual: la declaraste vos, así que nunca es autodetectada aunque
+      // no tenga FC (P76b). El reloj no la marcó como ShapeUp.
+      esVR: limpio.esVR === true,
+      marcadaShapeUp: false,
+      autodetectada: false,
       idCardio:      id,
       fechaCreacion: serverTimestamp() as unknown as FirestoreTimestamp,
     };
@@ -227,18 +293,34 @@ export async function importarMedicionesIdempotente(
   }
 }
 
+/** Campos técnicos que el parser y el adaptador agregan y no se guardan tal cual. */
+export type CardioImportable = Omit<SesionCardio, "idCardio" | "fechaCreacion"> & {
+  _uuid?: string; _startMs?: number; _endMs?: number; _customId?: string;
+  _fcMin?: number; _muestrasCurva?: number; _autoDetected?: boolean;
+  _marcadaShapeUp?: boolean;
+};
+
+// Las marcas se derivan con el núcleo puro (ADR #009), que es el mismo que las
+// vuelve a leer al filtrar.
+export { marcasDe } from "../lib/actividadRelevante";
+
 export async function importarCardioIdempotente(
-  items: (Omit<SesionCardio, "idCardio" | "fechaCreacion"> & {
-    _uuid?: string; _startMs?: number; _endMs?: number; _customId?: string; _fcMin?: number;
-  })[],
+  items: CardioImportable[],
 ): Promise<Result<ImportResult>> {
   try {
     const results = await Promise.allSettled(
       items.map((item) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _uuid, _startMs, _endMs, _customId, _fcMin, ...data } = item;
+        const {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _uuid, _startMs, _endMs, _customId, _fcMin, _muestrasCurva,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _autoDetected, _marcadaShapeUp, ...data
+        } = item;
         const id = idCardioDe(_uuid);
-        const payload = { ...data, idCardio: id, fechaCreacion: serverTimestamp() } as Record<string, unknown>;
+        const payload = {
+          ...data, ...marcasDe(item),
+          idCardio: id, fechaCreacion: serverTimestamp(),
+        } as Record<string, unknown>;
         if (_startMs != null) payload.inicioMs = _startMs;
         if (_endMs   != null) payload.finMs    = _endMs;
         // P76a: la FC mínima venía del parser y del adaptador y se tiraba acá.

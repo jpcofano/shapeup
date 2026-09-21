@@ -251,20 +251,15 @@ function promedio(nums: number[]): number {
 }
 
 /**
- * Construye la `BiometriaSesion` a nivel sesión (cuando no hay curva fina).
- * Degradación elegante: nunca tira error. `granularidad: "sesion"`.
+ * La `BiometriaSesion` de una sesión con **un solo** tramo de Samsung.
  *
- * Anti-"olvido de corte" (P57): si `ventanaApp` es una ventana **real** y Samsung
- * siguió grabando más de `OLVIDO_CORTE_MS` después del fin de la app
- * (`sesionSamsung.endMs - ventanaApp.finMs > OLVIDO_CORTE_MS`), la fila de Samsung
- * ya no es confiable tal cual (fcMedia/kcal incluyen tiempo que no fue entrenamiento):
- * - con curva: recalcula fcMedia/fcMax/fcMin solo con muestras dentro de la ventana
- *   de la app y **omite `kcal`** (no se puede prorratear honestamente).
- * - sin curva: conserva solo `fcMax` (el pico casi seguro fue entrenando) y omite
- *   `fcMedia`/`kcal`.
- * En ambos casos sella `finMsEfectivo` (el fin real usado para los cálculos).
- * Ventana sintética o ausente: no hay fin confiable de la app — se usa la fila tal
- * cual, sin marcar `finMsEfectivo`.
+ * Desde P78 es un atajo sobre `construirBiometriaDeTramos`: el recorte a la
+ * ventana de la app dejó de ser el caso especial del "olvido de corte" y pasó a
+ * ser la regla. Con curva, la FC **siempre** se recalcula sobre la curva
+ * recortada al intervalo efectivo; nunca más se leen las columnas de la fila.
+ *
+ * **Ventana sintética o ausente**: no hay intervalo confiable contra el cual
+ * recortar, así que se usa la fila tal cual, como antes de P78.
  */
 export function construirBiometriaSesion(
   sesionSamsung: SesionSamsung,
@@ -272,45 +267,19 @@ export function construirBiometriaSesion(
   perfil?: PerfilMiembro,
   ventanaApp?: SesionApp,
   curva?: LiveDataPoint[],
+  muestrasCrudas: LiveDataPoint[] = [],
 ): BiometriaSesion {
-  const huboOlvidoDeCorte =
-    ventanaApp != null && !ventanaApp.sintetica &&
-    (sesionSamsung.endMs - ventanaApp.finMs) > OLVIDO_CORTE_MS;
-
-  if (huboOlvidoDeCorte) {
-    const ventana = ventanaApp!;
-    if (curva && curva.length > 0) {
-      const enVentana = curva.filter((p) => p.ms >= ventana.inicioMs && p.ms <= ventana.finMs);
-      const fcs = enVentana.map((p) => p.fc);
-      const fcMedia = fcs.length > 0 ? promedio(fcs) : undefined;
-      return stripUndef({
-        fuente:          "samsung-health-csv",
-        datauuidSamsung: sesionSamsung.datauuid,
-        fcMedia,
-        fcMax:           fcs.length > 0 ? Math.max(...fcs) : undefined,
-        fcMin:           fcs.length > 0 ? Math.min(...fcs) : undefined,
-        zonaPrincipal:   fcMedia !== undefined ? derivarZona(fcMedia, perfil) : undefined,
-        // kcal omitido a propósito: no se puede prorratear honestamente.
-        matchPor,
-        granularidad:    "sesion",
-        finMsEfectivo:   ventana.finMs,
-      });
-    }
-    return stripUndef({
-      fuente:          "samsung-health-csv",
-      datauuidSamsung: sesionSamsung.datauuid,
-      fcMax:           sesionSamsung.fcMax, // el pico casi seguro fue entrenando
-      // fcMedia/kcal omitidos a propósito: la fila incluye tiempo post-sesión.
-      matchPor,
-      granularidad:    "sesion",
-      finMsEfectivo:   ventana.finMs,
-    });
+  if (ventanaApp != null && !ventanaApp.sintetica) {
+    return construirBiometriaDeTramos(
+      [{ sesion: sesionSamsung, curva }], matchPor, ventanaApp, muestrasCrudas, perfil,
+    );
   }
 
   const fcMedia = sesionSamsung.fcMedia;
   return stripUndef({
     fuente:          "samsung-health-csv",
     datauuidSamsung: sesionSamsung.datauuid,
+    tramosSamsung:   [sesionSamsung.datauuid],
     fcMedia,
     fcMax:           sesionSamsung.fcMax,
     fcMin:           sesionSamsung.fcMin,
@@ -319,6 +288,263 @@ export function construirBiometriaSesion(
     matchPor,
     granularidad:    "sesion",
   });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P78 — La ventana de la app manda
+//
+//  El principio: **la ventana de la sesión de la app define el intervalo.
+//  Samsung aporta muestras, no el contenedor.** La fila de Samsung tiene un
+//  solo dato confiable, el inicio (lo apretaste vos): el fin no lo es —te
+//  podés olvidar de cortar, o cortar antes— y que haya una fila no significa
+//  que cubra la sesión entera.
+//
+//  Hasta acá el código aplicaba esto en dos lugares sin nombrarlo (el olvido de
+//  corte y el nivel "rango"). Desde P78 es la regla general.
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Solape mínimo de un tramo **relativo al tramo** para entrar en la agregación. */
+export const SOLAPE_TRAMO_MIN = 0.80;
+
+/** Debajo de esto, el detalle de sesión dice qué pasó (P78). */
+export const COBERTURA_MINIMA = 0.80;
+
+/** Un workout de Samsung con su curva, si la tiene. */
+export interface TramoSamsung {
+  sesion: SesionSamsung;
+  curva?: LiveDataPoint[];
+}
+
+/** Intersección de dos intervalos; `ms` es 0 si no se tocan. */
+export function interseccion(
+  aIni: number, aFin: number, bIni: number, bFin: number,
+): { inicioMs: number; finMs: number; ms: number } {
+  const inicioMs = Math.max(aIni, bIni);
+  const finMs = Math.min(aFin, bFin);
+  return { inicioMs, finMs, ms: Math.max(0, finMs - inicioMs) };
+}
+
+/**
+ * Cuánto de un tramo cae adentro de la ventana, **relativo al tramo**.
+ *
+ * Relativo al tramo y no a la ventana a propósito: un workout de tres horas sin
+ * cortar tiene solape relativo chico y por eso **no entra como tramo
+ * adicional**. Si igual es el más cercano al inicio, entra como principal y lo
+ * resuelve el recorte.
+ */
+export function solapeRelativo(tramo: SesionSamsung, ventana: SesionApp): number {
+  const dur = tramo.endMs - tramo.startMs;
+  if (dur <= 0) return 0;
+  return interseccion(ventana.inicioMs, ventana.finMs, tramo.startMs, tramo.endMs).ms / dur;
+}
+
+/**
+ * De las candidatas sobrantes, las que son tramos de la misma sesión.
+ *
+ * El principal ya fue elegido por `elegirSesionSamsung`; estas son las demás
+ * del pool custom-id que caen casi enteras adentro de la ventana.
+ */
+export function elegirTramosAdicionales(
+  ventana: SesionApp,
+  candidatas: SesionSamsung[],
+  principalUuid: string,
+  shapeUpCustomId?: string,
+): SesionSamsung[] {
+  if (ventana.sintetica) return [];   // sobre una ventana estimada no se agrega nada
+  return candidatas
+    .filter((c) => c.datauuid !== principalUuid)
+    .filter((c) => shapeUpCustomId == null || c.customId === shapeUpCustomId)
+    .filter((c) => solapeRelativo(c, ventana) >= SOLAPE_TRAMO_MIN)
+    .sort((a, b) => a.startMs - b.startMs);
+}
+
+/** Un pedazo de la ventana con FC conocida, y de qué densidad viene. */
+interface Segmento {
+  inicioMs: number;
+  finMs: number;
+  fcs: number[];
+  fina: boolean;
+}
+
+/** Los huecos de `ventana` que ningún tramo cubre, ordenados. */
+function huecosDe(
+  ventana: SesionApp,
+  cubiertos: { inicioMs: number; finMs: number }[],
+): { inicioMs: number; finMs: number }[] {
+  const ordenados = [...cubiertos].sort((a, b) => a.inicioMs - b.inicioMs);
+  const huecos: { inicioMs: number; finMs: number }[] = [];
+  let cursor = ventana.inicioMs;
+  for (const c of ordenados) {
+    if (c.inicioMs > cursor) huecos.push({ inicioMs: cursor, finMs: c.inicioMs });
+    cursor = Math.max(cursor, c.finMs);
+  }
+  if (cursor < ventana.finMs) huecos.push({ inicioMs: cursor, finMs: ventana.finMs });
+  return huecos;
+}
+
+/**
+ * FC media **ponderada por duración**, no por cantidad de muestras.
+ *
+ * Es el detalle que no se puede pasar por alto: promediar juntas muestras de
+ * 1/s con muestras de `tracker.heart_rate` (mucho más ralas) pondera mal — el
+ * tramo fino domina el promedio por cantidad, no por tiempo. Cuarenta minutos a
+ * 150 y veinte a 100 dan 133, no el promedio de todas las muestras.
+ */
+function fcMediaPonderada(segmentos: Segmento[]): number | undefined {
+  let suma = 0;
+  let peso = 0;
+  for (const seg of segmentos) {
+    if (seg.fcs.length === 0) continue;
+    const dur = Math.max(1, seg.finMs - seg.inicioMs);
+    suma += (seg.fcs.reduce((a, b) => a + b, 0) / seg.fcs.length) * dur;
+    peso += dur;
+  }
+  return peso > 0 ? suma / peso : undefined;
+}
+
+/** Dónde está el hueco más grande, para poder decir QUÉ pasó y no solo que falta. */
+function motivoDeCobertura(
+  ventana: SesionApp,
+  huecos: { inicioMs: number; finMs: number }[],
+  excedeVentana: boolean,
+): BiometriaSesion["motivoCobertura"] | undefined {
+  if (huecos.length === 0) return excedeVentana ? "sin-cortar" : undefined;
+  const mayor = huecos.reduce((a, b) => (b.finMs - b.inicioMs > a.finMs - a.inicioMs ? b : a));
+  if (mayor.finMs >= ventana.finMs)       return "cortado-antes";
+  if (mayor.inicioMs <= ventana.inicioMs) return "arranco-tarde";
+  return "hueco-entre-tramos";
+}
+
+/**
+ * La biometría de una sesión a partir de uno o más tramos de Samsung, recortados
+ * a la ventana de la app y completados con muestras crudas en los huecos (P78).
+ *
+ * **Sesgo conocido del prorrateo de kcal:** repartir por tiempo supone
+ * intensidad constante. Si el pedazo recortado era sofá, sus calorías reales
+ * eran bajas y el prorrateo le saca de más — o sea **subestima**. Es la
+ * dirección segura: quedarse corto en el esfuerzo es mejor que inflarlo.
+ */
+export function construirBiometriaDeTramos(
+  tramos: TramoSamsung[],
+  matchPor: "custom-id" | "ventana" | "dia",
+  ventanaApp: SesionApp,
+  muestrasCrudas: LiveDataPoint[] = [],
+  perfil?: PerfilMiembro,
+): BiometriaSesion {
+  const principal = tramos[0].sesion;
+  const ventanaMs = Math.max(1, ventanaApp.finMs - ventanaApp.inicioMs);
+
+  const segmentos: Segmento[] = [];
+  const cubiertos: { inicioMs: number; finMs: number }[] = [];
+  const curvaTotal: LiveDataPoint[] = [];
+  let kcal = 0;
+  let hayKcal = false;
+  let kcalEstimada = false;
+  let msMedidos = 0;
+  let msFinos = 0;
+  let excedeVentana = false;
+  let algunRecorte = false;
+  // Con curva, el máximo y el mínimo salen de las muestras. Sin curva, lo
+  // mejor que hay es lo que declara la fila.
+  const fcMaxFila: number[] = [];
+  const fcMinFila: number[] = [];
+
+  for (const { sesion, curva } of tramos) {
+    const inter = interseccion(ventanaApp.inicioMs, ventanaApp.finMs, sesion.startMs, sesion.endMs);
+    if (inter.ms <= 0) continue;
+    const durWorkout = Math.max(1, sesion.endMs - sesion.startMs);
+    const recortado = inter.ms < durWorkout;
+    if (recortado) algunRecorte = true;
+    if (sesion.endMs - ventanaApp.finMs > OLVIDO_CORTE_MS) excedeVentana = true;
+
+    msMedidos += inter.ms;
+    cubiertos.push({ inicioMs: inter.inicioMs, finMs: inter.finMs });
+
+    // kcal: prorrateadas por tiempo, y marcadas si hubo recorte. **Siempre**,
+    // haya curva o no: prorratear no necesita la curva, solo la fila y los
+    // tiempos. Lo que sí necesita curva es recortar la FC media.
+    if (sesion.kcal != null) {
+      hayKcal = true;
+      kcal += sesion.kcal * (inter.ms / durWorkout);
+      if (recortado) kcalEstimada = true;
+    }
+
+    if (curva && curva.length > 0) {
+      const dentro = curva.filter((pt) => pt.ms >= inter.inicioMs && pt.ms <= inter.finMs);
+      if (dentro.length > 0) {
+        segmentos.push({ inicioMs: inter.inicioMs, finMs: inter.finMs, fcs: dentro.map((pt) => pt.fc), fina: true });
+        curvaTotal.push(...dentro);
+        msFinos += inter.ms;
+      }
+    } else if (sesion.endMs - ventanaApp.finMs > OLVIDO_CORTE_MS) {
+      // Sin curva no hay con qué recortar la FC: se conserva solo el pico, que
+      // casi seguro fue entrenando. **La media se omite** — la de la fila
+      // incluye el tiempo post-sesión y no es un número sumable. Las kcal sí
+      // se prorratean (arriba): para eso alcanza con la fila y los tiempos.
+      if (sesion.fcMax != null) fcMaxFila.push(sesion.fcMax);
+    } else {
+      // Sin curva y sin exceso: la fila sirve como promedio del tramo, y su
+      // máximo y mínimo son lo mejor que hay.
+      if (sesion.fcMedia != null) {
+        segmentos.push({ inicioMs: inter.inicioMs, finMs: inter.finMs, fcs: [sesion.fcMedia], fina: false });
+      }
+      if (sesion.fcMax != null) fcMaxFila.push(sesion.fcMax);
+      if (sesion.fcMin != null) fcMinFila.push(sesion.fcMin);
+    }
+  }
+
+  // Los huecos de la ventana se completan con las muestras crudas que caigan ahí.
+  const huecos = huecosDe(ventanaApp, cubiertos);
+  let msCubiertosCrudos = 0;
+  for (const hueco of huecos) {
+    const dentro = muestrasCrudas.filter((pt) => pt.ms >= hueco.inicioMs && pt.ms <= hueco.finMs);
+    if (dentro.length < MIN_MUESTRAS_RANGO) continue;
+    segmentos.push({ ...hueco, fcs: dentro.map((pt) => pt.fc), fina: false });
+    msCubiertosCrudos += hueco.finMs - hueco.inicioMs;
+  }
+
+  const finasYCrudas = segmentos.filter((seg) => seg.fina).flatMap((seg) => seg.fcs)
+    .concat(segmentos.filter((seg) => !seg.fina && seg.fcs.length > 1).flatMap((seg) => seg.fcs));
+  const fcMedia = fcMediaPonderada(segmentos);
+  const candidatosMax = [...finasYCrudas, ...fcMaxFila];
+  const candidatosMin = [...finasYCrudas, ...fcMinFila];
+  const fcMax = candidatosMax.length > 0 ? Math.max(...candidatosMax) : undefined;
+  const fcMin = candidatosMin.length > 0 ? Math.min(...candidatosMin) : undefined;
+  const huboRecorte = algunRecorte || excedeVentana;
+
+  const coberturaFina = Math.min(1, msFinos / ventanaMs);
+  const coberturaTotal = Math.min(1, (msFinos + msCubiertosCrudos) / ventanaMs);
+
+  return stripUndef<BiometriaSesion>({
+    fuente:          "samsung-health-csv",
+    datauuidSamsung: principal.datauuid,
+    tramosSamsung:   tramos.map((t) => t.sesion.datauuid),
+    fcMedia,
+    fcMax,
+    fcMin,
+    zonaPrincipal:   fcMedia !== undefined ? derivarZona(fcMedia, perfil) : undefined,
+    kcal:            hayKcal ? Math.round(kcal) : undefined,
+    kcalEstimada:    hayKcal && kcalEstimada ? true : undefined,
+    duracionMedidaMin: msMedidos > 0 ? Math.round(msMedidos / 60_000) : undefined,
+    matchPor,
+    granularidad:    "sesion",
+    ...(huboRecorte
+      ? { inicioMsEfectivo: Math.min(...cubiertos.map((c) => c.inicioMs)),
+          finMsEfectivo:    Math.max(...cubiertos.map((c) => c.finMs)) }
+      : {}),
+    coberturaFina,
+    coberturaTotal,
+    motivoCobertura: coberturaFina < COBERTURA_MINIMA
+      ? motivoDeCobertura(ventanaApp, huecos, excedeVentana)
+      : undefined,
+  });
+}
+
+/** La curva de todos los tramos, ordenada y sin duplicados (P78). */
+export function curvaDeTramos(tramos: TramoSamsung[]): LiveDataPoint[] {
+  const porMs = new Map<number, LiveDataPoint>();
+  for (const t of tramos) for (const pt of t.curva ?? []) porMs.set(pt.ms, pt);
+  return [...porMs.values()].sort((a, b) => a.ms - b.ms);
 }
 
 /** Mínimo de muestras crudas de FC dentro de la ventana para el nivel "rango" (P57). */

@@ -172,7 +172,7 @@ export function ImportPreview({
 
               {/* Todas se guardan en salud (P75b); esto es a dónde van ADEMÁS. */}
               <p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--muted)" }}>
-                Todas se guardan. Al historial entran:
+                Todas se guardan en salud. En el historial se ven:
               </p>
               <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 3 }}>
                 <GrupoDestino
@@ -181,11 +181,11 @@ export function ImportPreview({
                 />
                 <GrupoDestino
                   n={externas.length} color="var(--info)"
-                  label="entran como actividad externa"
+                  label="se ven como actividad"
                 />
                 <GrupoDestino
                   n={descartadas.length} color="var(--muted)"
-                  label={`quedan solo en salud${umbral != null ? `, por durar menos de ${umbral} min` : ""}`}
+                  label={`quedan solo en salud${umbral != null ? `, por durar menos de ${umbral} min o por haberlas detectado el reloj` : ""}`}
                 />
               </ul>
 

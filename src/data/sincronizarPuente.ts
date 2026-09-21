@@ -3,9 +3,11 @@
 //
 //  Orquesta y nada más: lee (`data/ingestaSdk`), traduce (`lib/adaptadorSdk`) y
 //  después usa **el mismo pipeline del ZIP** — `clasificarImport` de P75,
-//  `construirEntradaExterna` y `guardarEntradasExternas` de P75/P75b,
 //  `importarCardioIdempotente` e `importarMedicionesIdempotente`. No hay una
 //  segunda ingesta con sus propias reglas.
+//
+//  P76b: ya no escribe entradas externas en /historial. Todas las actividades
+//  van enteras a /cardio y el historial las filtra al leer.
 //
 //  No marca los registros como procesados: son pocos, todo es idempotente por
 //  uuid y el puente reescribe la misma ventana. Marcarlos obligaría a escribir
@@ -19,11 +21,9 @@ import {
   clasificarImport, type ConfigClasificacion, type ItemClasificado,
   type CardioClasificable,
 } from "../lib/importSelectivo";
-import { construirEntradaExterna, type ItemExterno } from "../lib/entradaExterna";
 import { TITULO_SHAPEUP, adaptarRegistros } from "../lib/adaptadorSdk";
 import { leerRegistrosSdk } from "./ingestaSdk";
 import { importarCardioIdempotente, importarMedicionesIdempotente } from "./salud";
-import { guardarEntradasExternas } from "./historial";
 
 export interface ResumenSincronizacion {
   /** Documentos leídos de /ingesta-sdk, partes incluidas. */
@@ -36,6 +36,11 @@ export interface ResumenSincronizacion {
 
   /** Actividades por destino, con las mismas reglas que el ZIP. */
   enriquecen: number;
+  /**
+   * Las que no enriquecen ninguna sesión y se van a **ver** en el historial.
+   * Desde P76b no se escribe un documento por cada una: todas están en
+   * /cardio y el historial las filtra al leer.
+   */
   externas: number;
   soloSalud: number;
   clasificadas: ItemClasificado<CardioClasificable>[];
@@ -51,7 +56,7 @@ export interface ResumenSincronizacion {
    * mostraba `enriquecen + externas`, que salen de la clasificación y no de la
    * escritura: decía que había guardado aunque no hubiera guardado nada.
    */
-  escritos: { cardio: number; externas: number; mediciones: number };
+  escritos: { cardio: number; mediciones: number };
 
   /**
    * Algún paso venció los 8 s y quedó en la cola local de Firestore. No es un
@@ -113,7 +118,7 @@ export async function sincronizarDesdePuente(
     medicionesAEscribir: adaptado.mediciones.length,
     medicionesDescartadas: adaptado.medicionesDescartadas,
     escrito: false,
-    escritos: { cardio: 0, externas: 0, mediciones: 0 },
+    escritos: { cardio: 0, mediciones: 0 },
     enCola: false,
   };
 
@@ -123,12 +128,11 @@ export async function sincronizarDesdePuente(
   // Cada paso corre contra un timeout y reporta lo que escribió. Si uno falla
   // después de que otro escribió, el error dice qué quedó guardado: nada se
   // deshace, porque todos los ids son determinísticos y reintentar es seguro.
-  const escritos = { cardio: 0, externas: 0, mediciones: 0 };
+  const escritos = { cardio: 0, mediciones: 0 };
   let enCola = false;
   const yaGuardado = () => {
     const partes = [
-      escritos.cardio    > 0 ? `${escritos.cardio} de cardio` : null,
-      escritos.externas  > 0 ? `${escritos.externas} actividades externas` : null,
+      escritos.cardio     > 0 ? `${escritos.cardio} actividades` : null,
       escritos.mediciones > 0 ? `${escritos.mediciones} mediciones` : null,
     ].filter(Boolean);
     return partes.length > 0 ? ` Ya se habían guardado: ${partes.join(", ")}.` : "";
@@ -149,18 +153,6 @@ export async function sincronizarDesdePuente(
         return err(`Cardio: ${paso.valor.fallidos} de ${cardio.length} no se guardaron. ${paso.valor.primerError ?? ""}`.trim());
       }
     }
-  }
-
-  const entradas = externas
-    .filter((c) => !!(c.item as unknown as ItemExterno)._uuid)
-    .map((c) => construirEntradaExterna(
-      c.item as unknown as ItemExterno, miembro, c.motivoIngreso ?? "duracion",
-    ));
-  if (entradas.length > 0) {
-    const paso = await escribir(guardarEntradasExternas(entradas));
-    if (paso.tipo === "error") return err(`Actividades externas: ${paso.error}${yaGuardado()}`);
-    if (paso.tipo === "timeout") { enCola = true; escritos.externas = entradas.length; }
-    else escritos.externas = paso.valor.escritas;
   }
 
   if (adaptado.mediciones.length > 0) {

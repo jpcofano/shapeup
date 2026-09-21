@@ -15,7 +15,8 @@ import type { Historial, Programa } from "../types/models";
 import type { SenalSalud as SenalSaludResumen } from "./resumenSalud";
 import type { CardioInput } from "../import/samsungHealth";
 
-import { rachaDelPlan, diasActivos } from "./racha";
+import { diasActivos } from "./racha";
+import { seriesDeAdherencia, rachaActual, tasaCumplimiento, metaSemanal } from "./adherencia";
 import { calcularWeekChips } from "./weekChips";
 import { semanasSinDescarga, calcularRecomendacion } from "./recomendaciones";
 import { sesionesDelEjercicio, sugerirProgresion } from "./progresion";
@@ -29,11 +30,10 @@ import {
   type ConfigClasificacion,
 } from "./importSelectivo";
 import { calcularEnriquecimiento } from "./enriquecerImport";
-import { construirEntradaExterna } from "./entradaExterna";
-import { agruparDiasActivos } from "./racha";
+import { agruparDiasActivos, type ActividadDia } from "./racha";
+import { actividadRelevante, soloRelevantes, marcasDe } from "./actividadRelevante";
 import { adaptarEjercicio } from "./adaptadorSdk";
 import { CRUDO_CAMINATA } from "./__fixtures__/crudoSdk";
-import type { ItemExterno } from "./entradaExterna";
 import { soloShapeUp } from "./tipoHistorial";
 
 import {
@@ -67,15 +67,20 @@ function senal(clave: SenalSaludResumen["clave"], estado: SenalSaludResumen["est
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("aislamiento · métricas del plan", () => {
-  it("rachaDelPlan no cambia con externas", () => {
-    expect(rachaDelPlan(HISTORIAL_MIXTO, SEMANA)).toBe(rachaDelPlan(SOLO_SHAPEUP, SEMANA));
+  it("la racha de adherencia no cambia con externas", () => {
+    const con = seriesDeAdherencia(agruparDiasActivos(HISTORIAL_MIXTO), 2, HOY);
+    const sin = seriesDeAdherencia(agruparDiasActivos(SOLO_SHAPEUP), 2, HOY);
+    expect(con.map((s) => s.diasPlan)).toEqual(sin.map((s) => s.diasPlan));
+    expect(rachaActual(con)).toBe(rachaActual(sin));
   });
 
-  it("rachaDelPlan no se sostiene sola con una semana de puras externas", () => {
-    // Semana siguiente a la fixture, con una única caminata: la racha del plan
-    // arranca en 0 ahí, aunque haya "actividad".
+  it("una semana de puras externas no sostiene la racha del plan", () => {
+    // Una única caminata, sin ninguna sesión: no hay serie que medir, y por lo
+    // tanto tampoco racha. "Actividad" no es "cumplí el plan".
     const soloCaminata: Historial[] = [{ ...caminataMismoDia, semanaInicio: "2026-09-14" }];
-    expect(rachaDelPlan(soloCaminata, "2026-09-14")).toBe(0);
+    const serie = seriesDeAdherencia(agruparDiasActivos(soloCaminata), 2, "2026-09-16");
+    expect(serie).toEqual([]);
+    expect(rachaActual(serie)).toBe(0);
   });
 
   it("semanasSinDescarga no cambia con externas", () => {
@@ -265,13 +270,19 @@ describe("diasActivos cuenta todo", () => {
 });
 
 describe("calcularWeekChips cuenta todo", () => {
-  it("un día con solo una caminata queda marcado como hecho", () => {
-    const chips = calcularWeekChips(HISTORIAL_MIXTO.map((h) => h.fechaRealizada), SEMANA, HOY);
+  it("un día con solo una caminata larga queda como movimiento, no como entrenamiento", () => {
+    const chips = calcularWeekChips(agruparDiasActivos(HISTORIAL_MIXTO), SEMANA, HOY);
     const martes = chips.find((c) => c.fecha === "2026-09-08");
-    expect(martes?.estado).toBe("done");
+    // "movimiento" y no "done": te moviste, pero no entrenaste en la app.
+    expect(martes?.estado).toBe("movimiento");
     // Y sin las externas, ese mismo día queda pendiente: la diferencia es real.
-    const sinExternas = calcularWeekChips(SOLO_SHAPEUP.map((h) => h.fechaRealizada), SEMANA, HOY);
+    const sinExternas = calcularWeekChips(agruparDiasActivos(SOLO_SHAPEUP), SEMANA, HOY);
     expect(sinExternas.find((c) => c.fecha === "2026-09-08")?.estado).toBe("pending");
+  });
+
+  it("un día con sesión de la app sigue siendo 'done'", () => {
+    const chips = calcularWeekChips(agruparDiasActivos(HISTORIAL_MIXTO), SEMANA, HOY);
+    expect(chips.find((c) => c.fecha === "2026-09-07")?.estado).toBe("done");
   });
 });
 
@@ -283,9 +294,9 @@ describe("robustez ante entradas externas", () => {
   it("ninguna función tira excepción con un historial de puras externas", () => {
     const prog = programa([{ orden: 1, tipo: "rutina", idRutina: ID_RUTINA, diaSemana: "lunes" }]);
     expect(() => {
-      rachaDelPlan(EXTERNAS, SEMANA);
       diasActivos(EXTERNAS, "2026-09-01", "2026-09-30");
-      calcularWeekChips(EXTERNAS.map((h) => h.fechaRealizada), SEMANA, HOY);
+      calcularWeekChips(agruparDiasActivos(EXTERNAS), SEMANA, HOY);
+      seriesDeAdherencia(agruparDiasActivos(EXTERNAS), 3, HOY);
       semanasSinDescarga(EXTERNAS, HOY);
       calcularRecomendacion([senal("sueno", "ok")], EXTERNAS, HOY, MIEMBRO);
       sesionesDelEjercicio(ID_EJERCICIO, EXTERNAS);
@@ -307,145 +318,130 @@ describe("robustez ante entradas externas", () => {
     // métricas la perderían.
     expect(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP).some((s) => s.fecha === "2026-08-31")).toBe(true);
     expect(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP).some((p) => p.fecha === "2026-08-31")).toBe(true);
-    expect(rachaDelPlan(SOLO_SHAPEUP, "2026-08-31")).toBe(1);
+    const serie = seriesDeAdherencia(agruparDiasActivos(SOLO_SHAPEUP), 1, "2026-09-02");
+    expect(serie.some((s) => s.semanaInicio === "2026-08-31" && s.diasPlan > 0)).toBe(true);
   });
 });
 
 // ════════════════════════════════════════════════════════════════════════════
-//  P75: las entradas externas REALES (las que construye el import) tampoco
-//  mueven la aguja. La fixture de P74 las simula; esto usa el constructor de
-//  verdad, que es lo que va a escribir el import de acá en más.
+//  P76b: las actividades ya no se copian al historial. Viven en /cardio y el
+//  historial las filtra al leer, así que el aislamiento es estructural. Lo que
+//  queda por probar es el filtro y el día activo.
 // ════════════════════════════════════════════════════════════════════════════
 
-describe("aislamiento · entradas externas construidas por el import (P75)", () => {
+describe("aislamiento · actividades de /cardio (P76b)", () => {
+  // Desde P76b las actividades NO se copian a /historial: viven en /cardio y el
+  // historial las filtra al leer. El aislamiento pasa a ser estructural -- las
+  // métricas del plan reciben `Historial[]` y una actividad no lo es —, pero
+  // sigue habiendo algo que probar: que el día activo SÍ las cuente, y que el
+  // filtro deje pasar lo que corresponde.
+  const CONFIG = { duracionMinimaMin: 30 };
+
   /** Tres actividades reales, una el mismo día que la rutina del lunes. */
-  const nuevas: Historial[] = [
-    { fecha: "2026-09-07", actividad: "Caminata", uuid: "u-1", dur: 35, inicio: Date.UTC(2026, 8, 7, 19, 0) },
-    { fecha: "2026-09-08", actividad: "Ciclismo", uuid: "u-2", dur: 50, inicio: Date.UTC(2026, 8, 8, 18, 0) },
-    { fecha: "2026-09-12", actividad: "Caminata", uuid: "u-3", dur: 25, inicio: Date.UTC(2026, 8, 12, 9, 0) },
-  ].map((a) => construirEntradaExterna({
-    fecha: a.fecha, actividad: a.actividad, esVR: false, fuente: "samsung-health-csv",
-    duracionMin: a.dur, kcal: 200, fcPromedio: 115, _uuid: a.uuid,
-    _startMs: a.inicio, _endMs: a.inicio + a.dur * 60_000,
-  }, MIEMBRO, "duracion"));
+  const actividades: ActividadDia[] = [
+    { fecha: "2026-09-07", duracionMin: 35, autodetectada: false, esVR: false, marcadaShapeUp: false },
+    { fecha: "2026-09-08", duracionMin: 50, autodetectada: false, esVR: false, marcadaShapeUp: false },
+    { fecha: "2026-09-12", duracionMin: 25, autodetectada: false, esVR: false, marcadaShapeUp: false },
+  ];
 
-  const conNuevas = [...SOLO_SHAPEUP, ...nuevas];
-
-  it("la racha del plan no cambia", () => {
-    expect(rachaDelPlan(conNuevas, SEMANA)).toBe(rachaDelPlan(SOLO_SHAPEUP, SEMANA));
+  it("el filtro deja entrar las dos largas y no la de 25 min", () => {
+    expect(soloRelevantes(actividades, CONFIG)).toHaveLength(2);
   });
 
-  it("la adherencia de la semana no cambia", () => {
-    // Adherencia = sesiones ShapeUp de la semana, como la cuenta Home.
-    const dela = (hs: Historial[]) => soloShapeUp(hs).filter((h) => h.semanaInicio === SEMANA).length;
-    expect(dela(conNuevas)).toBe(dela(SOLO_SHAPEUP));
-  });
-
-  it("el tonelaje no cambia", () => {
-    const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
-    expect(suma(conNuevas)).toBe(suma(SOLO_SHAPEUP));
-  });
-
-  it("la progresión no cambia", () => {
-    expect(sesionesDelEjercicio(ID_EJERCICIO, conNuevas))
-      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP));
-  });
-
-  it("el costo cardíaco de la rutina no cambia", () => {
-    expect(serieCostoRutina(ID_RUTINA, conNuevas)).toEqual(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP));
-  });
-
-  it("semanasSinDescarga no cambia", () => {
-    expect(semanasSinDescarga(conNuevas, HOY)).toBe(semanasSinDescarga(SOLO_SHAPEUP, HOY));
+  it("las métricas del plan no las ven: no están en /historial", () => {
+    // El historial que reciben es el mismo con o sin actividades: una
+    // SesionCardio no es un Historial y no hay camino que la convierta.
+    expect(soloShapeUp(SOLO_SHAPEUP)).toEqual(SOLO_SHAPEUP);
+    expect(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP))
+      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, HISTORIAL_MIXTO));
   });
 
   it("pero los días activos SÍ suben: te moviste", () => {
-    // El 7/9 ya estaba entrenado, así que suma 8/9 y 12/9: dos días nuevos.
-    expect(diasActivos(conNuevas, "2026-09-07", "2026-09-13"))
-      .toBe(diasActivos(SOLO_SHAPEUP, "2026-09-07", "2026-09-13") + 2);
-  });
-
-  it("reimportar las mismas actividades no duplica nada: mismo idHist", () => {
-    const otraVez = nuevas.map((h) => construirEntradaExterna({
-      fecha: h.fechaRealizada, actividad: h.externa!.actividad, esVR: false,
-      fuente: "samsung-health-csv", duracionMin: h.duracionRealMin ?? 0,
-      _uuid: h.externa!.datauuid,
-    }, MIEMBRO, "duracion"));
-    expect(otraVez.map((h) => h.idHist)).toEqual(nuevas.map((h) => h.idHist));
-    expect(new Set([...nuevas, ...otraVez].map((h) => h.idHist)).size).toBe(nuevas.length);
+    const sin = agruparDiasActivos(SOLO_SHAPEUP, []);
+    const con = agruparDiasActivos(SOLO_SHAPEUP, actividades);
+    // Las tres marcan su día, la de 25 min incluida: el filtro de duración
+    // decide qué se muestra en el historial, no si te moviste. El 7/9 ya
+    // estaba entrenado, así que suma el 8/9 y el 12/9.
+    expect(con.filter((d) => d.externaDeclarada)).toHaveLength(3);
+    expect(con.length).toBe(sin.length + 2);
   });
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-//  P75b: a escala. El ZIP real da ~2246 externas — si alguna métrica del plan
-//  se mueve con ese volumen, el aislamiento no sirve de nada.
-// ════════════════════════════════════════════════════════════════════════════
+// ============================================================================
+//  P75b/P76b a escala. El ZIP real da ~2562 actividades: si alguna métrica
+//  del plan se moviera con ese volumen, el aislamiento no serviría de nada.
+// ============================================================================
 
-describe("aislamiento · 2000 externas en el historial (P75b)", () => {
+describe("aislamiento · 2000 actividades de /cardio (P76b)", () => {
+  const CONFIG = { duracionMinimaMin: 30 };
+
   /** Dos mil caminatas repartidas en dos años, la mitad autodetectadas. */
-  const muchas: Historial[] = Array.from({ length: 2000 }, (_v, i) => {
+  const muchas: ActividadDia[] = Array.from({ length: 2000 }, (_v, i) => {
     const dia = new Date(Date.UTC(2025, 0, 1) + i * 12 * 3_600_000);  // dos por día
-    const fecha = dia.toISOString().slice(0, 10);
-    const inicio = dia.getTime();
-    const autodetectada = i % 2 === 0;
-    return construirEntradaExterna({
-      fecha, actividad: "Caminata", esVR: false, fuente: "samsung-health-csv",
-      duracionMin: 20, _uuid: `bulk-${i}`,
-      _startMs: inicio, _endMs: inicio + 20 * 60_000,
-      // Las declaradas traen FC; las autodetectadas, nada (ADR #035).
-      ...(autodetectada ? {} : { fcPromedio: 112, kcal: 90 }),
-    }, MIEMBRO, "duracion");
+    return {
+      fecha: dia.toISOString().slice(0, 10),
+      duracionMin: 40,
+      esVR: false,
+      marcadaShapeUp: false,
+      autodetectada: i % 2 === 0,
+    };
   });
-
-  const conMuchas = [...SOLO_SHAPEUP, ...muchas];
 
   it("la fixture es del tamaño que se esperaba, y mitad autodetectada", () => {
     expect(muchas).toHaveLength(2000);
-    expect(muchas.filter((h) => h.externa?.origen === "autodetectada")).toHaveLength(1000);
+    expect(muchas.filter((a) => a.autodetectada)).toHaveLength(1000);
   });
 
-  it("la racha del plan no se mueve", () => {
-    expect(rachaDelPlan(conMuchas, SEMANA)).toBe(rachaDelPlan(SOLO_SHAPEUP, SEMANA));
+  it("el filtro deja pasar las declaradas y frena las autodetectadas", () => {
+    expect(soloRelevantes(muchas, CONFIG)).toHaveLength(1000);
   });
 
-  it("la adherencia de la semana no se mueve", () => {
-    const dela = (hs: Historial[]) => soloShapeUp(hs).filter((h) => h.semanaInicio === SEMANA).length;
-    expect(dela(conMuchas)).toBe(dela(SOLO_SHAPEUP));
-  });
-
-  it("el tonelaje no se mueve", () => {
+  it("ninguna métrica del plan cambia con 2000 actividades en juego", () => {
     const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
-    expect(suma(conMuchas)).toBe(suma(SOLO_SHAPEUP));
+    expect(suma(SOLO_SHAPEUP)).toBe(suma(HISTORIAL_MIXTO));
+    expect(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP)).toEqual(serieCostoRutina(ID_RUTINA, HISTORIAL_MIXTO));
+    expect(semanasSinDescarga(SOLO_SHAPEUP, HOY)).toBe(semanasSinDescarga(HISTORIAL_MIXTO, HOY));
   });
 
-  it("la progresión no se mueve", () => {
-    expect(sesionesDelEjercicio(ID_EJERCICIO, conMuchas))
-      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP));
-  });
-
-  it("el costo cardíaco no se mueve, aunque 1000 traigan FC", () => {
-    expect(serieCostoRutina(ID_RUTINA, conMuchas)).toEqual(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP));
-  });
-
-  it("semanasSinDescarga no se mueve", () => {
-    expect(semanasSinDescarga(conMuchas, HOY)).toBe(semanasSinDescarga(SOLO_SHAPEUP, HOY));
-  });
-
-  it("los días activos SÍ los cuentan, con su origen separado", () => {
-    const dias = agruparDiasActivos(conMuchas);
-    // Dos actividades por día: 2000 externas caen en 1000 días.
+  it("los días activos SÍ las cuentan, con su origen separado", () => {
+    const dias = agruparDiasActivos(SOLO_SHAPEUP, muchas);
+    // Dos actividades por día: 2000 caen en 1000 días, cada uno con una
+    // declarada y una autodetectada.
     expect(dias.filter((d) => d.autodetectada && d.externaDeclarada)).toHaveLength(1000);
     expect(dias.filter((d) => d.shapeUp)).toHaveLength(
       new Set(SOLO_SHAPEUP.map((h) => h.fechaRealizada)).size,
     );
   });
 
-  it("ninguna explota por no tener bloques", () => {
-    expect(() => {
-      conMuchas.forEach((h) => { tonelajeKg(h); totalSeriesHechas(h); });
-      compararConPrevias(rutinaLunes, conMuchas);
-      calcularRecomendacion([senal("sueno", "ok")], conMuchas, HOY, MIEMBRO);
-    }).not.toThrow();
+  it("la meta, la racha y la tasa no se mueven con 2000 actividades (P77a)", () => {
+    const META = 2;
+    const sinCardio = seriesDeAdherencia(agruparDiasActivos(SOLO_SHAPEUP), META, HOY);
+    const conCardio = seriesDeAdherencia(agruparDiasActivos(SOLO_SHAPEUP, muchas), META, HOY);
+
+    // La meta sale del plan y del perfil: ninguna actividad la toca.
+    expect(metaSemanal(null, { metaSemanalDias: META })).toBe(META);
+    // Los días de plan por semana son los mismos.
+    expect(conCardio.map((s) => s.diasPlan)).toEqual(sinCardio.map((s) => s.diasPlan));
+    expect(conCardio.map((s) => s.cumplida)).toEqual(sinCardio.map((s) => s.cumplida));
+    expect(rachaActual(conCardio)).toBe(rachaActual(sinCardio));
+    expect(tasaCumplimiento(conCardio)).toEqual(tasaCumplimiento(sinCardio));
+    // Y sin embargo el movimiento SÍ quedó informado, al lado, cuando se
+    // cargó el rango; sin cargarlo queda en `null` y no en cero (P77b).
+    const RANGO = { desde: "2025-01-01", hasta: "2030-01-01" };
+    const conRango = seriesDeAdherencia(agruparDiasActivos(SOLO_SHAPEUP, muchas), META, HOY, RANGO);
+    expect(conRango.some((s) => (s.diasMovimiento ?? 0) > 0)).toBe(true);
+    expect(conCardio.every((s) => s.diasMovimiento === null)).toBe(true);
+    expect(sinCardio.every((s) => s.diasMovimiento === null)).toBe(true);
+  });
+
+  it("la autodetectada se informa aunque no pase el filtro", () => {
+    const soloAuto: ActividadDia[] = [
+      { fecha: "2026-09-20", duracionMin: 90, autodetectada: true, esVR: false, marcadaShapeUp: false },
+    ];
+    expect(actividadRelevante(soloAuto[0], CONFIG)).toBe(false);
+    expect(agruparDiasActivos([], soloAuto)).toEqual([
+      { fecha: "2026-09-20", shapeUp: false, externaDeclarada: false, autodetectada: true, minutos: 90 },
+    ]);
   });
 });
 
@@ -454,9 +450,11 @@ describe("aislamiento · 2000 externas en el historial (P75b)", () => {
 //  de siempre, pero sobre entradas construidas desde el crudo real del SDK.
 // ════════════════════════════════════════════════════════════════════════════
 
-describe("aislamiento · externas que entran por el puente (PU4)", () => {
-  /** Veinte caminatas adaptadas del crudo del puente, con su fecha corrida. */
-  const delPuente: Historial[] = Array.from({ length: 20 }, (_v, i) => {
+describe("aislamiento · actividades que entran por el puente (PU4)", () => {
+  const CONFIG = { duracionMinimaMin: 30 };
+
+  /** Veinte caminatas adaptadas del crudo real del puente. */
+  const delPuente = Array.from({ length: 20 }, (_v, i) => {
     const inicio = Date.UTC(2026, 7, 6, 18, 26) + i * 86_400_000;
     const crudo = {
       ...CRUDO_CAMINATA,
@@ -466,44 +464,30 @@ describe("aislamiento · externas que entran por el puente (PU4)", () => {
       fields: { sessions: [{ ...CRUDO_CAMINATA.fields.sessions[0] }] },
     };
     const item = adaptarEjercicio(crudo, MIEMBRO)!;
-    return construirEntradaExterna(item as unknown as ItemExterno, MIEMBRO, "duracion");
+    return { ...item, ...marcasDe(item) };
   });
-
-  const conPuente = [...SOLO_SHAPEUP, ...delPuente];
 
   it("quedan marcadas como autodetectadas, por el flag del SDK", () => {
-    expect(delPuente.every((h) => h.externa?.origen === "autodetectada")).toBe(true);
+    expect(delPuente.every((a) => a.autodetectada)).toBe(true);
   });
 
-  it("la racha del plan no se mueve", () => {
-    expect(rachaDelPlan(conPuente, SEMANA)).toBe(rachaDelPlan(SOLO_SHAPEUP, SEMANA));
+  it("y por eso el historial no las muestra, aunque traigan FC", () => {
+    expect(delPuente.every((a) => a.fcPromedio != null)).toBe(true);
+    expect(soloRelevantes(delPuente, CONFIG)).toHaveLength(0);
   });
 
-  it("la adherencia de la semana no se mueve", () => {
-    const dela = (hs: Historial[]) => soloShapeUp(hs).filter((h) => h.semanaInicio === SEMANA).length;
-    expect(dela(conPuente)).toBe(dela(SOLO_SHAPEUP));
+  it("pero cuentan como día activo", () => {
+    const dias = agruparDiasActivos([], delPuente);
+    expect(dias.every((d) => d.autodetectada)).toBe(true);
+    expect(dias).toHaveLength(20);
   });
 
-  it("el tonelaje no se mueve", () => {
-    const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
-    expect(suma(conPuente)).toBe(suma(SOLO_SHAPEUP));
-  });
-
-  it("la progresión no se mueve", () => {
-    expect(sesionesDelEjercicio(ID_EJERCICIO, conPuente))
-      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP));
-  });
-
-  it("el costo cardíaco no se mueve, aunque todas traigan FC", () => {
-    expect(delPuente.every((h) => h.biometria?.fcMedia != null)).toBe(true);
-    expect(serieCostoRutina(ID_RUTINA, conPuente)).toEqual(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP));
-  });
-
-  it("ninguna explota por no tener bloques", () => {
+  it("ninguna métrica del plan las ve: no entran a /historial", () => {
     expect(() => {
-      conPuente.forEach((h) => { tonelajeKg(h); totalSeriesHechas(h); });
-      semanasSinDescarga(conPuente, HOY);
-      compararConPrevias(rutinaLunes, conPuente);
+      SOLO_SHAPEUP.forEach((h) => { tonelajeKg(h); totalSeriesHechas(h); });
+      semanasSinDescarga(SOLO_SHAPEUP, HOY);
+      compararConPrevias(rutinaLunes, SOLO_SHAPEUP);
     }).not.toThrow();
+    expect(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP)).toEqual(serieCostoRutina(ID_RUTINA, HISTORIAL_MIXTO));
   });
 });

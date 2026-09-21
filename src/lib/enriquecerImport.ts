@@ -23,8 +23,9 @@ import type { LiveDataPoint } from "../import/samsungLiveData";
 import { stripUndef } from "../import/samsungHealth";
 import { soloShapeUp } from "./tipoHistorial";
 import {
-  elegirSesionSamsung, construirBiometriaSesion, construirBiometriaRango,
-  enriquecerSerie, topeInicioSiguiente,
+  elegirSesionSamsung, construirBiometriaDeTramos, construirBiometriaRango,
+  elegirTramosAdicionales, curvaDeTramos, enriquecerSerie, topeInicioSiguiente,
+  type TramoSamsung,
 } from "./matchBiometrico";
 
 // ── Tipos públicos ────────────────────────────────────────────────────────────
@@ -39,6 +40,14 @@ export interface ResultadoEnriquecimiento {
   sinCandidatasEseDia: number; // ventana sintética, 0 ShapeUp ese día (ni "dia" ni "rango" alcanzaron)
   sinSolape:           number; // ventana real, ninguna candidata pasó los techos (ni "rango" alcanzó)
   ambiguas:    number;   // ventana sintética + 2+ ShapeUp ese día — no se adivina (S-fix-b)
+  /**
+   * Las ambiguas con nombre y fecha (P78). Un contador que nadie mira no sirve
+   * para nada: estas quedan para enlazar a mano.
+   */
+  ambiguasDetalle: { idHist: string; nombreRutina: string; fecha: string }[];
+  /** Sesiones que sumaron tramos adicionales, y cuántos (P78). */
+  conTramos:   number;
+  tramosExtra: number;
   omitidas:    number;   // ya tenían granularidad "serie" (ADR #021)
   updates: {
     idHist:    string;
@@ -144,7 +153,8 @@ export function calcularEnriquecimiento(
   const resultado: ResultadoEnriquecimiento = {
     matcheadas: 0, porCustomId: 0, porVentana: 0, porDia: 0, porRango: 0,
     sinMatch: 0, sinCandidatasEseDia: 0, sinSolape: 0,
-    ambiguas: 0, omitidas: 0, updates: [],
+    ambiguas: 0, ambiguasDetalle: [], conTramos: 0, tramosExtra: 0,
+    omitidas: 0, updates: [],
   };
 
   const muestrasFcCrudas = extraccion.muestrasFcCrudas ?? [];
@@ -172,7 +182,13 @@ export function calcularEnriquecimiento(
     const candidatas = extraccion.sesionesSamsung.filter((s) => !datauuidsUsados.has(s.datauuid));
     const match = elegirSesionSamsung(ventana, candidatas, extraccion.shapeUpCustomId);
 
-    if (match && match.matchPor === "ambiguo") { resultado.ambiguas++; continue; }
+    if (match && match.matchPor === "ambiguo") {
+      resultado.ambiguas++;
+      resultado.ambiguasDetalle.push({
+        idHist: h.idHist, nombreRutina: h.nombreRutina, fecha: h.fechaRealizada,
+      });
+      continue;
+    }
 
     if (!match) {
       // Nivel "rango" (P57): último recurso con muestras crudas de FC en la ventana.
@@ -202,19 +218,37 @@ export function calcularEnriquecimiento(
       continue;
     }
 
-    datauuidsUsados.add(match.sesion.datauuid);
+    // Tramos adicionales (P78): una sesión puede tener más de un workout
+    // adentro — te trabaste, paraste y arrancaste de nuevo, el reloj se cortó
+    // solo. Van todos al pool 1:1 (ADR #021).
+    const adicionales = elegirTramosAdicionales(
+      ventana, candidatas, match.sesion.datauuid, extraccion.shapeUpCustomId,
+    );
+    const tramos: TramoSamsung[] = [match.sesion, ...adicionales]
+      .sort((a, b) => a.startMs - b.startMs)
+      .map((sesion) => ({ sesion, curva: extraccion.liveData[sesion.datauuid] }));
+
+    for (const t of tramos) datauuidsUsados.add(t.sesion.datauuid);
     resultado.matcheadas++;
+    if (adicionales.length > 0) {
+      resultado.conTramos++;
+      resultado.tramosExtra += adicionales.length;
+    }
     if (match.matchPor === "custom-id") resultado.porCustomId++;
     else if (match.matchPor === "dia") resultado.porDia++;
     else resultado.porVentana++;
 
-    // Enriquecimiento por serie si hay curva live_data
-    const curva = extraccion.liveData[match.sesion.datauuid];
-    const biometria = construirBiometriaSesion(match.sesion, match.matchPor, perfil, ventana, curva);
+    const biometria = ventana.sintetica
+      ? construirBiometriaDeTramos([tramos[0]], match.matchPor, ventana, [], perfil)
+      : construirBiometriaDeTramos(tramos, match.matchPor, ventana, muestrasFcCrudas, perfil);
+    // El principal es el elegido por Δinicio, aunque otro tramo arranque antes.
+    biometria.datauuidSamsung = match.sesion.datauuid;
 
-    if (curva && curva.length > 0) {
+    const curva = curvaDeTramos(tramos);
+    if (curva.length > 0) {
       biometria.granularidad = "serie";
-      const bloquesEnriquecidos = enriquecerBloquesConCurva(h, curva, ventana.finMs, match.sesion.endMs);
+      const finDatos = Math.max(...tramos.map((t) => t.sesion.endMs));
+      const bloquesEnriquecidos = enriquecerBloquesConCurva(h, curva, ventana.finMs, finDatos);
       resultado.updates.push({ idHist: h.idHist, biometria, bloques: bloquesEnriquecidos });
     } else {
       resultado.updates.push({ idHist: h.idHist, biometria });

@@ -12,6 +12,11 @@ interface Props {
   miembro: MiembroId;
   /** Perfil actual; `undefined` si el miembro todavía no tiene uno sembrado. */
   perfil:  PerfilMiembro | undefined;
+  /**
+   * Días de entrenamiento del plan activo (P77a). `null` si no hay plan: sin
+   * plan no hay contra qué comparar y el campo no se muestra.
+   */
+  metaDelPlan: number | null;
   /** Se llama con el perfil ya guardado, para que la pantalla se vea al día. */
   onGuardado: (perfil: PerfilMiembro) => void;
 }
@@ -21,6 +26,8 @@ interface Borrador {
   lugarHabitual:  Lugar;
   equipoPorLugar: Partial<Record<Lugar, Equipo[]>>;
   objetivos:      Objetivo[];
+  /** Override de la meta. `null` = sin override: manda el plan (P77a). */
+  metaSemanalDias: number | null;
 }
 
 function borradorDe(perfil: PerfilMiembro | undefined): Borrador {
@@ -32,6 +39,7 @@ function borradorDe(perfil: PerfilMiembro | undefined): Borrador {
     lugarHabitual:  migrado.lugarHabitual ?? "Casa",
     equipoPorLugar: migrado.equipoPorLugar ?? {},
     objetivos:      migrado.objetivos ?? [],
+    metaSemanalDias: migrado.metaSemanalDias ?? null,
   };
 }
 
@@ -45,7 +53,7 @@ function alternar<T>(lista: T[], valor: T): T[] {
  * escribe nada. El equipo por lugar es lo que P73 va a usar para sustituir
  * ejercicios por los que se pueden hacer donde estás hoy.
  */
-export function EditorPerfil({ miembro, perfil, onGuardado }: Props) {
+export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props) {
   const original = useMemo(() => borradorDe(perfil), [perfil]);
   const [borrador,  setBorrador]  = useState<Borrador>(original);
   const [abiertos,  setAbiertos]  = useState<Lugar[]>([original.lugarHabitual]);
@@ -67,18 +75,27 @@ export function EditorPerfil({ miembro, perfil, onGuardado }: Props) {
   async function guardar() {
     setGuardando(true);
     setError(null);
+    // Un override igual al del plan NO se escribe (P77a): se borra, para que
+    // la meta siga al plan si el plan cambia.
+    const meta = borrador.metaSemanalDias;
+    const guardarMeta = meta != null && meta > 0 && meta !== metaDelPlan;
+
     const patch: PatchPerfil = {
       lugarHabitual:  borrador.lugarHabitual,
       equipoPorLugar: borrador.equipoPorLugar,
       objetivos:      borrador.objetivos,
+      ...(guardarMeta
+        ? { metaSemanalDias: meta }
+        : perfil?.metaSemanalDias !== undefined ? { metaSemanalDias: deleteField() } : {}),
       // Guardar migra: el equipo plano ya viajó a `equipoPorLugar`.
       ...(perfil?.equipoDisponible !== undefined ? { equipoDisponible: deleteField() } : {}),
     };
     const r = await actualizarPerfil(miembro, patch);
     setGuardando(false);
     if (!r.ok) { setError(r.error); return; }   // los cambios quedan en el borrador
-    const { equipoDisponible: _obsoleto, ...resto } = perfil ?? {};
-    onGuardado({ ...resto, ...borrador });
+    const { equipoDisponible: _obsoleto, metaSemanalDias: _vieja, ...resto } = perfil ?? {};
+    const { metaSemanalDias: _borrador, ...restoBorrador } = borrador;
+    onGuardado({ ...resto, ...restoBorrador, ...(guardarMeta ? { metaSemanalDias: meta } : {}) });
   }
 
   return (
@@ -101,6 +118,35 @@ export function EditorPerfil({ miembro, perfil, onGuardado }: Props) {
           ))}
         </div>
       </div>
+
+      {/* ── Meta de días por semana (P77a) ───────────────────────────────── */}
+      {metaDelPlan != null && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Meta de días por semana</p>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={7}
+            className="input"
+            style={{ maxWidth: 120 }}
+            placeholder={String(metaDelPlan)}
+            value={borrador.metaSemanalDias ?? ""}
+            onChange={(e) => {
+              const v = e.target.value.trim();
+              const n = v === "" ? null : Number(v);
+              setBorrador((b) => ({
+                ...b,
+                metaSemanalDias: n != null && Number.isFinite(n) && n > 0 ? Math.round(n) : null,
+              }));
+            }}
+          />
+          <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
+            Tu plan tiene {metaDelPlan} {metaDelPlan === 1 ? "día" : "días"}. Podés apuntar a
+            menos sin cambiar el plan. Vacío usa el del plan.
+          </p>
+        </div>
+      )}
 
       {/* ── Equipo por lugar ─────────────────────────────────────────────── */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

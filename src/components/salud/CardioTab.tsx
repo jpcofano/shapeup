@@ -67,7 +67,28 @@ function agruparPorMes(
 
 const MESES_POR_PAG = 3;
 
-export function CardioTab({ cardio, historial }: { cardio: SesionCardio[]; historial: Historial[] }) {
+/** Cómo se lee una fecha "YYYY-MM-DD" en la UI. */
+function fechaCorta(s: string): string {
+  const [y, m, d] = s.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+export interface CardioTabProps {
+  cardio: SesionCardio[];
+  historial: Historial[];
+  /** Cuántas hay en total en /cardio, no cuántas se trajeron (P76b). */
+  total?: number | null;
+  /** Desde qué fecha está mostrando. `null` = ya se trajo todo lo viejo. */
+  desde?: string | null;
+  /** Queda historia más vieja sin traer. */
+  hayMasEnServidor?: boolean;
+  cargandoMas?: boolean;
+  onCargarMas?: () => void;
+}
+
+export function CardioTab({
+  cardio, historial, total, desde, hayMasEnServidor, cargandoMas, onCargarMas,
+}: CardioTabProps) {
   const [mesesVisibles, setMesesVisibles] = useState(MESES_POR_PAG);
 
   if (cardio.length === 0) {
@@ -145,9 +166,13 @@ export function CardioTab({ cardio, historial }: { cardio: SesionCardio[]; histo
           </div>
         )}
 
-        <p className="section-title" style={{ marginBottom: 10 }}>
-          SESIONES ({cardio.length}
+        <p className="section-title" style={{ marginBottom: 2 }}>
+          SESIONES ({total != null && total > cardio.length ? `${cardio.length} de ${total}` : cardio.length}
           {totalVinculadas > 0 && ` · ${totalVinculadas} vinculadas`})
+        </p>
+        {/* Qué se está mostrando, para que "faltan" no se confunda con "no hay" (P76b). */}
+        <p style={{ margin: "0 0 10px", fontSize: 11, color: "var(--muted)" }}>
+          {desde ? `Desde el ${fechaCorta(desde)}` : "Toda tu historia"}
         </p>
 
         {gruposVisibles.map(({ mes, items }) => (
@@ -202,6 +227,18 @@ export function CardioTab({ cardio, historial }: { cardio: SesionCardio[]; histo
             onClick={() => setMesesVisibles((v) => v + MESES_POR_PAG)}
           >
             Ver más ({grupos.length - mesesVisibles} {grupos.length - mesesVisibles === 1 ? "mes" : "meses"} más)
+          </button>
+        )}
+
+        {/* Ya se mostró todo lo traído y en el servidor queda más atrás (P76b). */}
+        {!hayMas && hayMasEnServidor && onCargarMas && (
+          <button
+            className="btn-secondary"
+            style={{ width: "100%", marginTop: 4, fontSize: 13 }}
+            disabled={cargandoMas}
+            onClick={onCargarMas}
+          >
+            {cargandoMas ? "Trayendo…" : "Traer actividades más viejas"}
           </button>
         )}
       </div>

@@ -23,7 +23,13 @@ import { lunesDeSemana, ymdLocal } from "../lib/semana";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
 import { getHomeLayout, type HomeLayout } from "../lib/homeLayout";
 import { calcularWeekChips } from "../lib/weekChips";
-import { rachaDelPlan } from "../lib/racha";
+import type { DiaActivo } from "../lib/racha";
+import { agruparDiasActivos } from "../lib/racha";
+import {
+  metaSemanal, seriesDeAdherencia, rachaActual, rachaRecord, tasaCumplimiento,
+  semanaEnCurso,
+} from "../lib/adherencia";
+import { AdherenciaCard } from "../components/AdherenciaCard";
 import { HomeReduxContent, type HomeReduxData, type HomeReduxButton } from "../components/homeRedux/HomeReduxContent";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -241,7 +247,10 @@ export function Home() {
   const [sesHechas,  setSesHechas]  = useState(0);
   const [sesObj,     setSesObj]     = useState(0);
   const [volumen,    setVolumen]    = useState(0);
-  const [racha,      setRacha]      = useState(0);
+  /** Todas las sesiones de la app: la serie de adherencia se deriva de acá. */
+  const [historial,  setHistorial]  = useState<Historial[]>([]);
+  /** Override de la meta declarado en el perfil (P77a). `null` = manda el plan. */
+  const [metaPerfil, setMetaPerfil] = useState<number | null>(null);
   const [numSemana,  setNumSemana]  = useState<number | null>(null);
   const [lastMed,    setLastMed]    = useState<MedicionCorporal | null>(null);
   const [prevMed,    setPrevMed]    = useState<MedicionCorporal | null>(null);
@@ -250,8 +259,11 @@ export function Home() {
   const [recDescartada, setRecDescartada] = useState(false);
   /** Sesiones de la app de esta semana: adherencia, próxima sesión y sesión de hoy. */
   const [estaSemana, setEstaSemana] = useState<Historial[]>([]);
-  /** Fechas con CUALQUIER actividad esta semana — los chips cuentan todo (P74). */
-  const [fechasActivas, setFechasActivas] = useState<string[]>([]);
+  /**
+   * Los días con actividad de esta semana, con su origen y sus minutos. Los
+   * chips cuentan todo (P74); la racha y la adherencia, solo ShapeUp.
+   */
+  const [diasActivos, setDiasActivos] = useState<DiaActivo[]>([]);
 
   const semanaRef = useRef(lunesDeSemana());
 
@@ -277,7 +289,14 @@ export function Home() {
   useEffect(() => {
     if (!memberId) return;
     setLayout(getHomeLayout(memberId));
-    getPerfiles().then((r) => { if (r.ok) setColor(r.value[memberId as MiembroId]?.color); });
+    getPerfiles().then((r) => {
+      if (!r.ok) return;
+      const perfil = r.value[memberId as MiembroId];
+      setColor(perfil?.color);
+      // El override de la meta vive en el perfil, que ya se estaba leyendo y
+      // además cachea en memoria: esto no agrega una lectura (P77a).
+      setMetaPerfil(perfil?.metaSemanalDias ?? null);
+    });
 
     // Verificar descarte del día (localStorage)
     const dismissKey = `rec-descartada-${memberId}-${ymdLocal()}`;
@@ -289,9 +308,16 @@ export function Home() {
 
     // Los chips de la semana cuentan TODO (P74), pero la adherencia solo lo
     // entrenado en la app: por eso son dos consultas y no una que traiga todo.
+    //
+    // **Solo la semana en curso** (P77b). P77a había ampliado esto a 12
+    // semanas para la serie de adherencia, y eran ~300 lecturas de /cardio por
+    // visita a la pantalla de aterrizaje. No hacen falta: la racha, el récord y
+    // la tasa dependen solo de `diasPlan`, que sale del historial de ShapeUp
+    // que Home ya trae entero. El movimiento se usa para el sufijo de ESTA
+    // semana y nada más; las 12 semanas viven en Progreso.
     const domingo = ymdLocal(new Date(new Date(semanaInicio + "T00:00:00").getTime() + 6 * 86_400_000));
     getDiasActivos(memberId as MiembroId, semanaInicio, domingo).then((r) => {
-      if (r.ok) setFechasActivas(r.value.map((d) => d.fecha));
+      if (r.ok) setDiasActivos(r.value.dias);
     });
 
     Promise.all([
@@ -316,9 +342,9 @@ export function Home() {
 
         setSesHechas(estaShapeUp.length);
         setEstaSemana(estaShapeUp);
+        setHistorial(hist);
         setSesObj(obj);
         setVolumen(estaShapeUp.reduce((s, h) => s + (h.tonelajeKg ?? 0), 0));
-        setRacha(rachaDelPlan(hist, semanaInicio));
 
         // Número de semana del plan: se cuenta desde la primera semana entrenada
         // en la app, no desde la primera caminata importada (P74).
@@ -377,6 +403,33 @@ export function Home() {
     else if (rec.accionSugerida?.idPrograma) navigate(`/programa/${rec.accionSugerida.idPrograma}`);
   }
 
+  // ── Adherencia (P77a, sin cuota desde P77b) ───────────────────────────────
+  // Todo derivado, nada guardado (ADR #037), y **cero lecturas nuevas**: la
+  // serie entera se arma con el historial de ShapeUp que Home ya tiene, más los
+  // días de ESTA semana para el sufijo de movimiento. Las semanas anteriores
+  // quedan con `diasMovimiento: null` — no se sabe, y no se inventa un cero.
+  const meta = metaSemanal(programa, metaPerfil != null ? { metaSemanalDias: metaPerfil } : undefined);
+  const serie = (() => {
+    if (meta == null) return [];
+    const estaSemanaFechas = new Set(diasActivos.map((d) => d.fecha));
+    const viejos = agruparDiasActivos(historial.filter((h) => !estaSemanaFechas.has(h.fechaRealizada)));
+    const domingo = ymdLocal(new Date(new Date(semanaRef.current + "T00:00:00").getTime() + 6 * 86_400_000));
+    return seriesDeAdherencia(
+      [...viejos, ...diasActivos], meta, ymdLocal(),
+      { desde: semanaRef.current, hasta: domingo },
+    );
+  })();
+  const racha = rachaActual(serie);
+  const record = rachaRecord(serie);
+  const tasa = tasaCumplimiento(serie);
+  const semanaActual = semanaEnCurso(serie);
+
+  /**
+   * Hoy toca entrenar pero el día del plan no tiene rutina cargada (P77a).
+   * Se dice; no se navega a `/entrenar/` con un id vacío.
+   */
+  const diaSinRutina = hoy?.tipo === "dia-sin-rutina" ? hoy.etiqueta : null;
+
   const recVisible = !recDescartada && recomendacion !== null ? recomendacion : null;
   const estadoDiario = seleccionarEstadoDiario(senalesSalud, recVisible !== null);
   const semanaCompleta = proxima === null && sesObj > 0;
@@ -414,6 +467,8 @@ export function Home() {
     const heroIcon = semanaCompleta ? Check : hoy?.tipo === "descanso" ? Moon : sesionNombre ? Zap : Moon;
     const heroTag = semanaCompleta
       ? "Esta semana"
+      : diaSinRutina
+      ? `Hoy · ${nombreDiaHoy}`
       : hoy?.tipo === "descanso"
       ? `Hoy · ${nombreDiaHoy}`
       : hoy?.tipo === "rutina"
@@ -423,11 +478,15 @@ export function Home() {
       : "Sin programa";
     const heroTitle = semanaCompleta
       ? "¡Semana completa!"
+      : diaSinRutina
+      ? `Tocaba ${diaSinRutina.replace(/^[^—–]*[—–]\s*/, "")}`
       : hoy?.tipo === "descanso"
       ? "Día de descanso"
       : sesionNombre ?? "No hay un programa activo";
     const heroMsg = semanaCompleta
       ? "Descansá o elegí otra rutina para seguir."
+      : diaSinRutina
+      ? "Ese día del plan no tiene una rutina cargada."
       : hoy?.tipo === "descanso"
       ? "Recuperá. La recuperación también es parte del entrenamiento."
       : !sesionNombre
@@ -435,6 +494,8 @@ export function Home() {
       : undefined;
     const heroButtons: HomeReduxButton[] = semanaCompleta
       ? [{ label: "Elegir otra rutina", variant: "secondary", onClick: () => navigate("/entrenar") }]
+      : diaSinRutina
+      ? [{ label: "Elegir una rutina", variant: "secondary", onClick: () => navigate("/entrenar") }]
       : hoy?.tipo === "descanso"
       ? [{ label: "Entrenar igual", variant: "secondary", onClick: () => navigate("/entrenar") }]
       : sesionNombre
@@ -463,7 +524,13 @@ export function Home() {
         racha,
       },
       weekLabel: "Tu semana",
-      weekChips: calcularWeekChips(fechasActivas, semanaRef.current, ymdLocal()),
+      weekChips: calcularWeekChips(diasActivos, semanaRef.current, ymdLocal()),
+      adherencia: meta != null ? {
+        hechos: semanaActual?.diasPlan ?? 0,
+        meta,
+        movimiento: semanaActual?.diasMovimiento ?? null,
+        racha, record, tasa,
+      } : null,
     };
 
     return (
@@ -510,6 +577,21 @@ export function Home() {
                 Elegir otra rutina
               </button>
             </div>
+          ) : diaSinRutina ? (
+            <>
+              <p className="stadium-kicker">Hoy</p>
+              <h1 className="stadium-title">{diaSinRutina.replace(/^[^—–]*[—–]\s*/, "")}</h1>
+              <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--muted)" }}>
+                No tiene rutina cargada.{" "}
+                <button
+                  onClick={() => navigate("/entrenar")}
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer",
+                           color: "var(--accent)", font: "inherit", fontWeight: 600 }}
+                >
+                  Elegí una
+                </button>
+              </p>
+            </>
           ) : hoy?.tipo === "descanso" ? (
             <div style={{ textAlign: "center", position: "relative" }}>
               <Moon size={32} color="var(--muted)" strokeWidth={1.5} style={{ marginBottom: 8 }} />
@@ -552,8 +634,11 @@ export function Home() {
             <span className="stadium-stat-label">kg vol.</span>
           </div>
           <div className="stadium-stat">
-            <span className="stadium-stat-value">{sesHechas}/{sesObj > 0 ? sesObj : "—"}</span>
-            <span className="stadium-stat-label">sesiones</span>
+            {/* Días, no sesiones (P77a): dos sesiones el mismo día son un día. */}
+            <span className="stadium-stat-value">
+              {semanaActual?.diasPlan ?? 0}/{meta ?? "—"}
+            </span>
+            <span className="stadium-stat-label">días</span>
           </div>
           {hasPeso && (
             <div className="stadium-stat">
@@ -604,35 +689,39 @@ export function Home() {
           </div>
         )}
 
-        {/* Tu semana */}
-        <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span className="section-title">Tu semana</span>
-            {racha > 0 && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--accent)", fontSize: 12, fontWeight: 700 }}>
-                <Flame size={13} fill="currentColor" strokeWidth={0} /> {racha} {racha === 1 ? "sem" : "sems"} de racha
-              </span>
-            )}
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: "tabular-nums", letterSpacing: "-.02em" }}>{sesHechas}</span>
-              <span style={{ fontSize: 14, color: "var(--muted)" }}>/ {sesObj} sesiones</span>
+        {/* Tu semana — adherencia derivada (P77a) */}
+        <AdherenciaCard
+          semana={semanaActual} meta={meta} racha={racha} record={record} tasa={tasa}
+          diasActivos={diasActivos.filter((d) => d.fecha >= semanaRef.current).length}
+          onElegirPlan={() => navigate("/biblioteca")}
+        />
+        {volumen > 0 && (
+          <div className="card" style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+            <span className="section-title">Volumen</span>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 18, fontWeight: 800 }}>{fmtKg(volumen)}</div>
+              <div className="t-label">kg esta sem.</div>
             </div>
-            {volumen > 0 && (
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 18, fontWeight: 800 }}>{fmtKg(volumen)}</div>
-                <div className="t-label">kg vol.</div>
-              </div>
-            )}
           </div>
-          <div style={{ height: 6, borderRadius: 999, background: "var(--card-hover)", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 999, transition: "width .4s ease" }} />
-          </div>
-        </div>
+        )}
 
         {/* Hoy toca */}
-        {(sesionNombre || semanaCompleta) && (
+        {diaSinRutina && (
+          <div className="card">
+            <p className="t-label" style={{ margin: "0 0 4px" }}>Hoy</p>
+            <p style={{ margin: "0 0 6px", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em" }}>
+              {diaSinRutina.replace(/^[^—–]*[—–]\s*/, "")}
+            </p>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
+              Ese día del plan no tiene una rutina cargada.
+            </p>
+            <button className="btn-secondary" style={{ marginTop: 10, width: "100%" }}
+              onClick={() => navigate("/entrenar")}>
+              Elegir una rutina
+            </button>
+          </div>
+        )}
+        {!diaSinRutina && (sesionNombre || semanaCompleta) && (
           <div className="card">
             {semanaCompleta ? (
               <div style={{ textAlign: "center" }}>
@@ -745,6 +834,19 @@ export function Home() {
                   Entrenar igual
                 </button>
               </div>
+            ) : diaSinRutina ? (
+              <div style={{ textAlign: "center" }}>
+                <p className="t-label" style={{ margin: "0 0 6px" }}>Hoy</p>
+                <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 16 }}>
+                  {diaSinRutina.replace(/^[^—–]*[—–]\s*/, "")}
+                </p>
+                <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 13 }}>
+                  Ese día del plan no tiene una rutina cargada.
+                </p>
+                <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); navigate("/entrenar"); }}>
+                  Elegir una rutina
+                </button>
+              </div>
             ) : hoy?.tipo === "rutina" ? (
               <>
                 <p className="t-label" style={{ margin: "0 0 6px" }}>
@@ -834,6 +936,15 @@ export function Home() {
             )}
           </BentoTile>
         </div>
+      )}
+
+      {/* ── Adherencia de la semana (P77a) ──────────────────────────────── */}
+      {!loading && (
+        <AdherenciaCard
+          semana={semanaActual} meta={meta} racha={racha} record={record} tasa={tasa}
+          diasActivos={diasActivos.filter((d) => d.fecha >= semanaRef.current).length}
+          onElegirPlan={() => navigate("/biblioteca")}
+        />
       )}
 
       {/* ── Vista semanal del programa activo (Aurora) ──────────────────── */}

@@ -825,7 +825,7 @@
     "nombre": "Remo alternado con pesas rusas",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
-    "mecanica": "Aislamiento",
+    "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Espalda media",
     "gruposSecundarios": [
@@ -15360,7 +15360,7 @@
     "nombre": "Sentadilla profunda abrazando la pelota",
     "modalidad": "Movilidad",
     "patron": "Aislamiento",
-    "mecanica": "Aislamiento",
+    "mecanica": "Compuesto",
     "fuerzaFEDB": "estático",
     "grupoMuscularPrimario": "Lumbares",
     "gruposSecundarios": [
@@ -15775,7 +15775,7 @@
     "nombre": "Remo en banco inclinado con mancuernas",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
-    "mecanica": "Aislamiento",
+    "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Espalda media",
     "gruposSecundarios": [
@@ -20458,7 +20458,7 @@
     "nombre": "Remo con barra curva acostado",
     "modalidad": "Fuerza",
     "patron": "Tracción horizontal",
-    "mecanica": "Aislamiento",
+    "mecanica": "Compuesto",
     "fuerzaFEDB": "tracción",
     "grupoMuscularPrimario": "Espalda media",
     "gruposSecundarios": [

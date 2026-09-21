@@ -343,6 +343,12 @@ export type EjercicioItem = CardioInput & {
    * Data SDK lo trae explícito y el ZIP no tiene nada equivalente.
    */
   _autoDetected?: boolean;
+  /**
+   * El reloj la marcó como ShapeUp (P76b): por `custom_id` acá, por
+   * `customTitle` en el puente. Se persiste como `marcadaShapeUp` porque el
+   * filtro de lectura la consulta, y el `custom_id` no sobrevive al guardado.
+   */
+  _marcadaShapeUp?: boolean;
 };
 
 export function parsearEjercicio(
@@ -382,6 +388,7 @@ export function parsearEjercicio(
       _endMs:       endMs,
       _customId:    customId,
       _fcMin:       fcMin,
+      _marcadaShapeUp: !!customId && shapeUpCustomIds?.has(customId) === true,
       miembro,
       fecha,
       actividad,

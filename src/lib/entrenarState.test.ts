@@ -15,6 +15,7 @@ import {
   saltarBloque, retomarBloque, bloqueSaltado, bloqueResuelto, rutinaTerminada,
   siguientePendiente, aContinuacionDescanso,
   sellarLugar, cambiarLugar,
+  sustituirBloque, deshacerSustitucion,
 } from "./entrenarState";
 import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
 
@@ -1012,5 +1013,97 @@ describe("sellarLugar", () => {
     } finally {
       localStorage.removeItem("entrenar:test-p72");
     }
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Sustitución en vivo (P73)
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("sustituirBloque / deshacerSustitucion", () => {
+  const SUST = {
+    idOriginal: "EJ-0001", idNuevo: "EJ-0999", nombreNuevo: "Press con mancuernas",
+    motivo: "equipo-ocupado" as const, posicion: 1,
+  };
+
+  /** Estado con el bloque 0 a medio registrar. */
+  const conSeries = {
+    ...s0,
+    seriesHechas: { 0: 2, 1: 1 },
+    registro: { 0: [{ serie: 1, completada: true, reps: 10 }], 1: [{ serie: 1, completada: true }] },
+    serieInicioMs: { 0: 123456, 1: 999 },
+    ultimoLog: { 0: { reps: 10 }, 1: { reps: 8 } },
+  };
+
+  it("borra las series de ese bloque: eran de otro ejercicio", () => {
+    const r = sustituirBloque(conSeries, 0, SUST);
+    expect(r.seriesHechas[0]).toBeUndefined();
+    expect(r.registro[0]).toBeUndefined();
+    expect(r.serieInicioMs[0]).toBeUndefined();
+    expect(r.ultimoLog[0]).toBeUndefined();
+  });
+
+  it("no toca los otros bloques", () => {
+    const r = sustituirBloque(conSeries, 0, SUST);
+    expect(r.seriesHechas[1]).toBe(1);
+    expect(r.registro[1]).toHaveLength(1);
+  });
+
+  it("guarda la posición del ranking", () => {
+    const r = sustituirBloque(s0, 0, { ...SUST, posicion: 3 });
+    expect(r.sustituciones[0]).toMatchObject({ idNuevo: "EJ-0999", posicion: 3 });
+  });
+
+  it("deshacer vuelve al original y también borra las series", () => {
+    const sustituido = sustituirBloque(conSeries, 0, SUST);
+    const conNuevas = { ...sustituido, seriesHechas: { ...sustituido.seriesHechas, 0: 1 } };
+    const r = deshacerSustitucion(conNuevas, 0);
+    expect(r.sustituciones[0]).toBeUndefined();
+    expect(r.seriesHechas[0]).toBeUndefined();
+  });
+
+  it("deshacer un bloque sin sustitución no cambia nada", () => {
+    expect(deshacerSustitucion(conSeries, 0)).toBe(conSeries);
+  });
+
+  it("quitarBloques reindexa las sustituciones", () => {
+    const s = sustituirBloque({ ...s0 }, 2, SUST);
+    const r = quitarBloques(s, [1], 2);
+    expect(r.sustituciones[1]).toMatchObject({ idNuevo: "EJ-0999" });
+    expect(r.sustituciones[2]).toBeUndefined();
+  });
+
+  it("estadoReiniciado las limpia", () => {
+    const s = sustituirBloque(s0, 0, SUST);
+    expect(estadoReiniciado(s).sustituciones).toEqual({});
+  });
+
+  it("construirBloquesRegistro escribe los cuatro campos solo en el sustituido", () => {
+    const s = sustituirBloque(
+      { ...s0, seriesHechas: { 0: 1, 1: 1 } }, 0,
+      { ...SUST, motivo: "dolor", zona: "hombro", posicion: 2 },
+    );
+    const bloques = construirBloquesRegistro(s, rutina);
+    expect(bloques[0]).toMatchObject({
+      idEjercicio: "EJ-0999",
+      nombreEjercicio: "Press con mancuernas",
+      idEjercicioOriginal: "EJ-0001",
+      motivoSustitucion: "dolor",
+      zonaMolestia: "hombro",
+      posicionSustituto: 2,
+    });
+    expect(bloques[1].idEjercicioOriginal).toBeUndefined();
+    expect(bloques[1].motivoSustitucion).toBeUndefined();
+  });
+
+  it("sin zona no escribe zonaMolestia", () => {
+    const s = sustituirBloque({ ...s0, seriesHechas: { 0: 1 } }, 0, SUST);
+    expect(construirBloquesRegistro(s, rutina)[0].zonaMolestia).toBeUndefined();
+  });
+
+  it("un estado previo sin `sustituciones` carga vacío", () => {
+    const viejo = JSON.stringify({ ...INITIAL_ENTRENAR_STATE, sustituciones: undefined });
+    localStorage.setItem("su-entrenar-SES-VIEJA", viejo);
+    expect(loadEntrenarState("SES-VIEJA").sustituciones).toEqual({});
   });
 });

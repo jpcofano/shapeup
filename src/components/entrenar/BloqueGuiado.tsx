@@ -18,6 +18,9 @@ interface Props {
   saltado?:     MotivoSalto | null;
   /** Abre la vista del día (el contador "Ejercicio X de N"). */
   onAbrirDia:   () => void;
+  /** Si el bloque fue sustituido (P73): el nombre del original y cómo deshacerlo. */
+  sustituido?:  { nombreOriginal: string; nombreNuevo: string } | null;
+  onDeshacerSustitucion?: () => void;
   onRetomar:    () => void;
 }
 
@@ -29,6 +32,7 @@ interface Props {
 export function BloqueGuiado({
   bloque, bloqueIdx, total, seriesHechas, ejercicio, onIrASerie,
   aContinuacion, saltado, onAbrirDia, onRetomar,
+  sustituido, onDeshacerSustitucion,
 }: Props) {
   const [instrOpen, setInstrOpen] = useState(false);
 
@@ -51,8 +55,31 @@ export function BloqueGuiado({
         <ChevronDown size={13} aria-hidden />
       </button>
 
-      {/* Nombre */}
-      <h2 className="bloque-nombre-grande">{bloque.nombreEjercicio}</h2>
+      {/* Nombre — el del sustituto si lo hubo (P73) */}
+      <h2 className="bloque-nombre-grande">
+        {sustituido ? sustituido.nombreNuevo : bloque.nombreEjercicio}
+      </h2>
+
+      {sustituido && (
+        <p style={{ margin: "-4px 0 0", fontSize: 12, color: "var(--muted)" }}>
+          Sustituye a {sustituido.nombreOriginal}
+          {onDeshacerSustitucion && (
+            <>
+              {" · "}
+              <button
+                type="button"
+                onClick={onDeshacerSustitucion}
+                style={{
+                  background: "none", border: "none", padding: 0, cursor: "pointer",
+                  color: "var(--accent)", font: "inherit", fontWeight: 600,
+                }}
+              >
+                Deshacer
+              </button>
+            </>
+          )}
+        </p>
+      )}
 
       {/* Chip de juego VR sugerido */}
       {bloque.prescripcion.modalidad === "Cardio" && bloque.prescripcion.juegoSugerido && (

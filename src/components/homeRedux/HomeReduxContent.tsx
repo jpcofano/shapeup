@@ -34,6 +34,48 @@ export interface HomeReduxData {
   };
   weekLabel: string;
   weekChips: WeekChip[];
+  /**
+   * Adherencia de la semana en curso (P77a). `null` = sin programa activo, y
+   * entonces no hay meta que mostrar: la tarjeta dice días activos y nada más.
+   */
+  adherencia: {
+    hechos: number;
+    meta: number;
+    /** `null` = sin datos de movimiento de esa semana; no se dibuja (P77b). */
+    movimiento: number | null;
+    racha: number;
+    record: number;
+    tasa: { cumplidas: number; total: number } | null;
+  } | null;
+}
+
+/**
+ * Las tres líneas de adherencia, que reemplazan al `N/7` (P77a).
+ *
+ * El `N/7` contaba sesiones —no días— y no decía nada de cómo venías. Esto
+ * dice la semana contra la meta, la racha (o el récord, si se cortó) y la tasa
+ * de las últimas ocho.
+ */
+function Adherencia({ a }: { a: HomeReduxData["adherencia"] }) {
+  if (!a) return <span className="hr-adh-n">Sin plan</span>;
+  return (
+    <div className="hr-adh">
+      <span className="hr-adh-n">
+        {a.hechos} de {a.meta} días
+        {a.movimiento != null && a.movimiento > 0 && (
+          <span className="hr-adh-mov"> · {a.movimiento} de movimiento</span>
+        )}
+      </span>
+      <span className="hr-adh-sub">
+        {a.racha > 0
+          ? `Racha: ${a.racha} ${a.racha === 1 ? "semana" : "semanas"}${a.record > a.racha ? ` · récord ${a.record}` : ""}`
+          : a.record > 0
+          ? `Récord: ${a.record} ${a.record === 1 ? "semana" : "semanas"}`
+          : "Tu primera semana completa arranca la racha."}
+        {a.tasa && ` · últimas ${a.tasa.total}: ${a.tasa.cumplidas} de ${a.tasa.total}`}
+      </span>
+    </div>
+  );
 }
 
 interface Props {
@@ -64,7 +106,10 @@ function CButton({ b }: { b: HomeReduxButton }) {
 
 /** Contenido de Home en las direcciones nuevas del handoff (P53). Presentacional puro. */
 export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
-  const { primerNombre, avatarIniciales, sesHechas, sesObj, diaLabel, hero, metrics, weekLabel, weekChips } = data;
+  const {
+    primerNombre, avatarIniciales, sesHechas, sesObj, diaLabel, hero, metrics,
+    weekLabel, weekChips, adherencia,
+  } = data;
   const HeroIcon = hero.icon;
   const gradientId = `hr-pg-${useId()}`;
   const total = sesObj > 0 ? sesObj : 1;
@@ -148,8 +193,10 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
         <section className="a-mob">
           <div className="a-mob-h">
             <span className="a-mob-t">{weekLabel}</span>
-            <span className="a-mob-n">{weekChips.filter((c) => c.estado === "done").length}/7</span>
+            <Adherencia a={adherencia} />
           </div>
+          {/* "movimiento" es un día sin sesión pero con minutos suficientes:
+              se ve distinto de un día de entrenamiento y distinto de uno vacío. */}
           <div className="a-days">
             {weekChips.map((c) => (
               <div key={c.fecha} className={`a-day ${c.estado}`}>
@@ -233,7 +280,7 @@ export function HomeReduxContent({ direccion, data, onAvatarClick }: Props) {
       <section className="c-card c-mob">
         <div className="c-mob-h">
           <p className="c-lab" style={{ margin: 0 }}>{weekLabel}</p>
-          <span className="c-mob-n">{weekChips.filter((c) => c.estado === "done").length}/7</span>
+          <Adherencia a={adherencia} />
         </div>
         <div className="c-days">
           {weekChips.map((c) => (

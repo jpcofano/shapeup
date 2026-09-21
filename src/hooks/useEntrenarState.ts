@@ -15,6 +15,9 @@ import {
   toggleModoVista as _toggleModoVista,
   estadoReiniciado,
   saltarBloque as _saltarBloque,
+  sustituirBloque as _sustituirBloque,
+  deshacerSustitucion as _deshacerSustitucion,
+  type SustitucionBloque,
   retomarBloque as _retomarBloque,
   asignarIdSesion as _asignarIdSesion,
   quitarBloques as _quitarBloques,
@@ -64,6 +67,13 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
     },
     retomarBloque(idx: number) {
       dispatch((s) => _retomarBloque(s, idx));
+    },
+    /** Cambia el ejercicio del bloque (P73). Borra sus series: eran de otro. */
+    sustituirBloque(idx: number, datos: SustitucionBloque) {
+      dispatch((s) => _sustituirBloque(s, idx, datos));
+    },
+    deshacerSustitucion(idx: number) {
+      dispatch((s) => _deshacerSustitucion(s, idx));
     },
     deshacerSerie(idx: number) {
       dispatch((s) => _deshacerSerie(s, idx));

@@ -4,11 +4,13 @@ import { Check, Download, Share } from "lucide-react";
 import { auth } from "../firebase";
 import { useAuth } from "../auth/useAuth";
 import { getPerfiles } from "../data/perfiles";
+import { getProgramaActivo } from "../data/programas";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { useTheme, type ThemeName, type Modo } from "../contexts/ThemeProvider";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { MIEMBRO_IDS, type MiembroId, type PerfilMiembro } from "../types/models";
 import { EditorPerfil } from "../components/perfil/EditorPerfil";
+import { metaSemanal } from "../lib/adherencia";
 import { getHomeLayout, setHomeLayout, type HomeLayout } from "../lib/homeLayout";
 
 // Hex dark/light por tema (P65) — mismos valores que src/styles/tokens.css
@@ -42,12 +44,19 @@ export function Perfil() {
 
   const color     = perfil?.color;
   const objetivos = perfil?.objetivos ?? [];
+  /** Días de entrenamiento del plan activo, o `null` si no hay plan (P77a). */
+  const [metaDelPlan, setMetaDelPlan] = useState<number | null>(null);
 
   useEffect(() => {
     if (!memberId) return;
     setHomeLayoutState(getHomeLayout(memberId));
     getPerfiles().then((r) => {
       setPerfil(r.ok ? r.value[memberId] : undefined);
+    });
+    // Los días del plan, para mostrar contra qué se compara la meta (P77a).
+    // `getProgramaActivo` cachea en memoria: si ya pasaste por Home, no lee nada.
+    getProgramaActivo(memberId as MiembroId).then((r) => {
+      if (r.ok) setMetaDelPlan(metaSemanal(r.value));
     });
   }, [memberId]);
 
@@ -89,6 +98,7 @@ export function Perfil() {
          Solo el perfil propio se edita; los de los demás son de solo lectura.  */}
       {memberId && perfil !== null && (
         <EditorPerfil
+          metaDelPlan={metaDelPlan}
           miembro={memberId as MiembroId}
           perfil={perfil}
           onGuardado={setPerfil}

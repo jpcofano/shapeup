@@ -419,6 +419,54 @@ describe("Regla 1b — el uuid ya está en una sesión enriquecida", () => {
     expect(r.idHist).toBe("H-20260707");
   });
 
+  // ── P78: los tramos adicionales también cuentan ───────────────────────────
+  // Es el punto donde esto se rompe en silencio: si la regla solo mirara el
+  // principal, cada reimport volvería a meter el segundo tramo como actividad
+  // suelta, y nadie se enteraría hasta auditar.
+  it("un uuid que está en `tramosSamsung` NO vuelve a entrar como externa", () => {
+    const UUID_TRAMO = "segundo-tramo-0000-0000-000000000002";
+    const conTramos = yaEnriquecida({
+      biometria: {
+        fuente: "samsung-health-csv", datauuidSamsung: UUID,
+        tramosSamsung: [UUID, UUID_TRAMO],
+        matchPor: "custom-id", granularidad: "serie", fcMedia: 130,
+      },
+    });
+    const r = clasificarUno(
+      cardio({ _uuid: UUID_TRAMO, fecha: "2026-07-07", duracionMin: 18 }),
+      [conTramos],
+    );
+    expect(r.destino).toBe("enriquece");
+    expect(r.motivo).toBe("datauuid");
+    expect(r.idHist).toBe("H-20260707");
+  });
+
+  it("el principal sigue matcheando aunque haya tramos", () => {
+    const conTramos = yaEnriquecida({
+      biometria: {
+        fuente: "samsung-health-csv", datauuidSamsung: UUID,
+        tramosSamsung: [UUID, "otro-uuid"],
+        matchPor: "custom-id", granularidad: "serie",
+      },
+    });
+    expect(clasificarUno(cardio({ _uuid: UUID }), [conTramos]).destino).toBe("enriquece");
+  });
+
+  it("un uuid ajeno a los tramos no matchea", () => {
+    const conTramos = yaEnriquecida({
+      biometria: {
+        fuente: "samsung-health-csv", datauuidSamsung: UUID,
+        tramosSamsung: [UUID, "otro-uuid"],
+        matchPor: "custom-id", granularidad: "serie",
+      },
+    });
+    const r = clasificarUno(
+      cardio({ _uuid: "nada-que-ver", fecha: "2026-07-07", duracionMin: 45 }),
+      [conTramos],
+    );
+    expect(r.motivo).not.toBe("datauuid");
+  });
+
   it("la explicación dice de qué sesión se trata", () => {
     const r = clasificarUno(cardio({ _uuid: UUID }), [yaEnriquecida()]);
     expect(r.explicacion).toBe("Ya estaba en tu sesión de Sesión libre del 7/7");

@@ -28,7 +28,7 @@ describe("getConfigImport", () => {
     const r = await getConfigImport();
     if (!r.ok) throw new Error(r.error);
     expect(r.value).toEqual(CONFIG_IMPORT_DEFAULT);
-    expect(r.value.duracionMinimaMin).toBe(10);
+    expect(r.value.duracionMinimaMin).toBe(30);   // P76b: era 10
   });
 
   it("con documento usa sus valores", async () => {

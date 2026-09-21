@@ -7,6 +7,11 @@ import {
   construirBiometriaRango,
   topeInicioSiguiente,
   TOPE_RECUPERACION_ULTIMA_SERIE_MS,
+  construirBiometriaDeTramos,
+  elegirTramosAdicionales,
+  solapeRelativo,
+  SOLAPE_TRAMO_MIN,
+  COBERTURA_MINIMA,
   type SesionSamsung,
 } from "./matchBiometrico";
 import type { SerieRegistro, PerfilMiembro } from "../types/models";
@@ -324,15 +329,18 @@ describe("construirBiometriaSesion — sin claves undefined al persistir (hotfix
     expect(Object.keys(JSON.parse(JSON.stringify(bio)))).toEqual(Object.keys(bio));
   });
 
-  it("anti-olvido sin curva: kcal/fcMedia ausentes, no undefined", () => {
+  it("anti-olvido sin curva: fcMedia ausente, no undefined", () => {
     const ventana = { inicioMs: 0, finMs: 3_600_000, sintetica: false };
     const sesion: SesionSamsung = {
       datauuid: "x", startMs: 0, endMs: ventana.finMs + 20 * 60_000, fcMedia: 130, kcal: 300,
     };
     const bio = construirBiometriaSesion(sesion, "custom-id", undefined, ventana);
-    expect(Object.prototype.hasOwnProperty.call(bio, "kcal")).toBe(false);
+    // La media de la fila incluye el tiempo post-sesión: no es sumable, se omite.
     expect(Object.prototype.hasOwnProperty.call(bio, "fcMedia")).toBe(false);
-    expect(bio.finMsEfectivo).toBe(ventana.finMs); // esta sí debe estar (se sella a propósito)
+    // Las kcal sí: prorratear no necesita curva, solo la fila y los tiempos.
+    expect(bio.kcal).toBe(225);                    // 300 × 60/80
+    expect(bio.kcalEstimada).toBe(true);
+    expect(bio.finMsEfectivo).toBe(ventana.finMs); // esta se sella a propósito
   });
 });
 
@@ -356,18 +364,21 @@ describe("construirBiometriaRango — sin claves undefined al persistir (hotfix 
 describe("construirBiometriaSesion — anti-olvido de corte", () => {
   const VENTANA_REAL = { inicioMs: 0, finMs: 3_600_000, sintetica: false }; // 1h
 
-  it("exceso ≤ 15 min → fila tal cual, sin finMsEfectivo", () => {
+  it("exceso ≤ 15 min sin curva → la FC de la fila, y las kcal prorrateadas (P78)", () => {
+    // P78 cambió esto: el recorte dejó de ser el caso especial del olvido de
+    // corte. La fila dura 75 min y la ventana 60, así que las kcal se
+    // prorratean (300 × 60/75) y quedan marcadas como estimadas.
     const sesion: SesionSamsung = {
       datauuid: "uuid-1", startMs: 0, endMs: VENTANA_REAL.finMs + 15 * 60_000,
       fcMedia: 130, fcMax: 160, fcMin: 90, kcal: 300,
     };
     const bio = construirBiometriaSesion(sesion, "custom-id", undefined, VENTANA_REAL);
-    expect(bio.fcMedia).toBe(130);
-    expect(bio.kcal).toBe(300);
-    expect(bio.finMsEfectivo).toBeUndefined();
+    expect(bio.fcMedia).toBe(130);        // sin curva no hay con qué recortar la FC
+    expect(bio.kcal).toBe(240);
+    expect(bio.kcalEstimada).toBe(true);
   });
 
-  it("exceso > 15 min con curva → recalcula FC solo dentro de la ventana, omite kcal, sella finMsEfectivo", () => {
+  it("exceso > 15 min con curva → recalcula FC en la ventana y prorratea kcal, sella finMsEfectivo", () => {
     const sesion: SesionSamsung = {
       datauuid: "uuid-2", startMs: 0, endMs: VENTANA_REAL.finMs + 20 * 60_000, // 20 min de más
       fcMedia: 130, fcMax: 160, fcMin: 90, kcal: 300,
@@ -381,19 +392,22 @@ describe("construirBiometriaSesion — anti-olvido de corte", () => {
     expect(bio.fcMedia).toBe(130); // (120+140)/2
     expect(bio.fcMax).toBe(140);
     expect(bio.fcMin).toBe(120);
-    expect(bio.kcal).toBeUndefined();
+    // P78: con curva las kcal se prorratean en vez de omitirse — 300 × 60/80.
+    expect(bio.kcal).toBe(225);
+    expect(bio.kcalEstimada).toBe(true);
     expect(bio.finMsEfectivo).toBe(VENTANA_REAL.finMs);
   });
 
-  it("exceso > 15 min sin curva → conserva solo fcMax, omite fcMedia/kcal, sella finMsEfectivo", () => {
+  it("exceso > 15 min sin curva → solo fcMax, omite fcMedia, prorratea kcal, sella finMsEfectivo", () => {
     const sesion: SesionSamsung = {
       datauuid: "uuid-3", startMs: 0, endMs: VENTANA_REAL.finMs + 20 * 60_000,
       fcMedia: 130, fcMax: 160, fcMin: 90, kcal: 300,
     };
     const bio = construirBiometriaSesion(sesion, "custom-id", undefined, VENTANA_REAL);
-    expect(bio.fcMax).toBe(160);
-    expect(bio.fcMedia).toBeUndefined();
-    expect(bio.kcal).toBeUndefined();
+    expect(bio.fcMax).toBe(160);          // el pico casi seguro fue entrenando
+    expect(bio.fcMedia).toBeUndefined();  // la media de la fila no es sumable
+    expect(bio.kcal).toBe(225);           // 300 × 60/80
+    expect(bio.kcalEstimada).toBe(true);
     expect(bio.finMsEfectivo).toBe(VENTANA_REAL.finMs);
   });
 
@@ -470,5 +484,168 @@ describe("topeInicioSiguiente", () => {
     const finVentana = 1_000_000;
     const finDatos    = finVentana + 30_000; // solo 30 s de datos después
     expect(topeInicioSiguiente(finVentana, finDatos)).toBe(finDatos);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P78 — recorte de los dos lados, tramos, ponderación y cobertura
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("P78 · recorte general", () => {
+  const V = { inicioMs: 0, finMs: 60 * 60_000, sintetica: false };   // 1 h
+
+  /** Curva de 1 punto por minuto entre `desde` y `hasta`, toda a `fc`. */
+  function curvaPlana(desde: number, hasta: number, fc: number): LiveDataPoint[] {
+    const pts: LiveDataPoint[] = [];
+    for (let ms = desde; ms <= hasta; ms += 60_000) pts.push({ ms, fc });
+    return pts;
+  }
+
+  it("el workout que empieza 12 min ANTES usa la curva recortada, no la fila", () => {
+    const sesion: SesionSamsung = {
+      datauuid: "u", startMs: -12 * 60_000, endMs: V.finMs,
+      fcMedia: 100, fcMax: 180, fcMin: 60, kcal: 720,
+    };
+    // 110 antes de la ventana (calentamiento), 150 adentro.
+    const curva = [
+      ...curvaPlana(-12 * 60_000, -60_000, 110),
+      ...curvaPlana(0, V.finMs, 150),
+    ];
+    const bio = construirBiometriaSesion(sesion, "custom-id", undefined, V, curva);
+    expect(bio.fcMedia).toBe(150);              // no 100, que era la fila
+    expect(bio.inicioMsEfectivo).toBe(0);
+    expect(bio.kcalEstimada).toBe(true);
+  });
+
+  it("sin curva y sin exceso → la fila tal cual, sin marcar estimada", () => {
+    const sesion: SesionSamsung = {
+      datauuid: "u", startMs: 0, endMs: V.finMs, fcMedia: 128, fcMax: 155, kcal: 400,
+    };
+    const bio = construirBiometriaSesion(sesion, "custom-id", undefined, V);
+    expect(bio.fcMedia).toBe(128);
+    expect(bio.kcal).toBe(400);
+    expect(bio.kcalEstimada).toBeUndefined();
+  });
+
+  it("el workout entero adentro de la ventana no marca kcal como estimada", () => {
+    const sesion: SesionSamsung = {
+      datauuid: "u", startMs: 10 * 60_000, endMs: 40 * 60_000, fcMedia: 130, kcal: 200,
+    };
+    const bio = construirBiometriaSesion(sesion, "custom-id", undefined, V);
+    expect(bio.kcal).toBe(200);
+    expect(bio.kcalEstimada).toBeUndefined();
+  });
+
+  it("la mitad del workout adentro → la mitad de las kcal, marcadas", () => {
+    // Arranca 30 min antes de la sesión y corta a los 30: la mitad de la fila
+    // cae adentro. No excede el fin, así que no entra la regla conservadora
+    // del olvido de corte (que sí omite kcal cuando no hay curva).
+    const sesion: SesionSamsung = {
+      datauuid: "u", startMs: -30 * 60_000, endMs: 30 * 60_000, fcMedia: 130, kcal: 400,
+    };
+    const bio = construirBiometriaSesion(sesion, "custom-id", undefined, V);
+    expect(bio.kcal).toBe(200);
+    expect(bio.kcalEstimada).toBe(true);
+  });
+
+  it("sin curva y pasado de largo: la FC media se omite, las kcal se prorratean", () => {
+    // Son dos cosas distintas. La media de la fila incluye el tiempo
+    // post-sesión y no hay con qué recortarla; las kcal se reparten por tiempo,
+    // que para eso alcanza con la fila.
+    const sesion: SesionSamsung = {
+      datauuid: "u", startMs: 0, endMs: 90 * 60_000, fcMedia: 130, fcMax: 160, kcal: 400,
+    };
+    const bio = construirBiometriaSesion(sesion, "custom-id", undefined, V);
+    expect(bio.fcMedia).toBeUndefined();
+    expect(bio.fcMax).toBe(160);
+    expect(bio.kcal).toBe(267);           // 400 × 60/90
+    expect(bio.kcalEstimada).toBe(true);
+  });
+});
+
+describe("P78 · tramos", () => {
+  const V = { inicioMs: 0, finMs: 60 * 60_000, sintetica: false };
+  const tramo = (uuid: string, ini: number, fin: number): SesionSamsung =>
+    ({ datauuid: uuid, startMs: ini, endMs: fin, customId: "shapeup", fcMedia: 130, kcal: 100 });
+
+  it("un workout de 3 h con solape relativo 0,15 NO entra como tramo", () => {
+    const largo = tramo("largo", 0, 6 * 60 * 60_000);   // 6 h → solape 60/360 = 0,17
+    expect(solapeRelativo(largo, V)).toBeLessThan(SOLAPE_TRAMO_MIN);
+    expect(elegirTramosAdicionales(V, [largo], "principal", "shapeup")).toEqual([]);
+  });
+
+  it("0,79 no entra y 0,81 sí", () => {
+    // Un tramo de 100 min con 79 adentro, y otro de 100 con 81 adentro.
+    const casi = tramo("casi", -21 * 60_000, 79 * 60_000);
+    const justo = tramo("justo", -19 * 60_000, 81 * 60_000);
+    expect(solapeRelativo(casi, V)).toBeCloseTo(0.60, 2);   // recortado por el fin de la ventana
+    const dentro = tramo("dentro", 5 * 60_000, 55 * 60_000);
+    expect(solapeRelativo(dentro, V)).toBe(1);
+    expect(elegirTramosAdicionales(V, [dentro], "p", "shapeup").map((t) => t.datauuid)).toEqual(["dentro"]);
+    expect(elegirTramosAdicionales(V, [justo], "p", "shapeup")).toEqual([]);
+  });
+
+  it("dos workouts contenidos → kcal sumadas, duración medida sin el hueco, FC máx global", () => {
+    const a: SesionSamsung = { datauuid: "a", startMs: 0, endMs: 20 * 60_000, kcal: 100, fcMedia: 140, fcMax: 150 };
+    const b: SesionSamsung = { datauuid: "b", startMs: 40 * 60_000, endMs: 60 * 60_000, kcal: 120, fcMedia: 120, fcMax: 170 };
+    const bio = construirBiometriaDeTramos(
+      [{ sesion: a }, { sesion: b }], "custom-id", V,
+    );
+    expect(bio.kcal).toBe(220);
+    expect(bio.duracionMedidaMin).toBe(40);      // 20 + 20, el hueco de 20 no cuenta
+    expect(bio.fcMax).toBe(170);                 // el máximo de los dos tramos, no el del principal
+    expect(bio.tramosSamsung).toEqual(["a", "b"]);
+    expect(bio.motivoCobertura).toBe("hueco-entre-tramos");
+  });
+});
+
+describe("P78 · FC media ponderada por duración", () => {
+  const V = { inicioMs: 0, finMs: 60 * 60_000, sintetica: false };
+
+  it("40 min de curva fina a 150 y 20 min de muestras crudas a 100 dan 133, no el promedio por muestras", () => {
+    // La curva fina trae 1 muestra por minuto (40) y las crudas 1 cada 2 min (10):
+    // por cantidad de muestras el promedio daría ~140. Por duración, 133.
+    const curva: LiveDataPoint[] = [];
+    for (let ms = 0; ms <= 40 * 60_000; ms += 60_000) curva.push({ ms, fc: 150 });
+    const crudas: LiveDataPoint[] = [];
+    for (let ms = 40 * 60_000; ms <= 60 * 60_000; ms += 2 * 60_000) crudas.push({ ms, fc: 100 });
+
+    const sesion: SesionSamsung = { datauuid: "u", startMs: 0, endMs: 40 * 60_000 };
+    const bio = construirBiometriaDeTramos([{ sesion, curva }], "custom-id", V, crudas);
+
+    expect(Math.round(bio.fcMedia!)).toBe(133);
+    expect(bio.coberturaFina).toBeCloseTo(0.67, 2);
+    expect(bio.coberturaTotal).toBeCloseTo(1, 2);
+  });
+});
+
+describe("P78 · cobertura", () => {
+  const V62 = { inicioMs: 0, finMs: 62 * 60_000, sintetica: false };
+
+  it("62 min de sesión con 41 de curva → coberturaFina ≈ 0,66 y motivo cortado-antes", () => {
+    const curva: LiveDataPoint[] = [];
+    for (let ms = 0; ms <= 41 * 60_000; ms += 60_000) curva.push({ ms, fc: 140 });
+    const sesion: SesionSamsung = { datauuid: "u", startMs: 0, endMs: 41 * 60_000, kcal: 300 };
+    const bio = construirBiometriaDeTramos([{ sesion, curva }], "custom-id", V62);
+    expect(bio.coberturaFina).toBeCloseTo(0.66, 2);
+    expect(bio.motivoCobertura).toBe("cortado-antes");
+  });
+
+  it("el reloj que arrancó tarde se distingue del que se cortó antes", () => {
+    const curva: LiveDataPoint[] = [];
+    for (let ms = 20 * 60_000; ms <= 62 * 60_000; ms += 60_000) curva.push({ ms, fc: 140 });
+    const sesion: SesionSamsung = { datauuid: "u", startMs: 20 * 60_000, endMs: 62 * 60_000 };
+    const bio = construirBiometriaDeTramos([{ sesion, curva }], "custom-id", V62);
+    expect(bio.coberturaFina).toBeCloseTo(0.68, 2);
+    expect(bio.motivoCobertura).toBe("arranco-tarde");
+  });
+
+  it("con cobertura 0,95 no se informa motivo: no hay nada que explicar", () => {
+    const curva: LiveDataPoint[] = [];
+    for (let ms = 0; ms <= 59 * 60_000; ms += 60_000) curva.push({ ms, fc: 140 });
+    const sesion: SesionSamsung = { datauuid: "u", startMs: 0, endMs: 59 * 60_000 };
+    const bio = construirBiometriaDeTramos([{ sesion, curva }], "custom-id", V62);
+    expect(bio.coberturaFina).toBeGreaterThan(COBERTURA_MINIMA);
+    expect(bio.motivoCobertura).toBeUndefined();
   });
 });

@@ -118,11 +118,21 @@ nav.c-nav { flex: 0 0 78px; border-top: 1px solid var(--border); display: grid; 
 .a-mob-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
 .a-mob-t { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .a-mob-n { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent-muted); }
+/* Adherencia (P77a): reemplaza al contador N/7 en las dos direcciones. */
+.hr-adh { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; text-align: right; }
+.hr-adh-n { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent-muted); }
+.hr-adh-mov { font-weight: 600; color: var(--muted); }
+.hr-adh-sub { font-size: 10px; font-weight: 600; color: var(--muted); }
+
 .a-days { display: flex; justify-content: space-between; }
 .a-day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); }
 .a-day .c { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; border: 1.5px solid var(--border); color: var(--muted); transition: border-color 0.15s ease; }
 .a-day .c svg { width: 15px; height: 15px; }
 .a-day.done .c { background: var(--accent-dim); border-color: transparent; color: var(--accent-muted); }
+/* Movimiento (P76b): te moviste pero no entrenaste en la app. Punto de acento
+   sobre el chip vacío — presente, y claramente menos que un día de sesión. */
+.a-day.movimiento .c { border-color: var(--accent-border); color: var(--accent-muted); }
+.a-day.movimiento .pd { opacity: 1; width: 6px; height: 6px; }
 .a-day.today .c { border-color: var(--accent-border); color: var(--accent-muted); }
 .a-day.today { color: var(--fg); }
 
@@ -189,6 +199,9 @@ nav.c-nav { flex: 0 0 78px; border-top: 1px solid var(--border); display: grid; 
 .c-day .k { width: 34px; height: 34px; border-radius: var(--r-chip); display: grid; place-items: center; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
 .c-day .k svg { width: 15px; height: 15px; }
 .c-day.done .k { background: var(--accent-dim); border-color: transparent; color: var(--accent-muted); }
+/* Movimiento (P76b): ver la nota en .a-day.movimiento. */
+.c-day.movimiento .k { border-color: var(--accent-border); color: var(--accent-muted); }
+.c-day.movimiento .pd { opacity: 1; width: 6px; height: 6px; }
 .c-day.today .k { background: var(--surface); border: 1.5px solid var(--fg); color: var(--fg); }
 .c-day.today { color: var(--fg); font-weight: 700; }
 

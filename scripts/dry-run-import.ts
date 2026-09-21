@@ -19,7 +19,7 @@ import {
   clasificarImport, ACTIVIDADES_SIEMPRE_RELEVANTES, DURACION_MIN_ACTIVIDAD_MIN,
   type ConfigClasificacion, type CardioClasificable, type DestinoImport,
 } from "../src/lib/importSelectivo";
-import { construirEntradaExterna, type ItemExterno } from "../src/lib/entradaExterna";
+import { marcasDe, actividadRelevante } from "../src/lib/actividadRelevante";
 import type { Historial, MiembroId, PerfilMiembro } from "../src/types/models";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -127,34 +127,27 @@ async function run() {
   }
 
   // ── Qué se escribiría (sin escribir) ─────────────────────────────────────
-  const entradas = externas
-    .filter((c) => !!(c.item as unknown as ItemExterno)._uuid)
-    .map((c) => construirEntradaExterna(
-      c.item as unknown as ItemExterno, miembro, c.motivoIngreso ?? "duracion",
-    ));
+  // Desde P76b hay un solo destino: /cardio. Lo que antes era "entradas
+  // externas a escribir" ahora es "actividades que se van a VER en el
+  // historial", y sale del mismo filtro que usa la pantalla al leer.
+  const conMarcas = clasificadas.map((c) => ({ ...c.item, ...marcasDe(c.item) }));
+  const visibles  = conMarcas.filter((a) => actividadRelevante(a, config));
 
-  const porOrigen  = new Map<OrigenExterna, number>();
-  const porIngreso = new Map<MotivoIngreso, number>();
-  for (const e of entradas) {
-    const o = e.externa!.origen;
-    const m = e.externa!.motivoIngreso;
-    porOrigen.set(o, (porOrigen.get(o) ?? 0) + 1);
-    porIngreso.set(m, (porIngreso.get(m) ?? 0) + 1);
-  }
-
-  console.log("\n  -- Externas por origen -------------------------------");
-  for (const [o, n] of [...porOrigen].sort((a, b) => b[1] - a[1])) {
-    console.log(`  ${o.padEnd(16)}: ${n}`);
-  }
-  console.log("\n  -- Externas por motivo de ingreso --------------------");
-  for (const [m, n] of [...porIngreso].sort((a, b) => b[1] - a[1])) {
-    console.log(`  ${m.padEnd(20)}: ${n}`);
-  }
+  console.log("\n  -- Marcas que se persisten en /cardio ----------------");
+  console.log(`  esVR            : ${conMarcas.filter((a) => a.esVR).length}`);
+  console.log(`  marcadaShapeUp  : ${conMarcas.filter((a) => a.marcadaShapeUp).length}`);
+  console.log(`  autodetectada   : ${conMarcas.filter((a) => a.autodetectada).length}`);
 
   console.log("\n  -- Se escribirian (si confirmaras) -------------------");
-  console.log(`  a /cardio          : ${clasificadas.length} (TODAS, P75b)`);
-  console.log(`  entradas externas  : ${entradas.length}`);
-  console.log(`  sin datauuid       : ${externas.length - entradas.length}\n`);
+  console.log(`  a /cardio          : ${clasificadas.length} (TODAS)`);
+  console.log(`  a /historial       : 0 (P76b: el historial filtra, no copia)`);
+
+  console.log("\n  -- Sensibilidad del umbral (filtro de lectura) -------");
+  for (const u of [10, 20, 30, 45]) {
+    const n = conMarcas.filter((a) => actividadRelevante(a, { duracionMinimaMin: u })).length;
+    console.log(`  ${String(u).padStart(2)} min -> ${String(n).padStart(5)} se verian en el historial`);
+  }
+  console.log(`\n  con el umbral vigente (${config.duracionMinimaMin} min): ${visibles.length}\n`);
 
   // ── Duplicados que YA están en /cardio ───────────────────────────────────
   const cardioSnap = await db.collection("cardio").where("miembro", "==", miembro).get();

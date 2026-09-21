@@ -4,10 +4,11 @@ import { ArrowLeft } from "lucide-react";
 import type { Historial, MetricaSalud, MiembroId, BiometriaSesion } from "../types/models";
 import { getHistorialEntry, getHistorialShapeUp } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
+import { COBERTURA_MINIMA } from "../lib/matchBiometrico";
 import { consolidarNoches } from "../lib/sueno";
 import type { NocheSueno } from "../lib/sueno";
 import { compararConPrevias } from "../lib/costoCardiaco";
-import { motivoSaltoLabel } from "../lib/entrenarState";
+import { motivoSaltoLabel, MOTIVOS_SUSTITUCION } from "../lib/entrenarState";
 import { ZONAS_MOLESTIA } from "../lib/resumenSesion";
 import type { ComparativaCardiaca } from "../lib/costoCardiaco";
 
@@ -24,6 +25,45 @@ const MATCH_POR_LABEL: Record<BiometriaSesion["matchPor"], string> = {
   "directo":   "dato propio",       // entrada externa: el dato es de ella misma (P75)
 };
 
+
+/**
+ * Cuántos minutos de la sesión tienen FC medida, y —si falta bastante— qué
+ * pasó (P78).
+ *
+ * Nada de íconos de alerta ni de rojo: es información, no un error del usuario.
+ * Y en minutos, no en porcentaje: "41 de 62 min" se entiende y "66 %" no.
+ */
+function LineaCobertura({ biometria, duracionMin }: {
+  biometria: BiometriaSesion;
+  duracionMin: number | null;
+}) {
+  const cobertura = biometria.coberturaFina;
+  if (cobertura == null || duracionMin == null || duracionMin <= 0) return null;
+
+  const medidos = Math.round(cobertura * duracionMin);
+  const faltan = Math.max(0, duracionMin - medidos);
+
+  const motivo = biometria.motivoCobertura;
+  const frase =
+    motivo === "cortado-antes"      ? `el reloj se cortó a los ${medidos} min`
+    : motivo === "arranco-tarde"    ? `el reloj arrancó ${faltan} min después que la sesión`
+    : motivo === "hueco-entre-tramos" ? `hay ${faltan} min sin registrar en el medio`
+    : motivo === "sin-cortar"       ? "el reloj siguió grabando después de terminar"
+    : null;
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+        FC medida en {medidos} de {duracionMin} min
+      </p>
+      {cobertura < COBERTURA_MINIMA && frase && (
+        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
+          Datos parciales — {frase}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export function HistorialDetalle() {
   const { id }     = useParams<{ id: string }>();
@@ -148,6 +188,15 @@ export function HistorialDetalle() {
                   {completadas.length}/{b.series.length} series
                   {detalle ? ` · ${detalle}` : ""}
                 </p>
+                {/* Sustitución en vivo (P73): qué se cambió y por qué. */}
+                {b.idEjercicioOriginal && (
+                  <p className="bloque-prescripcion">
+                    Sustituye a {b.nombreEjercicioOriginal ?? b.idEjercicioOriginal}
+                    {b.motivoSustitucion
+                      ? ` · ${MOTIVOS_SUSTITUCION.find(([v]) => v === b.motivoSustitucion)?.[1] ?? b.motivoSustitucion}`
+                      : ""}
+                  </p>
+                )}
                 {b.saltado && (
                   <p className="bloque-prescripcion" style={{ color: "var(--warning)" }}>
                     {(() => {
@@ -211,11 +260,17 @@ export function HistorialDetalle() {
             )}
             {h.biometria.kcal != null && (
               <div className="stat">
-                <span className="stat-value">{h.biometria.kcal}</span>
+                {/* `~` cuando las kcal salieron de un prorrateo por tiempo (P78). */}
+                <span className="stat-value">
+                  {h.biometria.kcalEstimada ? "~" : ""}{h.biometria.kcal}
+                </span>
                 <span className="stat-label">kcal</span>
               </div>
             )}
           </div>
+
+          {/* Cobertura (P78): en minutos, que son accionables, no en porcentaje. */}
+          <LineaCobertura biometria={h.biometria} duracionMin={h.duracionRealMin} />
           {comparativa && (
             <p style={{ margin: "8px 0 0", fontSize: 13 }}>
               FC media {Math.round(comparativa.fcMediaActual)} ·{" "}

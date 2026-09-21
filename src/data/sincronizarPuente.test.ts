@@ -4,18 +4,22 @@
 //  Los tres casos que antes salían mal: un rechazo por documento que igual
 //  informaba éxito, un paso que falla después de que otro escribió, y una
 //  escritura que nunca resuelve y dejaba la pantalla colgada.
+//
+//  P76b: el paso de entradas externas ya no existe. Quedan dos pasos —
+//  actividades y mediciones— y son esos dos los que prueban la escritura
+//  parcial.
 // ════════════════════════════════════════════════════════════════════════════
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Historial } from "../types/models";
 import { ok, err } from "../lib/result";
 import type { Result } from "../lib/result";
 import type { ImportResult } from "./salud";
+import { CRUDO_COMPOSICION_HEALTHSYNC } from "../lib/__fixtures__/crudoSdk";
 
 vi.mock("../firebase", () => ({ db: {} }));
 
 // ── dobles de las tres escrituras y de la lectura ──────────────────────────
 let cardioImpl:     () => Promise<Result<ImportResult>>;
-let externasImpl:   () => Promise<Result<{ escritas: number }>>;
 let medicionesImpl: () => Promise<Result<ImportResult>>;
 let registros: { id: string; dataType: string; crudo: unknown }[] = [];
 
@@ -28,10 +32,6 @@ vi.mock("./salud", () => ({
   importarCardioIdempotente:     vi.fn(() => cardioImpl()),
   importarMedicionesIdempotente: vi.fn(() => medicionesImpl()),
 }));
-vi.mock("./historial", () => ({
-  guardarEntradasExternas: vi.fn(() => externasImpl()),
-}));
-
 const { sincronizarDesdePuente } = await import("./sincronizarPuente");
 
 /** Una sesión del SDK lo bastante larga como para entrar como actividad externa. */
@@ -67,8 +67,7 @@ const HIST: Historial[] = [];
 beforeEach(() => {
   registros = [sesion("nat-1", "2026-07-10T16:39:58.319Z", 31)];
   cardioImpl     = () => Promise.resolve(ok({ importados: 1, omitidos: 0, fallidos: 0 }));
-  externasImpl   = () => Promise.resolve(ok({ escritas: 1 }));
-  medicionesImpl = () => Promise.resolve(ok({ importados: 0, omitidos: 0, fallidos: 0 }));
+  medicionesImpl = () => Promise.resolve(ok({ importados: 1, omitidos: 0, fallidos: 0 }));
 });
 
 describe("sincronizarDesdePuente — contadores honestos", () => {
@@ -79,7 +78,6 @@ describe("sincronizarDesdePuente — contadores honestos", () => {
     if (r.ok) {
       expect(r.value.escrito).toBe(true);
       expect(r.value.escritos.cardio).toBe(1);
-      expect(r.value.escritos.externas).toBe(1);
       expect(r.value.enCola).toBe(false);
     }
   });
@@ -98,14 +96,21 @@ describe("sincronizarDesdePuente — contadores honestos", () => {
   });
 
   it("si un paso falla después de que otro escribió, el error dice qué quedó guardado", async () => {
-    cardioImpl   = () => Promise.resolve(ok({ importados: 1, omitidos: 0, fallidos: 0 }));
-    externasImpl = () => Promise.resolve(err("permission-denied"));
+    // P76b: el paso de externas ya no existe — las mediciones son el segundo
+    // paso, y son las que prueban la escritura parcial.
+    // Hace falta una medición para que haya un segundo paso que falle.
+    registros = [
+      sesion("nat-1", "2026-07-10T16:39:58.319Z", 31),
+      { id: "body_composition_x", dataType: "body_composition", crudo: CRUDO_COMPOSICION_HEALTHSYNC },
+    ];
+    cardioImpl     = () => Promise.resolve(ok({ importados: 1, omitidos: 0, fallidos: 0 }));
+    medicionesImpl = () => Promise.resolve(err("permission-denied"));
     const r = await sincronizarDesdePuente("uid", "juanpablo", HIST, CONFIG);
     expect(r.ok).toBe(false);
     if (!r.ok) {
-      expect(r.error).toContain("Actividades externas");
+      expect(r.error).toContain("Mediciones");
       expect(r.error).toContain("Ya se habían guardado");
-      expect(r.error).toContain("1 de cardio");
+      expect(r.error).toContain("1 actividades");
     }
   });
 

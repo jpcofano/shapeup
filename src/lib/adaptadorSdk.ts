@@ -6,7 +6,7 @@
 //  de ingesta**. Devuelve `EjercicioItem` y `MedicionInput` — exactamente lo que
 //  devuelven `parsearEjercicio` y `parsearPeso` — y de ahí en adelante se reusa
 //  el pipeline de P75/P75b: `clasificarImport`, `construirEntradaExterna`,
-//  `importarMedicionesIdempotente`, `guardarEntradasExternas`. El día que se
+//  `importarMedicionesIdempotente`. El día que se
 //  corrija una regla, se corrige en un solo lugar.
 //
 //  Los ids salen del uuid de Samsung, igual que en el ZIP (`CAR-{uuid}`,
@@ -191,6 +191,8 @@ export function adaptarEjercicio(
     _muestrasCurva: ses.log?.length ?? numOpt(ses.logSize) ?? 0,
     // El SDK sabe si la registró el reloj solo; el ZIP tiene que deducirlo.
     _autoDetected: ses.autoDetected ?? undefined,
+    // Por el SDK, el `customTitle` es lo que hace de marca (P76b).
+    _marcadaShapeUp: ses.customTitle === "ShapeUp",
 
     miembro,
     fecha,

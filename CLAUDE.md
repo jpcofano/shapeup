@@ -301,6 +301,40 @@ historia previa.
 Todo timestamp en epoch ms UTC; conversión a local solo al mostrar. Los bugs de zona
 horaria fueron el enemigo número uno de la serie S.
 
+## ADR #037 — La racha se deriva, nunca se acumula (P77a)
+
+Toda la adherencia (`lib/adherencia.ts`) se **recalcula del historial cada vez que se
+muestra**: la serie semanal, la racha activa, el récord y la tasa de 8 semanas.
+**No se guarda ningún contador en Firestore, y no hay que agregarlo.**
+
+Motivo: un contador acumulado se desincroniza con la primera corrección de datos, y en este
+proyecto ya hubo tres — el mapeo del código 1001 (caminatas de 1 min etiquetadas como HIIT,
+S-fix/P55), los fragmentos de sueño sin consolidar (`lib/sueno.ts`), y el corrimiento de 3 h
+del `start_time` del ZIP (P76a, 2562 documentos de cardio). Cualquiera de las tres habría
+dejado un contador mintiendo para siempre, sin forma de notarlo. Derivar cuesta unos
+milisegundos sobre datos que las pantallas ya traen.
+
+Decisiones que acompañan:
+- **Se cuentan días, no sesiones**: dos sesiones el mismo día son un día, porque el plan se
+  expresa en días por semana.
+- **La meta sale del plan** (días no-descanso), y `PerfilMiembro.metaSemanalDias` la pisa.
+  Sin programa activo no hay meta: se muestra el estado vacío, nunca un cero.
+- **La semana en curso no rompe la racha**: se saltea si todavía no llegó a la meta.
+- **Nunca se muestra "0 semanas de racha"**: si se cortó, se muestra el récord.
+- La serie usa **la meta de hoy para todas las semanas** (simplificación conocida:
+  no guardamos historial de metas).
+- Hora local con `ymdLocal`/`lunesDeSemana`, **sin librería de zona horaria**: la familia
+  está en un solo huso. Si algún día hay un miembro en otro, se revisa.
+
+`rachaDelPlan` de `lib/racha.ts` se eliminó en P77a: contaba semanas con al menos una
+sesión, que no es cumplir el plan.
+
+**La caché de P77b no es una excepción a esto.** `lib/cacheDiasActivos.ts` guarda en
+`localStorage` los días de `/cardio` de las semanas ya cerradas, para no releerlas en cada
+visita a Progreso. Lo que se guarda son **lecturas**, no un contador: la racha se sigue
+derivando entera en cada cálculo, y si la caché se borra el resultado es idéntico, solo que
+más lento. Un import la limpia, porque puede reescribir semanas viejas.
+
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3; progresión de cargas y costo cardíaco por rutina
 ya se implementaron como I2/I3 — ver "Serie I" arriba):

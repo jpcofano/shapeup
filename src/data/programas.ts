@@ -13,7 +13,28 @@ import { normalizeText } from "../lib/canonical";
 import { proximoId } from "./_helpers";
 
 let _cache: Map<string, Programa> | null = null;
-function invalidar() { _cache = null; }
+
+/**
+ * Programa activo por miembro, en memoria (P77a).
+ *
+ * Home lo lee al abrir; Perfil e Historial lo necesitan para la **meta
+ * semanal** y, sin esto, cada visita a esas pantallas serían dos lecturas
+ * nuevas. Con la caché son cero: dentro de una sesión se lee una sola vez.
+ *
+ * `undefined` como valor es un dato: "este miembro no tiene programa activo".
+ * Por eso se guarda `Programa | null` y se pregunta con `has`, no con `??`.
+ */
+const _activoPorMiembro = new Map<MiembroId, Programa | null>();
+
+function invalidar() {
+  _cache = null;
+  // Cualquier cambio en /programas puede cambiar el activo (sus días, su
+  // estado): la caché del activo se tira junto con la otra.
+  _activoPorMiembro.clear();
+}
+
+/** Tira las cachés en memoria. La próxima lectura vuelve a Firestore. */
+export function invalidarCacheProgramas(): void { invalidar(); }
 
 export async function getProgramas(): Promise<Result<Programa[]>> {
   if (_cache) return ok([..._cache.values()]);
@@ -42,10 +63,17 @@ export async function getPrograma(id: string): Promise<Result<Programa>> {
  * Devuelve el programa activo del miembro.
  * Lee `config/programaActivo` (mapa miembro→programaId); si no hay entrada
  * para el miembro, cae al primer programa con `estado: "Activo"` (retrocompat).
+ *
+ * **Cachea en memoria por miembro** (P77a): son dos lecturas la primera vez y
+ * ninguna después, dentro de la misma sesión. Se invalida al activar otro
+ * programa y ante cualquier escritura en /programas.
  */
 export async function getProgramaActivo(
   miembroId?: MiembroId,
 ): Promise<Result<Programa | null>> {
+  if (miembroId && _activoPorMiembro.has(miembroId)) {
+    return ok(_activoPorMiembro.get(miembroId)!);
+  }
   try {
     if (miembroId) {
       const snap = await getDoc(doc(db, "config", "programaActivo"));
@@ -54,7 +82,7 @@ export async function getProgramaActivo(
         const programaId = mapa[miembroId];
         if (programaId) {
           const r = await getPrograma(programaId);
-          if (r.ok) return r;
+          if (r.ok) { _activoPorMiembro.set(miembroId, r.value); return r; }
           // Si el programa no existe, cae al fallback
         }
       }
@@ -62,7 +90,9 @@ export async function getProgramaActivo(
     // Fallback: primer programa con estado "Activo"
     const r = await getProgramas();
     if (!r.ok) return err(r.error);
-    return ok(r.value.find((p) => p.estado === "Activo") ?? null);
+    const activo = r.value.find((p) => p.estado === "Activo") ?? null;
+    if (miembroId) _activoPorMiembro.set(miembroId, activo);
+    return ok(activo);
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -79,6 +109,7 @@ export async function setProgramaActivo(
       { [miembroId]: programaId },
       { merge: true },
     );
+    _activoPorMiembro.delete(miembroId);   // el activo cambió (P77a)
     return ok(undefined);
   } catch (e) {
     return err(firebaseErrorMessage(e));

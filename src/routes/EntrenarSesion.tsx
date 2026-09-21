@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap } from "lucide-react";
-import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId } from "../types/models";
+import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId, PerfilMiembro } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
 import { finalizarSesion, getHistorialShapeUp } from "../data/historial";
@@ -32,6 +32,8 @@ import { VistaDia } from "../components/entrenar/VistaDia";
 import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
 import { ResumenSesion } from "../components/entrenar/ResumenSesion";
 import { historialPrevio } from "../lib/resumenSesion";
+import { equipoDe } from "../lib/perfil";
+import { SustituirEjercicio } from "../components/entrenar/SustituirEjercicio";
 import { SinConexion } from "../components/entrenar/SinConexion";
 import { GuardadoPendiente } from "../components/entrenar/GuardadoPendiente";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
@@ -74,6 +76,10 @@ export function EntrenarSesion() {
   // Progresión de cargas (I3): historial del miembro para sugerir doble progresión.
   // `null` mientras no cargó (o si falló): la pantalla de fin no muestra deltas (P70).
   const [historialMiembro, setHistorialMiembro] = useState<Historial[] | null>(null);
+  /** El perfil, para el equipo del lugar donde estás (P72/P73). */
+  const [perfilMiembro, setPerfilMiembro] = useState<PerfilMiembro | undefined>(undefined);
+  /** Bloque con la hoja de sustitución abierta (P73). */
+  const [sustituyendo, setSustituyendo] = useState<number | null>(null);
   const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState<Set<number>>(new Set());
 
   // Log rápido para modo guiado
@@ -281,9 +287,9 @@ export function EntrenarSesion() {
   useEffect(() => {
     if (!memberId) { setLugarHabitual({ valor: undefined }); return; }
     getPerfiles().then((r) => {
-      setLugarHabitual({
-        valor: r.ok ? r.value[memberId as MiembroId]?.lugarHabitual : undefined,
-      });
+      const perfil = r.ok ? r.value[memberId as MiembroId] : undefined;
+      setPerfilMiembro(perfil);
+      setLugarHabitual({ valor: perfil?.lugarHabitual });
     });
   }, [memberId]);
 
@@ -427,7 +433,12 @@ export function EntrenarSesion() {
   }
 
   // ── Bloque actual ─────────────────────────────────────────────────────────
-  const ejercicio = blq ? catalogo.get(blq.idEjercicio) : undefined;
+  // Con sustitución, el bloque muestra el ejercicio elegido (P73).
+  const sustDelBloque = state.sustituciones[state.bloqueActual];
+  const idEjercicioActual = sustDelBloque?.idNuevo ?? blq?.idEjercicio;
+  const ejercicio = idEjercicioActual ? catalogo.get(idEjercicioActual) : undefined;
+  /** Equipo del lugar donde estás, para filtrar los sustitutos (P72/P73). */
+  const equipoDelLugar = equipoDe(perfilMiembro, state.lugar ?? "Casa");
 
   // Valores para el log rápido
   function getLogValues(): Partial<SerieRegistro> {
@@ -539,6 +550,10 @@ export function EntrenarSesion() {
                   onIrASerie={(i) => void i}
                   aContinuacion={nombreSiguientePendiente(state, rutina, state.bloqueActual)}
                   saltado={saltadoActual}
+                  sustituido={sustDelBloque
+                    ? { nombreOriginal: blq.nombreEjercicio, nombreNuevo: sustDelBloque.nombreNuevo }
+                    : null}
+                  onDeshacerSustitucion={() => session.deshacerSustitucion(state.bloqueActual)}
                   onAbrirDia={() => setVistaDiaAbierta(true)}
                   onRetomar={() => session.retomarBloque(state.bloqueActual)}
                 />
@@ -561,6 +576,7 @@ export function EntrenarSesion() {
               onSerieExtra={handleSerieExtra}
               onDeshacer={() => session.deshacerSerie(state.bloqueActual)}
               onSaltar={(motivo) => session.saltarBloque(state.bloqueActual, motivo)}
+              onSustituir={ejercicio ? () => setSustituyendo(state.bloqueActual) : undefined}
               onEjercicioChange={(ej) => setCatalogo((prev) => new Map(prev).set(ej.idEjercicio, ej))}
               pulsing={seriePulsing}
             />
@@ -577,6 +593,28 @@ export function EntrenarSesion() {
           onIr={(i) => { session.irABloque(i); setVistaDiaAbierta(false); }}
           onCerrar={() => setVistaDiaAbierta(false)}
           onCambiarLugar={session.cambiarLugar}
+        />
+      )}
+      {sustituyendo != null && ejercicio && (
+        <SustituirEjercicio
+          original={ejercicio}
+          catalogo={[...catalogo.values()]}
+          equipo={equipoDelLugar}
+          historial={historialMiembro ?? []}
+          onCancelar={() => setSustituyendo(null)}
+          onElegir={(e) => {
+            // El sustituto ya está en el catálogo en memoria: viene de ahí.
+            setCatalogo((prev) => new Map(prev).set(e.ejercicio.idEjercicio, e.ejercicio));
+            session.sustituirBloque(sustituyendo, {
+              idOriginal: ejercicio.idEjercicio,
+              idNuevo: e.ejercicio.idEjercicio,
+              nombreNuevo: e.ejercicio.nombre,
+              motivo: e.motivo,
+              ...(e.zona ? { zona: e.zona } : {}),
+              posicion: e.posicion,
+            });
+            setSustituyendo(null);
+          }}
         />
       )}
       {hojaSalida}

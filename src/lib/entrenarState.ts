@@ -18,7 +18,7 @@
 
 import type {
   Rutina, BloqueEjercicio, BloqueRegistro, Prescripcion, SerieRegistro, Modalidad, Ejercicio,
-  MotivoSalto, Lugar,
+  MotivoSalto, Lugar, MotivoSustitucion, ZonaMolestia,
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
 import { e1rmKg } from "./resumenSesion";
@@ -65,6 +65,24 @@ export interface EntrenarState {
    * En P72 no filtra nada todavía — lo usa la sustitución de P73.
    */
   lugar: Lugar | null;
+  /**
+   * Sustituciones de esta sesión, por índice de bloque (P73).
+   *
+   * Vive en el estado y no en la rutina: la rutina no se toca, lo que cambia
+   * es lo que hiciste hoy.
+   */
+  sustituciones: Record<number, SustitucionBloque>;
+}
+
+/** Un ejercicio cambiado por otro en el momento (P73). */
+export interface SustitucionBloque {
+  idOriginal: string;
+  idNuevo: string;
+  nombreNuevo: string;
+  motivo: MotivoSustitucion;
+  zona?: ZonaMolestia;
+  /** Posición en el ranking, desde 1. `0` = vino del buscador. */
+  posicion: number;
 }
 
 export const INITIAL_ENTRENAR_STATE: EntrenarState = {
@@ -80,7 +98,62 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   saltados: {},
   ultimoBloqueCerrado: null,
   lugar: null,
+  sustituciones: {},
 };
+
+/** Etiquetas de los motivos de sustitución, en el orden en que se ofrecen (P73). */
+export const MOTIVOS_SUSTITUCION: ReadonlyArray<readonly [MotivoSustitucion, string]> = [
+  ["dolor",          "Me duele algo"],
+  ["equipo-ocupado", "Equipo ocupado"],
+  ["no-me-sale",     "No me sale"],
+  ["otro",           "Otro"],
+];
+
+/**
+ * Registra una sustitución en un bloque (P73).
+ *
+ * **Borra las series registradas de ese bloque**: eran de otro ejercicio, y
+ * dejarlas sería atribuirle a la sentadilla búlgara las repeticiones que
+ * hiciste en prensa. También limpia el cronómetro de serie.
+ */
+export function sustituirBloque(
+  state: EntrenarState,
+  idx: number,
+  datos: SustitucionBloque,
+): EntrenarState {
+  const registro = { ...state.registro };
+  const seriesHechas = { ...state.seriesHechas };
+  const serieInicioMs = { ...state.serieInicioMs };
+  const ultimoLog = { ...state.ultimoLog };
+  delete registro[idx];
+  delete seriesHechas[idx];
+  delete serieInicioMs[idx];
+  delete ultimoLog[idx];
+
+  return {
+    ...state,
+    registro, seriesHechas, serieInicioMs, ultimoLog,
+    sustituciones: { ...state.sustituciones, [idx]: datos },
+  };
+}
+
+/** Vuelve al ejercicio original. Borra las series por el mismo motivo (P73). */
+export function deshacerSustitucion(state: EntrenarState, idx: number): EntrenarState {
+  if (!state.sustituciones[idx]) return state;
+  const sustituciones = { ...state.sustituciones };
+  delete sustituciones[idx];
+
+  const registro = { ...state.registro };
+  const seriesHechas = { ...state.seriesHechas };
+  const serieInicioMs = { ...state.serieInicioMs };
+  const ultimoLog = { ...state.ultimoLog };
+  delete registro[idx];
+  delete seriesHechas[idx];
+  delete serieInicioMs[idx];
+  delete ultimoLog[idx];
+
+  return { ...state, registro, seriesHechas, serieInicioMs, ultimoLog, sustituciones };
+}
 
 /** Etiquetas de los motivos de salto, en el orden en que se ofrecen. */
 export const MOTIVOS_SALTO: ReadonlyArray<readonly [MotivoSalto, string]> = [
@@ -558,6 +631,7 @@ export function quitarBloques(
     serieInicioMs: remap(state.serieInicioMs),
     ultimoLog:     remap(state.ultimoLog),
     saltados:      remap(state.saltados),
+    sustituciones: remap(state.sustituciones),
     descanso,
     bloqueActual:  Math.max(0, Math.min(nuevoIdx(state.bloqueActual), totalRestante - 1)),
     ultimoBloqueCerrado: cerrado == null || fuera.has(cerrado) ? null : nuevoIdx(cerrado),
@@ -717,6 +791,7 @@ export function clearEntrenarState(sessionKey: string): void {
 export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): BloqueRegistro[] {
   return rutina.bloques.map((b, idx) => {
     const motivo = state.saltados[idx];
+    const sust = state.sustituciones[idx];
     const series: SerieRegistro[] = state.registro[idx]
       ?? Array.from({ length: state.seriesHechas[idx] ?? 0 }, (_v, i) => ({
         serie: i + 1, completada: true,
@@ -725,14 +800,23 @@ export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): 
     const e1rm = b.modalidad === "Fuerza" ? e1rmKg(series) : undefined;
     return {
       orden: b.orden,
-      idEjercicio: b.idEjercicio,
-      nombreEjercicio: b.nombreEjercicio,
+      // Con sustitución, el bloque guarda el ejercicio que SE HIZO (P73).
+      idEjercicio: sust ? sust.idNuevo : b.idEjercicio,
+      nombreEjercicio: sust ? sust.nombreNuevo : b.nombreEjercicio,
       modalidad: b.modalidad as Modalidad,
       series,
       // Solo en bloques salteados (P68b).
       ...(motivo !== undefined ? { saltado: true } : {}),
       ...(motivo ? { motivoSalto: motivo } : {}),
       ...(e1rm !== undefined ? { e1rmKg: e1rm } : {}),
+      // Solo en bloques sustituidos (P73).
+      ...(sust ? {
+        idEjercicioOriginal: sust.idOriginal,
+        nombreEjercicioOriginal: b.nombreEjercicio,
+        motivoSustitucion: sust.motivo,
+        posicionSustituto: sust.posicion,
+        ...(sust.zona ? { zonaMolestia: sust.zona } : {}),
+      } : {}),
     };
   });
 }

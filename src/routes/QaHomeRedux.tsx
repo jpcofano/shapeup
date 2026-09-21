@@ -13,7 +13,9 @@ const WEEK_CHIPS = [
   { letter: "L", fecha: "mock-0", estado: "done" as const },
   { letter: "M", fecha: "mock-1", estado: "done" as const },
   { letter: "X", fecha: "mock-2", estado: "today" as const },
-  { letter: "J", fecha: "mock-3", estado: "pending" as const },
+  // Un día de movimiento (P76b): caminaste, no entrenaste. Está acá para poder
+  // comparar los tres estados de un vistazo en la pantalla de QA.
+  { letter: "J", fecha: "mock-3", estado: "movimiento" as const },
   { letter: "V", fecha: "mock-4", estado: "pending" as const },
   { letter: "S", fecha: "mock-5", estado: "pending" as const },
   { letter: "D", fecha: "mock-6", estado: "pending" as const },
@@ -41,6 +43,9 @@ function mockData(delta: string, deltaFavorable: boolean): HomeReduxData {
     },
     weekLabel: "Movilidad y recuperación",
     weekChips: WEEK_CHIPS,
+    // Adherencia de muestra (P77a): racha viva con récord mayor, para ver las
+    // tres líneas juntas.
+    adherencia: { hechos: 3, meta: 4, movimiento: 2, racha: 5, record: 7, tasa: { cumplidas: 6, total: 8 } },
   };
 }
 

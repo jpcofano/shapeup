@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import type {
-  Ejercicio, Historial, SerieRegistro, PrescripcionFuerza, Lugar, MiembroId,
+  Ejercicio, Historial, SerieRegistro, PrescripcionFuerza, Lugar, MiembroId, PerfilMiembro,
 } from "../types/models";
 import { finalizarSesion, getHistorialShapeUp } from "../data/historial";
 import { getPerfiles } from "../data/perfiles";
+import { equipoDe } from "../lib/perfil";
+import { SustituirEjercicio } from "../components/entrenar/SustituirEjercicio";
 import { historialPrevio } from "../lib/resumenSesion";
 import { getEjercicio, getEjerciciosPorId } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
@@ -74,6 +76,10 @@ export function EntrenarSesionLibre() {
 
   // ── Fase 1 — selector ─────────────────────────────────────────────────────
   const [ejercicios,     setEjercicios]     = useState<Ejercicio[]>([]);
+  /** El perfil, para el equipo del lugar (P72/P73). */
+  const [perfilMiembro,  setPerfilMiembro]  = useState<PerfilMiembro | undefined>(undefined);
+  /** Bloque con la hoja de sustitución abierta (P73). */
+  const [sustituyendo,   setSustituyendo]   = useState<number | null>(null);
   const [ejDefaults,     setEjDefaults]     = useState<EjDefaults[]>([]);
   const [pickerAbierto,  setPickerAbierto]  = useState(false);
   const [sesionIniciada, setSesionIniciada] = useState(false);
@@ -141,9 +147,9 @@ export function EntrenarSesionLibre() {
   useEffect(() => {
     if (!memberId) { setLugarHabitual({ valor: undefined }); return; }
     getPerfiles().then((r) => {
-      setLugarHabitual({
-        valor: r.ok ? r.value[memberId as MiembroId]?.lugarHabitual : undefined,
-      });
+      const perfil = r.ok ? r.value[memberId as MiembroId] : undefined;
+      setPerfilMiembro(perfil);
+      setLugarHabitual({ valor: perfil?.lugarHabitual });
     });
   }, [memberId]);
   useEffect(() => {
@@ -694,7 +700,14 @@ export function EntrenarSesionLibre() {
   // ── Render: fase 2 — workout en curso ─────────────────────────────────────
 
   const blq      = virtualRutina.bloques[state.bloqueActual];
-  const ejercicio = blq ? ejercicios.find((e) => e.idEjercicio === blq.idEjercicio) : undefined;
+  // Con sustitución, el bloque muestra el ejercicio elegido (P73).
+  const sustDelBloque = state.sustituciones[state.bloqueActual];
+  const idEjercicioActual = sustDelBloque?.idNuevo ?? blq?.idEjercicio;
+  const ejercicio = idEjercicioActual
+    ? ejercicios.find((e) => e.idEjercicio === idEjercicioActual)
+    : undefined;
+  /** Equipo del lugar donde estás (P72/P73). */
+  const equipoDelLugar = equipoDe(perfilMiembro, state.lugar ?? "Casa");
   const saltadoActual = state.saltados[state.bloqueActual];
   const mostrarChipAnterior =
     !state.descanso && idxCerrado != null && idxCerrado !== state.bloqueActual;
@@ -764,11 +777,39 @@ export function EntrenarSesionLibre() {
                 onIrASerie={(i) => void i}
                 aContinuacion={nombreSiguientePendiente(state, virtualRutina, state.bloqueActual)}
                 saltado={saltadoActual}
+                sustituido={sustDelBloque
+                  ? { nombreOriginal: blq.nombreEjercicio, nombreNuevo: sustDelBloque.nombreNuevo }
+                  : null}
+                onDeshacerSustitucion={() => session.deshacerSustitucion(state.bloqueActual)}
                 onAbrirDia={() => setVistaDiaAbierta(true)}
                 onRetomar={() => session.retomarBloque(state.bloqueActual)}
               />
             )}
           </div>
+
+          {sustituyendo != null && ejercicio && (
+            <SustituirEjercicio
+              original={ejercicio}
+              catalogo={ejercicios}
+              equipo={equipoDelLugar}
+              historial={historialMiembro ?? []}
+              onCancelar={() => setSustituyendo(null)}
+              onElegir={(e) => {
+                setEjercicios((prev) => prev.some((x) => x.idEjercicio === e.ejercicio.idEjercicio)
+                  ? prev
+                  : [...prev, e.ejercicio]);
+                session.sustituirBloque(sustituyendo, {
+                  idOriginal: ejercicio.idEjercicio,
+                  idNuevo: e.ejercicio.idEjercicio,
+                  nombreNuevo: e.ejercicio.nombre,
+                  motivo: e.motivo,
+                  ...(e.zona ? { zona: e.zona } : {}),
+                  posicion: e.posicion,
+                });
+                setSustituyendo(null);
+              }}
+            />
+          )}
 
           {!state.descanso && saltadoActual === undefined && (
             <RegistroSerie
@@ -783,6 +824,7 @@ export function EntrenarSesionLibre() {
               onSerieExtra={handleSerieExtra}
               onDeshacer={() => session.deshacerSerie(state.bloqueActual)}
               onSaltar={(motivo) => session.saltarBloque(state.bloqueActual, motivo)}
+              onSustituir={ejercicio ? () => setSustituyendo(state.bloqueActual) : undefined}
               onEjercicioChange={(ej) =>
                 setEjercicios((prev) => prev.map((e) => (e.idEjercicio === ej.idEjercicio ? ej : e)))}
             />
