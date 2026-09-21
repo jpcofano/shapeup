@@ -426,6 +426,22 @@ export interface SerieRegistro {
   fcPico?: number;
   fcFinSerie?: number;
   recuperacionBpm?: number;
+  /**
+   * FC media de la serie, sobre su propia ventana (P79).
+   *
+   * **No es la FC media de la sesión**: ésa promedia los descansos y queda
+   * sistemáticamente por debajo de la FC real de trabajo. Solo se calcula con
+   * suficientes muestras (`MIN_MUESTRAS_SERIE`); una ronda sin curva fina no
+   * tiene FC media, no tiene una inventada.
+   */
+  fcMedia?: number;
+  /**
+   * La FC de esta serie tiene pinta de artefacto (P79, §9.3): saltos imposibles
+   * entre muestras o un pico por encima de la FC máxima teórica. En VR pasa
+   * seguido — agarrar el control contrae el antebrazo y los golpes sacuden el
+   * reloj. Una serie dudosa no entra en la FC de trabajo.
+   */
+  fcDudosa?: boolean;
 }
 /** Motivo opcional al saltear un ejercicio en la sesión (P68b). */
 export type MotivoSalto = "dolor" | "equipo-ocupado" | "sin-tiempo" | "otro";
@@ -463,6 +479,15 @@ export interface BloqueRegistro {
   posicionSustituto?: number;
   /** 1RM estimado (Epley) de las series del día, solo Fuerza y solo si hay valor (P70). No se muestra. */
   e1rmKg?: number;
+  /**
+   * Los parámetros con los que **se jugó** esta sesión de VR (P79, ADR #039).
+   *
+   * La rutina nunca se muta: `/rutinas` es compartida por la familia y
+   * cambiarla por la progresión de un miembro se la cambia a todos. Tampoco hay
+   * un override por miembro, que sería el contador acumulado que el ADR #037
+   * prohíbe. La historia ES la fuente: la próxima sesión arranca con esto.
+   */
+  prescripcionUsada?: { rondas: number; trabajoSeg: number; descansoSeg: number };
 }
 
 /** Zona de molestia marcada al cerrar la sesión (P70). */
@@ -530,6 +555,15 @@ export interface BiometriaSesion {
 
   /** Dónde está el hueco, cuando la cobertura fina no alcanza (P78). */
   motivoCobertura?: "cortado-antes" | "arranco-tarde" | "hueco-entre-tramos" | "sin-cortar";
+
+  /**
+   * Con qué versión del algoritmo se calculó este enriquecimiento (P79, ADR #038).
+   *
+   * Ausente = 1 (todo lo anterior a P78). Sin esto, una sesión ya enriquecida
+   * **nunca recibía un algoritmo nuevo**: el ADR #021 la omitía por tener
+   * `granularidad: "serie"` y se quedaba para siempre con el cálculo viejo.
+   */
+  versionEnriquecimiento?: number;
 }
 
 /** Quién registró la actividad: vos al arrancarla, o el reloj solo (P75b). */
@@ -602,6 +636,26 @@ export interface Historial {
     origen: OrigenExterna;
     /** Por qué entró al historial en vez de quedarse solo en salud (P75b). */
     motivoIngreso: MotivoIngreso;
+  };
+
+  /**
+   * Cómo le resultó la sesión de VR (P79, §9.1). Opcional, un toque al cerrar.
+   *
+   * ⛔ **Es un dato de análisis y NO entra en ninguna regla de progresión.** El
+   * sistema decide solo con lo que mide; la sensación no es una medición
+   * confiable. Está para poder mirar después si lo que se midió "en zona" se
+   * sintió como tal. **No la enchufes a una regla sin decidirlo antes.**
+   */
+  dificultadPercibida?: "suave" | "normal" | "intenso";
+  /**
+   * Qué sugirió la app al empezar esta sesión de VR y qué hizo la persona
+   * (P79). `"manual"` es lo elegido a mano cuando no hubo medición para
+   * decidir: el análisis nunca lo confunde con una decisión medida.
+   */
+  progresionVR?: {
+    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda" | "mantener" | "bajar";
+    aceptada: boolean;
+    fuente: "fc" | "descanso" | "manual";
   };
 
   comoMeSenti?: string;

@@ -34,6 +34,13 @@ import { ResumenSesion } from "../components/entrenar/ResumenSesion";
 import { historialPrevio } from "../lib/resumenSesion";
 import { equipoDe } from "../lib/perfil";
 import { SustituirEjercicio } from "../components/entrenar/SustituirEjercicio";
+import { TarjetaProgresionVR, type DecisionVR } from "../components/entrenar/TarjetaProgresionVR";
+import {
+  esRutinaVR, bloqueVRDeRutina, bloqueVRDeSesion, prescripcionDeRutina,
+  parametrosDeArranque, sugerirProgresionVR, medirSesionVR, munecaNoMide,
+  aplicarPrescripcionVR, type PrescripcionVR,
+} from "../lib/progresionVR";
+import { derivarZona } from "../lib/matchBiometrico";
 import { SinConexion } from "../components/entrenar/SinConexion";
 import { GuardadoPendiente } from "../components/entrenar/GuardadoPendiente";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
@@ -47,7 +54,18 @@ export function EntrenarSesion() {
   const navigate      = useNavigate();
 
   const { memberId } = useAuth();
-  const [rutina,   setRutina]   = useState<Rutina | null>(null);
+  /**
+   * La rutina tal cual está en `/rutinas`. La sesión NO corre sobre ésta: corre
+   * sobre `rutina`, que es ésta con los parámetros de VR que vienen de la
+   * historia (P79, ADR #039). El documento nunca se toca.
+   */
+  const [rutinaBase, setRutinaBase] = useState<Rutina | null>(null);
+  /** Parámetros de VR vigentes en esta sesión. `null` = todavía no se sellaron. */
+  const [prescVR,  setPrescVR]  = useState<PrescripcionVR | null>(null);
+  const rutina = useMemo(
+    () => (rutinaBase ? aplicarPrescripcionVR(rutinaBase, prescVR) : null),
+    [rutinaBase, prescVR],
+  );
   const [catalogo, setCatalogo] = useState<Map<string, Ejercicio>>(new Map());
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
@@ -80,6 +98,8 @@ export function EntrenarSesion() {
   const [perfilMiembro, setPerfilMiembro] = useState<PerfilMiembro | undefined>(undefined);
   /** Bloque con la hoja de sustitución abierta (P73). */
   const [sustituyendo, setSustituyendo] = useState<number | null>(null);
+  /** La tarjeta de progresión VR se descarta al decidir (P79). */
+  const [vrDecidido, setVrDecidido] = useState(false);
   const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState<Set<number>>(new Set());
 
   // Log rápido para modo guiado
@@ -242,7 +262,7 @@ export function EntrenarSesion() {
         return;
       }
       const rutina = r.value;
-      setRutina(rutina);
+      setRutinaBase(rutina);
 
       // Crear sesión real (Programada → En curso) para que finalizarSesion la cierre.
       // No espera al servidor: sin señal queda en la cola local (P69).
@@ -410,6 +430,8 @@ export function EntrenarSesion() {
               duracionMin: durMin || null,
               idSesion: state.idSesion ?? undefined,
               completitud: completa ? "completa" : "parcial",
+              // El lazo de evaluación de P79: qué sugirió la app y qué se hizo.
+              ...(state.progresionVR ? { progresionVR: state.progresionVR } : {}),
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
             // limpiar (dentro de salirTrasGuardar), no reiniciar: reiniciar
@@ -439,6 +461,79 @@ export function EntrenarSesion() {
   const ejercicio = idEjercicioActual ? catalogo.get(idEjercicioActual) : undefined;
   /** Equipo del lugar donde estás, para filtrar los sustitutos (P72/P73). */
   const equipoDelLugar = equipoDe(perfilMiembro, state.lugar ?? "Casa");
+
+  // ── Progresión de VR (P79) ────────────────────────────────────────────────
+  // Todo derivado del historial: la rutina nunca se muta (ADR #039).
+  const vrDeLaRutina = rutina && esRutinaVR(rutina) ? bloqueVRDeRutina(rutina) : null;
+  const sesionesDeEstaRutina = (historialMiembro ?? [])
+    .filter((h) => rutina && h.idRutina === rutina.idRutina)
+    .sort((a, b) => b.fechaRealizada.localeCompare(a.fechaRealizada));
+
+  const tarjetaVR = (() => {
+    if (!rutina || !vrDeLaRutina || vrDecidido || state.prescripcionVR) return null;
+    const [ultima, ...anteriores] = sesionesDeEstaRutina;
+    if (!ultima) return null;   // sin historia de esta rutina no hay tarjeta
+
+    const sugerencia = sugerirProgresionVR({ ultima, anteriores, rutina, perfil: perfilMiembro });
+    if (!sugerencia) return null;
+
+    const bloque = bloqueVRDeSesion(ultima, vrDeLaRutina.idEjercicio);
+    const base = prescripcionDeRutina(vrDeLaRutina.prescripcion);
+    const usada = bloque?.prescripcionUsada ?? base;
+    // Medido con el filtro de validez de P79b: las rondas de dos segundos no
+    // son rondas y las pausas no son descansos.
+    const medicion = medirSesionVR(bloque?.series ?? [], usada);
+    const fc = medicion.fcTrabajo;
+    const muneca = munecaNoMide(sesionesDeEstaRutina, vrDeLaRutina.idEjercicio);
+
+    return {
+      sugerencia, usada,
+      ultima: {
+        fecha: ultima.fechaRealizada,
+        rondasHechas: medicion.validas,
+        rondasPedidas: usada.rondas,
+        fcTrabajo: fc,
+        zona: fc != null ? (derivarZona(fc, perfilMiembro) ?? null) : null,
+        zonaObjetivo: vrDeLaRutina.prescripcion.zonaObjetivo ?? null,
+        descartadas: medicion.descartadas,
+        durDescartadasSeg: medicion.durDescartadasSeg,
+        descansoSeg: medicion.descansoSeg,
+        pausaMayorSeg: medicion.pausaMayorSeg,
+      },
+      avisoMuneca: muneca.aplica
+        ? {
+            juego: vrDeLaRutina.prescripcion.juegoSugerido ?? "este juego",
+            conArtefactos: muneca.conArtefactos,
+            miradas: muneca.miradas,
+          }
+        : null,
+    };
+  })();
+
+  function decidirVR(d: DecisionVR) {
+    setPrescVR(d.prescripcion);
+    session.sellarProgresionVR(
+      d.prescripcion,
+      d.palanca ? { palanca: d.palanca, aceptada: d.aceptada, fuente: d.fuente } : null,
+    );
+    setVrDecidido(true);
+  }
+
+  // Al retomar una sesión ya empezada, los parámetros vuelven del estado
+  // persistido: no se vuelve a negociar con qué se estaba jugando (P79).
+  useEffect(() => {
+    if (state.prescripcionVR && !prescVR) setPrescVR(state.prescripcionVR);
+  }, [state.prescripcionVR, prescVR]);
+
+  // Sin tarjeta que mostrar pero con rutina VR, los parámetros igual salen de
+  // la historia: la sesión tiene que jugarse con ellos aunque nadie decida.
+  useEffect(() => {
+    if (!rutinaBase || !vrDeLaRutina || state.prescripcionVR || tarjetaVR) return;
+    const { prescripcion } = parametrosDeArranque(historialMiembro ?? [], rutinaBase);
+    setPrescVR(prescripcion);
+    session.sellarProgresionVR(prescripcion, null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rutinaBase, vrDeLaRutina, state.prescripcionVR, tarjetaVR]);
 
   // Valores para el log rápido
   function getLogValues(): Partial<SerieRegistro> {
@@ -510,6 +605,17 @@ export function EntrenarSesion() {
         <>
           <div className="workout-content-wrap">
             <div className="workout-content" ref={contentRef}>
+              {/* Progresión de VR (P79): arriba de todo, antes de empezar. */}
+              {tarjetaVR && seriesHechasTotales(state) === 0 && (
+                <TarjetaProgresionVR
+                  sugerencia={tarjetaVR.sugerencia}
+                  usada={tarjetaVR.usada}
+                  ultima={tarjetaVR.ultima}
+                  avisoMuneca={tarjetaVR.avisoMuneca}
+                  onDecidir={decidirVR}
+                />
+              )}
+
               {/* Cronómetro de descanso */}
               <DescansoTimer
                 state={state}

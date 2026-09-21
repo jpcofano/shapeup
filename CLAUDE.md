@@ -21,6 +21,9 @@ que Spark, así que las decisiones tomadas "por costo Spark" siguen en pie.
 - IDs con rangos reservados (ADR #010). Result<T> en toda la capa de datos.
 - Antes de dar por terminado un prompt: `npx tsc -b` limpio + `npx vitest run` verde
   (la suite `firestore.rules.test.ts` requiere emulador; sin emulador se permite skip).
+- Al terminar cada tarea, escribí el reporte final completo —tal cual se lo darías a Juan,
+  con las preguntas abiertas— en `docs/auditorias/ultimochat.md`, sobrescribiéndolo. Juan no
+  copia el chat: Claude lo lee de ahí.
 
 ## Serie S — Integración de salud ✅ CERRADA (2026-07-04 → 2026-07-17)
 
@@ -190,11 +193,14 @@ con conversación de arquitectura, no directo a código.
   S-fix-b (ventana `sintetica`, regla "día único", ambigüedad por fecha) se
   conserva sin cambios — P57 lo completa, no lo reemplaza.
   **P58:** `derivarZona` suma un segundo nivel de fallback — bandas estándar
-  de %FCmáx sobre `fcMaxTeorica` cuando no hay `zonasFC` a medida (el
-  `config/perfiles` real está vacío; sin esto `zonaPrincipal` sale siempre
-  "—"). No hay campo de edad en `PerfilMiembro`, así que el fallback "220−edad"
-  que se había pedido no es calculable todavía — queda pendiente si se agrega
-  ese campo a futuro.
+  de %FCmáx sobre `fcMaxTeorica` cuando no hay `zonasFC` a medida. No hay campo
+  de edad en `PerfilMiembro`, así que el fallback "220−edad" que se había pedido
+  no es calculable todavía — queda pendiente si se agrega ese campo a futuro.
+  ⚠ **Corregido en P79b (21/09/2026):** la nota decía que «el `config/perfiles`
+  real está vacío», y ya no lo está — el perfil de `juanpablo` tiene
+  `fcMaxTeorica: 169` y las cinco `zonasFC` a medida (Z1 85–101 … Z5 152–169),
+  verificado leyendo el documento. El fallback sigue existiendo para los
+  miembros que no las tengan.
 
 ## Serie H — Sync automático de salud (plan vigente desde P66c)
 
@@ -300,6 +306,48 @@ historia previa.
 ### Regla heredada de la serie S
 Todo timestamp en epoch ms UTC; conversión a local solo al mostrar. Los bugs de zona
 horaria fueron el enemigo número uno de la serie S.
+
+## ADR #038 — El enriquecimiento se versiona (P79, enmienda el #021)
+
+El ADR #021 decía que el enriquecimiento es post-hoc e idempotente, y para no pisar un dato
+fino con uno grueso `calcularEnriquecimiento` **omitía toda sesión con
+`granularidad: "serie"`**. La consecuencia, que no se vio hasta P79: **una sesión ya
+enriquecida nunca recibía un algoritmo nuevo**. Las de antes de P78 nunca iban a tener
+cobertura, tramos ni recorte por más que se reimportara el ZIP.
+
+- `BiometriaSesion.versionEnriquecimiento` y la constante `VERSION_ENRIQUECIMIENTO` en
+  `lib/matchBiometrico.ts`. Ausente se lee como **1**; P78 es la **2**; P79 la **3**.
+- Se omite **solo** si `granularidad === "serie"` **y** la versión está al día.
+- **Nunca se pisa fino con grueso**: si está desactualizada pero esta corrida no trae curva
+  para ella, se deja como está y se cuenta en `preservadas`.
+- **Cada cambio al algoritmo sube la constante.** Si no, el cambio no llega a lo ya escrito.
+- El resumen del import dice cuántas se re-enriquecieron por versión.
+
+## ADR #039 — La progresión de VR se deriva del historial; la rutina nunca se muta (P79)
+
+Cuando se acepta "recortar descanso" o "sumar ronda", **`/rutinas` no se toca**: es
+compartida por la familia, y cambiarla por la progresión de un miembro se la cambia a todos.
+Tampoco hay un override por miembro, que sería el contador acumulado que el ADR #037
+prohíbe.
+
+- `BloqueRegistro.prescripcionUsada` guarda los parámetros **con los que se jugó** esa sesión.
+- La próxima sesión arranca con los de la última de ese miembro con esa rutina y ese juego,
+  más el ajuste si se aceptó. Sin historia, los de la rutina.
+- La clave es `(miembro, idRutina, idEjercicio del bloque VR)`: si se sustituyó el juego
+  (P73), es otro juego y tiene su propia historia.
+- La sesión corre sobre una **rutina efectiva** (`aplicarPrescripcionVR`), que es una copia:
+  el documento de `/rutinas` queda intacto.
+
+**Y dos principios que van con esto:**
+
+- **El sistema decide solo con lo que mide.** `dificultadPercibida` se registra al cerrar y
+  **no entra en ninguna regla**; hay un test que lo fija. Cuando no hay nada medido con qué
+  decidir, `sugerirProgresionVR` devuelve `palanca: null` —que **no es `mantener`**— y la UI
+  ofrece las opciones en vez de inventar una sugerencia.
+- **La FC de sesión no sirve para esto.** `biometria.fcMedia` promedia los descansos y queda
+  sistemáticamente por debajo; una regla que la usara pediría subir la dificultad para
+  siempre. Se usa la **FC de trabajo**: el promedio de las rondas ponderado por duración, y
+  solo de las que midieron bien (`fcDudosa` marca las que tienen artefactos).
 
 ## ADR #037 — La racha se deriva, nunca se acumula (P77a)
 

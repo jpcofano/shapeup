@@ -15,6 +15,7 @@ import {
   toggleModoVista as _toggleModoVista,
   estadoReiniciado,
   saltarBloque as _saltarBloque,
+  sellarProgresionVR as _sellarProgresionVR,
   sustituirBloque as _sustituirBloque,
   deshacerSustitucion as _deshacerSustitucion,
   type SustitucionBloque,
@@ -74,6 +75,13 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
     },
     deshacerSustitucion(idx: number) {
       dispatch((s) => _deshacerSustitucion(s, idx));
+    },
+    /** Sella con qué parámetros se juega esta sesión de VR (P79). */
+    sellarProgresionVR(
+      prescripcion: EntrenarState["prescripcionVR"],
+      progresion: EntrenarState["progresionVR"],
+    ) {
+      dispatch((s) => _sellarProgresionVR(s, prescripcion, progresion));
     },
     deshacerSerie(idx: number) {
       dispatch((s) => _deshacerSerie(s, idx));

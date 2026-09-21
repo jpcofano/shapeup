@@ -25,6 +25,7 @@ import { soloShapeUp } from "./tipoHistorial";
 import {
   elegirSesionSamsung, construirBiometriaDeTramos, construirBiometriaRango,
   elegirTramosAdicionales, curvaDeTramos, enriquecerSerie, topeInicioSiguiente,
+  VERSION_ENRIQUECIMIENTO,
   type TramoSamsung,
 } from "./matchBiometrico";
 
@@ -48,7 +49,14 @@ export interface ResultadoEnriquecimiento {
   /** Sesiones que sumaron tramos adicionales, y cuántos (P78). */
   conTramos:   number;
   tramosExtra: number;
-  omitidas:    number;   // ya tenían granularidad "serie" (ADR #021)
+  omitidas:    number;   // ya tenían granularidad "serie" Y la versión al día (ADR #038)
+  /** Sesiones ya enriquecidas que se recalcularon por versión vieja (P79). */
+  reEnriquecidas: number;
+  /**
+   * Desactualizadas que NO se tocaron porque esta corrida no tenía curva para
+   * ellas: nunca se pisa un dato fino con uno grueso (P79).
+   */
+  preservadas: number;
   updates: {
     idHist:    string;
     biometria: import("../types/models").BiometriaSesion;
@@ -110,6 +118,8 @@ function enriquecerBloquesConCurva(
   curva: LiveDataPoint[],
   finVentanaAppMs: number,
   finDatosDisponiblesMs: number,
+  /** Para detectar artefactos por `fcMaxTeorica` (P79). */
+  perfil?: PerfilMiembro,
 ): BloqueRegistro[] {
   return h.bloques.map((bloque) => {
     const seriesEnriquecidas = bloque.series.map((serie, idx) => {
@@ -125,7 +135,7 @@ function enriquecerBloquesConCurva(
         // Última serie de la sesión: tope explícito, no queda sin recuperación por efecto colateral (P57).
         inicioSiguienteMs = inicioEnSiguienteBloque ?? topeInicioSiguiente(finVentanaAppMs, finDatosDisponiblesMs);
       }
-      const enriquecido = enriquecerSerie(serie, curva, inicioSiguienteMs);
+      const enriquecido = enriquecerSerie(serie, curva, inicioSiguienteMs, perfil);
       // stripUndef (hotfix P57): fcPico/fcFinSerie/recuperacionBpm pueden salir
       // undefined (sin pico en la ventana, sin dato de descanso, etc.) — sin
       // esto, el spread pisa la serie con una clave `undefined` explícita y
@@ -154,7 +164,7 @@ export function calcularEnriquecimiento(
     matcheadas: 0, porCustomId: 0, porVentana: 0, porDia: 0, porRango: 0,
     sinMatch: 0, sinCandidatasEseDia: 0, sinSolape: 0,
     ambiguas: 0, ambiguasDetalle: [], conTramos: 0, tramosExtra: 0,
-    omitidas: 0, updates: [],
+    omitidas: 0, reEnriquecidas: 0, preservadas: 0, updates: [],
   };
 
   const muestrasFcCrudas = extraccion.muestrasFcCrudas ?? [];
@@ -169,8 +179,12 @@ export function calcularEnriquecimiento(
     .sort((a, b) => a.fechaRealizada.localeCompare(b.fechaRealizada));
 
   for (const h of ordenado) {
-    // ADR #021: si ya tiene granularidad "serie", omitir
-    if (h.biometria?.granularidad === "serie") {
+    // ADR #038 (enmienda el #021): se omite solo si ya está fino Y al día. Una
+    // sesión enriquecida con un algoritmo viejo se vuelve a calcular; antes
+    // quedaba congelada para siempre con el cálculo de su época.
+    const eraFina = h.biometria?.granularidad === "serie";
+    const versionActual = h.biometria?.versionEnriquecimiento ?? 1;
+    if (eraFina && versionActual >= VERSION_ENRIQUECIMIENTO) {
       resultado.omitidas++;
       continue;
     }
@@ -199,13 +213,16 @@ export function calcularEnriquecimiento(
         const finDatosMs = muestrasFcCrudas.length > 0
           ? muestrasFcCrudas[muestrasFcCrudas.length - 1].ms
           : ventana.finMs;
-        const bloquesEnriquecidos = enriquecerBloquesConCurva(h, muestrasFcCrudas, ventana.finMs, finDatosMs);
+        const bloquesEnriquecidos = enriquecerBloquesConCurva(h, muestrasFcCrudas, ventana.finMs, finDatosMs, perfil);
         const huboEnriquecimientoPorSerie = bloquesEnriquecidos.some(
           (b) => b.series.some((s) => s.fcPico !== undefined),
         );
         if (huboEnriquecimientoPorSerie) {
           biometriaRango.granularidad = "serie";
+          if (eraFina) resultado.reEnriquecidas++;
           resultado.updates.push({ idHist: h.idHist, biometria: biometriaRango, bloques: bloquesEnriquecidos });
+        } else if (eraFina) {
+          resultado.preservadas++;   // no se pisa fino con grueso (P79)
         } else {
           resultado.updates.push({ idHist: h.idHist, biometria: biometriaRango });
         }
@@ -248,8 +265,13 @@ export function calcularEnriquecimiento(
     if (curva.length > 0) {
       biometria.granularidad = "serie";
       const finDatos = Math.max(...tramos.map((t) => t.sesion.endMs));
-      const bloquesEnriquecidos = enriquecerBloquesConCurva(h, curva, ventana.finMs, finDatos);
+      const bloquesEnriquecidos = enriquecerBloquesConCurva(h, curva, ventana.finMs, finDatos, perfil);
+      if (eraFina) resultado.reEnriquecidas++;
       resultado.updates.push({ idHist: h.idHist, biometria, bloques: bloquesEnriquecidos });
+    } else if (eraFina) {
+      // Estaba fina y desactualizada, pero esta corrida no trae curva para
+      // ella: se deja como está. **Nunca se pisa fino con grueso** (P79).
+      resultado.preservadas++;
     } else {
       resultado.updates.push({ idHist: h.idHist, biometria });
     }

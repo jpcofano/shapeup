@@ -85,7 +85,17 @@ async function run() {
   console.log(`  programa activo: ${programa ? `${programa.idPrograma} — ${programa.nombre}` : "(ninguno)"}`);
   if (programa) {
     const activos = programa.dias.filter((d) => d.tipo !== "descanso");
-    console.log(`     días no-descanso: ${activos.length}   ·   sin idRutina: ${activos.filter((d) => !d.idRutina).length}`);
+    const opcionales = activos.filter((d) => d.opcional);
+    console.log(
+      `     días no-descanso: ${activos.length}`
+      + `   ·   opcionales: ${opcionales.length}`
+      + `   ·   sin idRutina: ${activos.filter((d) => !d.idRutina).length}`,
+    );
+    // Los opcionales no cuentan para la meta (ver `metaSemanal`): PRG-0001 se
+    // llama "5 días" y tiene seis activos porque el sábado es opcional.
+    if (opcionales.length > 0) {
+      console.log(`     opcionales (no cuentan para la meta): ${opcionales.map((d) => d.etiqueta).join(", ")}`);
+    }
   }
   console.log(`  override del perfil (metaSemanalDias): ${perfil?.metaSemanalDias ?? "(ninguno)"}`);
   console.log(`  META = ${meta ?? "null"}`);
@@ -96,9 +106,13 @@ async function run() {
   }
 
   // ── Actividades del rango, para los días de movimiento ──────────────────
+  // `orderBy("fecha", "desc")` a propósito: sin él Firestore ordena ascendente
+  // y pide un índice (miembro, fecha asc) que no existe. La app consulta
+  // descendente y ese índice sí está en `firestore.indexes.json`.
   const cardioSnap = await db.collection("cardio")
     .where("miembro", "==", miembro)
     .where("fecha", ">=", desde)
+    .orderBy("fecha", "desc")
     .get();
   const cardio = cardioSnap.docs.map((d) => d.data() as SesionCardio) as unknown as ActividadDia[];
   console.log(`  /cardio desde ${desde}: ${cardioSnap.size} actividades\n`);

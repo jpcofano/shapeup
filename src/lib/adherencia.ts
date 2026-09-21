@@ -72,6 +72,20 @@ export interface RangoMovimiento {
  * tiene 6 pero yo apunto a 4". Sin override manda el plan; **sin programa
  * activo no hay meta**, y eso es `null` y no cero: cero sería decir que la meta
  * es no entrenar.
+ *
+ * **Los días opcionales no cuentan para la meta.** PRG-0001 se llama "5 días"
+ * y tiene seis que no son descanso, porque el sexto —el VR largo del sábado—
+ * está marcado `opcional: true`. Contándolo, la meta daba 6 y toda semana sin
+ * el sábado quedaba incumplida: la adherencia medía contra algo que el plan
+ * nunca prometió.
+ *
+ * Lo opcional sigue sumando del otro lado: un día opcional hecho es una sesión
+ * de ShapeUp como cualquier otra y entra en `diasPlan`. O sea que **hacerlo te
+ * cubre si faltaste otro día, y no hacerlo no te baja**, que es exactamente lo
+ * que significa que sea opcional.
+ *
+ * Si TODOS los días activos son opcionales no hay meta (`null`): no hay
+ * compromiso que medir.
  */
 export function metaSemanal(
   programa: Programa | null | undefined,
@@ -82,7 +96,7 @@ export function metaSemanal(
     return Math.round(override);
   }
   if (!programa) return null;
-  const dias = programa.dias.filter((d) => d.tipo !== "descanso").length;
+  const dias = programa.dias.filter((d) => d.tipo !== "descanso" && !d.opcional).length;
   return dias > 0 ? dias : null;
 }
 

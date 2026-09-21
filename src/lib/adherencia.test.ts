@@ -12,18 +12,26 @@ import type { Programa, PerfilMiembro } from "../types/models";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function programa(tipos: Array<"rutina" | "vr" | "descanso">): Programa {
+type TipoDia = "rutina" | "vr" | "descanso";
+/** Un día del plan: el tipo solo, o el tipo con `opcional`. */
+type DiaSpec = TipoDia | { tipo: TipoDia; opcional: boolean };
+
+function programa(dias: DiaSpec[]): Programa {
+  const normal = dias.map((d) => (typeof d === "string" ? { tipo: d, opcional: false } : d));
   return {
     idPrograma: "PRG-TEST", nombre: "Test", nombreCanonico: "test", estado: "Activo",
     objetivo: "General / salud", nivel: "Principiante",
-    diasPorSemana: tipos.filter((t) => t !== "descanso").length, descripcion: "",
-    dias: tipos.map((tipo, i) => ({
-      orden: i + 1, etiqueta: `Día ${i + 1}`, tipo, opcional: false,
-      ...(tipo === "rutina" ? { idRutina: `RUT-000${i + 1}` } : {}),
+    diasPorSemana: normal.filter((d) => d.tipo !== "descanso").length, descripcion: "",
+    dias: normal.map((d, i) => ({
+      orden: i + 1, etiqueta: `Día ${i + 1}`, tipo: d.tipo, opcional: d.opcional,
+      ...(d.tipo === "rutina" ? { idRutina: `RUT-000${i + 1}` } : {}),
     })),
     vecesUsado: 0,
   } as unknown as Programa;
 }
+
+/** El VR largo del sábado de PRG-0001: activo pero opcional. */
+const OPCIONAL = { tipo: "vr" as const, opcional: true };
 
 /** Un día con sesión de la app. */
 function plan(fecha: string, minutos = 45): DiaActivo {
@@ -53,8 +61,25 @@ function semanaCon(lunes: string, n: number): DiaActivo[] {
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("metaSemanal", () => {
-  it("sale de los días no-descanso del plan", () => {
+  it("sale de los días no-descanso Y NO opcionales del plan", () => {
     expect(metaSemanal(programa(["rutina", "rutina", "descanso", "rutina", "descanso"]))).toBe(3);
+  });
+
+  it("como PRG-0001: seis días activos, uno opcional, meta 5", () => {
+    // El caso real. El plan se llama "5 días" y tiene seis que no son
+    // descanso; el sexto es el VR largo del sábado, `opcional: true`.
+    // Contándolo, toda semana sin sábado quedaba incumplida.
+    const prg0001 = programa([
+      "rutina", "rutina", "rutina", "rutina", "rutina", OPCIONAL, "descanso",
+    ]);
+    expect(prg0001.dias.filter((d) => d.tipo !== "descanso")).toHaveLength(6);
+    expect(metaSemanal(prg0001)).toBe(5);
+  });
+
+  it("si TODOS los días activos son opcionales no hay meta", () => {
+    // Sin compromiso no hay nada que medir, y un 0 diría que la meta es no
+    // entrenar.
+    expect(metaSemanal(programa([OPCIONAL, OPCIONAL, "descanso"]))).toBeNull();
   });
 
   it("los días de VR cuentan: son días de entrenamiento", () => {
@@ -143,6 +168,29 @@ describe("seriesDeAdherencia", () => {
 
   it("sin ninguna sesión la serie va vacía: no hay plan que medir", () => {
     expect(seriesDeAdherencia([movimiento("2026-08-04")], 3, HOY)).toEqual([]);
+  });
+
+  it("una semana con los 5 obligatorios cumple", () => {
+    const serie = seriesDeAdherencia(semanaCon(L1, 5), 5, "2026-08-09");
+    expect(serie[0].diasPlan).toBe(5);
+    expect(serie[0].cumplida).toBe(true);
+  });
+
+  it("una semana con 4 obligatorios más el opcional también cumple: 5 de 5", () => {
+    // Faltó el viernes e hizo el VR del sábado, que es el día opcional. El
+    // opcional hecho es una sesión de ShapeUp como cualquier otra: entra en
+    // `diasPlan` y te cubre el día que faltaste.
+    const lunAJue = ["2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06"].map((f) => plan(f));
+    const sabado = plan("2026-08-08");
+    const serie = seriesDeAdherencia([...lunAJue, sabado], 5, "2026-08-09");
+    expect(serie[0].diasPlan).toBe(5);
+    expect(serie[0].cumplida).toBe(true);
+
+    // Y sin el opcional no se cumple: lunes a jueves son cuatro, no cinco. O
+    // sea que no hacerlo tampoco te baja de donde estabas.
+    const sinSabado = seriesDeAdherencia(lunAJue, 5, "2026-08-09");
+    expect(sinSabado[0].diasPlan).toBe(4);
+    expect(sinSabado[0].cumplida).toBe(false);
   });
 
   it("cumplida es diasPlan >= meta", () => {

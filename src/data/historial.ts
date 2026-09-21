@@ -58,6 +58,14 @@ export interface FinalizarSesionOpts {
   comoMeSenti?: string;
   queMejorar?:  string;
   molestias?:   ZonaMolestia[];
+  /** Cómo le resultó la sesión de VR (P79). Dato de análisis: ninguna regla lo lee. */
+  dificultadPercibida?: "suave" | "normal" | "intenso";
+  /** Qué sugirió la app al empezar y qué hizo la persona (P79). */
+  progresionVR?: {
+    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda" | "mantener" | "bajar";
+    aceptada: boolean;
+    fuente: "fc" | "descanso" | "manual";
+  };
 }
 
 /**
@@ -85,6 +93,7 @@ export async function finalizarSesion(
   const {
     rutinaId, tipo, nombreLibre, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
     completitud, comoMeSenti, queMejorar, molestias,
+    dificultadPercibida, progresionVR,
   } = opts;
   const fecha   = ymdLocal();
   const semana  = lunesDeSemana(fecha);
@@ -119,6 +128,10 @@ export async function finalizarSesion(
     ...(comoMeSenti ? { comoMeSenti } : {}),
     ...(queMejorar ? { queMejorar } : {}),
     ...(molestias && molestias.length > 0 ? { molestias } : {}),
+    // VR (P79): la sensación es dato de análisis; la progresión, el lazo que
+    // permite ver si la regla acierta.
+    ...(dificultadPercibida ? { dificultadPercibida } : {}),
+    ...(progresionVR ? { progresionVR } : {}),
   };
   const sesion: PayloadSesion | null = idSesion
     ? { miembro, estado: "Registrada", rpeSesion: rpe }

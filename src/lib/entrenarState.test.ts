@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  completarSerie, deshacerSerie, saltarDescanso, ajustarDescanso,
+  completarSerie as _completarSerie, deshacerSerie, saltarDescanso, ajustarDescanso,
   irABloque, siguienteBloque, anteriorBloque, toggleModoVista,
   bloqueCompleto, bloquesCompletados, rutinaCompleta,
   proximoBloqueIncompleto, descansoRestanteMs,
@@ -18,6 +18,18 @@ import {
   sustituirBloque, deshacerSustitucion,
 } from "./entrenarState";
 import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
+
+/**
+ * `completarSerie` con reloj propio y monótono.
+ *
+ * Desde P79b el reducer **ignora un registro que llega a menos de 3 s del
+ * anterior** —el doble toque en "Serie hecha"—, y estos tests completan varias
+ * series seguidas en el mismo milisegundo. Cada llamada sin `now` explícito
+ * avanza 10 s; las que pasan `now` lo conservan, que es lo que prueban.
+ */
+let _reloj = Date.now();
+const completarSerie: typeof _completarSerie = (state, rutina, idx, reg?, now?, opts?) =>
+  _completarSerie(state, rutina, idx, reg, now ?? (_reloj += 10_000), opts);
 
 // ── Rutina de prueba ──────────────────────────────────────────────────────────
 const rutina: Rutina = {
@@ -333,7 +345,8 @@ const rutina3: Rutina = {
 /** Completa todas las series del bloque `idx` (3 series en los bloques de prueba 0 y 1). */
 function completarBloque(s: typeof s0, r: Rutina, idx: number, series: number, t0 = 1000) {
   let x = s;
-  for (let i = 0; i < series; i++) x = completarSerie(x, r, idx, undefined, t0 + i);
+  // 10 s entre series: menos de 3 s el reducer lo lee como doble toque (P79b).
+  for (let i = 0; i < series; i++) x = completarSerie(x, r, idx, undefined, t0 + i * 10_000);
   return x;
 }
 
@@ -400,8 +413,9 @@ describe("completarSerie con extra", () => {
   it("registra por encima del objetivo, sin descanso ni avance, numerando 4 y 5", () => {
     const completo = completarBloque(s0, rutina3, 0, 3);
     const enBloque0 = { ...completo, bloqueActual: 0, ultimoBloqueCerrado: 0 };
-    let s = completarSerie(enBloque0, rutina3, 0, { reps: 12 }, 5000, { extra: true });
-    s = completarSerie(s, rutina3, 0, undefined, 6000, { extra: true });
+    // 10 s entre las dos extra: a 1 s el reducer las lee como un doble toque (P79b).
+    let s = completarSerie(enBloque0, rutina3, 0, { reps: 12 }, 30_000, { extra: true });
+    s = completarSerie(s, rutina3, 0, undefined, 40_000, { extra: true });
     expect(s.seriesHechas[0]).toBe(5);
     expect(s.registro[0].map((r) => r.serie)).toEqual([1, 2, 3, 4, 5]);
     expect(s.descanso).toBeNull();
@@ -486,7 +500,8 @@ describe("aContinuacionDescanso", () => {
   it("solo en el descanso previo a la última serie", () => {
     const una = completarSerie(s0, rutina3, 0, undefined, 1000);
     expect(aContinuacionDescanso(una, rutina3)).toBeUndefined();
-    const dos = completarSerie(una, rutina3, 0, undefined, 2000);
+    // 10 s después: a 1 s el reducer lo lee como doble toque (P79b).
+    const dos = completarSerie(una, rutina3, 0, undefined, 11_000);
     expect(aContinuacionDescanso(dos, rutina3)).toBe("Remo");
   });
 });

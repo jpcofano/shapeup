@@ -290,6 +290,39 @@ describe("calcularWeekChips cuenta todo", () => {
 //  Robustez: nada explota, y una sesión sin `tipo` cuenta como ShapeUp
 // ════════════════════════════════════════════════════════════════════════════
 
+describe("aislamiento · la progresión de VR no mueve las métricas del plan (P79)", () => {
+  it("una sesión VR con biometría fina no cambia tonelaje, progresión ni costo cardíaco", () => {
+    // La progresión de VR lee `fcMedia`/`fcDudosa` por serie, que son campos
+    // nuevos sobre las mismas sesiones: nada de lo del plan puede moverse.
+    const conVR: Historial[] = SOLO_SHAPEUP.map((h) => ({
+      ...h,
+      bloques: (h.bloques ?? []).map((b) => ({
+        ...b,
+        prescripcionUsada: { rondas: 5, trabajoSeg: 300, descansoSeg: 60 },
+        series: b.series.map((s) => ({ ...s, fcMedia: 150, fcDudosa: false })),
+      })),
+    }));
+
+    const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
+    expect(suma(conVR)).toBe(suma(SOLO_SHAPEUP));
+    expect(sesionesDelEjercicio(ID_EJERCICIO, conVR).length)
+      .toBe(sesionesDelEjercicio(ID_EJERCICIO, SOLO_SHAPEUP).length);
+    expect(serieCostoRutina(ID_RUTINA, conVR).length)
+      .toBe(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP).length);
+    expect(semanasSinDescarga(conVR, HOY)).toBe(semanasSinDescarga(SOLO_SHAPEUP, HOY));
+  });
+
+  it("`dificultadPercibida` no mueve ninguna métrica", () => {
+    const conSensacion: Historial[] = SOLO_SHAPEUP.map((h) => ({
+      ...h, dificultadPercibida: "intenso" as const,
+    }));
+    const suma = (hs: Historial[]) => hs.reduce((acc, h) => acc + tonelajeKg(h), 0);
+    expect(suma(conSensacion)).toBe(suma(SOLO_SHAPEUP));
+    expect(rachaActual(seriesDeAdherencia(agruparDiasActivos(conSensacion), 2, HOY)))
+      .toBe(rachaActual(seriesDeAdherencia(agruparDiasActivos(SOLO_SHAPEUP), 2, HOY)));
+  });
+});
+
 describe("robustez ante entradas externas", () => {
   it("ninguna función tira excepción con un historial de puras externas", () => {
     const prog = programa([{ orden: 1, tipo: "rutina", idRutina: ID_RUTINA, diaSemana: "lunes" }]);

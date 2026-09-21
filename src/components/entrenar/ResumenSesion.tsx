@@ -10,6 +10,7 @@ import {
   type DeltaEjercicio,
 } from "../../lib/resumenSesion";
 import { ResumenSalteados } from "./ResumenSalteados";
+import { esRutinaVR } from "../../lib/progresionVR";
 
 /** Lo que el usuario completa en la pantalla de fin. */
 export interface DatosCierre {
@@ -18,7 +19,19 @@ export interface DatosCierre {
   queMejorar?:  string;
   molestias?:   ZonaMolestia[];
   notas?:       string;
+  /**
+   * Cómo le resultó la sesión de VR (P79, §9.1). Opcional, igual que el RPE.
+   *
+   * ⛔ **Dato de análisis: ninguna regla de progresión lo lee.** Está para
+   * poder mirar después si lo que se midió "en zona" se sintió como tal.
+   */
+  dificultadPercibida?: "suave" | "normal" | "intenso";
 }
+
+/** Las tres opciones del chip de VR, en orden. */
+const DIFICULTADES: ReadonlyArray<readonly ["suave" | "normal" | "intenso", string]> = [
+  ["suave", "Suave"], ["normal", "Normal"], ["intenso", "Intenso"],
+];
 
 interface Props {
   rutina:    Rutina;
@@ -74,6 +87,9 @@ export function ResumenSesion({
   onFinalizar, onRetomar, onEmpezarDeNuevo, chipAnterior, accionesExtra,
 }: Props) {
   const [rpe,          setRpe]          = useState<number | null>(null);
+  const [dificultad,   setDificultad]   = useState<DatosCierre["dificultadPercibida"]>(undefined);
+  /** Una sesión es VR si su rutina tiene un bloque de intervalos con juego (P79). */
+  const esVR = esRutinaVR(rutina);
   const [plegado,      setPlegado]      = useState(true);
   const [sensacion,    setSensacion]    = useState<string | null>(null);
   const [molestias,    setMolestias]    = useState<ZonaMolestia[]>([]);
@@ -97,6 +113,7 @@ export function ResumenSesion({
     const notaLimpia = nota.trim();
     onFinalizar({
       rpe,
+      ...(dificultad ? { dificultadPercibida: dificultad } : {}),
       ...(sensacion ? { comoMeSenti: sensacion } : {}),
       // Orden estable: el de las opciones, no el de los toques.
       ...(mejoras.length > 0 ? { queMejorar: MEJORAS.filter((m) => mejoras.includes(m)).join(", ") } : {}),
@@ -161,7 +178,37 @@ export function ResumenSesion({
       <ResumenSalteados rutina={rutina} state={state} onRetomar={onRetomar} />
       {chipAnterior && <div style={{ width: "100%" }}>{chipAnterior}</div>}
 
+      {/* VR: el chip de dificultad ocupa el lugar del RPE (P79, §9.1) */}
+      {esVR && (
+        <div style={{ width: "100%", textAlign: "left" }}>
+          <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>
+            ¿Cómo te resultó?
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            {DIFICULTADES.map(([valor, label]) => (
+              <button
+                key={valor}
+                type="button"
+                className={`btn-secondary${dificultad === valor ? " active" : ""}`}
+                aria-pressed={dificultad === valor}
+                style={{
+                  flex: 1, padding: "14px 0", fontSize: 14, fontWeight: 600,
+                  ...(dificultad === valor
+                    ? { borderColor: "var(--accent-border)", color: "var(--accent)" }
+                    : {}),
+                }}
+                onClick={() => setDificultad(dificultad === valor ? undefined : valor)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="rpe-leyenda">Es opcional, y no cambia lo que la app te va a sugerir.</p>
+        </div>
+      )}
+
       {/* RPE */}
+      {!esVR && (
       <div style={{ width: "100%", textAlign: "left" }}>
         <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>
           ¿Cómo fue el esfuerzo? (RPE)
@@ -184,6 +231,7 @@ export function ResumenSesion({
             : "Tocá un número. 7 = te quedaban unas 3 reps."}
         </p>
       </div>
+      )}
 
       {/* Cómo te sentiste — plegado por defecto */}
       <div className="resumen-pliegue">

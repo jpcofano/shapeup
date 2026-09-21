@@ -165,8 +165,11 @@ export function enriquecerSerie(
   serie: SerieRegistro,
   curva: LiveDataPoint[],
   inicioSiguienteMs?: number,
-): Pick<SerieRegistro, "fcPico" | "fcFinSerie" | "recuperacionBpm"> {
-  if (!serie.inicioMs || !serie.finMs) return {};
+  perfil?: PerfilMiembro,
+): Pick<SerieRegistro, "fcPico" | "fcFinSerie" | "recuperacionBpm" | "fcMedia" | "fcDudosa"> {
+  // `== null` y no `!`: un epoch de 0 es falsy y el guard lo leía como ausente.
+  // No pasa con datos reales, pero el guard quiere decir "falta", no "es cero".
+  if (serie.inicioMs == null || serie.finMs == null) return {};
 
   const { pico, ultimo } = fcEnVentana(curva, serie.inicioMs, serie.finMs);
 
@@ -179,7 +182,51 @@ export function enriquecerSerie(
     }
   }
 
-  return { fcPico: pico, fcFinSerie: ultimo, recuperacionBpm };
+  // FC media de la serie: solo con muestras suficientes (P79).
+  const dentro = curva
+    .filter((pt) => pt.ms >= serie.inicioMs! && pt.ms <= serie.finMs!)
+    .sort((a, b) => a.ms - b.ms);
+  const fcMedia = dentro.length >= MIN_MUESTRAS_SERIE
+    ? dentro.reduce((a, pt) => a + pt.fc, 0) / dentro.length
+    : undefined;
+
+  const dudosa = fcMedia !== undefined
+    ? esFcDudosa(dentro, pico, perfil)
+    : undefined;
+
+  return stripUndef({
+    fcPico: pico, fcFinSerie: ultimo, recuperacionBpm, fcMedia,
+    ...(dudosa ? { fcDudosa: true } : {}),
+  });
+}
+
+/**
+ * ¿La curva de esta serie tiene pinta de artefacto? (P79, §9.3)
+ *
+ * Dos señales, medidas sobre la propia curva y sin preguntarle nada a nadie:
+ * saltos que el corazón no puede dar entre dos muestras cercanas, y un pico por
+ * encima de lo que la persona puede alcanzar.
+ */
+export function esFcDudosa(
+  muestras: LiveDataPoint[],
+  pico: number | undefined,
+  perfil?: PerfilMiembro,
+): boolean {
+  if (pico !== undefined && perfil?.fcMaxTeorica != null
+      && pico > perfil.fcMaxTeorica + MARGEN_SOBRE_FC_MAX_BPM) {
+    return true;
+  }
+  if (muestras.length < 2) return false;
+
+  let saltos = 0;
+  let pares = 0;
+  for (let i = 1; i < muestras.length; i++) {
+    const dt = muestras[i].ms - muestras[i - 1].ms;
+    if (dt > MS_ENTRE_MUESTRAS_CONSECUTIVAS) continue;
+    pares++;
+    if (Math.abs(muestras[i].fc - muestras[i - 1].fc) > SALTO_ARTEFACTO_BPM) saltos++;
+  }
+  return pares > 0 && saltos / pares > MAX_FRACCION_ARTEFACTOS;
 }
 
 /**
@@ -287,6 +334,7 @@ export function construirBiometriaSesion(
     kcal:            sesionSamsung.kcal,
     matchPor,
     granularidad:    "sesion",
+    versionEnriquecimiento: VERSION_ENRIQUECIMIENTO,
   });
 }
 
@@ -303,8 +351,46 @@ export function construirBiometriaSesion(
 //  corte y el nivel "rango"). Desde P78 es la regla general.
 // ════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Versión del algoritmo de enriquecimiento (P79, ADR #038).
+ *
+ * **Cada cambio al algoritmo sube esta constante**, y con eso las sesiones ya
+ * enriquecidas se vuelven a calcular en el próximo import en vez de quedarse
+ * con el cálculo viejo para siempre.
+ *
+ *   1 — todo lo anterior a P78 (ausente en el documento se lee como 1)
+ *   2 — P78: recorte por ventana, tramos, cobertura, kcal prorrateadas
+ *   3 — P79: FC media y detección de artefactos por serie
+ */
+export const VERSION_ENRIQUECIMIENTO = 3;
+
 /** Solape mínimo de un tramo **relativo al tramo** para entrar en la agregación. */
 export const SOLAPE_TRAMO_MIN = 0.80;
+
+// ── Calidad de la FC por serie (P79, §9.3) ─────────────────────────────────
+
+/**
+ * Muestras mínimas dentro de la ventana de una serie para que su FC media
+ * signifique algo. Con curva de 1/s sobra; con las muestras crudas de
+ * `tracker.heart_rate` no alcanza nunca, y está bien: una ronda sin curva fina
+ * **no tiene** FC media.
+ */
+export const MIN_MUESTRAS_SERIE = 30;
+
+/**
+ * Salto entre dos muestras cercanas que delata al sensor y no al corazón.
+ * Punto de partida para ajustar, no un umbral clínico.
+ */
+export const SALTO_ARTEFACTO_BPM = 30;
+
+/** Dos muestras separadas por esto o menos se consideran consecutivas. */
+export const MS_ENTRE_MUESTRAS_CONSECUTIVAS = 2000;
+
+/** Fracción de saltos a partir de la cual la serie se marca dudosa. */
+export const MAX_FRACCION_ARTEFACTOS = 0.05;
+
+/** Cuánto puede superar el pico a la FC máxima teórica antes de ser sospechoso. */
+export const MARGEN_SOBRE_FC_MAX_BPM = 10;
 
 /** Debajo de esto, el detalle de sesión dice qué pasó (P78). */
 export const COBERTURA_MINIMA = 0.80;
@@ -528,6 +614,7 @@ export function construirBiometriaDeTramos(
     duracionMedidaMin: msMedidos > 0 ? Math.round(msMedidos / 60_000) : undefined,
     matchPor,
     granularidad:    "sesion",
+    versionEnriquecimiento: VERSION_ENRIQUECIMIENTO,
     ...(huboRecorte
       ? { inicioMsEfectivo: Math.min(...cubiertos.map((c) => c.inicioMs)),
           finMsEfectivo:    Math.max(...cubiertos.map((c) => c.finMs)) }
@@ -577,5 +664,6 @@ export function construirBiometriaRango(
     zonaPrincipal: derivarZona(fcMedia, perfil),
     matchPor:      "rango",
     granularidad:  "sesion",
+    versionEnriquecimiento: VERSION_ENRIQUECIMIENTO,
   });
 }

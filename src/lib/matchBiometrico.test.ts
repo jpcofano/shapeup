@@ -8,6 +8,8 @@ import {
   topeInicioSiguiente,
   TOPE_RECUPERACION_ULTIMA_SERIE_MS,
   construirBiometriaDeTramos,
+  esFcDudosa,
+  MIN_MUESTRAS_SERIE,
   elegirTramosAdicionales,
   solapeRelativo,
   SOLAPE_TRAMO_MIN,
@@ -647,5 +649,77 @@ describe("P78 · cobertura", () => {
     const bio = construirBiometriaDeTramos([{ sesion, curva }], "custom-id", V62);
     expect(bio.coberturaFina).toBeGreaterThan(COBERTURA_MINIMA);
     expect(bio.motivoCobertura).toBeUndefined();
+  });
+});
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P79 — FC media por serie y detección de artefactos
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("enriquecerSerie · fcMedia por ronda (P79)", () => {
+  /** Curva de una muestra por segundo entre `desde` y `hasta`, toda a `fc`. */
+  function plana(desde: number, hasta: number, fc: number): LiveDataPoint[] {
+    const pts: LiveDataPoint[] = [];
+    for (let ms = desde; ms <= hasta; ms += 1000) pts.push({ ms, fc });
+    return pts;
+  }
+
+  it("una ronda con 20 muestras NO tiene fcMedia", () => {
+    const serie: SerieRegistro = { serie: 1, completada: true, inicioMs: 0, finMs: 19_000 };
+    const r = enriquecerSerie(serie, plana(0, 19_000, 150));
+    expect(r.fcMedia).toBeUndefined();
+    expect(MIN_MUESTRAS_SERIE).toBe(30);
+  });
+
+  it("con 30 muestras o más sí la tiene", () => {
+    const serie: SerieRegistro = { serie: 1, completada: true, inicioMs: 0, finMs: 60_000 };
+    const r = enriquecerSerie(serie, plana(0, 60_000, 150));
+    expect(r.fcMedia).toBe(150);
+  });
+
+  it("la FC media de la ronda NO incluye lo que pasa fuera de su ventana", () => {
+    // La curva sigue después del fin de la ronda, a 110: no tiene que entrar.
+    const serie: SerieRegistro = { serie: 1, completada: true, inicioMs: 0, finMs: 60_000 };
+    const curva = [...plana(0, 60_000, 150), ...plana(61_000, 120_000, 110)];
+    expect(enriquecerSerie(serie, curva).fcMedia).toBe(150);
+  });
+});
+
+describe("esFcDudosa (P79, §9.3)", () => {
+  /** `n` muestras a 1/s, con `saltos` picos de `delta` bpm intercalados. */
+  function conSaltos(n: number, saltos: number, delta = 35): LiveDataPoint[] {
+    const pts: LiveDataPoint[] = [];
+    for (let i = 0; i < n; i++) {
+      const salto = i > 0 && i <= saltos;
+      pts.push({ ms: i * 1000, fc: salto && i % 2 === 1 ? 140 + delta : 140 });
+    }
+    return pts;
+  }
+
+  it("8 % de saltos de 35 bpm la marca dudosa", () => {
+    // 100 muestras, 8 saltos ⇒ más del 5 %.
+    expect(esFcDudosa(conSaltos(100, 8), 150)).toBe(true);
+  });
+
+  it("3 % no la marca", () => {
+    expect(esFcDudosa(conSaltos(100, 3), 150)).toBe(false);
+  });
+
+  it("un pico por encima de fcMaxTeorica + 10 la marca dudosa", () => {
+    const perfil = { fcMaxTeorica: 169 } as PerfilMiembro;
+    expect(esFcDudosa(conSaltos(100, 0), 180, perfil)).toBe(true);
+    expect(esFcDudosa(conSaltos(100, 0), 175, perfil)).toBe(false);
+  });
+
+  it("sin fcMaxTeorica en el perfil, el pico no puede decir nada", () => {
+    expect(esFcDudosa(conSaltos(100, 0), 250, {} as PerfilMiembro)).toBe(false);
+  });
+
+  it("dos muestras separadas por más de 2 s no cuentan como salto", () => {
+    // Muestras cada 5 s: el cambio entre ellas es esperable, no un artefacto.
+    const ralas: LiveDataPoint[] = [];
+    for (let i = 0; i < 40; i++) ralas.push({ ms: i * 5000, fc: i % 2 === 0 ? 120 : 170 });
+    expect(esFcDudosa(ralas, 170)).toBe(false);
   });
 });

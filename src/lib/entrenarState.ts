@@ -72,6 +72,19 @@ export interface EntrenarState {
    * es lo que hiciste hoy.
    */
   sustituciones: Record<number, SustitucionBloque>;
+  /**
+   * Parámetros de VR con los que se está jugando esta sesión (P79, ADR #039).
+   *
+   * Salen de la historia, no de la rutina: `/rutinas` es compartida y no se
+   * muta. `null` hasta sellarlos al montar, o si la rutina no es de VR.
+   */
+  prescripcionVR: { rondas: number; trabajoSeg: number; descansoSeg: number } | null;
+  /** Qué sugirió la app al empezar y qué eligió la persona (P79). */
+  progresionVR: {
+    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda" | "mantener" | "bajar";
+    aceptada: boolean;
+    fuente: "fc" | "descanso" | "manual";
+  } | null;
 }
 
 /** Un ejercicio cambiado por otro en el momento (P73). */
@@ -99,7 +112,24 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   ultimoBloqueCerrado: null,
   lugar: null,
   sustituciones: {},
+  prescripcionVR: null,
+  progresionVR: null,
 };
+
+/**
+ * Sella los parámetros de VR de la sesión y la decisión tomada (P79).
+ *
+ * Una vez sellados no se vuelven a tocar: la sesión entera se juega con los
+ * mismos. Reiniciar los conserva, igual que el lugar.
+ */
+export function sellarProgresionVR(
+  state: EntrenarState,
+  prescripcion: EntrenarState["prescripcionVR"],
+  progresion: EntrenarState["progresionVR"],
+): EntrenarState {
+  if (state.prescripcionVR) return state;
+  return { ...state, prescripcionVR: prescripcion, progresionVR: progresion };
+}
 
 /** Etiquetas de los motivos de sustitución, en el orden en que se ofrecen (P73). */
 export const MOTIVOS_SUSTITUCION: ReadonlyArray<readonly [MotivoSustitucion, string]> = [
@@ -168,6 +198,12 @@ export function motivoSaltoLabel(m: MotivoSalto | null | undefined): string | nu
   if (!m) return null;
   return MOTIVOS_SALTO.find(([v]) => v === m)?.[1] ?? null;
 }
+
+/**
+ * Dos registros de serie más cerca que esto son el mismo toque, no dos series
+ * (P79b). El segundo se descarta.
+ */
+export const DOBLE_TOQUE_MS = 3000;
 
 /** Una sesión abierta hace más de esto se considera abandonada (P68). */
 export const UMBRAL_SESION_VIEJA_MS = 12 * 60 * 60 * 1000;
@@ -406,6 +442,21 @@ export function completarSerie(
   const extra = opts.extra === true;
   if (hechasPrev >= objetivo && !extra) return state; // ya estaba completo
 
+  // Doble toque (P79b): dos "Serie hecha" a menos de 3 s es el botón, no una
+  // serie. Pasó de verdad — Creed registró 8 rondas para una rutina de 5, con
+  // rondas de 1 y 2 segundos en el medio, y la progresión calculó un descanso
+  // real de 1 s sobre esa basura. Vale para todas las modalidades: una serie de
+  // fuerza tampoco se hace en 3 segundos.
+  //
+  // Se ignora en silencio: no hay nada que mostrar, porque no pasó nada.
+  const ultimaRegistrada = (state.registro[idx] ?? []).at(-1);
+  if (ultimaRegistrada?.finMs != null) {
+    const delta = now - ultimaRegistrada.finMs;
+    // Solo cuenta como doble toque lo que llega DESPUÉS y muy pegado. Un delta
+    // negativo es un reloj desordenado, no dos toques: no se descarta.
+    if (delta >= 0 && delta < DOBLE_TOQUE_MS) return state;
+  }
+
   const hechas = hechasPrev + 1;
   const serieNum = hechas;
 
@@ -529,7 +580,15 @@ export function seriesHechasTotales(state: EntrenarState): number {
 
 /** Estado de una sesión empezada de nuevo: todo en cero, pero la misma `SesionProgramada`. */
 export function estadoReiniciado(state: EntrenarState): EntrenarState {
-  return { ...INITIAL_ENTRENAR_STATE, idSesion: state.idSesion, lugar: state.lugar };
+  // Los parámetros de VR se conservan igual que el lugar: reiniciar la sesión
+  // no vuelve a negociar con qué se juega (P79).
+  return {
+    ...INITIAL_ENTRENAR_STATE,
+    idSesion: state.idSesion,
+    lugar: state.lugar,
+    prescripcionVR: state.prescripcionVR,
+    progresionVR: state.progresionVR,
+  };
 }
 
 // ─── Lugar de la sesión (P72) ────────────────────────────────────────────────
@@ -788,6 +847,12 @@ export function clearEntrenarState(sessionKey: string): void {
 //  Lo consume data/sesiones.finalizarSesion(), análogo a marcarCocinada +
 //  _cerrarEvaluacion del original.
 // ════════════════════════════════════════════════════════════════════════════
+/** ¿Este bloque es el de VR? Cardio en intervalos con juego sugerido (P79). */
+function esBloqueVR_(b: BloqueEjercicio): boolean {
+  const p = b.prescripcion as { modalidad?: string; formato?: string; juegoSugerido?: string };
+  return p?.modalidad === "Cardio" && p.formato === "Intervalos" && !!p.juegoSugerido;
+}
+
 export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): BloqueRegistro[] {
   return rutina.bloques.map((b, idx) => {
     const motivo = state.saltados[idx];
@@ -809,6 +874,8 @@ export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): 
       ...(motivo !== undefined ? { saltado: true } : {}),
       ...(motivo ? { motivoSalto: motivo } : {}),
       ...(e1rm !== undefined ? { e1rmKg: e1rm } : {}),
+      // Solo en el bloque de VR (P79): con qué parámetros se jugó.
+      ...(state.prescripcionVR && esBloqueVR_(b) ? { prescripcionUsada: state.prescripcionVR } : {}),
       // Solo en bloques sustituidos (P73).
       ...(sust ? {
         idEjercicioOriginal: sust.idOriginal,

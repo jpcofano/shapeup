@@ -2,6 +2,15 @@ import { describe, it, expect } from "vitest";
 import type { Historial, BloqueRegistro } from "../types/models";
 import { ventanaDeHistorial, calcularEnriquecimiento } from "./enriquecerImport";
 import { ventanaDeBloques } from "./metricas";
+import { VERSION_ENRIQUECIMIENTO } from "./matchBiometrico";
+import type { LiveDataPoint } from "../import/samsungLiveData";
+
+/** Curva de 1 muestra por segundo, toda a `fc`. */
+function curvaDe(desde: number, hasta: number, fc: number): LiveDataPoint[] {
+  const pts: LiveDataPoint[] = [];
+  for (let ms = desde; ms <= hasta; ms += 1000) pts.push({ ms, fc });
+  return pts;
+}
 
 // ── Helpers de fixtures ───────────────────────────────────────────────────────
 
@@ -153,14 +162,31 @@ const HIST_C = historial({
   bloques: [],
 });
 
+/** Ya enriquecida Y al día: es la única que se omite desde el ADR #038. */
 const HIST_YA_ENRIQUECIDO = historial({
   idHist: "H-D", fechaRealizada: "2024-03-15",
   inicioMs: 1710488400000, finMs: 1710492000000,
   biometria: {
     fuente: "samsung-health-csv", datauuidSamsung: "uuid-old",
     matchPor: "custom-id", granularidad: "serie",
+    versionEnriquecimiento: VERSION_ENRIQUECIMIENTO,
   },
   bloques: [],
+});
+
+/** Ya enriquecida pero con un algoritmo viejo: se vuelve a calcular. */
+const HIST_VERSION_VIEJA = historial({
+  idHist: "H-VIEJA", fechaRealizada: "2024-03-15",
+  inicioMs: 1710488400000, finMs: 1710492000000,
+  biometria: {
+    fuente: "samsung-health-csv", datauuidSamsung: "uuid-old",
+    matchPor: "custom-id", granularidad: "serie",
+    versionEnriquecimiento: VERSION_ENRIQUECIMIENTO - 1,
+  },
+  bloques: [{
+    orden: 1, idEjercicio: "EJ-1", nombreEjercicio: "Ronda", modalidad: "Cardio",
+    series: [{ serie: 1, completada: true, inicioMs: 1710488400000, finMs: 1710488700000 }],
+  }],
 });
 
 const EXTRACCION_BASE = {
@@ -191,9 +217,30 @@ describe("calcularEnriquecimiento", () => {
     expect(r.updates).toHaveLength(0);
   });
 
-  it("omite H-D ya enriquecido con granularidad 'serie' (ADR #021)", () => {
+  it("omite H-D: ya está fino Y al día (ADR #038, enmienda el #021)", () => {
     const r = calcularEnriquecimiento([HIST_YA_ENRIQUECIDO], EXTRACCION_BASE);
     expect(r.omitidas).toBe(1);
+    expect(r.updates).toHaveLength(0);
+  });
+
+  it("una sesión en versión vieja CON curva se re-enriquece", () => {
+    // Es el bug que el ADR #038 corrige: antes quedaba congelada con el
+    // cálculo de su época por tener `granularidad: "serie"`.
+    const conCurva = {
+      ...EXTRACCION_BASE,
+      liveData: { [SES_SHAPEUP.datauuid]: curvaDe(1710488400000, 1710492000000, 150) },
+    };
+    const r = calcularEnriquecimiento([HIST_VERSION_VIEJA], conCurva);
+    expect(r.omitidas).toBe(0);
+    expect(r.reEnriquecidas).toBe(1);
+    expect(r.updates).toHaveLength(1);
+    expect(r.updates[0].biometria.versionEnriquecimiento).toBe(VERSION_ENRIQUECIMIENTO);
+  });
+
+  it("una sesión en versión vieja SIN curva queda intacta: no se pisa fino con grueso", () => {
+    const r = calcularEnriquecimiento([HIST_VERSION_VIEJA], EXTRACCION_BASE);
+    expect(r.preservadas).toBe(1);
+    expect(r.reEnriquecidas).toBe(0);
     expect(r.updates).toHaveLength(0);
   });
 
