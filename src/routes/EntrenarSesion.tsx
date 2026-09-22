@@ -4,7 +4,7 @@ import { X, AlignJustify, Zap } from "lucide-react";
 import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId, PerfilMiembro } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
-import { finalizarSesion, getHistorialShapeUp } from "../data/historial";
+import { finalizarSesion, getHistorialEnLaApp } from "../data/historial";
 import { crearSesion, iniciarSesion, descartarSesion } from "../data/sesiones";
 import { getPerfiles } from "../data/perfiles";
 import { useAuth } from "../auth/useAuth";
@@ -33,12 +33,14 @@ import { BloqueAnteriorChip } from "../components/entrenar/BloqueAnteriorChip";
 import { ResumenSesion } from "../components/entrenar/ResumenSesion";
 import { historialPrevio } from "../lib/resumenSesion";
 import { equipoDe } from "../lib/perfil";
+import { SesionPorTiempo } from "../components/entrenar/SesionPorTiempo";
 import { SustituirEjercicio } from "../components/entrenar/SustituirEjercicio";
 import { TarjetaProgresionVR, type DecisionVR } from "../components/entrenar/TarjetaProgresionVR";
 import {
   esRutinaVR, bloqueVRDeRutina, bloqueVRDeSesion, prescripcionDeRutina,
   parametrosDeArranque, sugerirProgresionVR, medirSesionVR, munecaNoMide,
-  aplicarPrescripcionVR, type PrescripcionVR,
+  aplicarPrescripcionVR, modoOfrecidoVR, conObjetivo, FRACCION_TIEMPO_COMPLETO,
+  type PrescripcionVR, type ModoVR,
 } from "../lib/progresionVR";
 import { derivarZona } from "../lib/matchBiometrico";
 import { SinConexion } from "../components/entrenar/SinConexion";
@@ -100,6 +102,11 @@ export function EntrenarSesion() {
   const [sustituyendo, setSustituyendo] = useState<number | null>(null);
   /** La tarjeta de progresión VR se descarta al decidir (P79). */
   const [vrDecidido, setVrDecidido] = useState(false);
+  /**
+   * Forma de jugar elegida para esta sesión de VR (P80). `null` mientras no se
+   * eligió; el modo que se ofrece primero sale de la última sesión.
+   */
+  const [modoVR, setModoVR] = useState<ModoVR | null>(null);
   const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState<Set<number>>(new Set());
 
   // Log rápido para modo guiado
@@ -299,7 +306,7 @@ export function EntrenarSesion() {
   // Historial del miembro para la sugerencia de progresión (I3) — una sola carga.
   useEffect(() => {
     if (!memberId) return;
-    getHistorialShapeUp(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
+    getHistorialEnLaApp(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
   }, [memberId]);
 
   // Lugar habitual del perfil (P72). Si falla, se resuelve sin valor: la sesión
@@ -479,10 +486,11 @@ export function EntrenarSesion() {
 
     const bloque = bloqueVRDeSesion(ultima, vrDeLaRutina.idEjercicio);
     const base = prescripcionDeRutina(vrDeLaRutina.prescripcion);
-    const usada = bloque?.prescripcionUsada ?? base;
+    const usada = conObjetivo(bloque?.prescripcionUsada ?? base, base);
     // Medido con el filtro de validez de P79b: las rondas de dos segundos no
-    // son rondas y las pausas no son descansos.
-    const medicion = medirSesionVR(bloque?.series ?? [], usada);
+    // son rondas y las pausas no son descansos. La ventana de la sesión entra
+    // acá porque en modo tiempo es ella la que mide (P80).
+    const medicion = medirSesionVR(bloque?.series ?? [], usada, ultima);
     const fc = medicion.fcTrabajo;
     const muneca = munecaNoMide(sesionesDeEstaRutina, vrDeLaRutina.idEjercicio);
 
@@ -499,6 +507,9 @@ export function EntrenarSesion() {
         durDescartadasSeg: medicion.durDescartadasSeg,
         descansoSeg: medicion.descansoSeg,
         pausaMayorSeg: medicion.pausaMayorSeg,
+        modo: medicion.modo,
+        minutosReales: medicion.minutosReales,
+        objetivoMin: usada.duracionObjetivoMin ?? 0,
       },
       avisoMuneca: muneca.aplica
         ? {
@@ -509,6 +520,51 @@ export function EntrenarSesion() {
         : null,
     };
   })();
+
+  // La forma que se ofrece primero sale de la última sesión de esta rutina
+  // (P80): no se guarda un ajuste aparte, se deriva.
+  const modoOfrecido: ModoVR = rutina && vrDeLaRutina
+    ? modoOfrecidoVR(historialMiembro ?? [], rutina)
+    : "tiempo";
+
+  /** Minutos a los que apunta la sesión de hoy. */
+  const objetivoMinHoy = vrDeLaRutina
+    ? (prescVR?.duracionObjetivoMin
+       ?? prescripcionDeRutina(vrDeLaRutina.prescripcion).duracionObjetivoMin
+       ?? 0)
+    : 0;
+
+  /**
+   * Terminar una sesión jugada por tiempo (P80).
+   *
+   * Registra la tirada continua como una sola ronda —lo que efectivamente
+   * pasó— y guarda. La completitud se decide por el tiempo, no por rondas.
+   */
+  async function terminarPorTiempo() {
+    if (!rutina || !rutinaId) return;
+    if (!memberId) { setErrorSalida("No se pudo identificar al miembro."); return; }
+    const now = Date.now();
+    const bloques = session.cerrarPorTiempo(now);
+    // Se mide desde que arrancó el juego, no desde que se abrió la pantalla (P80).
+    const desde = state.vrInicioMs ?? state.inicioMs;
+    const minutos = desde != null ? (now - desde) / 60_000 : 0;
+
+    setGuardandoSalida(true);
+    setErrorSalida(null);
+    const result = await finalizarSesion({
+      rutinaId,
+      nombreRutina: rutina.nombre,
+      miembro:     memberId,
+      bloques,
+      rpe:         null,
+      duracionMin: Math.round(minutos) || null,
+      idSesion:    state.idSesion ?? undefined,
+      completitud: objetivoMinHoy > 0 && minutos >= objetivoMinHoy * FRACCION_TIEMPO_COMPLETO
+        ? "completa" : "parcial",
+    });
+    if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
+    salirTrasGuardar(result.value.pendiente);
+  }
 
   function decidirVR(d: DecisionVR) {
     setPrescVR(d.prescripcion);
@@ -559,6 +615,29 @@ export function EntrenarSesion() {
     session.completarSerie(state.bloqueActual, getLogValues(), { extra: true });
   }
 
+  // El modo activo: lo elegido, o lo ofrecido mientras no se elija (P80).
+  const modoVRActivo: ModoVR | null = vrDeLaRutina ? (modoVR ?? modoOfrecido) : null;
+
+  /** Las dos formas de jugar una rutina de VR, la ofrecida primero (P80). */
+  const elegirFormaVR = () => vrDeLaRutina && seriesHechasTotales(state) === 0 ? (
+    <div className="card" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <span style={{ fontSize: 12, color: "var(--muted)" }}>¿Cómo la jugás?</span>
+      {(modoOfrecido === "tiempo"
+        ? (["tiempo", "rondas"] as const)
+        : (["rondas", "tiempo"] as const)
+      ).map((m) => (
+        <button
+          key={m}
+          className={modoVRActivo === m ? "btn-primary" : "btn-secondary"}
+          style={{ fontSize: 13 }}
+          onClick={() => setModoVR(m)}
+        >
+          {m === "tiempo" ? "De corrido" : "Marcando rondas"}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
   const saltadoActual = state.saltados[state.bloqueActual];
   const mostrarChipAnterior =
     !state.descanso && idxCerrado != null && idxCerrado !== state.bloqueActual;
@@ -574,18 +653,49 @@ export function EntrenarSesion() {
         </button>
         <p className="workout-title">{rutina.nombre}</p>
         <TiempoTotal startMs={state.inicioMs} estimadoMin={rutina.duracionEstimadaMin} />
-        <button
-          className="btn-icon-sm"
-          onClick={session.toggleModo}
-          title={state.modoVista === "guiada" ? "Modo scroll" : "Modo guiado"}
-        >
-          {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
-        </button>
+        {modoVRActivo !== "tiempo" && (
+          <button
+            className="btn-icon-sm"
+            onClick={session.toggleModo}
+            title={state.modoVista === "guiada" ? "Modo scroll" : "Modo guiado"}
+          >
+            {state.modoVista === "guiada" ? <AlignJustify size={18} /> : <Zap size={18} />}
+          </button>
+        )}
         <SinConexion />
       </div>
 
+      {/* ── VR DE CORRIDO (P80) ───────────────────────────────────────────── *
+        * Un reloj y un botón. No hay bloques que recorrer: la rutina de VR es
+        * un solo ejercicio, y marcarlo por rondas es justo lo que no se puede
+        * hacer con el casco puesto. */}
+      {modoVRActivo === "tiempo" && (
+        <div className="workout-content">
+          {tarjetaVR && seriesHechasTotales(state) === 0 && (
+            <TarjetaProgresionVR
+              sugerencia={tarjetaVR.sugerencia}
+              usada={tarjetaVR.usada}
+              ultima={tarjetaVR.ultima}
+              avisoMuneca={tarjetaVR.avisoMuneca}
+              onDecidir={decidirVR}
+            />
+          )}
+          {elegirFormaVR()}
+          <SesionPorTiempo
+            inicioMs={state.vrInicioMs ?? state.inicioMs}
+            objetivoMin={objetivoMinHoy}
+            juego={vrDeLaRutina?.prescripcion.juegoSugerido ?? null}
+            onTerminar={() => void terminarPorTiempo()}
+            guardando={guardandoSalida}
+          />
+          {errorSalida && (
+            <p style={{ margin: 0, fontSize: 13, color: "var(--danger)" }}>{errorSalida}</p>
+          )}
+        </div>
+      )}
+
       {/* ── MODO SCROLL ───────────────────────────────────────────────────── */}
-      {state.modoVista === "scroll" && (
+      {modoVRActivo !== "tiempo" && state.modoVista === "scroll" && (
         <div className="workout-content">
           {rutina.bloques.map((b, i) => (
             <BloqueScroll
@@ -601,10 +711,12 @@ export function EntrenarSesion() {
       )}
 
       {/* ── MODO GUIADO ───────────────────────────────────────────────────── */}
-      {state.modoVista === "guiada" && blq && (
+      {modoVRActivo !== "tiempo" && state.modoVista === "guiada" && blq && (
         <>
           <div className="workout-content-wrap">
             <div className="workout-content" ref={contentRef}>
+              {elegirFormaVR()}
+
               {/* Progresión de VR (P79): arriba de todo, antes de empezar. */}
               {tarjetaVR && seriesHechasTotales(state) === 0 && (
                 <TarjetaProgresionVR

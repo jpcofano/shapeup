@@ -152,3 +152,59 @@ export const SOLO_SHAPEUP: Historial[] = [
 ];
 
 export { rutinaLunes, rutinaMiercoles, libreJueves, viejaSinTipo, caminataMismoDia };
+
+// ── Sesiones de juego (P81) ──────────────────────────────────────────────────
+//
+//  Juegos de VR que Juan registra pero que NO son entrenamiento. Sin bloques,
+//  sin tonelaje, sin RPE — como las externas. Lo que las distingue es que las
+//  hizo en la app, con la ventana de la app, y por eso se enriquecen con FC:
+//  el único dato que puede contestar si esos juegos lo mueven o no.
+
+/** Behemoth, sábado. 45 min con FC de Z2. */
+const juegoSabado = {
+  idHist: "H-20260912-JUEGO", fechaRealizada: "2026-09-12", fechaRealizadaTimestamp: TS,
+  idSesion: "SES-JUE-1", nombreRutina: "Behemoth", tipo: "juego", nombreJuego: "Behemoth",
+  semanaInicio: SEMANA, miembro: "juanpablo",
+  duracionRealMin: 45, rpe: null, tonelajeKg: null, totalSeriesHechas: null,
+  inicioMs: Date.UTC(2026, 8, 12, 21, 0), finMs: Date.UTC(2026, 8, 12, 21, 45),
+  biometria: {
+    fuente: "samsung-health-csv", datauuidSamsung: "uuid-behemoth", fcMedia: 112,
+    matchPor: "custom-id", granularidad: "sesion", kcal: 240,
+  },
+} as unknown as Historial;
+
+/**
+ * Drums Rock EL MISMO DÍA que `rutinaLunes`: si un juego contara, el día
+ * sumaría 30 minutos de movimiento que no son movimiento.
+ */
+const juegoMismoDia = {
+  idHist: "H-20260907-JUEGO", fechaRealizada: "2026-09-07", fechaRealizadaTimestamp: TS,
+  idSesion: "SES-JUE-2", nombreRutina: "Drums Rock", tipo: "juego", nombreJuego: "Drums Rock",
+  semanaInicio: SEMANA, miembro: "juanpablo",
+  duracionRealMin: 30, rpe: null, tonelajeKg: null, totalSeriesHechas: null,
+  inicioMs: Date.UTC(2026, 8, 7, 22, 0), finMs: Date.UTC(2026, 8, 7, 22, 30),
+} as unknown as Historial;
+
+/**
+ * Un juego en un día que, si no fuera por él, estaría vacío. Es el caso que
+ * distingue "no suma minutos" de "no crea un día": el martes 8 ya tiene una
+ * caminata, así que hace falta un día propio para probarlo.
+ */
+const juegoDiaSolo = {
+  idHist: "H-20260913-JUEGO", fechaRealizada: "2026-09-13", fechaRealizadaTimestamp: TS,
+  idSesion: "SES-JUE-3", nombreRutina: "Rock", tipo: "juego", nombreJuego: "Rock",
+  semanaInicio: SEMANA, miembro: "juanpablo",
+  duracionRealMin: 50, rpe: null, tonelajeKg: null, totalSeriesHechas: null,
+  inicioMs: Date.UTC(2026, 8, 13, 20, 0), finMs: Date.UTC(2026, 8, 13, 20, 50),
+} as unknown as Historial;
+
+/** Las tres sesiones de juego, para armar casos sueltos. */
+export const JUEGOS: Historial[] = [juegoSabado, juegoMismoDia, juegoDiaSolo];
+
+/** `HISTORIAL_MIXTO` con los juegos adentro: el insumo del test de P81. */
+export const HISTORIAL_CON_JUEGOS: Historial[] = [
+  viejaSinTipo, rutinaLunes, juegoMismoDia, caminataMismoDia, caminataMartes,
+  rutinaMiercoles, libreJueves, caminataViernes, juegoSabado, juegoDiaSolo,
+];
+
+export { juegoSabado, juegoMismoDia, juegoDiaSolo };

@@ -361,8 +361,9 @@ export function construirBiometriaSesion(
  *   1 — todo lo anterior a P78 (ausente en el documento se lee como 1)
  *   2 — P78: recorte por ventana, tramos, cobertura, kcal prorrateadas
  *   3 — P79: FC media y detección de artefactos por serie
+ *   4 — P80: artefactos también sobre la ventana entera (VR de corrido)
  */
-export const VERSION_ENRIQUECIMIENTO = 3;
+export const VERSION_ENRIQUECIMIENTO = 4;
 
 /** Solape mínimo de un tramo **relativo al tramo** para entrar en la agregación. */
 export const SOLAPE_TRAMO_MIN = 0.80;
@@ -589,6 +590,13 @@ export function construirBiometriaDeTramos(
     msCubiertosCrudos += hueco.finMs - hueco.inicioMs;
   }
 
+  // Artefactos sobre la ventana entera (P80): en VR de corrido no hay rondas
+  // donde medirlo, y la FC de la ventana ES la FC de trabajo.
+  const curvaVentana = tramos
+    .flatMap((t) => t.curva ?? [])
+    .filter((pt) => pt.ms >= ventanaApp.inicioMs && pt.ms <= ventanaApp.finMs)
+    .sort((a, b) => a.ms - b.ms);
+
   const finasYCrudas = segmentos.filter((seg) => seg.fina).flatMap((seg) => seg.fcs)
     .concat(segmentos.filter((seg) => !seg.fina && seg.fcs.length > 1).flatMap((seg) => seg.fcs));
   const fcMedia = fcMediaPonderada(segmentos);
@@ -621,6 +629,8 @@ export function construirBiometriaDeTramos(
       : {}),
     coberturaFina,
     coberturaTotal,
+    ...(curvaVentana.length > 0 && esFcDudosa(curvaVentana, fcMax, perfil)
+      ? { fcDudosa: true } : {}),
     motivoCobertura: coberturaFina < COBERTURA_MINIMA
       ? motivoDeCobertura(ventanaApp, huecos, excedeVentana)
       : undefined,

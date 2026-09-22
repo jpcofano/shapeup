@@ -9,6 +9,7 @@ import {
   bloqueVRDeRutina, esRutinaVR,
   PISO_DESCANSO_SEG, PASO_DESCANSO_SEG, TECHO_RONDAS_EXTRA, RECUPERACION_MINIMA_BPM,
   rondasValidas, medirSesionVR, FRACCION_RONDA_MINIMA, FACTOR_PAUSA,
+  prescripcionDeRutina, tiempoObjetivoMin, modoOfrecidoVR,
 } from "./progresionVR";
 import type { Historial, PerfilMiembro, Rutina, SerieRegistro } from "../types/models";
 
@@ -181,11 +182,11 @@ describe("descansoRealSeg", () => {
 // ════════════════════════════════════════════════════════════════════════════
 
 describe("sugerirProgresionVR · regla 1, rondas incompletas", () => {
-  it("incompleta → mantener", () => {
+  it("incompleta → mantener, y el motivo se dice en minutos (P80)", () => {
     const s = sesion({ fecha: "2026-09-18", fcs: [150, 150, 150], completadas: 3 });
-    const r = sugerir(s);   // la rutina pide 5
+    const r = sugerir(s);   // la rutina pide 25 min; se jugaron 15
     expect(r.palanca).toBe("mantener");
-    expect(r.motivo).toContain("3 de 5");
+    expect(r.motivo).toContain("15 de 25 min");
   });
 
   it("dos incompletas seguidas → bajar", () => {
@@ -280,7 +281,7 @@ describe("sugerirProgresionVR · regla 2, FC confiable", () => {
     const s = sesion({ fecha: "2026-09-18", fcs: Array(5).fill(142), recuperacion: 20 });
     const r = sugerirProgresionVR({ ultima: s, anteriores: [], rutina, perfil: PERFIL })!;
     expect(r.palanca).toBe("bajar");
-    expect(r.nuevaPrescripcion).toEqual({ rondas: 5, trabajoSeg: 300, descansoSeg: 60 });
+    expect(r.nuevaPrescripcion).toEqual({ rondas: 5, trabajoSeg: 300, descansoSeg: 60, duracionObjetivoMin: 25 });
   });
 });
 
@@ -359,7 +360,7 @@ describe("parametrosDeArranque", () => {
   it("sin historia, los de la rutina", () => {
     const r = parametrosDeArranque([], rutina);
     expect(r.desdeHistoria).toBe(false);
-    expect(r.prescripcion).toEqual({ rondas: 5, trabajoSeg: 300, descansoSeg: 60 });
+    expect(r.prescripcion).toEqual({ rondas: 5, trabajoSeg: 300, descansoSeg: 60, duracionObjetivoMin: 25 });
   });
 
   it("la segunda sesión arranca con los de la primera MÁS el ajuste aceptado", () => {
@@ -392,7 +393,7 @@ describe("parametrosDeArranque", () => {
     otra.bloques[0].idEjercicio = "EJ-9999";
     const r = parametrosDeArranque([otra], rutina);
     expect(r.desdeHistoria).toBe(false);
-    expect(r.prescripcion).toEqual({ rondas: 5, trabajoSeg: 300, descansoSeg: 60 });
+    expect(r.prescripcion).toEqual({ rondas: 5, trabajoSeg: 300, descansoSeg: 60, duracionObjetivoMin: 25 });
   });
 });
 
@@ -598,5 +599,282 @@ describe("P79b · el corte de la pausa", () => {
     expect(m.pausas).toBe(3);
     expect(m.descansosValidos).toBe(0);
     expect(FACTOR_PAUSA).toBe(3);
+  });
+});
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  `bajar` exige una medición limpia
+//
+//  Una sesión con rondas descartadas no se sabe si quedó incompleta de verdad
+//  o si el registro se perdió una ronda que sí se hizo. `mantener` no necesita
+//  esa garantía porque no castiga; `bajar` sí.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("regla 1 · bajar exige dato limpio", () => {
+  const TRABAJO = 600, DESCANSO = 60;
+  const usada = { rondas: 3, trabajoSeg: TRABAJO, descansoSeg: DESCANSO };
+  // Lo que `conObjetivo` arma adentro: las sesiones viejas no guardaron el
+  // objetivo de tiempo, y lo heredan de la rutina.
+  const usadaConObjetivo = { ...usada, duracionObjetivoMin: 30 };
+  const rutinaBC = rutinaVR({ rondas: 3, trabajoSeg: TRABAJO, descansoSeg: DESCANSO, zonaObjetivo: "Z3" });
+
+  /** Una sesión de Body Combat con las series dadas, en ms absolutos. */
+  function bc(fecha: string, series: Array<{ ini?: number; fin: number }>): Historial {
+    const h = sesion({ fecha, fcs: [] });
+    h.bloques[0].series = series.map((x, i) => ({
+      serie: i + 1, completada: true,
+      ...(x.ini != null ? { inicioMs: x.ini } : {}),
+      finMs: x.fin,
+    }));
+    h.bloques[0].prescripcionUsada = usada;
+    return h;
+  }
+
+  // Los timestamps son los reales de /historial, leídos el 21/09.
+  const REAL_14 = bc("2026-09-14", [
+    { fin: 1789419533331 },                              // sin inicioMs: se conserva
+    { ini: 1789419534872, fin: 1789419536019 },          // 1,1 s → descartada
+    { ini: 1789419537209, fin: 1789420075994 },          // 538,8 s
+  ]);
+  const REAL_16 = bc("2026-09-16", [
+    { ini: 1789599348866, fin: 1789599891473 },          // 542,6 s
+    { ini: 1789601624864, fin: 1789603014004 },          // 1389,1 s
+    { ini: 1789603015175, fin: 1789603017368 },          // 2,2 s → descartada
+  ]);
+
+  it("las dos sesiones reales de Body Combat están sucias", () => {
+    expect(medirSesionVR(REAL_16.bloques[0].series, usadaConObjetivo))
+      .toMatchObject({ validas: 2, descartadas: 1 });
+    expect(medirSesionVR(REAL_14.bloques[0].series, usadaConObjetivo))
+      .toMatchObject({ validas: 2, descartadas: 1 });
+  });
+
+  // P80 disuelve el caso que P79c había tenido que resolver con una regla: la
+  // sesión del 16/09 **estaba completa**, 32 minutos de los 30 previstos. Lo
+  // que faltaba eran las rondas registradas, no el entrenamiento.
+  it("con los datos reales, la sesión del 16/09 está completa por tiempo", () => {
+    const m = medirSesionVR(REAL_16.bloques[0].series, usadaConObjetivo);
+    expect(Math.round(m.minutosReales!)).toBe(32);
+    expect(m.completa).toBe(true);
+  });
+
+  it("completa y sin nada medido, Body Combat no inventa una palanca", () => {
+    const r = sugerirProgresionVR({
+      ultima: REAL_16, anteriores: [REAL_14], rutina: rutinaBC, perfil: PERFIL,
+    })!;
+    expect(r.palanca).toBeNull();
+  });
+
+  /** Sesión incompleta y LIMPIA: rondas de duración plena, sin descartes. */
+  function incompletaLimpia(fecha: string, validas: number): Historial {
+    const h = sesion({ fecha, fcs: [] });
+    let t = T0;
+    h.bloques[0].series = Array.from({ length: validas }, (_v, i) => {
+      const ini = t;
+      t += (TRABAJO + DESCANSO) * 1000;
+      return { serie: i + 1, completada: true, inicioMs: ini, finMs: ini + TRABAJO * 1000 };
+    });
+    h.bloques[0].prescripcionUsada = usada;
+    return h;
+  }
+
+  it("dos incompletas LIMPIAS seguidas siguen dando bajar", () => {
+    const previa = incompletaLimpia("2026-09-16", 2);
+    const ultima = incompletaLimpia("2026-09-18", 2);
+    expect(medirSesionVR(ultima.bloques[0].series, usada).descartadas).toBe(0);
+    const r = sugerirProgresionVR({ ultima, anteriores: [previa], rutina: rutinaBC, perfil: PERFIL })!;
+    expect(r.palanca).toBe("bajar");
+  });
+
+  it("una limpia más una sucia da mantener", () => {
+    // La última limpia, la anterior sucia: la anterior no cuenta como medición.
+    const r1 = sugerirProgresionVR({
+      ultima: incompletaLimpia("2026-09-18", 2), anteriores: [REAL_14],
+      rutina: rutinaBC, perfil: PERFIL,
+    })!;
+    expect(r1.palanca).toBe("mantener");
+
+    // Y al revés: la última sucia no habilita el bajar aunque la anterior esté limpia.
+    const r2 = sugerirProgresionVR({
+      ultima: REAL_14, anteriores: [incompletaLimpia("2026-09-12", 2)],
+      rutina: rutinaBC, perfil: PERFIL,
+    })!;
+    expect(r2.palanca).toBe("mantener");
+  });
+
+  it("una sola sesión sucia e incompleta sigue dando mantener", () => {
+    const r = sugerirProgresionVR({
+      ultima: REAL_14, anteriores: [], rutina: rutinaBC, perfil: PERFIL,
+    })!;
+    expect(r.palanca).toBe("mantener");
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P80 — en VR se mide el tiempo, no las rondas
+//
+//  Las cuatro rutinas daban `mantener` porque ninguna completaba sus rondas, y
+//  la causa no era la regla: con el casco puesto no se ve el teléfono. Las
+//  sesiones estaban completas; el registro no.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("P80 · completitud por tiempo", () => {
+  const rutina30 = rutinaVR({ rondas: 3, trabajoSeg: 600, descansoSeg: 60 });
+  const base30 = prescripcionDeRutina(rutina30.bloques[0].prescripcion as never);
+
+  it("el objetivo de tiempo sale de la rutina: rondas × trabajo", () => {
+    expect(base30.duracionObjetivoMin).toBe(30);
+    expect(tiempoObjetivoMin(rutinaVR().bloques[0].prescripcion as never)).toBe(25);   // 5 × 300 s
+  });
+
+  /** Una sesión con una sola ronda registrada, que abarca toda la ventana. */
+  function deCorrido(min: number): { series: SerieRegistro[]; ventana: { inicioMs: number; finMs: number } } {
+    const finMs = T0 + min * 60_000;
+    return {
+      series: [{ serie: 1, completada: true, inicioMs: T0, finMs }],
+      ventana: { inicioMs: T0, finMs },
+    };
+  }
+
+  it("27 min sobre 30 completa; 26 no", () => {
+    const a = deCorrido(27);
+    expect(medirSesionVR(a.series, base30, a.ventana).completa).toBe(true);
+    const b = deCorrido(26);
+    expect(medirSesionVR(b.series, base30, b.ventana).completa).toBe(false);
+  });
+
+  it("una ronda registrada y 30 min de ventana está completa — el caso real", () => {
+    const { series, ventana } = deCorrido(30);
+    const m = medirSesionVR(series, base30, ventana);
+    expect(m.validas).toBe(1);          // una sola ronda, contra las 3 pedidas
+    expect(m.completa).toBe(true);      // y aun así, completa
+    expect(m.minutosReales).toBe(30);
+  });
+
+  it("sin ventana cae a la suma de las rondas válidas, sin restar pausas dos veces", () => {
+    // Dos rondas de 10 min con 29 min de pausa en el medio: la suma de las
+    // rondas ya deja el hueco afuera. Restarlo otra vez daría −9 minutos.
+    const series: SerieRegistro[] = [
+      { serie: 1, completada: true, inicioMs: T0, finMs: T0 + 600_000 },
+      { serie: 2, completada: true, inicioMs: T0 + 2_340_000, finMs: T0 + 2_940_000 },
+    ];
+    expect(medirSesionVR(series, base30).minutosReales).toBe(20);
+  });
+});
+
+describe("P80 · el modo se deriva, no se elige", () => {
+  const base = prescripcionDeRutina(rutinaVR({ rondas: 5, trabajoSeg: 300, descansoSeg: 60 })
+    .bloques[0].prescripcion as never);
+
+  /** `n` rondas seguidas con 60 s de hueco: `n − 1` descansos. */
+  function conDescansos(n: number): SerieRegistro[] {
+    return Array.from({ length: n }, (_v, i) => {
+      const ini = T0 + i * (300 + 60) * 1000;
+      return { serie: i + 1, completada: true, inicioMs: ini, finMs: ini + 300_000 };
+    });
+  }
+
+  it("2 descansos válidos → rondas; 1 → tiempo", () => {
+    expect(medirSesionVR(conDescansos(3), base).modo).toBe("rondas");
+    expect(medirSesionVR(conDescansos(2), base).modo).toBe("tiempo");
+  });
+
+  it("la forma que se ofrece primero sale de la última sesión", () => {
+    const rutina = rutinaVR();
+    // Sin historia: de corrido, que es como se juega de verdad.
+    expect(modoOfrecidoVR([], rutina)).toBe("tiempo");
+
+    // Con el modo guardado, manda lo que se eligió.
+    const porTiempo = sesion({ fecha: "2026-09-18", fcs: [null] });
+    porTiempo.bloques[0].prescripcionUsada = {
+      rondas: 5, trabajoSeg: 300, descansoSeg: 60, modo: "tiempo", duracionObjetivoMin: 25,
+    };
+    expect(modoOfrecidoVR([porTiempo], rutina)).toBe("tiempo");
+
+    const porRondas = sesion({ fecha: "2026-09-18", fcs: [null] });
+    porRondas.bloques[0].prescripcionUsada = {
+      rondas: 5, trabajoSeg: 300, descansoSeg: 60, modo: "rondas", duracionObjetivoMin: 25,
+    };
+    expect(modoOfrecidoVR([porRondas], rutina)).toBe("rondas");
+
+    // Sesión anterior a P80, sin modo guardado: se deriva de los descansos.
+    const vieja = sesion({ fecha: "2026-09-16", fcs: [null, null, null] });
+    expect(modoOfrecidoVR([vieja], rutina)).toBe("rondas");
+
+    // Y la más reciente es la que decide, no la primera que aparezca.
+    expect(modoOfrecidoVR([vieja, porTiempo], rutina)).toBe("tiempo");
+  });
+});
+
+describe("P80 · las palancas en modo tiempo", () => {
+  const rutina = rutinaVR({ rondas: 3, trabajoSeg: 600, descansoSeg: 60, zonaObjetivo: "Z4" });
+  const base = prescripcionDeRutina(rutina.bloques[0].prescripcion as never);
+
+  /** Sesión completa jugada de corrido: una ronda de `min` con `fc` de media. */
+  function corrida(fecha: string, min: number, fc: number | null, over: Partial<Historial> = {}): Historial {
+    const h = sesion({ fecha, fcs: [] });
+    const finMs = T0 + min * 60_000;
+    h.bloques[0].series = [{
+      serie: 1, completada: true, inicioMs: T0, finMs,
+      ...(fc != null ? { fcMedia: fc } : {}),
+    }];
+    h.bloques[0].prescripcionUsada = { ...base, modo: "tiempo" };
+    h.inicioMs = T0;
+    h.finMs = finMs;
+    return { ...h, ...over };
+  }
+
+  it("por debajo del objetivo → subir dificultad", () => {
+    // FC 125 es Z3, y el objetivo es Z4.
+    const r = sugerirProgresionVR({ ultima: corrida("2026-09-18", 30, 125), anteriores: [], rutina, perfil: PERFIL })!;
+    expect(r.palanca).toBe("subir-dificultad");
+  });
+
+  it("por debajo con dos subidas aceptadas → cambiar de juego", () => {
+    const aceptada = { palanca: "subir-dificultad" as const, aceptada: true, fuente: "fc" as const };
+    const r = sugerirProgresionVR({
+      ultima: corrida("2026-09-18", 30, 125, { progresionVR: aceptada }),
+      anteriores: [
+        corrida("2026-09-16", 30, 125, { progresionVR: aceptada }),
+        corrida("2026-09-14", 30, 125, { progresionVR: aceptada }),
+      ],
+      rutina, perfil: PERFIL,
+    })!;
+    expect(r.palanca).toBe("cambiar-juego");
+  });
+
+  it("en zona → sumar 5 min", () => {
+    const r = sugerirProgresionVR({ ultima: corrida("2026-09-18", 30, 142), anteriores: [], rutina, perfil: PERFIL })!;
+    expect(r.palanca).toBe("sumar-tiempo");
+    expect(r.nuevaPrescripcion?.duracionObjetivoMin).toBe(35);
+  });
+
+  it("en el techo de tiempo → mantener", () => {
+    const enElTecho = corrida("2026-09-18", 46, 142);
+    enElTecho.bloques[0].prescripcionUsada = { ...base, modo: "tiempo", duracionObjetivoMin: 45 };
+    const r = sugerirProgresionVR({ ultima: enElTecho, anteriores: [], rutina, perfil: PERFIL })!;
+    expect(r.palanca).toBe("mantener");
+  });
+
+  it("dos zonas por encima deshace el último sumar-tiempo", () => {
+    // Con objetivo Z2, una FC de 142 (Z4) está dos zonas arriba.
+    const conObjetivoZ2 = rutinaVR({ rondas: 3, trabajoSeg: 600, descansoSeg: 60, zonaObjetivo: "Z2" });
+    const estirada = corrida("2026-09-18", 36, 142);
+    estirada.bloques[0].prescripcionUsada = { ...base, modo: "tiempo", duracionObjetivoMin: 35 };
+    const r = sugerirProgresionVR({ ultima: estirada, anteriores: [], rutina: conObjetivoZ2, perfil: PERFIL })!;
+    expect(r.palanca).toBe("bajar");
+    expect(r.nuevaPrescripcion?.duracionObjetivoMin).toBe(30);   // vuelve al de la rutina
+  });
+
+  it("sin FC no inventa nada: palanca null", () => {
+    const r = sugerirProgresionVR({ ultima: corrida("2026-09-18", 30, null), anteriores: [], rutina, perfil: PERFIL })!;
+    expect(r.palanca).toBeNull();
+  });
+
+  it("de corrido, el descanso no decide: no hay descansos que medir", () => {
+    const m = medirSesionVR(corrida("2026-09-18", 30, null).bloques[0].series, base);
+    expect(m.modo).toBe("tiempo");
+    expect(m.descansosValidos).toBeLessThan(2);
   });
 });

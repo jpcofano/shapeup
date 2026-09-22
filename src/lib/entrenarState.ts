@@ -78,10 +78,27 @@ export interface EntrenarState {
    * Salen de la historia, no de la rutina: `/rutinas` es compartida y no se
    * muta. `null` hasta sellarlos al montar, o si la rutina no es de VR.
    */
-  prescripcionVR: { rondas: number; trabajoSeg: number; descansoSeg: number } | null;
+  prescripcionVR: {
+    rondas: number; trabajoSeg: number; descansoSeg: number;
+    /** Cómo se está jugando (P80): de corrido o marcando rondas. */
+    modo?: "rondas" | "tiempo";
+    /** Minutos de juego a los que apunta la sesión (P80). */
+    duracionObjetivoMin?: number;
+  } | null;
+  /**
+   * Cuándo empezó a jugarse la sesión de VR (P80, decisión del owner).
+   *
+   * **No es `inicioMs`**: la sesión se abre, la tarjeta de progresión queda en
+   * pantalla mientras se lee, y recién después se agarra el casco. El reloj de
+   * la pantalla por tiempo cuenta desde acá, y la ventana de la sesión también.
+   * Se sella al decidir la tarjeta —o al arrancar sin tarjeta, que es el mismo
+   * momento: cuando los parámetros quedan fijados—.
+   */
+  vrInicioMs: number | null;
   /** Qué sugirió la app al empezar y qué eligió la persona (P79). */
   progresionVR: {
-    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda" | "mantener" | "bajar";
+    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda"
+      | "sumar-tiempo" | "cambiar-juego" | "mantener" | "bajar";
     aceptada: boolean;
     fuente: "fc" | "descanso" | "manual";
   } | null;
@@ -113,6 +130,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   lugar: null,
   sustituciones: {},
   prescripcionVR: null,
+  vrInicioMs: null,
   progresionVR: null,
 };
 
@@ -126,9 +144,57 @@ export function sellarProgresionVR(
   state: EntrenarState,
   prescripcion: EntrenarState["prescripcionVR"],
   progresion: EntrenarState["progresionVR"],
+  now: number = Date.now(),
 ): EntrenarState {
   if (state.prescripcionVR) return state;
-  return { ...state, prescripcionVR: prescripcion, progresionVR: progresion };
+  return {
+    ...state,
+    prescripcionVR: prescripcion,
+    progresionVR: progresion,
+    // Acá arranca el reloj de VR: la tarjeta ya se decidió (P80).
+    vrInicioMs: now,
+  };
+}
+
+/**
+ * Cierra una sesión de VR jugada **por tiempo** (P80).
+ *
+ * En modo tiempo no hay toques en el medio: se arranca, se juega con el casco
+ * puesto y se termina. Así que al terminar se registra **una sola ronda**, la
+ * que abarca toda la sesión. No es una ronda inventada: es lo que pasó, una
+ * tirada continua, y es lo que sella la ventana de la sesión (ADR #019) para
+ * que el enriquecimiento biométrico y la medición por tiempo tengan de dónde
+ * agarrarse.
+ *
+ * Si el bloque ya tiene series registradas no hace nada: la sesión se jugó por
+ * rondas y el registro real es mejor que este resumen.
+ */
+export function cerrarPorTiempo(
+  state: EntrenarState,
+  rutina: Rutina,
+  now: number = Date.now(),
+): EntrenarState {
+  const idx = rutina.bloques.findIndex(esBloqueVR_);
+  // La ventana arranca cuando arrancó el juego, no cuando se abrió la pantalla
+  // (P80): entre una cosa y la otra está el rato de leer la tarjeta.
+  const desde = state.vrInicioMs ?? state.inicioMs;
+  if (idx < 0 || desde == null) return state;
+  if ((state.registro[idx] ?? []).length > 0) return state;
+
+  const serie: SerieRegistro = {
+    serie: 1,
+    completada: true,
+    inicioMs: desde,
+    finMs: now,
+  };
+  return {
+    ...state,
+    seriesHechas: { ...state.seriesHechas, [idx]: 1 },
+    registro: { ...state.registro, [idx]: [serie] },
+    prescripcionVR: state.prescripcionVR
+      ? { ...state.prescripcionVR, modo: "tiempo" }
+      : state.prescripcionVR,
+  };
 }
 
 /** Etiquetas de los motivos de sustitución, en el orden en que se ofrecen (P73). */

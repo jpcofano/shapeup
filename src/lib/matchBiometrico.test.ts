@@ -723,3 +723,40 @@ describe("esFcDudosa (P79, §9.3)", () => {
     expect(esFcDudosa(ralas, 170)).toBe(false);
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P80 — artefactos sobre la ventana entera
+//
+//  En VR jugado de corrido no hay rondas donde medir los saltos de la curva, y
+//  la FC de la ventana ES la FC de trabajo. El mismo criterio de P79, aplicado
+//  a toda la sesión.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("P80 · fcDudosa de la ventana entera", () => {
+  const V = { inicioMs: 0, finMs: 30 * 60_000, sintetica: false };
+  const PERFIL_JP: PerfilMiembro = { fcMaxTeorica: 169 };
+
+  /** Una curva de 30 min, 1 muestra cada 10 s, con la FC que diga `fc(i)`. */
+  function curvaDe(fc: (i: number) => number): LiveDataPoint[] {
+    const pts: LiveDataPoint[] = [];
+    for (let i = 0; i * 10_000 <= 30 * 60_000; i++) pts.push({ ms: i * 10_000, fc: fc(i) });
+    return pts;
+  }
+
+  const sesion: SesionSamsung = { datauuid: "u", startMs: 0, endMs: 30 * 60_000 };
+
+  it("una curva limpia no queda marcada", () => {
+    const bio = construirBiometriaDeTramos(
+      [{ sesion, curva: curvaDe((i) => 140 + (i % 3)) }], "custom-id", V, [], PERFIL_JP,
+    );
+    expect(bio.fcDudosa).toBeUndefined();
+  });
+
+  it("con saltos de más de 30 bpm entre muestras seguidas, queda marcada", () => {
+    // Una de cada cinco muestras salta a 220: artefactos de muñeca, no esfuerzo.
+    const bio = construirBiometriaDeTramos(
+      [{ sesion, curva: curvaDe((i) => (i % 5 === 0 ? 220 : 140)) }], "custom-id", V, [], PERFIL_JP,
+    );
+    expect(bio.fcDudosa).toBe(true);
+  });
+});

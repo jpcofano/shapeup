@@ -21,10 +21,19 @@ forma de trabajo de "Comida Familiar".
 - federico (16) → PRG-0010 (rugby, prevención).
 - sofia (17) → PRG-0011 (fútbol, prevención).
 
-## Estado funcional — COMPLETO
+## Estado funcional (al 2026-09-21)
 - E0–E6 + fix multiusuario (ADR #014) + importador de salud + ingesta completa de métricas (P22).
-- Match biométrico (P23) y importador zip-first (P24) aplicados: `inicioMs/finMs` en `SerieRegistro`, nivel "biometrico" operativo, pipeline `matchBiometrico.ts` completo.
-- **Tests: 267 unitarios verdes** (suite `firestore.rules.test.ts` requiere emulador; skip sin emulador). `tsc -b` limpio.
+- Match biométrico (P23) y importador zip-first (P24): `inicioMs/finMs` en `SerieRegistro`,
+  pipeline `matchBiometrico.ts` completo.
+- **Series S (salud) e I (insights) CERRADAS** el 2026-07-17. Ver `CLAUDE.md`.
+- **Serie del puente PU1–PU4 construida** el 2026-09-18: el Samsung Health Data SDK entra a
+  ShapeUp por `/ingesta-sdk`. Ver abajo qué falta.
+- Desde entonces: entrenar sin fricción y offline (P67–P70), perfil y lugar (P72),
+  sustitución de ejercicio (P73), aislamiento por tipo e ingesta en tres destinos (P74–P75c),
+  adherencia derivada (P77a/b, ADR #037), la ventana de la app manda (P78), progresión de VR
+  (P79, ADR #039), VR por tiempo (P80, ADR #040) y juegos que no cuentan (P81, ADR #041).
+- **Tests: 1138 verdes, 82 skipped** (`firestore.rules.test.ts` requiere emulador: sin Java
+  en la máquina de trabajo, se permite el skip). `tsc -b` limpio, `npm run build` OK.
 
 ## Datos sembrados
 - Ejercicios: `EJ-0001+` (873 FEDB) · `EJ-8001..8034` (34 propios) · `EJ-9001..9010` (10 VR).
@@ -46,14 +55,19 @@ forma de trabajo de "Comida Familiar".
 - Detalle del mapeo: `docs/SAMSUNG-HEALTH-MAPEO.md`.
 
 ## Prompts (`docs/prompts/`)
-- **01–24 ✅ aplicados por Code** (último: P24, importador zip-first + match biométrico completo, 267 tests).
+- **01–81 aplicados**, más la serie del puente PU2a/PU3a/PU4. El índice fiel es la tabla §1 de
+  `docs/MAPEO-IMPLEMENTACION.md`; `CLAUDE.md` guarda las decisiones que no se re-discuten.
+- `88prima-poc-data-sdk.md` — PoC de la vía D, escrito; H2 ya cumplió su criterio de éxito.
 - `BRIEF-para-design.md` — brief de diseño.
 
-## Pendientes (orden sugerido)
-1. **Serie S — Integración de salud** (Code) — Plan y decisiones: ver `CLAUDE.md` (serie S, ADRs #019–#022).
-2. **Design** — logo + identidad + escala de zonas FC, después Home y el flujo de Entrenar.
-3. **PWA** (`vite-plugin-pwa`) — definir; se cruza con los íconos de Design.
-4. **Traducciones FEDB** — track en paralelo.
+## Pendientes (orden sugerido, al 2026-09-21)
+1. **Cerrar la serie H**: que la curva de FC entre por el puente. Hoy el crudo la trae pero el
+   adaptador no la persiste ni dispara el enriquecimiento, así que la FC por serie sigue
+   entrando solo por el ZIP a mano. Es lo único que separa a la serie H de su objetivo.
+2. **Sincronización automática del puente** (fuera de alcance de PU4): hoy es un botón.
+3. **Enlazar y convertir entradas externas** — bloque 5 del roadmap, P76.
+4. **PRs y logros** + **panel familiar de adherencia** (corto plazo del roadmap de CLAUDE.md).
+5. **PWA completa** — offline con cola de escrituras + notificaciones.
 
 ## Futuro / ideas registradas
 - **Sync de salud automático — serie H** (plan en `CLAUDE.md`, taxonomía en ADR #032, auditoría
@@ -64,13 +78,16 @@ forma de trabajo de "Comida Familiar".
   - **B** — Intervals.icu y **C** — cascarón Capacitor con plugin de Health Connect: descartadas,
     mismo techo que A (leen Health Connect).
   - **D** — app Android con el **Samsung Health Data SDK** (lee la app de Samsung Health):
-    **verificada, pendiente de decisión de costo**. H2 se ejecutó el 15/09/2026 y dio positivo
-    (`docs/ROADMAP-producto.md` §15.8, ADR #036): mismo identificador y misma curva que el ZIP.
-    Exige app nativa; P88′ mide ese costo. **No es la C**: la C lee Health Connect, que no
-    tiene la curva; la D lee la app de Samsung Health, que sí.
+    **construida y en uso** (PU1–PU4, 18/09/2026). El puente sube crudo a `/ingesta-sdk` cada
+    6 horas y ShapeUp lo importa desde /salud. H2 (15/09) había dado positivo: mismo
+    identificador y misma curva que el ZIP (ADR #036). **No es la C**: la C lee Health
+    Connect, que no tiene la curva; la D lee la app de Samsung Health, que sí.
   - **E** — app Wear OS con el Sensor SDK (lee el sensor del reloj): descartada por costo.
-  La vía A no se retira y Health Sync sigue siendo el puente de la balanza. Mientras la D no se
-  construya, la única vía implementada de la curva de FC sigue siendo el import del ZIP.
+  La vía A no se retira y Health Sync sigue siendo el puente de la balanza.
+  ⚠ **Lo que falta, corregido el 21/09/2026:** la D está construida, pero **la curva de FC
+  todavía entra solo por el ZIP**. El crudo del puente la trae (`SesionSdk.log`) y
+  `lib/adaptadorSdk.ts` la descarta a propósito; `sincronizarDesdePuente` nunca llama a
+  `enriquecerTrasImport`. Persistirla y enriquecer desde el puente es el pendiente #1.
 - Expansión de mancuernas: discos sueltos de hierro fundido para sumar a los handles existentes.
 
 ## ADRs clave
@@ -85,6 +102,14 @@ forma de trabajo de "Comida Familiar".
 - #020 import selectivo por defecto (solo cardio que matchea historial).
 - #021 enriquecimiento biométrico post-hoc e idempotente.
 - #022 recomendaciones client-side, puras y explicables.
+- #032–#036 serie H: taxonomía de vías, clave canónica, nada pisa un dato medido, autodetectadas
+  sin curva, la vía D verificada.
+- #037 la racha se deriva, nunca se acumula.
+- #038 el enriquecimiento se versiona (enmienda el #021).
+- #039 la progresión de VR se deriva del historial; `/rutinas` nunca se muta.
+- #040 en VR la completitud se mide por tiempo, no por rondas.
+- #041 lo que cuenta como entrenamiento es una lista positiva; enriquecerse y contar son dos
+  preguntas distintas.
 
 ## Cómo retomar
 - Mismo Proyecto (memoria + repo sincronizado). Sincronizá el repo o adjuntá este archivo + `docs/`.

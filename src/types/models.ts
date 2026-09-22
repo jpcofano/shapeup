@@ -487,7 +487,18 @@ export interface BloqueRegistro {
    * un override por miembro, que sería el contador acumulado que el ADR #037
    * prohíbe. La historia ES la fuente: la próxima sesión arranca con esto.
    */
-  prescripcionUsada?: { rondas: number; trabajoSeg: number; descansoSeg: number };
+  prescripcionUsada?: {
+    rondas: number;
+    trabajoSeg: number;
+    descansoSeg: number;
+    /**
+     * Cómo se jugó (P80). **Derivado, no elegido**: `"rondas"` si hubo
+     * descansos medibles, `"tiempo"` si se jugó de corrido.
+     */
+    modo?: "rondas" | "tiempo";
+    /** Minutos de juego a los que apuntaba la sesión (P80). */
+    duracionObjetivoMin?: number;
+  };
 }
 
 /** Zona de molestia marcada al cerrar la sesión (P70). */
@@ -557,6 +568,14 @@ export interface BiometriaSesion {
   motivoCobertura?: "cortado-antes" | "arranco-tarde" | "hueco-entre-tramos" | "sin-cortar";
 
   /**
+   * La curva de la ventana entera tiene pinta de artefacto (P80).
+   *
+   * El mismo criterio que `SerieRegistro.fcDudosa` de P79, pero sobre toda la
+   * sesión: en VR jugado de corrido no hay rondas donde medirlo.
+   */
+  fcDudosa?: boolean;
+
+  /**
    * Con qué versión del algoritmo se calculó este enriquecimiento (P79, ADR #038).
    *
    * Ausente = 1 (todo lo anterior a P78). Sin esto, una sesión ya enriquecida
@@ -595,7 +614,16 @@ export interface Historial {
    * que haya quedado, y P76 lo va a necesitar cuando convierta una actividad
    * marcada como ShapeUp en una sesión de verdad.
    */
-  tipo?: "rutina" | "libre" | "externa";
+  tipo?: "rutina" | "libre" | "externa" | "juego";
+
+  /**
+   * Qué juego se jugó, cuando `tipo === "juego"` (P81).
+   *
+   * Se guarda el nombre y no un id: la lista de juegos vive en
+   * `/config/diccionarios` y se edita desde la app, y sacar un juego de ahí
+   * no puede dejar sesiones sin nombre.
+   */
+  nombreJuego?: string;
   /** "parcial" si se guardó desde la hoja de salida (P68). Ausente = "completa". */
   completitud?: "completa" | "parcial";
   idPrograma?: string;
@@ -653,7 +681,8 @@ export interface Historial {
    * decidir: el análisis nunca lo confunde con una decisión medida.
    */
   progresionVR?: {
-    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda" | "mantener" | "bajar";
+    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda"
+      | "sumar-tiempo" | "cambiar-juego" | "mantener" | "bajar";
     aceptada: boolean;
     fuente: "fc" | "descanso" | "manual";
   };

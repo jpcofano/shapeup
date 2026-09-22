@@ -8,7 +8,12 @@ import type { MiembroId, VisibilidadConfig, VisibilidadMiembro } from "../types/
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 
-const OWNER: MiembroId = "juanpablo";
+export const OWNER: MiembroId = "juanpablo";
+
+/** ¿Este miembro es el owner de la familia? La misma fuente que las reglas. */
+export function esOwner(miembro: MiembroId | null): boolean {
+  return miembro === OWNER;
+}
 
 /**
  * Devuelve la visibilidad de un miembro.

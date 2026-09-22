@@ -42,8 +42,18 @@ export interface FinalizarSesionOpts {
   rutinaId?:    string;          // ausente en sesiones libres
   /** Nombre de la rutina, que la ruta ya tiene en memoria. Si falta, se usa `rutinaId`. */
   nombreRutina?: string;
-  tipo?:        "rutina" | "libre";
+  tipo?:        "rutina" | "libre" | "juego";
   nombreLibre?: string;          // título de la sesión libre
+  /** Qué juego se jugó, cuando `tipo === "juego"` (P81). */
+  nombreJuego?: string;
+  /**
+   * Ventana de la sesión, para lo que no tiene bloques de donde derivarla (P81).
+   *
+   * Una sesión de juego no registra series: sin esto quedaría sin `inicioMs` ni
+   * `finMs`, y el match biométrico no tendría contra qué cruzar — que es lo
+   * único que hace útil registrarla.
+   */
+  ventana?:     { inicioMs: number; finMs: number };
   miembro:      MiembroId;
   bloques:      BloqueRegistro[];
   rpe:          number | null;
@@ -62,7 +72,8 @@ export interface FinalizarSesionOpts {
   dificultadPercibida?: "suave" | "normal" | "intenso";
   /** Qué sugirió la app al empezar y qué hizo la persona (P79). */
   progresionVR?: {
-    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda" | "mantener" | "bajar";
+    palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda"
+      | "sumar-tiempo" | "cambiar-juego" | "mantener" | "bajar";
     aceptada: boolean;
     fuente: "fc" | "descanso" | "manual";
   };
@@ -91,7 +102,8 @@ export async function finalizarSesion(
   opts: FinalizarSesionOpts,
 ): Promise<Result<{ idHist: string; pendiente: boolean }>> {
   const {
-    rutinaId, tipo, nombreLibre, miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
+    rutinaId, tipo, nombreLibre, nombreJuego, ventana: ventanaExplicita,
+    miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
     completitud, comoMeSenti, queMejorar, molestias,
     dificultadPercibida, progresionVR,
   } = opts;
@@ -103,9 +115,11 @@ export async function finalizarSesion(
   // Sesión de rutina: el nombre lo pasa la ruta. Sesión libre: nombreLibre.
   const nombreRutina = rutinaId
     ? (opts.nombreRutina ?? rutinaId)
-    : (nombreLibre ?? "Sesión libre");
+    : (tipo === "juego" ? (nombreJuego ?? "Juego") : (nombreLibre ?? "Sesión libre"));
 
-  const ventana = ventanaDeBloques(bloques);
+  // Sin bloques no hay series de donde sacar la ventana, así que la sesión de
+  // juego la pasa explícita (P81).
+  const ventana = ventanaExplicita ?? ventanaDeBloques(bloques);
   const historial: PayloadHistorial = {
     idHist,
     fechaRealizada:          fecha,
@@ -113,6 +127,8 @@ export async function finalizarSesion(
     ...(rutinaId ? { idRutina: rutinaId } : {}),
     nombreRutina,
     ...(tipo === "libre" ? { tipo: "libre" as const } : {}),
+    ...(tipo === "juego" ? { tipo: "juego" as const } : {}),
+    ...(nombreJuego ? { nombreJuego } : {}),
     ...(completitud ? { completitud } : {}),
     idPrograma:              programaId,
     semanaInicio:            semana,
@@ -225,29 +241,38 @@ export async function reenviarPendiente(p: SesionPendiente): Promise<Result<void
  * entrenando cuatro veces por semana: alcanza de sobra para racha, progresión,
  * PR y costo cardíaco. Si algún día hace falta más, se pagina.
  */
-export const LIMITE_HISTORIAL_SHAPEUP = 200;
-
-/** Los `tipo` que cuentan como entrenado en la app (ver `lib/tipoHistorial`). */
-const TIPOS_SHAPEUP = ["rutina", "libre"] as const;
+export const LIMITE_HISTORIAL_EN_LA_APP = 200;
 
 /**
- * Sesiones entrenadas en la app, de la más reciente a la más vieja.
+ * Los `tipo` de lo que se hizo EN LA APP (ver `lib/tipoHistorial`).
+ *
+ * **No es lo mismo que "cuenta como entrenamiento"** (P81): los juegos de VR
+ * entran acá porque hay que traerlos para mostrarlos, analizarlos y sobre todo
+ * enriquecerlos con FC, pero `esShapeUp` los deja afuera de toda métrica de
+ * plan o progresión. Quien consuma esta lista y necesite solo entrenamiento,
+ * filtra con `soloShapeUp`.
+ */
+const TIPOS_EN_LA_APP = ["rutina", "libre", "juego"] as const;
+
+/**
+ * Sesiones hechas en la app —rutinas, libres y juegos—, de la más reciente a
+ * la más vieja. Los juegos vienen incluidos a propósito: ver `TIPOS_EN_LA_APP`.
  *
  * Requiere el índice (miembro, tipo, fechaRealizadaTimestamp desc) y que todos
  * los documentos tengan `tipo` — de eso se ocupó
  * `scripts/backfill-tipo-historial.ts`, porque un documento sin el campo no
  * entra en un `where("tipo", "in", …)` y quedaría invisible.
  */
-export async function getHistorialShapeUp(
+export async function getHistorialEnLaApp(
   miembro: MiembroId,
-  limite: number = LIMITE_HISTORIAL_SHAPEUP,
+  limite: number = LIMITE_HISTORIAL_EN_LA_APP,
 ): Promise<Result<Historial[]>> {
   try {
     const snap = await getDocs(
       query(
         collection(db, "historial"),
         where("miembro", "==", miembro),
-        where("tipo", "in", TIPOS_SHAPEUP),
+        where("tipo", "in", TIPOS_EN_LA_APP),
         orderBy("fechaRealizadaTimestamp", "desc"),
         limit(limite),
       ),

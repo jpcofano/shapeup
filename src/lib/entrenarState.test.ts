@@ -16,6 +16,7 @@ import {
   siguientePendiente, aContinuacionDescanso,
   sellarLugar, cambiarLugar,
   sustituirBloque, deshacerSustitucion,
+  sellarProgresionVR, cerrarPorTiempo,
 } from "./entrenarState";
 import type { Ejercicio, PrescripcionFuerza, PrescripcionCardio, Rutina } from "../types/models";
 
@@ -1120,5 +1121,68 @@ describe("sustituirBloque / deshacerSustitucion", () => {
     const viejo = JSON.stringify({ ...INITIAL_ENTRENAR_STATE, sustituciones: undefined });
     localStorage.setItem("su-entrenar-SES-VIEJA", viejo);
     expect(loadEntrenarState("SES-VIEJA").sustituciones).toEqual({});
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P80 — la sesión de VR jugada por tiempo
+//
+//  El reloj arranca **al decidir la tarjeta**, no al abrir la pantalla:
+//  entre una cosa y la otra está el rato de leer la sugerencia, y con el casco
+//  todavía en la mesa. Decisión del owner, 21/09/2026.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("cerrarPorTiempo", () => {
+  const ABIERTA = 1_000_000;          // se abrió la pantalla
+  const DECIDIDA = ABIERTA + 120_000; // dos minutos después se decidió la tarjeta
+  const FIN = DECIDIDA + 1_800_000;   // media hora de juego
+
+  /** Sesión de VR abierta, con los parámetros ya sellados. */
+  function abierta() {
+    const base = { ...INITIAL_ENTRENAR_STATE, inicioMs: ABIERTA };
+    return sellarProgresionVR(
+      base, { rondas: 5, trabajoSeg: 240, descansoSeg: 60 }, null, DECIDIDA,
+    );
+  }
+
+  it("sellar la progresión arranca el reloj de VR", () => {
+    expect(abierta().vrInicioMs).toBe(DECIDIDA);
+  });
+
+  it("una vez sellado no se vuelve a mover", () => {
+    const s = sellarProgresionVR(abierta(), { rondas: 9, trabajoSeg: 9, descansoSeg: 9 }, null, FIN);
+    expect(s.vrInicioMs).toBe(DECIDIDA);
+    expect(s.prescripcionVR?.rondas).toBe(5);
+  });
+
+  it("registra una sola ronda, desde que se decidió la tarjeta", () => {
+    const s = cerrarPorTiempo(abierta(), rutinaVR, FIN);
+    expect(s.registro[0]).toEqual([
+      { serie: 1, completada: true, inicioMs: DECIDIDA, finMs: FIN },
+    ]);
+    expect(s.seriesHechas[0]).toBe(1);
+    expect(s.prescripcionVR?.modo).toBe("tiempo");
+  });
+
+  it("los dos minutos de la tarjeta NO cuentan como juego", () => {
+    const s = cerrarPorTiempo(abierta(), rutinaVR, FIN);
+    const serie = s.registro[0][0];
+    expect(serie.finMs! - serie.inicioMs!).toBe(1_800_000);   // 30 min, no 32
+  });
+
+  it("sin vrInicioMs (sesión de antes de P80) cae al inicio de la sesión", () => {
+    const viejo = { ...INITIAL_ENTRENAR_STATE, inicioMs: ABIERTA, vrInicioMs: null };
+    const s = cerrarPorTiempo(viejo, rutinaVR, FIN);
+    expect(s.registro[0][0].inicioMs).toBe(ABIERTA);
+  });
+
+  it("si el bloque ya tiene series, no toca nada: se jugó por rondas", () => {
+    const conSeries = _completarSerie(abierta(), rutinaVR, 0, undefined, DECIDIDA + 300_000);
+    const s = cerrarPorTiempo(conSeries, rutinaVR, FIN);
+    expect(s).toBe(conSeries);
+  });
+
+  it("sin bloque de VR no hace nada", () => {
+    expect(cerrarPorTiempo(abierta(), rutina, FIN)).toEqual(abierta());
   });
 });

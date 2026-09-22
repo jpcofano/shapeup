@@ -505,3 +505,48 @@ describe("calcularEnriquecimiento", () => {
     }
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P81 — un juego se enriquece, una externa no
+//
+//  Lo que se enriquece y lo que cuenta son dos cosas distintas. Un juego de VR
+//  no entra en ninguna métrica de plan, pero **sí** se le busca la FC: es lo
+//  único que puede contestar si ese juego mueve a alguien o no.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("P81 · qué se enriquece", () => {
+  const VENTANA = { inicioMs: 1710488400000, finMs: 1710492000000 };
+
+  it("una sesión de juego se enriquece igual que una rutina", () => {
+    const juego = historial({
+      idHist: "H-JUEGO", fechaRealizada: "2024-03-15",
+      tipo: "juego", nombreJuego: "Behemoth", nombreRutina: "Behemoth",
+      ...VENTANA, bloques: [],
+    });
+    const r = calcularEnriquecimiento([juego], EXTRACCION_BASE);
+    expect(r.matcheadas).toBe(1);
+    expect(r.updates[0].idHist).toBe("H-JUEGO");
+    expect(r.updates[0].biometria.fcMedia).toBeGreaterThan(0);
+  });
+
+  it("una externa sigue sin enriquecerse: matchearla sería circular", () => {
+    const externa = historial({
+      idHist: "H-EXT", fechaRealizada: "2024-03-15",
+      tipo: "externa", ...VENTANA, bloques: [],
+    });
+    const r = calcularEnriquecimiento([externa], EXTRACCION_BASE);
+    expect(r.matcheadas).toBe(0);
+    expect(r.updates).toHaveLength(0);
+  });
+
+  it("y el juego no le roba el datauuid a la sesión real: el pool es 1:1", () => {
+    const rutina = historial({ idHist: "H-RUT", fechaRealizada: "2024-03-15", ...VENTANA, bloques: [] });
+    const juego = historial({
+      idHist: "H-JUEGO", fechaRealizada: "2024-03-15",
+      tipo: "juego", nombreJuego: "Behemoth", ...VENTANA, bloques: [],
+    });
+    const r = calcularEnriquecimiento([rutina, juego], EXTRACCION_BASE);
+    const uuids = r.updates.map((u) => u.biometria.datauuidSamsung);
+    expect(new Set(uuids).size).toBe(uuids.length);
+  });
+});

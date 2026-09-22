@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { Historial, MetricaSalud, MiembroId, BiometriaSesion } from "../types/models";
-import { getHistorialEntry, getHistorialShapeUp } from "../data/historial";
+import { getHistorialEntry, getHistorialEnLaApp } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
 import { COBERTURA_MINIMA } from "../lib/matchBiometrico";
 import { consolidarNoches } from "../lib/sueno";
@@ -88,7 +88,7 @@ export function HistorialDetalle() {
       const [sRes, fRes, histRes] = await Promise.all([
         getRegistrosSueno(entry.miembro as MiembroId),
         getMetricasSalud(entry.miembro as MiembroId, "fc-reposo"),
-        getHistorialShapeUp(entry.miembro as MiembroId),
+        getHistorialEnLaApp(entry.miembro as MiembroId),
       ]);
       if (sRes.ok) {
         // NocheSueno.fecha = mañana del día en que te levantaste = fecha de la sesión
@@ -166,7 +166,9 @@ export function HistorialDetalle() {
         </div>
       </div>
 
-      {/* Series registradas por bloque */}
+      {/* Series registradas por bloque. Una sesión de juego no tiene: la
+          tarjeta se esconde en vez de quedar vacía (P81). */}
+      {(h.bloques?.length ?? 0) > 0 && (
       <div className="card">
         <p className="section-title" style={{ marginBottom: 12 }}>Series registradas</p>
         {h.bloques.map((b, i) => {
@@ -210,6 +212,7 @@ export function HistorialDetalle() {
           );
         })}
       </div>
+      )}
 
       {/* Cómo te sentiste (P70) — solo si hay algo cargado */}
       {(h.comoMeSenti || (h.molestias && h.molestias.length > 0) || h.queMejorar || h.notas) && (

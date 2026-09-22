@@ -82,10 +82,112 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P58 (I1) | Tendencias largas de salud en Progreso (`lib/tendencias.ts` + `TrendChart`) + fix `zonaPrincipal` | ✅ | 2026-07-13 |
 | P59 (I2) | Costo cardíaco por rutina (`lib/costoCardiaco.ts`) + frase en HistorialDetalle + sección en RutinaDetalle | ✅ | 2026-07-14 |
 | P60 (I3) | Progresión de cargas por doble progresión (`lib/progresion.ts`) + sugerencia en EntrenarSesion + indicador en RutinaDetalle | ✅ | 2026-07-14 |
+| P62 | `scripts/auditoria-features.ts`: auditoría read-only de features de salud y recomendaciones | ✅ | 2026-07-15 |
+| P63 | Métricas de salud visibles en el cliente (índice compuesto faltante + error propagado) + pulido de charts | ✅ | 2026-07-16 |
+| P64 | Cierre S/I: Resumen pulido, conclusiones por rango, estado diario en Home, estados honestos | ✅ | 2026-07-17 |
+| P65 | Theming: 5 temas claro/oscuro globales + toggle en el copete | ✅ | 2026-07-17 |
+| P66 · P66b · P66c | Roadmap de producto acordado; bloques VR, planificación y 11; ADRs #025–#031 | ✅ (docs) | 2026-09-14 |
+| P66e · P66f · P66g · P66g-bis | Serie H por SDK, ADRs #032–#036, hitos PU1–PU4, discrepancias §16 | ✅ (docs) | 2026-09-16 |
+| P67 | Registro sin fricción: steppers, paso de carga por ejercicio, descanso Seguir/−30, inicio persistido, confirmar reinicio | ✅ | 2026-09-16 |
+| P68 | Hoja de salida, sesión parcial, una `SesionProgramada` por sesión, sesión libre persistida | ✅ | 2026-09-16 |
+| P68b | Vista del día, serie N de M, "a continuación", + serie extra, saltar con motivo, atrás pasa por la hoja de salida | ✅ | 2026-09-16 |
+| P69 | Guardado offline con batch y timeout, sesiones sin subir con reenvío, indicador sin conexión, barrido de huérfanas | ✅ | 2026-09-17 |
+| P70 | Resumen post-entreno con cifras, deltas y PR; RIR en la última serie; RPE con leyenda; sensación y molestias | ✅ | 2026-09-17 |
+| PU2a + PU3a | Reglas de `/ingesta-sdk`: staging del puente, registros partidos y estado por corrida | ✅ | 2026-09-17 |
+| P72 | Perfil editable, equipo por lugar y lugar de la sesión | ✅ | 2026-09-17 |
+| P74 | **Aislamiento por tipo de historial** (`lib/tipoHistorial.ts`), racha del plan vs días activos, fixture mixta | ✅ | 2026-09-17 |
+| P75 | Clasificación del import en tres destinos, entradas externas idempotentes, `/config/import` | ✅ | 2026-09-18 |
+| P75b | Marcado de autodetectadas y "shapeup sin sesión", consultas por tipo con índice, días activos | ✅ | 2026-09-18 |
+| **PU4** | **Adaptador del Samsung Health Data SDK**, sincronización con vista previa y panel de estado del puente | ✅ | 2026-09-18 |
+| P75c | Match por `datauuid` en la clasificación | ✅ | 2026-09-19 |
+| P71 | Las 873 fichas del catálogo traducidas al castellano rioplatense | ✅ | 2026-09-19 |
+| P76a | El `start_time` del CSV ya viene en UTC: fin del corrimiento de 3 h (2562 documentos) | ✅ | 2026-09-19 |
+| P73 | Sustitución de ejercicio en la sesión (ranking por mecánica/patrón/equipo) | ✅ | 2026-09-21 |
+| P76b | Las externas dejan de duplicarse: `/historial` las filtra al leer, no las copia | ✅ | 2026-09-21 |
+| P77a | Series de adherencia derivadas del historial (ADR #037) | ✅ | 2026-09-21 |
+| P77b | Adherencia sin gastar cuota: caché de semanas cerradas en `localStorage`, truncado visible | ✅ | 2026-09-21 |
+| P78 | La ventana de la app manda: cobertura fina, prorrateo de kcal, recorte por olvido de corte | ✅ | 2026-09-21 |
+| P79 · P79b · P79c | Progresión de VR medida (ADR #039), datos sucios (rondas válidas, doble toque), `bajar` exige dato limpio | ✅ | 2026-09-21 |
+| **P80** | **En VR se mide el tiempo, no las rondas** (ADR #040): sesión por tiempo, palancas de tiempo, `fcDudosa` de ventana | ✅ | 2026-09-21 |
+| **P81** | **Juegos que se registran pero no cuentan** (ADR #041): `esShapeUp` positiva, `seEnriquece`, sesión de juego, sección Juegos | ✅ | 2026-09-21 |
+
+> **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
+> se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
+> filas de P62 a P79 se reconstruyeron del historial de git (asunto y fecha del commit) al
+> detectar el hueco, así que son un índice fiel pero más escueto que las de arriba. Las de
+> P80 y P81 sí se escribieron en el momento.
+
 
 ---
 
 ## 2. Bitácora
+
+### [2026-09-21] P80 + P81 — VR por tiempo, y juegos que no cuentan
+
+**Sin commitear al escribir esto.** `tsc -b` limpio, 1138 tests verdes (82 skipped),
+`npm run build` OK. `firestore.rules.test.ts` falla por falta de emulador: **no hay Java en
+esta máquina**.
+
+**P80 — en VR se mide el tiempo, no las rondas (ADR #040)**
+- `lib/progresionVR.ts`: `tiempoObjetivoMin`, `conObjetivo`, `modoOfrecidoVR`;
+  `PrescripcionVR` suma `modo` y `duracionObjetivoMin`; `medirSesionVR(series, usada,
+  ventana?)` devuelve `minutosReales`, `modo` y `completa`. Regla 1 por tiempo; regla 2
+  bifurcada por modo (`sumar-tiempo`, `cambiar-juego`); regla 3 solo en modo rondas.
+- `lib/entrenarState.ts`: `cerrarPorTiempo` registra la tirada continua como una sola ronda.
+- `hooks/useEntrenarState.ts`: expone `cerrarPorTiempo(now)` **devolviendo los bloques ya
+  calculados** — quien aprieta Terminar guarda en el mismo tick y `bloquesRegistro()` vería
+  el estado viejo.
+- `components/entrenar/SesionPorTiempo.tsx` (nuevo): reloj grande, objetivo, un solo botón.
+  No avisa ni corta al llegar: seguir jugando es tiempo de más, no un error.
+- `lib/matchBiometrico.ts`: `VERSION_ENRIQUECIMIENTO` a **4**; `fcDudosa` sobre la ventana
+  entera (de corrido no hay rondas donde medir artefactos).
+- `TarjetaProgresionVR`, `routes/EntrenarSesion.tsx`, `types/models.ts`.
+
+**P81 — juegos que se registran pero no cuentan (ADR #041)**
+- `lib/tipoHistorial.ts`: `esShapeUp` positiva; `esJuego`, `soloJuegos`, `seEnriquece`.
+- `lib/racha.ts`: `diasActivos` y `agruparDiasActivos` saltean los juegos, y el `continue` va
+  **antes de crear el día**.
+- `lib/juegos.ts` + `lib/juegos.test.ts` (nuevos, puros): lista (normalizar/agregar/quitar/
+  renombrar) y `resumenPorJuego` (FC ponderada por duración, tramo de zonas dominante).
+- `data/diccionarios.ts` (nuevo): lee y escribe `juegosSinEjercicio` con `merge`.
+- `data/historial.ts`: `TIPOS_EN_LA_APP` incluye `"juego"`; `getHistorialShapeUp` pasa a
+  **`getHistorialEnLaApp`** (11 call sites); `finalizarSesion` suma `nombreJuego` y `ventana`.
+- `routes/SesionJuego.tsx` (nuevo) + cuarta puerta en `Entrenar.tsx` + ruta en `App.tsx`.
+- `routes/Historial.tsx`: chip **Juego**, totales sin juegos, sección **Juegos** en Progreso
+  (sin kcal, ADR #041).
+- `lib/enriquecerImport.ts` e `importSelectivo.ts` pasan a `seEnriquece`.
+
+**Dos hallazgos sobre datos reales** (leídos de `/historial` y `/rutinas`, sin tocar `/cardio`):
+- La ventana derivada de las series mide entre 10 y 24 minutos menos que `duracionRealMin`
+  en las cinco sesiones de VR que la tienen. La del 14/09: 9 min de ventana contra 33
+  cronometrados, porque su primera serie no tiene `inicioMs`. **La pantalla nueva lo
+  resuelve para lo que venga; lo viejo queda como está.**
+- **Ninguna sesión de VR tiene FC.** Todas las palancas de modo tiempo dependen de la zona,
+  así que la escalera de dificultad no puede arrancar. Hoy el techo no es la regla, es el dato.
+
+---
+
+### [2026-09-18] PU4 — el adaptador del Samsung Health Data SDK (cierra la serie del puente)
+
+Commit `f22b659`. El puente Android (repo aparte) sube crudo del SDK a
+`/ingesta-sdk/{uid}/registros` cada 6 horas desde PU3; hasta acá **nadie lo leía**.
+
+- `data/ingestaSdk.ts`: lee la colección y rearma los registros partidos (`{id}__p1`…).
+- `lib/adaptadorSdk.ts` (puro): traduce el crudo a `EjercicioItem` y `MedicionInput` —
+  **exactamente lo que devuelven los parsers del ZIP**. La decisión de arquitectura de PU4:
+  no se abre un segundo camino de ingesta; de ahí en adelante se reusa `clasificarImport`,
+  `importarCardioIdempotente` e `importarMedicionesIdempotente`.
+- `data/sincronizarPuente.ts`: orquesta, con vista previa y confirmación, timeout de 8 s por
+  paso (mismo criterio que P69) e ids determinísticos, así reintentar es seguro.
+- `components/salud/PuentePanel.tsx`: cuándo corrió el puente y qué traería.
+- `scripts/dry-run-puente.ts`.
+
+**Fuera de alcance, y sigue afuera:** sincronización automática, enlazar/convertir externas,
+y **el enriquecimiento biométrico por serie** — el crudo trae la curva (`SesionSdk.log`) pero
+el adaptador la descarta a propósito (solo cuenta `_muestrasCurva`), así que la FC por serie
+sigue entrando únicamente por el ZIP.
+
+---
 
 ### [2026-07-14] P60 (I3) — Progresión de cargas (doble progresión, cierra la serie I)
 
@@ -1947,6 +2049,106 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   la D se construya, la única vía implementada de la curva sigue siendo el
   import del ZIP (docs/ROADMAP-producto.md §16.13).
   Plan: docs/ROADMAP-producto.md §15.8 y §15.9. Prompt de origen: P66f.
+#037 [2026-09-21] La racha se deriva, nunca se acumula (P77a)
+  Contexto: la adherencia necesitaba serie semanal, racha activa, récord y tasa
+  de 8 semanas. La alternativa era un contador en Firestore.
+  Decisión: todo se RECALCULA del historial cada vez que se muestra. No se
+  guarda ningún contador, y no hay que agregarlo.
+  Motivo: un contador se desincroniza con la primera corrección de datos, y en
+  este proyecto ya hubo tres — el mapeo del código 1001 (S-fix/P55), los
+  fragmentos de sueño sin consolidar (lib/sueno.ts) y el corrimiento de 3 h del
+  start_time del ZIP (P76a, 2562 documentos). Cualquiera habría dejado un
+  contador mintiendo para siempre, sin forma de notarlo.
+  Se cuentan DÍAS, no sesiones. La meta sale del plan (días no-descanso) y
+  PerfilMiembro.metaSemanalDias la pisa. La semana en curso no rompe la racha.
+  Nunca se muestra "0 semanas de racha": si se cortó, se muestra el récord.
+  La caché de P77b (lib/cacheDiasActivos.ts) no es una excepción: guarda
+  LECTURAS de semanas cerradas, no un contador. Si se borra, el resultado es
+  idéntico, solo que más lento. Texto completo en CLAUDE.md.
+
+#038 [2026-09-21] El enriquecimiento se versiona (P79, enmienda el #021)
+  Contexto: para no pisar un dato fino con uno grueso, calcularEnriquecimiento
+  omitía TODA sesión con granularidad "serie". Consecuencia no vista hasta P79:
+  una sesión ya enriquecida NUNCA recibía un algoritmo nuevo. Las de antes de
+  P78 no iban a tener cobertura, tramos ni recorte por más que se reimportara.
+  Decisión: BiometriaSesion.versionEnriquecimiento + la constante
+  VERSION_ENRIQUECIMIENTO en lib/matchBiometrico.ts. Ausente se lee como 1;
+  P78 es la 2, P79 la 3, P80 la 4. Se omite SOLO si granularidad === "serie" Y
+  la versión está al día. Nunca se pisa fino con grueso: si está desactualizada
+  pero la corrida no trae curva, se deja y se cuenta en `preservadas`.
+  CADA CAMBIO AL ALGORITMO SUBE LA CONSTANTE. Si no, no llega a lo ya escrito.
+
+#039 [2026-09-21] La progresión de VR se deriva del historial; la rutina nunca se muta (P79)
+  Contexto: aceptar "recortar descanso" o "sumar ronda" tenía que cambiar algo.
+  Decisión: /rutinas NO se toca — es compartida por la familia, y cambiarla por
+  la progresión de un miembro se la cambia a todos. Tampoco hay override por
+  miembro, que sería el contador acumulado que el #037 prohíbe.
+  BloqueRegistro.prescripcionUsada guarda los parámetros CON LOS QUE SE JUGÓ.
+  La próxima sesión arranca con los de la última de ese miembro con esa rutina
+  y ese juego, más el ajuste si se aceptó. La clave es (miembro, idRutina,
+  idEjercicio del bloque VR): si se sustituyó el juego (P73), es otro juego con
+  su propia historia. La sesión corre sobre una rutina efectiva, que es copia.
+  Dos principios que van con esto:
+    - El sistema decide solo con lo que MIDE. dificultadPercibida se registra
+      al cerrar y no entra en ninguna regla; hay un test que lo fija. Sin nada
+      medido, sugerirProgresionVR devuelve palanca: null —que NO es
+      "mantener"— y la UI ofrece las opciones en vez de inventar.
+    - La FC de sesión no sirve: promedia los descansos y queda por debajo. Se
+      usa la FC DE TRABAJO, el promedio de las rondas ponderado por duración y
+      solo de las que midieron bien (fcDudosa marca las que tienen artefactos).
+
+#040 [2026-09-21] En VR la completitud se mide por TIEMPO, no por rondas (P80)
+  Contexto: las cuatro rutinas de VR daban siempre "mantener" porque ninguna
+  sesión completaba sus rondas. La causa no era la regla: con el casco puesto
+  no se ve el teléfono. Se juega de corrido 30 minutos y no se marca nada. Las
+  sesiones estaban completas; el registro no.
+  Decisión: completa = llegar al 90 % del objetivo de tiempo
+  (FRACCION_TIEMPO_COMPLETO). Las rondas afinan la medición pero NO deciden la
+  completitud. El objetivo sale de la rutina (tiempoObjetivoMin): Continuo lo
+  declara, Intervalos lo dice en rondas × trabajoSeg.
+  El tiempo real es la ventana de la app MENOS las pausas. Sin ventana cae a la
+  suma de las rondas válidas, y ahí las pausas NO se restan: sumar duraciones ya
+  deja los huecos afuera (restarlas dos veces daba 3 min donde había 32).
+  El `modo` se DERIVA, no se elige: "rondas" con al menos dos descansos
+  medibles, "tiempo" si no. La forma que se ofrece primero sale de la última
+  sesión de esa rutina.
+  De corrido la escalera es subir-dificultad → sumar-tiempo → cambiar-juego: no
+  hay descanso que recortar ni recuperación entre rondas que medir, así que la
+  regla 3 solo decide en modo rondas.
+  La sesión por tiempo registra UNA sola ronda, la que abarca toda la sesión.
+  No es inventada: es lo que pasó, y es lo que sella la ventana (#019).
+  Hallazgo abierto: la ventana derivada de las series venía midiendo entre 10 y
+  24 minutos menos que duracionRealMin en las cinco sesiones con ventana, porque
+  empieza en la primera ronda marcada y termina en la última. Una (14/09) tenía
+  9 minutos de ventana contra 33 cronometrados: su primera serie no tiene
+  inicioMs. Prompt de origen: docs/prompts/80-vr-por-tiempo.md.
+
+#041 [2026-09-21] Lo que cuenta como entrenamiento es una lista POSITIVA (P81)
+  Contexto: esShapeUp era `tipo !== "externa"`. Con esa forma, cualquier tipo
+  nuevo empezaba a contar como entrenamiento por omisión: los juegos de VR que
+  se registran pero no son ejercicio se habrían metido solos en la racha, la
+  meta, la adherencia, el tonelaje y la progresión.
+  Decisión: esShapeUp pasa a `tipo === "rutina" || tipo === "libre"`. Lo que
+  cuenta se declara.
+  Enriquecerse y contar son DOS PREGUNTAS DISTINTAS, y el código lo dice con dos
+  nombres: seEnriquece(h) (rutina, libre o juego) gobierna el enriquecimiento y
+  la clasificación del import; esShapeUp(h) gobierna toda métrica de plan o
+  progresión. Un juego no cuenta, pero su FC es lo único que puede decir si ese
+  juego mueve a alguien.
+  El test de aislamiento va ANTES que el tipo nuevo, y se verifica que falle con
+  la definición vieja: con la negativa fallaban 7 de 12.
+  Un juego no entra en racha, meta, adherencia, tasa, tonelaje, progresión, PR,
+  días de movimiento, chips ni totales de Progreso. Sí entra en el historial
+  (con chip "Juego"), en el enriquecimiento y en el análisis.
+  La lista vive en /config/diccionarios.juegosSinEjercicio, la edita solo el
+  owner por las reglas ya existentes, y sacar un juego NO borra sus sesiones:
+  por eso la sesión guarda nombreJuego y no un id.
+  Las kcal de los juegos no se muestran: en actividades de brazos el reloj las
+  infla (roadmap §9.5), y un número que sabemos que está mal es peor que ninguno.
+  Consecuencia que no estaba a la vista: la consulta de /historial filtraba
+  tipo in ["rutina","libre"], así que un juego no habría llegado nunca a la app.
+  Ahora trae los tres tipos y la función se llama getHistorialEnLaApp.
+  Prompt de origen: docs/prompts/81-juegos-sin-ejercicio.md.
 ```
 
 ---

@@ -25,7 +25,7 @@ import {
   extraerDesdeZip,
 } from "../import/samsungZip";
 import { getPerfiles } from "../data/perfiles";
-import { getHistorialShapeUp } from "../data/historial";
+import { getHistorialEnLaApp } from "../data/historial";
 import { enriquecerTrasImport } from "../data/enriquecimiento";
 import { clasificarImport, type ItemClasificado } from "../lib/importSelectivo";
 import { getConfigImport, CONFIG_IMPORT_DEFAULT } from "../data/configImport";
@@ -115,7 +115,7 @@ export function Salud() {
       getCardioRango(memberId, { desde }),
       getRegistrosSueno(memberId),
       getMetricasSalud(memberId as MiembroId),
-      getHistorialShapeUp(memberId as MiembroId),
+      getHistorialEnLaApp(memberId as MiembroId),
     ]).then(([m, c, s, met, h]) => {
       if (m.ok)   setMediciones(m.value);
       if (c.ok) { setCardio(c.value.sesiones); setCursorCardio(c.value.siguienteCursor); }
@@ -205,7 +205,7 @@ export function Salud() {
     setErrorPuente(null);
     const [perfRes, histRes, cfgRes] = await Promise.all([
       getPerfiles(),
-      getHistorialShapeUp(memberId as MiembroId),
+      getHistorialEnLaApp(memberId as MiembroId),
       getConfigImport(),
     ]);
     const config = cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT;
@@ -232,7 +232,7 @@ export function Salud() {
     try {
       const [perfRes, histRes, cfgRes] = await Promise.all([
         getPerfiles(),
-        getHistorialShapeUp(memberId as MiembroId),
+        getHistorialEnLaApp(memberId as MiembroId),
         getConfigImport(),
       ]);
       r = await sincronizarDesdePuente(
@@ -268,7 +268,7 @@ export function Salud() {
     await refrescarCardio();
     const [fm, fh] = await Promise.all([
       getMediciones(memberId),
-      getHistorialShapeUp(memberId as MiembroId),
+      getHistorialEnLaApp(memberId as MiembroId),
     ]);
     if (fm.ok) setMediciones(fm.value);
     if (fh.ok) setHistorial(fh.value);
@@ -296,7 +296,7 @@ export function Salud() {
     }
 
     const [histRes, cfgRes] = await Promise.all([
-      getHistorialShapeUp(memberId as MiembroId),
+      getHistorialEnLaApp(memberId as MiembroId),
       getConfigImport(),
     ]);
     const histLocalCache = histRes.ok ? histRes.value : [];
@@ -367,7 +367,7 @@ export function Salud() {
     } else if (tipo === "exercise") {
       const [perfRes, histRes, cfgRes] = await Promise.all([
         getPerfiles(),
-        getHistorialShapeUp(memberId as MiembroId),
+        getHistorialEnLaApp(memberId as MiembroId),
         getConfigImport(),
       ]);
       const zonasFC   = (perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined);

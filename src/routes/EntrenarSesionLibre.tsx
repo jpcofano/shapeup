@@ -4,7 +4,7 @@ import { X, AlignJustify, Zap, Plus, Trash2, ChevronUp, ChevronDown } from "luci
 import type {
   Ejercicio, Historial, SerieRegistro, PrescripcionFuerza, Lugar, MiembroId, PerfilMiembro,
 } from "../types/models";
-import { finalizarSesion, getHistorialShapeUp } from "../data/historial";
+import { finalizarSesion, getHistorialEnLaApp } from "../data/historial";
 import { getPerfiles } from "../data/perfiles";
 import { equipoDe } from "../lib/perfil";
 import { SustituirEjercicio } from "../components/entrenar/SustituirEjercicio";
@@ -135,7 +135,7 @@ export function EntrenarSesionLibre() {
   const [historialMiembro, setHistorialMiembro] = useState<Historial[] | null>(null);
   useEffect(() => {
     if (!memberId) return;
-    getHistorialShapeUp(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
+    getHistorialEnLaApp(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
   }, [memberId]);
 
   /**

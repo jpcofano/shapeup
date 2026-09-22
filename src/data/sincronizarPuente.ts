@@ -77,7 +77,7 @@ export interface OpcionesSincronizacion {
  * Trae lo del puente y, si no es vista previa, lo escribe.
  *
  * `historialShapeUp` son las sesiones entrenadas en la app (de
- * `getHistorialShapeUp`): es contra eso que el clasificador decide qué
+ * `getHistorialEnLaApp`): es contra eso que el clasificador decide qué
  * enriquece. Las externas de corridas anteriores no cuentan — si contaran, cada
  * actividad se enriquecería a sí misma en la corrida siguiente (P74).
  */

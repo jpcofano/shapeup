@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TabBar } from "../components/TabBar";
-import { Trophy, Trash2, Footprints } from "lucide-react";
+import { Trophy, Trash2, Footprints, Gamepad2 } from "lucide-react";
 import type { Historial, SesionCardio, MiembroId } from "../types/models";
 import {
-  getHistorialShapeUp, borrarSesionHistorial, borrarHistorialMiembro,
+  getHistorialEnLaApp, borrarSesionHistorial, borrarHistorialMiembro,
   cargarDiasActivosConCache,
 } from "../data/historial";
 import { getCardioRango, type CursorCardio } from "../data/salud";
@@ -20,7 +20,8 @@ import { getProgramaActivo } from "../data/programas";
 import { getPerfiles } from "../data/perfiles";
 import { ymdLocal } from "../lib/semana";
 import { useAuth } from "../auth/useAuth";
-import { soloShapeUp } from "../lib/tipoHistorial";
+import { soloShapeUp, esJuego } from "../lib/tipoHistorial";
+import { resumenPorJuego, type ResumenJuego } from "../lib/juegos";
 import { Bicep } from "../components/Bicep";
 import { Sparkline } from "../components/Sparkline";
 
@@ -170,6 +171,8 @@ function SesionesList({ filas, navigate, editMode, onDeleteOne, hayMas, cargando
                 <span style={{ fontWeight: 600, color: "var(--fg)" }}>· {h.tonelajeKg.toLocaleString("es")} kg</span>
               )}
               {h.tipo === "libre" && <span className="badge badge-muted">Libre</span>}
+              {/* Se muestra, pero se marca: no cuenta como entrenamiento (P81). */}
+              {h.tipo === "juego" && <span className="badge badge-muted">Juego</span>}
               {h.completitud === "parcial" && <span className="badge badge-warn">Parcial</span>}
             </div>
           </div>
@@ -239,6 +242,54 @@ function ConfirmBorrarSheet({ titulo, onConfirm, onCancel, busy }: {
 
 // ── Tab Progreso ──────────────────────────────────────────────────────────────
 
+/**
+ * La sección "Juegos" de Progreso (P81).
+ *
+ * Contesta la pregunta de Juan —*¿estos juegos me mueven?*— y solo con lo
+ * medido: un juego sin FC confiable lo dice en vez de mostrar números vacíos.
+ *
+ * **Las kcal no se muestran**: en actividades de brazos el reloj las infla
+ * (roadmap §9.5), y un número que sabemos que está mal es peor que ninguno.
+ */
+function SeccionJuegos({ filas }: { filas: ResumenJuego[] }) {
+  const horas = (min: number) => {
+    const h = Math.floor(min / 60);
+    const m = Math.round(min % 60);
+    return h > 0 ? `${h} h ${m} min` : `${m} min`;
+  };
+
+  return (
+    <div className="card">
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+        <Gamepad2 size={14} color="var(--muted)" strokeWidth={1.8} />
+        <p className="section-title" style={{ margin: 0 }}>Juegos</p>
+      </div>
+      <p style={{ margin: "0 0 10px", fontSize: 11, color: "var(--muted)" }}>
+        No cuentan como entrenamiento. Están acá para ver si te mueven.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {filas.map((f) => (
+          <div key={f.juego}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{f.juego}</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
+              {f.sesiones} {f.sesiones === 1 ? "sesión" : "sesiones"} · {horas(f.minutos)}
+              {f.fcMedia == null
+                ? " · sin FC todavía"
+                : ` · FC ${f.fcMedia}`}
+              {f.zonaDominante && (
+                ` · ${f.zonaDominante.porcentaje} % del tiempo en `
+                + (f.zonaDominante.desde === f.zonaDominante.hasta
+                  ? f.zonaDominante.desde
+                  : `${f.zonaDominante.desde}–${f.zonaDominante.hasta}`)
+              )}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ProgresoTab({ entries, actividades, serie, serieTruncada }: {
   entries: Historial[];
   /** Las de /cardio que pasan el filtro (P76b). No están en /historial. */
@@ -252,6 +303,10 @@ function ProgresoTab({ entries, actividades, serie, serieTruncada }: {
   // ShapeUp; los totales de sesiones y minutos hablan de moverse — cuentan
   // también las actividades que pasan el filtro.
   const propias = soloShapeUp(entries);
+  // Los juegos se muestran y se analizan, pero no suman ni sesiones ni minutos:
+  // "que no cuenten como ejercicio" incluye los totales (P81).
+  const deMovimiento = entries.filter((h) => !esJuego(h));
+  const juegos = resumenPorJuego(entries);
 
   // Volumen semanal
   const byWeek = new Map<string, number>();
@@ -268,9 +323,9 @@ function ProgresoTab({ entries, actividades, serie, serieTruncada }: {
     ? volData[volData.length - 1] - volData[volData.length - 2]
     : null;
 
-  // Totales: sesiones + actividades que pasan el filtro.
-  const totalSesiones = entries.length + actividades.length;
-  const totalMin = entries.reduce((s, h) => s + (h.duracionRealMin ?? 0), 0)
+  // Totales: sesiones + actividades que pasan el filtro, sin los juegos.
+  const totalSesiones = deMovimiento.length + actividades.length;
+  const totalMin = deMovimiento.reduce((s, h) => s + (h.duracionRealMin ?? 0), 0)
     + actividades.reduce((s, c) => s + (c.duracionMin ?? 0), 0);
   const totalHoras = (totalMin / 60).toFixed(1);
 
@@ -287,7 +342,7 @@ function ProgresoTab({ entries, actividades, serie, serieTruncada }: {
     .sort((a, b) => b.kg - a.kg)
     .slice(0, 5);
 
-  if (totalSesiones === 0) {
+  if (totalSesiones === 0 && juegos.length === 0) {
     return (
       <div className="empty-state"><p>Sin sesiones todavía para calcular progreso.</p></div>
     );
@@ -355,6 +410,10 @@ function ProgresoTab({ entries, actividades, serie, serieTruncada }: {
           </div>
         </div>
       )}
+
+      {/* Juegos (P81): abajo de todo, porque no son entrenamiento. Sin juegos
+          registrados, la sección no aparece. */}
+      {juegos.length > 0 && <SeccionJuegos filas={juegos} />}
     </div>
   );
 }
@@ -417,7 +476,7 @@ export function Historial() {
     const desde = haceUnAno();
     setVentanaDesde(desde);
     Promise.all([
-      getHistorialShapeUp(memberId),
+      getHistorialEnLaApp(memberId),
       getCardioRango(memberId as MiembroId, { desde }),
       getConfigImport(),
     ]).then(([propias, cardio, cfg]) => {

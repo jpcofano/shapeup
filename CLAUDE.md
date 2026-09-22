@@ -202,9 +202,42 @@ con conversación de arquitectura, no directo a código.
   verificado leyendo el documento. El fallback sigue existiendo para los
   miembros que no las tengan.
 
-## Serie H — Sync automático de salud (plan vigente desde P66c)
+## Serie H — Sync automático de salud (PU1–PU4 construidos, 2026-09-18)
 
 Objetivo: que la biometría entre sin exportar el ZIP a mano.
+
+### Estado real (verificado leyendo el código el 21/09/2026)
+
+**La vía D está construida y corriendo**, no "pendiente de decisión". El puente Android
+(repo aparte) lee Samsung Health con el Data SDK y sube crudo a
+`/ingesta-sdk/{uid}/registros` cada 6 horas; ShapeUp lo lee y lo importa.
+
+| Hito | Qué es | Estado |
+|---|---|---|
+| **PU1** | Leer por SDK y volcar a JSON | ✅ verificado contra la sesión de referencia |
+| **PU2 / PU2a** | El JSON viaja solo a Firebase + reglas de `/ingesta-sdk` | ✅ |
+| **PU3 / PU3a** | Lectura incremental, corrida en background, registros partidos y estado | ✅ |
+| **PU4** | Adaptador TypeScript en este repo | ✅ (commit `f22b659`, 18/09) |
+
+Lo que hay en el repo: `data/ingestaSdk.ts` (lee y rearma las partes),
+`lib/adaptadorSdk.ts` (puro, traduce al formato de los parsers del ZIP),
+`data/sincronizarPuente.ts` (orquesta, **reusa el pipeline del ZIP**),
+`components/salud/PuentePanel.tsx` (estado del puente + vista previa),
+`scripts/dry-run-puente.ts`. Reglas en `firestore.rules` líneas 88 y 114.
+
+**Lo que la vía D todavía NO hace, y es lo que falta para cerrar el objetivo:**
+
+1. **No enriquece la biometría por serie.** `sincronizarDesdePuente` escribe `/cardio` y
+   `/mediciones`, y nunca llama a `enriquecerTrasImport` — que hoy solo corre en el camino
+   del ZIP (`Salud.tsx`). El crudo del puente **sí trae la curva** (`SesionSdk.log`), pero
+   `adaptadorSdk` la descarta a propósito (PU4: "la curva completa no se persiste", solo
+   cuenta `_muestrasCurva`). **Conclusión: la FC por serie, `recuperacionBpm` y
+   `granularidad: "serie"` siguen entrando únicamente por el ZIP a mano.**
+2. **No sincroniza sola.** Está declarado fuera de alcance en PU4: hoy es un botón en
+   /salud, con vista previa y confirmación.
+3. **No enlaza ni convierte entradas externas** (bloque 5 del roadmap, P76).
+
+### Qué cambió respecto del plan de P61
 
 ### Qué cambió respecto del plan de P61
 P61 asumía que la única vía era leer Health Connect desde un cascarón nativo, y que el
@@ -247,8 +280,10 @@ Samsung Health** con el Data SDK (`ExerciseSession.log`) y trae la curva complet
 **La vía A no se retira.** Es la única automática hoy (cardio, pasos, sueño, FC pasiva); la
 D la complementa en el hueco que A no cubre. **Health Sync sigue siendo necesario** aunque
 se adopte la D: es el puente que mete la medición de la balanza en Samsung Health (§15.9).
-Mientras la D no se construya, la única vía implementada de la curva de FC sigue siendo el
-import del ZIP.
+⚠ **Corregido (21/09/2026):** esta sección decía "mientras la D no se construya". La D **ya
+está construida** (PU1–PU4, ver el estado real arriba). Lo que sigue siendo cierto es más
+chico y más preciso: **la única vía implementada de la CURVA de FC sigue siendo el ZIP**,
+porque el adaptador del puente no la persiste ni dispara el enriquecimiento.
 
 Riesgos de la vía A que siguen abiertos: con la app OAuth en **Testing**, Google revoca los
 refresh tokens **a los 7 días**; y leer archivos de otra app requiere `drive.readonly`,
@@ -260,7 +295,7 @@ del workout custom es `otro`, nunca `fuerza`; ningún cero ni dato derivado pisa
 medido (ADR #034); sesiones autodetectadas sin curva (ADR #035); composición corporal en
 series por fuente de medición, sin merge entre fuentes (§15.9).
 
-### H1′ — Spike sin código (primero, y bloquea todo lo demás)
+### H1′ — Spike sin código (histórico: ya no bloquea nada)
 Configurar el export de Health Sync a Drive y dejarlo correr **un día que incluya una
 sesión de fuerza, una de VR y una noche de sueño**. Después auditar los archivos. Lo que
 hay que responder:
@@ -382,6 +417,59 @@ sesión, que no es cumplir el plan.
 visita a Progreso. Lo que se guarda son **lecturas**, no un contador: la racha se sigue
 derivando entera en cada cálculo, y si la caché se borra el resultado es idéntico, solo que
 más lento. Un import la limpia, porque puede reescribir semanas viejas.
+
+## ADR #040 — En VR la completitud se mide por TIEMPO, no por rondas (P80, 2026-09-21)
+
+Las cuatro rutinas de VR daban siempre `mantener` porque ninguna sesión completaba sus
+rondas. La causa no era la regla: **con el casco puesto no se ve el teléfono**. Juan juega de
+corrido 30 minutos y no marca nada. Las sesiones estaban completas; el registro no.
+
+- **`completa` = llegar al 90 % del objetivo de tiempo** (`FRACCION_TIEMPO_COMPLETO`). Las
+  rondas afinan la medición pero **no deciden** la completitud.
+- El objetivo sale de la rutina: `Continuo` lo declara, `Intervalos` lo dice en
+  `rondas × trabajoSeg` (`tiempoObjetivoMin`). Body Combat 30, PowerBeats 25, Beat the
+  Beats 24, Creed 20.
+- **El tiempo real es la ventana de la app menos las pausas.** Sin ventana cae a la suma de
+  las rondas válidas, y **ahí las pausas NO se restan**: sumar duraciones ya deja los huecos
+  afuera. (Bug real: restarlas dos veces daba 3 minutos donde había 32.)
+- **`modo` se deriva, no se elige**: `"rondas"` si hubo al menos dos descansos medibles,
+  `"tiempo"` si no. La forma que la UI ofrece primero sale de la última sesión de esa rutina.
+- **De corrido la escalera es `subir-dificultad` → `sumar-tiempo` → `cambiar-juego`.** No hay
+  descanso que recortar ni recuperación entre rondas que medir, así que la regla 3 solo
+  decide en modo rondas.
+- La sesión por tiempo registra **una sola ronda**, la que abarca toda la sesión. No es una
+  ronda inventada: es lo que pasó, y es lo que sella la ventana (ADR #019) para que el
+  enriquecimiento tenga de dónde agarrarse.
+
+**Hallazgo que motiva el ADR y sigue abierto:** la ventana derivada de las series venía
+midiendo entre 10 y 24 minutos menos que `duracionRealMin` en las cinco sesiones con ventana,
+porque empieza en la primera ronda marcada y termina en la última. Una sesión (14/09) tenía
+9 minutos de ventana contra 33 cronometrados: su primera serie no tiene `inicioMs`.
+
+## ADR #041 — Lo que cuenta como entrenamiento es una lista POSITIVA (P81, 2026-09-21)
+
+`esShapeUp` era `tipo !== "externa"`. Con esa forma, **cualquier tipo nuevo empezaba a contar
+como entrenamiento por omisión**: los juegos de VR que Juan registra pero que no son
+ejercicio se habrían metido solos en la racha, la meta, la adherencia, el tonelaje y la
+progresión. Ahora es `tipo === "rutina" || tipo === "libre"`: lo que cuenta se declara.
+
+- **Enriquecerse y contar son dos preguntas distintas, y el código lo dice con dos nombres.**
+  `seEnriquece(h)` (rutina, libre **o juego**) gobierna el enriquecimiento y la clasificación
+  del import; `esShapeUp(h)` gobierna toda métrica de plan o progresión. Un juego no cuenta,
+  pero su FC es lo único que puede decir si ese juego mueve a alguien.
+- **El test de aislamiento va antes que el tipo nuevo**, y se verifica que falle con la
+  definición vieja. Con la negativa fallaban 7 de 12.
+- Un juego **no** entra en racha, meta, adherencia, tasa, tonelaje, progresión, PR, días de
+  movimiento, chips de la semana ni totales de Progreso. **Sí** entra en el historial (con
+  chip *Juego*), en el enriquecimiento y en el análisis.
+- La lista vive en `/config/diccionarios.juegosSinEjercicio`, la edita **solo el owner** por
+  las reglas ya existentes, y **sacar un juego de la lista no borra sus sesiones**. Por eso
+  la sesión guarda `nombreJuego` y no un id.
+- **Las kcal de los juegos no se muestran**: en actividades de brazos el reloj las infla
+  (roadmap §9.5), y un número que sabemos que está mal es peor que ninguno.
+- Consecuencia que no estaba a la vista: la consulta de `/historial` filtraba
+  `tipo in ["rutina","libre"]`, así que un juego no habría llegado nunca a la app. Ahora trae
+  los tres tipos y la función se llama **`getHistorialEnLaApp`**, no `getHistorialShapeUp`.
 
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3; progresión de cargas y costo cardíaco por rutina

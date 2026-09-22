@@ -16,6 +16,7 @@ import {
   estadoReiniciado,
   saltarBloque as _saltarBloque,
   sellarProgresionVR as _sellarProgresionVR,
+  cerrarPorTiempo as _cerrarPorTiempo,
   sustituirBloque as _sustituirBloque,
   deshacerSustitucion as _deshacerSustitucion,
   type SustitucionBloque,
@@ -162,6 +163,19 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
     /** Construye BloqueRegistro[] para escribir al Historial. */
     bloquesRegistro() {
       return rutina ? construirBloquesRegistro(state, rutina) : [];
+    },
+    /**
+     * Cierra la sesión de VR jugada por tiempo y devuelve sus bloques (P80).
+     *
+     * Devuelve los bloques ya calculados en vez de dejarlos para el render
+     * siguiente: quien aprieta "Terminar" guarda en el mismo tick, y
+     * `bloquesRegistro()` todavía vería el estado viejo.
+     */
+    cerrarPorTiempo(now: number = Date.now()) {
+      if (!rutina) return [];
+      const cerrado = _cerrarPorTiempo(state, rutina, now);
+      setState(cerrado);
+      return construirBloquesRegistro(cerrado, rutina);
     },
   };
 }

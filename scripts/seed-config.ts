@@ -111,6 +111,9 @@ const diccionarios = {
   intensidadesCardio: ["Suave","Moderada","Vigorosa","Máxima"],
   zonasFC:            ["Z1","Z2","Z3","Z4","Z5"],
   tiposSesion:        ["Rutina","Programa","VR"],
+  // Juegos de VR que se registran pero NO cuentan como ejercicio (P81).
+  // Editable desde la app por el owner; sacar uno de acá no borra sus sesiones.
+  juegosSinEjercicio: ["Behemoth","Drums Rock","Rock"],
   estadosSesion:      { activos: ["Programada","En curso","Completada"], finales: ["Registrada"] },
   miembros:           [
     { id: "juanpablo", nombre: "Juan Pablo", rol: "padre" },

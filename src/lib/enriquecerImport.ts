@@ -21,7 +21,7 @@ import type { ZipExtraccion } from "../import/samsungZip";
 import type { SesionApp } from "./matchBiometrico";
 import type { LiveDataPoint } from "../import/samsungLiveData";
 import { stripUndef } from "../import/samsungHealth";
-import { soloShapeUp } from "./tipoHistorial";
+import { seEnriquece } from "./tipoHistorial";
 import {
   elegirSesionSamsung, construirBiometriaDeTramos, construirBiometriaRango,
   elegirTramosAdicionales, curvaDeTramos, enriquecerSerie, topeInicioSiguiente,
@@ -172,10 +172,14 @@ export function calcularEnriquecimiento(
   // Pool de datauuid disponibles (evitar doble asignación — ADR #021)
   const datauuidsUsados = new Set<string>();
 
-  // Solo ShapeUp: el enriquecimiento cruza sesiones HECHAS EN LA APP con las de
-  // Samsung. Una externa ya nació de ese mismo dato — matchearla sería circular,
-  // y encima le robaría el datauuid a la sesión real (pool 1:1). P74.
-  const ordenado = soloShapeUp(historial)
+  // Lo hecho EN LA APP: rutinas, libres y juegos (P81). Una externa ya nació de
+  // este mismo dato — matchearla sería circular, y encima le robaría el
+  // datauuid a la sesión real (pool 1:1). P74.
+  //
+  // Los juegos entran acá aunque no cuenten como ejercicio: la FC es
+  // justamente lo único que puede decir si mueven o no. Enriquecerse y contar
+  // son dos preguntas distintas, y por eso el predicado tiene otro nombre.
+  const ordenado = historial.filter(seEnriquece)
     .sort((a, b) => a.fechaRealizada.localeCompare(b.fechaRealizada));
 
   for (const h of ordenado) {

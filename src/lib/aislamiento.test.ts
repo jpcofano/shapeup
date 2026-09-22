@@ -34,11 +34,11 @@ import { agruparDiasActivos, type ActividadDia } from "./racha";
 import { actividadRelevante, soloRelevantes, marcasDe } from "./actividadRelevante";
 import { adaptarEjercicio } from "./adaptadorSdk";
 import { CRUDO_CAMINATA } from "./__fixtures__/crudoSdk";
-import { soloShapeUp } from "./tipoHistorial";
+import { soloShapeUp, esShapeUp, seEnriquece, soloJuegos } from "./tipoHistorial";
 
 import {
   HISTORIAL_MIXTO, SOLO_SHAPEUP, EXTERNAS, ID_EJERCICIO, ID_RUTINA, SEMANA,
-  rutinaLunes, rutinaMiercoles, caminataMismoDia,
+  rutinaLunes, rutinaMiercoles, caminataMismoDia, HISTORIAL_CON_JUEGOS, JUEGOS,
 } from "./__fixtures__/historialMixto";
 
 const MIEMBRO = "juanpablo" as const;
@@ -522,5 +522,101 @@ describe("aislamiento · actividades que entran por el puente (PU4)", () => {
       compararConPrevias(rutinaLunes, SOLO_SHAPEUP);
     }).not.toThrow();
     expect(serieCostoRutina(ID_RUTINA, SOLO_SHAPEUP)).toEqual(serieCostoRutina(ID_RUTINA, HISTORIAL_MIXTO));
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P81 — los juegos no cuentan como ejercicio
+//
+//  Este bloque se escribió ANTES de cambiar `esShapeUp`, y con la definición
+//  vieja —`tipo !== "externa"`— falla: un `tipo: "juego"` entraba solo en la
+//  racha, la meta, la adherencia, el tonelaje, la progresión y los días de
+//  movimiento. De ahí que la definición pase a ser una lista POSITIVA: lo que
+//  cuenta se declara, no se deduce por descarte.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("aislamiento · los juegos no cuentan como ejercicio (P81)", () => {
+  it("la serie de adherencia y la racha no se mueven", () => {
+    const con = seriesDeAdherencia(agruparDiasActivos(HISTORIAL_CON_JUEGOS), 2, HOY);
+    const sin = seriesDeAdherencia(agruparDiasActivos(HISTORIAL_MIXTO), 2, HOY);
+    expect(con).toEqual(sin);
+    expect(rachaActual(con)).toBe(rachaActual(sin));
+  });
+
+  it("la tasa de cumplimiento no se mueve", () => {
+    const con = seriesDeAdherencia(agruparDiasActivos(HISTORIAL_CON_JUEGOS), 3, HOY);
+    const sin = seriesDeAdherencia(agruparDiasActivos(HISTORIAL_MIXTO), 3, HOY);
+    expect(tasaCumplimiento(con)).toBe(tasaCumplimiento(sin));
+  });
+
+  it("los días activos no se mueven", () => {
+    // El juego del domingo 13 caería justo adentro de la ventana.
+    expect(diasActivos(HISTORIAL_CON_JUEGOS, "2026-09-07", "2026-09-13"))
+      .toBe(diasActivos(HISTORIAL_MIXTO, "2026-09-07", "2026-09-13"));
+  });
+
+  it("los días de movimiento y los minutos tampoco: un juego no es moverse", () => {
+    const con = agruparDiasActivos(HISTORIAL_CON_JUEGOS);
+    const sin = agruparDiasActivos(HISTORIAL_MIXTO);
+    expect(con).toEqual(sin);
+
+    // Y en concreto: el juego del domingo no crea un día, y el del lunes no le
+    // suma sus 30 minutos al día que ya existía.
+    expect(con.find((d) => d.fecha === "2026-09-13")).toBeUndefined();
+    expect(con.find((d) => d.fecha === "2026-09-07")!.minutos)
+      .toBe(sin.find((d) => d.fecha === "2026-09-07")!.minutos);
+  });
+
+  it("los chips de la semana no se mueven", () => {
+    expect(calcularWeekChips(agruparDiasActivos(HISTORIAL_CON_JUEGOS), SEMANA))
+      .toEqual(calcularWeekChips(agruparDiasActivos(HISTORIAL_MIXTO), SEMANA));
+  });
+
+  it("el tonelaje y las series de una sesión de juego son cero", () => {
+    for (const j of JUEGOS) {
+      expect(tonelajeKg(j)).toBe(0);
+      expect(totalSeriesHechas(j)).toBe(0);
+    }
+  });
+
+  it("la progresión de cargas no ve los juegos", () => {
+    expect(sesionesDelEjercicio(ID_EJERCICIO, HISTORIAL_CON_JUEGOS))
+      .toEqual(sesionesDelEjercicio(ID_EJERCICIO, HISTORIAL_MIXTO));
+  });
+
+  it("semanasSinDescarga y la recomendación no se mueven", () => {
+    expect(semanasSinDescarga(HISTORIAL_CON_JUEGOS, HOY))
+      .toBe(semanasSinDescarga(HISTORIAL_MIXTO, HOY));
+    const senales = [senal("sueno", "ok"), senal("fc-reposo", "ok"), senal("hrv", "ok")];
+    expect(calcularRecomendacion(senales, HISTORIAL_CON_JUEGOS, HOY, MIEMBRO))
+      .toEqual(calcularRecomendacion(senales, HISTORIAL_MIXTO, HOY, MIEMBRO));
+  });
+
+  it("una semana de puros juegos no sostiene nada", () => {
+    const serie = seriesDeAdherencia(agruparDiasActivos(JUEGOS), 2, HOY);
+    expect(serie).toEqual([]);
+    expect(rachaActual(serie)).toBe(0);
+  });
+
+  it("un tipo inventado tampoco cuenta: la lista es positiva, no por descarte", () => {
+    const inventado = { ...JUEGOS[0], idHist: "H-RARO", tipo: "otro" } as unknown as Historial;
+    expect(esShapeUp(inventado)).toBe(false);
+    expect(soloShapeUp([...HISTORIAL_MIXTO, inventado])).toEqual(soloShapeUp(HISTORIAL_MIXTO));
+  });
+
+  it("pero SÍ se enriquecen: es lo único que los hace útiles", () => {
+    // `seEnriquece` y `esShapeUp` son dos preguntas distintas, y el código lo
+    // dice con dos nombres: un juego no cuenta, pero su FC importa.
+    for (const j of JUEGOS) {
+      expect(esShapeUp(j)).toBe(false);
+      expect(seEnriquece(j)).toBe(true);
+    }
+    for (const e of EXTERNAS) expect(seEnriquece(e)).toBe(false);
+    expect(seEnriquece(rutinaLunes)).toBe(true);
+  });
+
+  it("y siguen en el historial: no se esconden, se marcan", () => {
+    expect(soloJuegos(HISTORIAL_CON_JUEGOS).map((h) => h.idHist))
+      .toEqual(JUEGOS.map((h) => h.idHist).sort());
   });
 });

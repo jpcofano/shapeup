@@ -899,10 +899,24 @@ llaman PU1–PU4, para no chocar con el M1/M2 del backlog de `MAPEO-IMPLEMENTACI
 
 | Hito | Qué es | Estado |
 |---|---|---|
-| **PU1** | Leer por SDK y volcar a JSON | Hecho y verificado |
-| **PU2** | El JSON viaja solo a Firebase | Siguiente |
-| **PU3** | Lectura incremental y corrida periódica en background | Pendiente |
-| **PU4** | Adaptador TypeScript, en este repo | Pendiente, depende de P75 |
+| **PU1** | Leer por SDK y volcar a JSON | ✅ hecho y verificado |
+| **PU2** | El JSON viaja solo a Firebase (+ reglas de `/ingesta-sdk`, PU2a) | ✅ 2026-09-17 |
+| **PU3** | Lectura incremental y corrida periódica en background (+ partidos y estado, PU3a) | ✅ 2026-09-17 |
+| **PU4** | Adaptador TypeScript, en este repo | ✅ 2026-09-18 (`f22b659`) |
+
+**Actualizado el 21/09/2026**, leyendo el código. Esta tabla decía "Siguiente / Pendiente"
+para PU2–PU4 y quedó vieja: los cuatro hitos están construidos. El puente sube cada 6 horas y
+ShapeUp lo importa desde /salud con vista previa y confirmación.
+
+**Lo que la vía D todavía no hace**, y es lo que falta para cerrar el objetivo de la serie H:
+
+1. **No enriquece la biometría por serie.** `sincronizarDesdePuente` escribe `/cardio` y
+   `/mediciones` y nunca llama a `enriquecerTrasImport`, que solo corre en el camino del
+   ZIP. El crudo **sí trae la curva** (`SesionSdk.log`), pero `lib/adaptadorSdk.ts` la
+   descarta a propósito (PU4: "la curva completa no se persiste"). Por eso la FC por serie,
+   `recuperacionBpm` y `granularidad: "serie"` siguen entrando solo por el ZIP a mano.
+2. **No sincroniza sola** (fuera de alcance de PU4): hoy es un botón.
+3. **No enlaza ni convierte entradas externas** (bloque 5, P76).
 
 #### PU1 del puente: lectura verificada
 

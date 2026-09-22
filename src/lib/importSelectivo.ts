@@ -37,7 +37,7 @@ import type { Historial, MotivoIngreso, OrigenExterna } from "../types/models";
 import type { CardioInput } from "../import/samsungHealth";
 import { TOLERANCIA_MS } from "./matchBiometrico";
 import { ventanaDeHistorial } from "./enriquecerImport";
-import { soloShapeUp } from "./tipoHistorial";
+import { seEnriquece } from "./tipoHistorial";
 
 // ── Tipos públicos ─────────────────────────────────────────────────────────
 
@@ -171,9 +171,11 @@ export function clasificarImport<T extends CardioClasificable>(
   config: ConfigClasificacion,
   now: number,
 ): ItemClasificado<T>[] {
-  // Solo ShapeUp (P74): si una externa de un import anterior contara como
-  // historial, cada actividad se enriquecería a sí misma en la próxima corrida.
-  const propias = soloShapeUp(historial);
+  // Lo hecho en la app (P74), juegos incluidos (P81): el cardio que matchea una
+  // sesión propia no se importa como actividad aparte. Si una externa de un
+  // import anterior contara como historial, cada actividad se enriquecería a sí
+  // misma en la próxima corrida.
+  const propias = historial.filter(seEnriquece);
   return items.map((item) => clasificar(item, propias, shapeUpCustomIds, config, now));
 }
 

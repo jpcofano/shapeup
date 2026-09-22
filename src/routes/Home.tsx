@@ -5,7 +5,7 @@ import type { Programa, Historial, MedicionCorporal, MetricaSalud, RegistroSueno
 import type { MiembroId } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
 import { getPerfiles } from "../data/perfiles";
-import { getHistorialShapeUp, getDiasActivos, conciliarPendientes } from "../data/historial";
+import { getHistorialEnLaApp, getDiasActivos, conciliarPendientes } from "../data/historial";
 import { barrerSesionesHuerfanas } from "../data/sesiones";
 import { usePendientes } from "../hooks/usePendientes";
 import { PendientesChip } from "../components/PendientesChip";
@@ -322,7 +322,7 @@ export function Home() {
 
     Promise.all([
       getProgramaActivo(memberId as MiembroId),
-      getHistorialShapeUp(memberId as MiembroId),
+      getHistorialEnLaApp(memberId as MiembroId),
       getMediciones(memberId as MiembroId),
       loadSalud
         ? getMetricasSalud(memberId as MiembroId)

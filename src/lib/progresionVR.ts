@@ -41,6 +41,17 @@
 //  previsto **no es una ronda**, y un intervalo de más de `FACTOR_PAUSA` veces
 //  el descanso previsto **no es un descanso**.
 //
+//  ── En VR se mide el TIEMPO, no las rondas (P80) ──────────────────────────
+//  Las cuatro rutinas daban `mantener` porque ninguna sesión completaba sus
+//  rondas. La causa no era la regla: **Juan juega de corrido, 30 minutos, sin
+//  marcar rondas** —con el casco puesto no se ve el teléfono—. Las sesiones
+//  estaban completas; el registro no.
+//
+//  Entonces: **la completitud se mide por tiempo**. Si además hay rondas,
+//  afinan la medición, pero no deciden si la sesión se completó. Y sin
+//  descansos, recortar el descanso no existe como palanca: la escalera pasa a
+//  ser **dificultad del juego → sumar tiempo**.
+//
 //  Núcleo puro (ADR #009): sin Firebase, se testea solo.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -85,18 +96,38 @@ export const FACTOR_PAUSA = 3;
 /** Con menos intervalos válidos que esto, el descanso no decide. */
 export const MIN_DESCANSOS_VALIDOS = 2;
 
+// ── Modo tiempo (P80) ──────────────────────────────────────────────────────
+
+/** Qué fracción del tiempo objetivo alcanza para dar la sesión por completa. */
+export const FRACCION_TIEMPO_COMPLETO = 0.9;
+
+/** Cuánto se suma por vez cuando la palanca es `sumar-tiempo`. */
+export const PASO_TIEMPO_MIN = 5;
+
+/** Máximo por encima del objetivo de la rutina. */
+export const TECHO_TIEMPO_EXTRA_MIN = 15;
+
 /** Cuántas de las últimas sesiones se miran para el aviso de muñeca (§9.3). */
 export const VENTANA_MUNECA = 5;
 /** Cuántas de ésas con FC dudosa disparan el aviso. */
 export const MINIMO_MUNECA_DUDOSA = 3;
 
 export type Palanca =
-  | "subir-dificultad" | "recortar-descanso" | "sumar-ronda" | "mantener" | "bajar";
+  | "subir-dificultad" | "recortar-descanso" | "sumar-ronda"
+  | "sumar-tiempo" | "cambiar-juego"
+  | "mantener" | "bajar";
+
+/** Cómo se jugó la sesión. **Derivado de los datos, no elegido** (P80). */
+export type ModoVR = "rondas" | "tiempo";
 
 export interface PrescripcionVR {
   rondas: number;
   trabajoSeg: number;
   descansoSeg: number;
+  /** Cómo se jugó. Se deriva al medir la sesión, no lo elige nadie (P80). */
+  modo?: ModoVR;
+  /** Minutos de juego a los que apunta la sesión (P80). */
+  duracionObjetivoMin?: number;
 }
 
 export interface SugerenciaVR {
@@ -125,12 +156,39 @@ export function esRutinaVR(rutina: Rutina): boolean {
   return bloqueVRDeRutina(rutina) !== null;
 }
 
+/**
+ * Minutos de juego a los que apunta la rutina (P80).
+ *
+ * `Continuo` lo declara directo; `Intervalos` lo dice en rondas × trabajo. Con
+ * las rutinas de hoy: Body Combat 30, PowerBeats 25, Beat the Beats 24,
+ * Creed 20.
+ */
+export function tiempoObjetivoMin(p: PrescripcionCardio): number {
+  if (p.formato === "Continuo") return p.duracionMin ?? 0;
+  return Math.round(((p.rondas ?? 0) * (p.trabajoSeg ?? 0)) / 60);
+}
+
+/**
+ * La prescripción de una sesión vieja, con el objetivo de tiempo de la rutina.
+ *
+ * Las sesiones anteriores a P80 guardaron `prescripcionUsada` sin
+ * `duracionObjetivoMin`. Sin este relleno la completitud por tiempo no tendría
+ * contra qué medirse y caería siempre al conteo de rondas, que es justo lo que
+ * P80 vino a dejar de usar.
+ */
+export function conObjetivo(usada: PrescripcionVR, base: PrescripcionVR): PrescripcionVR {
+  return usada.duracionObjetivoMin != null
+    ? usada
+    : { ...usada, duracionObjetivoMin: base.duracionObjetivoMin };
+}
+
 /** La prescripción base que declara la rutina. */
 export function prescripcionDeRutina(p: PrescripcionCardio): PrescripcionVR {
   return {
     rondas: p.rondas ?? 1,
     trabajoSeg: p.trabajoSeg ?? 0,
     descansoSeg: p.descansoSeg ?? 0,
+    duracionObjetivoMin: tiempoObjetivoMin(p),
   };
 }
 
@@ -226,7 +284,7 @@ export function descansoRealSeg(
   series: SerieRegistro[],
   trabajoSeg = 0,
   descansoPrevistoSeg = 0,
-): { seg: number | null; validos: number; pausas: number; pausaMayorSeg: number | null } {
+): { seg: number | null; validos: number; pausas: number; pausaMayorSeg: number | null; pausasSeg: number[] } {
   const ord = rondasValidas(series, trabajoSeg)
     .filter((s) => s.inicioMs != null && s.finMs != null)
     .sort((a, b) => a.inicioMs! - b.inicioMs!);
@@ -247,6 +305,7 @@ export function descansoRealSeg(
     validos: huecos.length,
     pausas: pausas.length,
     pausaMayorSeg: pausas.length > 0 ? Math.max(...pausas) : null,
+    pausasSeg: pausas,
   };
 }
 
@@ -287,10 +346,28 @@ function enElTecho(p: PrescripcionVR, base: PrescripcionVR): boolean {
   return p.rondas >= base.rondas + TECHO_RONDAS_EXTRA;
 }
 
+/** Suma `PASO_TIEMPO_MIN` al objetivo de la sesión (P80). */
+function sumarTiempo(p: PrescripcionVR, base: PrescripcionVR): PrescripcionVR {
+  const actual = p.duracionObjetivoMin ?? base.duracionObjetivoMin ?? 0;
+  return { ...p, duracionObjetivoMin: actual + PASO_TIEMPO_MIN };
+}
+
+function enElTechoDeTiempo(p: PrescripcionVR, base: PrescripcionVR): boolean {
+  const actual = p.duracionObjetivoMin ?? 0;
+  const deLaRutina = base.duracionObjetivoMin ?? 0;
+  return deLaRutina > 0 && actual >= deLaRutina + TECHO_TIEMPO_EXTRA_MIN;
+}
+
 // ── La función principal ───────────────────────────────────────────────────
 
 /** Lo que se pudo medir de una sesión, ya filtrado por validez (P79b). */
 export interface MedicionSesionVR {
+  /** Minutos reales de juego: la ventana de la app menos las pausas (P80). */
+  minutosReales: number | null;
+  /** `"tiempo"` si no hubo descansos medibles. Derivado (P80). */
+  modo: ModoVR;
+  /** El tiempo real alcanzó el 90 % del objetivo (P80). */
+  completa: boolean;
   /** Rondas que cuentan: completadas y de duración creíble. */
   validas: number;
   /** Rondas completadas que se descartaron por durar muy poco. */
@@ -309,13 +386,35 @@ export interface MedicionSesionVR {
 export function medirSesionVR(
   series: SerieRegistro[],
   usada: PrescripcionVR,
+  /** Ventana de la sesión de la app (P78). Sin ella no hay tiempo que medir. */
+  ventana?: { inicioMs?: number; finMs?: number },
 ): MedicionSesionVR {
   const completas = series.filter((s) => s.completada);
   const validas = rondasValidas(series, usada.trabajoSeg);
   const descartadas = completas.filter((s) => !validas.includes(s));
   const d = descansoRealSeg(series, usada.trabajoSeg, usada.descansoSeg);
 
+  // Tiempo real: la ventana de la app **menos las pausas** (P80).
+  //
+  // Sin ventana se cae a la suma de las rondas válidas, y ahí las pausas NO se
+  // restan: sumar duraciones ya deja los huecos afuera, y restarlas otra vez
+  // las contaría dos veces. Body Combat daba 3 minutos en vez de 32 por esto.
+  const hayVentana = ventana?.inicioMs != null && ventana.finMs != null;
+  const brutoMs = hayVentana
+    ? Math.max(0, ventana!.finMs! - ventana!.inicioMs!)
+    : validas.reduce((a, s) => a + duracionMs(s), 0);
+  const pausasMs = hayVentana ? d.pausasSeg.reduce((a, p) => a + p, 0) * 1000 : 0;
+  const minutosReales = brutoMs > 0 ? Math.max(0, brutoMs - pausasMs) / 60_000 : null;
+
+  const objetivoMin = usada.duracionObjetivoMin ?? 0;
+  const modo: ModoVR = d.validos >= MIN_DESCANSOS_VALIDOS ? "rondas" : "tiempo";
+
   return {
+    minutosReales,
+    modo,
+    completa: minutosReales != null && objetivoMin > 0
+      ? minutosReales >= objetivoMin * FRACCION_TIEMPO_COMPLETO
+      : validas.length >= usada.rondas,
     validas: validas.length,
     descartadas: descartadas.length,
     durDescartadasSeg: descartadas.map((s) => Math.round(duracionMs(s) / 1000)),
@@ -350,27 +449,38 @@ export function sugerirProgresionVR(e: EntradaProgresionVR): SugerenciaVR | null
   const bloque = bloqueVRDeSesion(e.ultima, vr.idEjercicio);
   if (!bloque) return null;
 
-  const usada: PrescripcionVR = bloque.prescripcionUsada ?? base;
+  const usada: PrescripcionVR = conObjetivo(bloque.prescripcionUsada ?? base, base);
   const series = bloque.series ?? [];
-  const medicion = medirSesionVR(series, usada);
-  // "Rondas hechas" son las VÁLIDAS (P79b). Y completa es tener al menos las
-  // del objetivo: las extra válidas no rompen nada.
-  const completadas = medicion.validas;
+  const medicion = medirSesionVR(series, usada, e.ultima);
+  const objetivoMin = usada.duracionObjetivoMin ?? base.duracionObjetivoMin ?? 0;
 
   const sin = (palanca: Palanca | null, motivo: string, fuente: SugerenciaVR["fuente"],
                nueva: PrescripcionVR = usada): SugerenciaVR =>
     ({ palanca, motivo, fuente, nuevaPrescripcion: nueva });
 
-  // ── Regla 1 — rondas incompletas ────────────────────────────────────────
-  if (completadas < usada.rondas) {
-    const anteriorIncompleta = sesionAnteriorIncompleta(e, vr.idEjercicio, base);
-    if (anteriorIncompleta) {
+  // ── Regla 1 — tiempo incompleto (P80) ───────────────────────────────────
+  //
+  // Antes esto miraba las rondas registradas, y por eso las cuatro rutinas
+  // daban `mantener`: Juan juega de corrido y no las marca. **Ahora decide el
+  // tiempo**; las rondas afinan la medición pero no la completitud.
+  //
+  // `bajar` sigue exigiendo una medición LIMPIA de las dos sesiones (P79c):
+  // de una sesión con rondas descartadas no se sabe si quedó incompleta de
+  // verdad, y bajar sobre esa duda es castigar a alguien por un botón.
+  // `mantener` no necesita esa garantía porque no castiga.
+  if (!medicion.completa) {
+    const limpia = medicion.descartadas === 0;
+    const anterior = sesionAnteriorIncompleta(e, vr.idEjercicio, base);
+    const hechos = medicion.minutosReales != null
+      ? `${Math.round(medicion.minutosReales)} de ${objetivoMin} min`
+      : `${medicion.validas} de ${usada.rondas} rondas`;
+
+    if (limpia && anterior.incompleta && anterior.limpia) {
       return sin("bajar",
-        `Dos sesiones seguidas sin terminar las ${usada.rondas} rondas. Bajemos un poco.`,
+        `Dos sesiones seguidas sin llegar al objetivo. Bajemos un poco.`,
         "fc", deshacerUltimoAjuste(e, usada, base, vr.prescripcion.juegoSugerido));
     }
-    return sin("mantener",
-      `Quedaron ${completadas} de ${usada.rondas} rondas. Va de nuevo igual.`, "fc");
+    return sin("mantener", `Quedaron ${hechos}. Va de nuevo igual.`, "fc");
   }
 
   // ── Regla 2 — FC confiable ──────────────────────────────────────────────
@@ -388,9 +498,18 @@ export function sugerirProgresionVR(e: EntradaProgresionVR): SugerenciaVR | null
       const dist = distanciaDeZonas(zona, objetivo!);
       const fc = Math.round(fcTrabajo!);
 
+      const enTiempo = medicion.modo === "tiempo";
+
       if (dist < 0) {
         // Dos subidas aceptadas y sigue por debajo: el juego no da más.
         if (subidasAceptadasSeguidas(e) >= 2) {
+          // En modo tiempo no hay descanso que recortar, y sumar tiempo suma
+          // volumen, no intensidad: lo que no da más es el juego (P80).
+          if (enTiempo) {
+            return sin("cambiar-juego",
+              `${vr.prescripcion.juegoSugerido} no te lleva a ${objetivo} ni en la dificultad más alta: probá otro juego.`,
+              "fc");
+          }
           return enElPiso(usada)
             ? sin("mantener",
                 `Ya subiste la dificultad dos veces y el descanso está en el piso: esta rutina no te exige más.`,
@@ -405,6 +524,16 @@ export function sugerirProgresionVR(e: EntradaProgresionVR): SugerenciaVR | null
       }
 
       if (dist === 0) {
+        // En modo tiempo la escalera es dificultad → tiempo: no hay descanso
+        // que recortar ni recuperación entre rondas que medir (P80).
+        if (enTiempo) {
+          if (!enElTechoDeTiempo(usada, base)) {
+            return sin("sumar-tiempo",
+              `FC ${fc} (${zona}), justo en el objetivo. Sumemos ${PASO_TIEMPO_MIN} min: ${sumarTiempo(usada, base).duracionObjetivoMin} en total.`,
+              "fc", sumarTiempo(usada, base));
+          }
+          return sin("mantener", "Esta rutina ya no te exige más: es hora de otra.", "fc");
+        }
         const rec = recuperacionMediana(rondasValidas(series, usada.trabajoSeg));
         if (rec != null && rec < RECUPERACION_MINIMA_BPM) {
           return sin("mantener",
@@ -439,7 +568,8 @@ export function sugerirProgresionVR(e: EntradaProgresionVR): SugerenciaVR | null
   // ── Regla 3 — sin FC confiable, pero el descanso dice algo ──────────────
   // Con menos de `MIN_DESCANSOS_VALIDOS` intervalos el descanso no decide: una
   // mediana de un solo número es ese número, y basta una pausa para torcerla.
-  const descanso = medicion.descansosValidos >= MIN_DESCANSOS_VALIDOS
+  // En modo tiempo no hay descanso que medir: no hay otra medición que decida.
+  const descanso = medicion.modo === "rondas" && medicion.descansosValidos >= MIN_DESCANSOS_VALIDOS
     ? medicion.descansoSeg
     : null;
   if (descanso != null && usada.descansoSeg > 0) {
@@ -494,17 +624,24 @@ function motivoSinMedicion(
   return "no hay suficiente FC medida para decidir";
 }
 
-/** ¿La sesión anterior también quedó incompleta? */
+/**
+ * ¿La sesión anterior también quedó incompleta, y con qué calidad de dato?
+ *
+ * `limpia` es lo que habilita el `bajar`: sin rondas descartadas, "incompleta"
+ * es una medición; con ellas, es una duda.
+ */
 function sesionAnteriorIncompleta(
   e: EntradaProgresionVR, idEjercicio: string, base: PrescripcionVR,
-): boolean {
+): { incompleta: boolean; limpia: boolean } {
   const previa = [...e.anteriores]
     .sort((a, b) => b.fechaRealizada.localeCompare(a.fechaRealizada))[0];
-  if (!previa) return false;
+  if (!previa) return { incompleta: false, limpia: true };
   const b = bloqueVRDeSesion(previa, idEjercicio);
-  if (!b) return false;
-  const usada = b.prescripcionUsada ?? base;
-  return rondasValidas(b.series, usada.trabajoSeg).length < usada.rondas;
+  if (!b) return { incompleta: false, limpia: true };
+
+  const usada = conObjetivo(b.prescripcionUsada ?? base, base);
+  const m = medirSesionVR(b.series, usada, previa);
+  return { incompleta: !m.completa, limpia: m.descartadas === 0 };
 }
 
 /**
@@ -537,6 +674,12 @@ function deshacerUltimoAjuste(
   base: PrescripcionVR,
   juego?: string,
 ): PrescripcionVR {
+  // El tiempo primero: en modo tiempo es el único ajuste que hay (P80).
+  const objetivo = usada.duracionObjetivoMin ?? 0;
+  const deLaRutina = base.duracionObjetivoMin ?? 0;
+  if (deLaRutina > 0 && objetivo > deLaRutina) {
+    return { ...usada, duracionObjetivoMin: Math.max(deLaRutina, objetivo - PASO_TIEMPO_MIN) };
+  }
   if (usada.rondas > base.rondas) return { ...usada, rondas: usada.rondas - 1 };
   if (usada.descansoSeg < base.descansoSeg) {
     return { ...usada, descansoSeg: Math.min(base.descansoSeg, usada.descansoSeg + PASO_DESCANSO_SEG) };
@@ -616,6 +759,33 @@ export function aplicarPrescripcionVR(rutina: Rutina, p: PrescripcionVR | null):
   };
 }
 
+/**
+ * Qué forma de jugar se ofrece primero (P80).
+ *
+ * Sale de **la última sesión de esa rutina**, no de un ajuste guardado aparte:
+ * si la última fue de corrido, hoy se ofrece de corrido. Sin historia se ofrece
+ * por tiempo, que es la forma en la que la rutina se juega de verdad.
+ */
+export function modoOfrecidoVR(historial: Historial[], rutina: Rutina): ModoVR {
+  const vr = bloqueVRDeRutina(rutina);
+  if (!vr) return "tiempo";
+  const base = prescripcionDeRutina(vr.prescripcion);
+
+  const ultima = historial
+    .filter((h) => h.idRutina === rutina.idRutina && bloqueVRDeSesion(h, vr.idEjercicio))
+    .sort((a, b) => b.fechaRealizada.localeCompare(a.fechaRealizada))[0];
+  if (!ultima) return "tiempo";
+
+  const bloque = bloqueVRDeSesion(ultima, vr.idEjercicio)!;
+  // El modo guardado manda: es lo que se eligió. Las sesiones anteriores a P80
+  // no lo tienen, y ahí se deriva de si hubo descansos medibles.
+  const guardado = bloque.prescripcionUsada?.modo;
+  if (guardado) return guardado;
+  return medirSesionVR(
+    bloque.series ?? [], conObjetivo(bloque.prescripcionUsada ?? base, base), ultima,
+  ).modo;
+}
+
 // ── Parte 4 — los parámetros de arranque salen de la historia ──────────────
 
 /**
@@ -641,7 +811,7 @@ export function parametrosDeArranque(
   if (!ultima) return { prescripcion: base, desdeHistoria: false };
 
   const bloque = bloqueVRDeSesion(ultima, vr.idEjercicio)!;
-  const usada = bloque.prescripcionUsada ?? base;
+  const usada = conObjetivo(bloque.prescripcionUsada ?? base, base);
 
   // El ajuste de la sesión anterior solo cuenta si se aceptó.
   const prog = ultima.progresionVR;
@@ -649,5 +819,6 @@ export function parametrosDeArranque(
 
   if (prog.palanca === "recortar-descanso") return { prescripcion: recortarDescanso(usada), desdeHistoria: true };
   if (prog.palanca === "sumar-ronda")       return { prescripcion: sumarRonda(usada), desdeHistoria: true };
+  if (prog.palanca === "sumar-tiempo")      return { prescripcion: sumarTiempo(usada, base), desdeHistoria: true };
   return { prescripcion: usada, desdeHistoria: true };
 }

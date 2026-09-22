@@ -4,7 +4,7 @@ import { ArrowLeft, Edit2, Zap, TrendingUp } from "lucide-react";
 import type { Rutina, Ejercicio, Historial } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjerciciosMap } from "../data/ejercicios";
-import { getHistorialShapeUp } from "../data/historial";
+import { getHistorialEnLaApp } from "../data/historial";
 import { avisoBalanceEmpujeTraccion } from "../lib/metricas";
 import { prescripcionLabel } from "../lib/prescripcionLabel";
 import { serieCostoRutina, MIN_SESIONES_SECCION } from "../lib/costoCardiaco";
@@ -38,7 +38,7 @@ export function RutinaDetalle() {
   // Historial del miembro actual: alimenta costo cardíaco (I2) y sugerencias de progresión (I3).
   useEffect(() => {
     if (!memberId) return;
-    getHistorialShapeUp(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
+    getHistorialEnLaApp(memberId).then((r) => { if (r.ok) setHistorialMiembro(r.value); });
   }, [memberId]);
 
   const costoCardiaco = id ? serieCostoRutina(id, historialMiembro) : [];

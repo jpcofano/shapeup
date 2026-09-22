@@ -10,7 +10,7 @@
 import type { MiembroId } from "../types/models";
 import type { ZipExtraccion } from "../import/samsungZip";
 import { calcularEnriquecimiento, type ResultadoEnriquecimiento } from "../lib/enriquecerImport";
-import { getHistorialShapeUp, enriquecerHistorial } from "./historial";
+import { getHistorialEnLaApp, enriquecerHistorial } from "./historial";
 import { getPerfiles } from "./perfiles";
 import { ok, err } from "../lib/result";
 import type { Result } from "../lib/result";
@@ -24,7 +24,7 @@ export async function enriquecerTrasImport(
   extraccion: ZipExtraccion,
 ): Promise<Result<ResultadoEnriquecimiento>> {
   const [histRes, perfRes] = await Promise.all([
-    getHistorialShapeUp(miembro),
+    getHistorialEnLaApp(miembro),
     getPerfiles(),
   ]);
 

@@ -9,6 +9,7 @@ import { Catalogo } from "./routes/Catalogo";
 import { Entrenar } from "./routes/Entrenar";
 import { EntrenarSesion } from "./routes/EntrenarSesion";
 import { EntrenarSesionLibre } from "./routes/EntrenarSesionLibre";
+import { SesionJuego } from "./routes/SesionJuego";
 import { Historial } from "./routes/Historial";
 import { HistorialDetalle } from "./routes/HistorialDetalle";
 import { Perfil } from "./routes/Perfil";
@@ -24,6 +25,7 @@ import { QaTemas } from "./routes/QaTemas";
 const router = createBrowserRouter([
   // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
   { path: "/entrenar/libre",                element: <EntrenarSesionLibre /> },
+  { path: "/entrenar/juego",                element: <SesionJuego /> },
   { path: "/entrenar/ejercicio/:idEjercicio", element: <EntrenarSesionLibre /> },
   { path: "/entrenar/:rutinaId",            element: <EntrenarSesion /> },
   { path: "/qa/home-redux",                 element: <QaHomeRedux /> },

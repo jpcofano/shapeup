@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Zap, List, Dumbbell, Moon } from "lucide-react";
+import { Zap, List, Dumbbell, Moon, Gamepad2 } from "lucide-react";
 import type { Rutina, Programa } from "../types/models";
 import type { MiembroId } from "../types/models";
 import { getRutinasDelMiembro } from "../data/rutinas";
 import { getProgramaActivo } from "../data/programas";
-import { getHistorialShapeUp } from "../data/historial";
+import { getHistorialEnLaApp } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
@@ -30,7 +30,7 @@ export function Entrenar() {
     Promise.all([
       getRutinasDelMiembro(memberId as MiembroId),
       getProgramaActivo(memberId as MiembroId),
-      getHistorialShapeUp(memberId as MiembroId),
+      getHistorialEnLaApp(memberId as MiembroId),
     ]).then(([rutinasR, progR, histR]) => {
       if (rutinasR.ok) setRutinas(rutinasR.value);
       else             setError(rutinasR.error);
@@ -219,6 +219,34 @@ export function Entrenar() {
             <div>
               <p style={{ margin: 0, fontWeight: 600 }}>Elegir ejercicios sueltos</p>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>Armá tu sesión desde el catálogo</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Puerta 4 — Sesión de juego (P81) ────────────────────────────── *
+        * Se registra y se analiza, pero no cuenta como entrenamiento: por eso
+        * está acá abajo y no entre las rutinas. */}
+      {!loading && (
+        <section>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, marginTop: 4 }}>
+            <Gamepad2 size={15} color="var(--muted)" />
+            <span className="t-label">Sesión de juego</span>
+          </div>
+          <div
+            className="card"
+            style={{ display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
+            onClick={() => navigate("/entrenar/juego")}
+          >
+            <span style={{
+              width: 38, height: 38, borderRadius: "50%", background: "var(--card-hover)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <Gamepad2 size={18} color="var(--muted)" />
+            </span>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600 }}>Registrar un juego de VR</p>
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>Queda en el historial, no cuenta como entrenamiento</p>
             </div>
           </div>
         </section>

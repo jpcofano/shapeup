@@ -26,6 +26,11 @@ interface Props {
     /** Descanso medido entre rondas válidas, y la pausa más larga excluida. */
     descansoSeg: number | null;
     pausaMayorSeg: number | null;
+    /** Cómo se jugó, medido (P80): de corrido o marcando rondas. */
+    modo: "rondas" | "tiempo";
+    /** Minutos reales de juego y los que pedía la rutina (P80). */
+    minutosReales: number | null;
+    objetivoMin: number;
   };
   /** Aviso de §9.3, si la muñeca no viene midiendo en este juego. */
   avisoMuneca?: { juego: string; conArtefactos: number; miradas: number } | null;
@@ -41,7 +46,7 @@ function fechaCorta(ymd: string): string {
 
 /** Las palancas que cambian parámetros; las otras son indicaciones. */
 function cambiaParametros(p: Palanca | null): boolean {
-  return p === "recortar-descanso" || p === "sumar-ronda";
+  return p === "recortar-descanso" || p === "sumar-ronda" || p === "sumar-tiempo";
 }
 
 /**
@@ -61,6 +66,7 @@ export function TarjetaProgresionVR({ sugerencia, usada, ultima, avisoMuneca, on
   // Lo que se descartó se dice, sin opinar sobre la decisión (P79b).
   const nota = (() => {
     const partes: string[] = [];
+    if (ultima.modo === "tiempo") return partes;
     if (ultima.descartadas > 0) {
       const durs = [...new Set(ultima.durDescartadasSeg)].sort((a, b) => a - b);
       const rango = durs.length > 1 ? `${durs[0]}–${durs[durs.length - 1]}` : `${durs[0]}`;
@@ -75,8 +81,12 @@ export function TarjetaProgresionVR({ sugerencia, usada, ultima, avisoMuneca, on
   // La línea se arma por partes: "N de M rondas [válidas]" y después lo que
   // haya medido, según de dónde salió la decisión.
   const lineaDatos = (() => {
-    const rondas = `${ultima.rondasHechas} de ${ultima.rondasPedidas} rondas`
-      + (ultima.descartadas > 0 ? " válidas" : "");
+    // Jugada de corrido, lo que se hizo se cuenta en minutos: las rondas no se
+    // marcaron porque no se pueden marcar, no porque falten (P80).
+    const rondas = ultima.modo === "tiempo" && ultima.minutosReales != null
+      ? `${Math.round(ultima.minutosReales)} de ${ultima.objetivoMin} min`
+      : `${ultima.rondasHechas} de ${ultima.rondasPedidas} rondas`
+        + (ultima.descartadas > 0 ? " válidas" : "");
 
     if (sinMedicion) return `${rondas} · ${sugerencia.motivo}`;
 
@@ -133,19 +143,31 @@ export function TarjetaProgresionVR({ sugerencia, usada, ultima, avisoMuneca, on
             >
               Como la última vez
             </button>
-            <button
-              className="btn-secondary" style={{ fontSize: 13 }}
-              onClick={() => elegir("recortar-descanso", true,
-                { ...usada, descansoSeg: Math.max(30, usada.descansoSeg - 15) }, true)}
-            >
-              Recortar descanso
-            </button>
-            <button
-              className="btn-secondary" style={{ fontSize: 13 }}
-              onClick={() => elegir("sumar-ronda", true, { ...usada, rondas: usada.rondas + 1 }, true)}
-            >
-              Sumar ronda
-            </button>
+            {ultima.modo === "tiempo" ? (
+              <button
+                className="btn-secondary" style={{ fontSize: 13 }}
+                onClick={() => elegir("sumar-tiempo", true,
+                  { ...usada, duracionObjetivoMin: (usada.duracionObjetivoMin ?? 0) + 5 }, true)}
+              >
+                Sumar 5 min
+              </button>
+            ) : (
+              <>
+                <button
+                  className="btn-secondary" style={{ fontSize: 13 }}
+                  onClick={() => elegir("recortar-descanso", true,
+                    { ...usada, descansoSeg: Math.max(30, usada.descansoSeg - 15) }, true)}
+                >
+                  Recortar descanso
+                </button>
+                <button
+                  className="btn-secondary" style={{ fontSize: 13 }}
+                  onClick={() => elegir("sumar-ronda", true, { ...usada, rondas: usada.rondas + 1 }, true)}
+                >
+                  Sumar ronda
+                </button>
+              </>
+            )}
             <button
               className="btn-secondary" style={{ fontSize: 13 }}
               onClick={() => elegir("bajar", true, usada, true)}

@@ -18,7 +18,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import type { Historial } from "../types/models";
-import { esShapeUp } from "./tipoHistorial";
+import { esShapeUp, esJuego } from "./tipoHistorial";
 import { type ActividadFiltrable } from "./actividadRelevante";
 
 /**
@@ -30,6 +30,8 @@ import { type ActividadFiltrable } from "./actividadRelevante";
 export function diasActivos(historial: Historial[], desde: string, hasta: string): number {
   const dias = new Set<string>();
   for (const h of historial) {
+    // Un juego de VR no es moverse (P81): se registra y se analiza, no cuenta.
+    if (esJuego(h)) continue;
     if (h.fechaRealizada >= desde && h.fechaRealizada <= hasta) dias.add(h.fechaRealizada);
   }
   return dias.size;
@@ -109,6 +111,10 @@ export function agruparDiasActivos(
   for (const h of historial) {
     const fecha = h.fechaRealizada;
     if (!fecha) continue;
+    // Los juegos quedan afuera ANTES de crear el día (P81): si no, un juego
+    // solo en un día vacío inventaría un día activo, y encima le sumaría sus
+    // minutos a uno que ya existía.
+    if (esJuego(h)) continue;
     const dia = diaDe(fecha);
     dia.minutos += h.duracionRealMin ?? 0;
 
