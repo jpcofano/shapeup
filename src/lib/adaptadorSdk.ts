@@ -19,6 +19,8 @@
 
 import type { MiembroId, ZonaFC } from "../types/models";
 import type { EjercicioItem, MedicionInput } from "../import/samsungHealth";
+import type { LiveDataPoint } from "../import/samsungLiveData";
+import type { SesionSamsung } from "./matchBiometrico";
 import { derivarZona, stripUndef } from "../import/samsungHealth";
 
 // ── La forma del crudo (verificada en el Paso 0 de PU4) ────────────────────
@@ -303,6 +305,68 @@ export interface ResultadoAdaptacion {
   medicionesDescartadas: { uid: string; motivo: string }[];
   /** Registros que no se pudieron adaptar: dataType desconocido o forma inesperada. */
   ignorados: { id: string; motivo: string }[];
+  /**
+   * Lo que el enriquecimiento biométrico necesita, con la MISMA forma que
+   * produce el ZIP (P82): así corre `calcularEnriquecimiento` sin tocarlo, y no
+   * hay un segundo camino de match que mantener.
+   */
+  sesionesSamsung: SesionSamsung[];
+  /** Curvas de FC por `uid`, que ES el `datauuid` del ZIP para el mismo hecho. */
+  liveData: Record<string, LiveDataPoint[]>;
+}
+
+/**
+ * La curva de FC de una sesión del SDK (P82).
+ *
+ * Es lo mismo que `live_data.json` transporta en el ZIP: un punto por segundo.
+ * Las entradas con `heartRate` nulo se descartan — en la sesión de referencia
+ * son 21 de 4133, y un cero ahí sería un dato inventado (ADR #034).
+ *
+ * **No se persiste** (ADR #016 y PU4): vive en memoria durante la
+ * sincronización, se usa para calcular la biometría y se descarta.
+ */
+export function curvaDeSesion(ses: SesionSdk): LiveDataPoint[] {
+  const puntos: LiveDataPoint[] = [];
+  for (const e of ses.log ?? []) {
+    const ms = e?.timestamp?.epochMs;
+    if (ms == null || e.heartRate == null || !Number.isFinite(e.heartRate)) continue;
+    puntos.push({ ms, fc: e.heartRate });
+  }
+  return puntos.sort((a, b) => a.ms - b.ms);
+}
+
+/**
+ * La sesión del SDK con la forma que espera el match biométrico (P82).
+ *
+ * `customId` sale de `customTitle`: el SDK no transporta `custom_id`, y el
+ * título cumple ese papel — la misma decisión que PU4 tomó para clasificar.
+ *
+ * `fcMedia` es `meanHeartRate` **tal cual**. Samsung la computa sobre las
+ * muestras crudas (12.839 en la sesión de referencia); recalcularla sobre el
+ * `log`, que viene agregado a 1 Hz, daría otro número y peor.
+ */
+export function sesionSamsungDe(crudo: unknown): SesionSamsung | null {
+  const c = crudo as CrudoEjercicio | null;
+  const ses = c?.fields?.sessions?.[0];
+  if (!c?.uid || !ses) return null;
+
+  const startMs = ses.startTime?.epochMs ?? c.startTime?.epochMs;
+  if (startMs == null) return null;
+  const endMs = ses.endTime?.epochMs ?? c.endTime?.epochMs
+    ?? (ses.duration?.ms != null ? startMs + ses.duration.ms : undefined);
+  if (endMs == null) return null;
+
+  return {
+    datauuid: c.uid,
+    startMs,
+    endMs,
+    ...(ses.customTitle ? { customId: ses.customTitle } : {}),
+    ...(numOpt(ses.meanHeartRate) != null ? { fcMedia: numOpt(ses.meanHeartRate) } : {}),
+    ...(numOpt(ses.maxHeartRate) != null ? { fcMax: numOpt(ses.maxHeartRate) } : {}),
+    ...(numOpt(ses.minHeartRate) != null ? { fcMin: numOpt(ses.minHeartRate) } : {}),
+    ...(numOpt(ses.calories) != null ? { kcal: numOpt(ses.calories) } : {}),
+    fecha: fechaLocal(c.startLocalDateTime, startMs),
+  };
 }
 
 /** Reparte los registros por `dataType` y adapta cada uno. No muta la entrada. */
@@ -315,10 +379,20 @@ export function adaptarRegistros(
   const crudasMediciones: MedicionSdk[] = [];
   const medicionesDescartadas: { uid: string; motivo: string }[] = [];
   const ignorados: { id: string; motivo: string }[] = [];
+  const sesionesSamsung: SesionSamsung[] = [];
+  const liveData: Record<string, LiveDataPoint[]> = {};
 
   for (const r of registros) {
     if (r.dataType === "exercise") {
       const item = adaptarEjercicio(r.crudo, miembro, zonasFC);
+      // Para el match (P82): la sesión con su forma de SesionSamsung y su curva.
+      const sam = sesionSamsungDe(r.crudo);
+      if (sam) {
+        sesionesSamsung.push(sam);
+        const ses = (r.crudo as CrudoEjercicio).fields?.sessions?.[0];
+        const curva = ses ? curvaDeSesion(ses) : [];
+        if (curva.length > 0) liveData[sam.datauuid] = curva;
+      }
       if (item) ejercicios.push(item);
       else ignorados.push({ id: r.id, motivo: "ejercicio sin sesión legible" });
     } else if (r.dataType === "body_composition") {
@@ -342,7 +416,7 @@ export function adaptarRegistros(
     medicionesDescartadas.push({ uid: d.medicion._uuid, motivo: d.motivo });
   }
 
-  return { ejercicios, mediciones: elegidas, medicionesDescartadas, ignorados };
+  return { ejercicios, mediciones: elegidas, medicionesDescartadas, ignorados, sesionesSamsung, liveData };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────

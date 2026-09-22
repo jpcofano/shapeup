@@ -126,8 +126,14 @@ export async function finalizarSesion(
     idSesion:                sesionId,
     ...(rutinaId ? { idRutina: rutinaId } : {}),
     nombreRutina,
-    ...(tipo === "libre" ? { tipo: "libre" as const } : {}),
-    ...(tipo === "juego" ? { tipo: "juego" as const } : {}),
+    // SIEMPRE se escribe, incluso "rutina" (fix, 22/09/2026). Antes solo se
+    // escribía para "libre" y "juego", y una sesión de rutina quedaba SIN el
+    // campo. En Firestore un documento sin el campo **no entra en ningún filtro
+    // sobre ese campo**, así que `where("tipo", "in", …)` la dejaba invisible
+    // para Home, la racha, la progresión y —lo que más dolió— el
+    // enriquecimiento biométrico. El backfill de P75b tapó las viejas; las que
+    // se crearon después volvieron a nacer sin él.
+    tipo:                    tipo ?? "rutina",
     ...(nombreJuego ? { nombreJuego } : {}),
     ...(completitud ? { completitud } : {}),
     idPrograma:              programaId,

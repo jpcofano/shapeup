@@ -260,8 +260,12 @@ export function Salud() {
         : `✅ Puente: ${v.registros} registros`)
       + ` · ${v.escritos.cardio} actividades guardadas`
       + `${v.escritos.mediciones > 0 ? ` · ${v.escritos.mediciones} mediciones` : ""}`
-      + `${v.enriquecen > 0 ? ` · ${v.enriquecen} enriquecen sesiones tuyas` : ""}`
-      + `${v.externas > 0 ? ` · ${v.externas} se ven en el historial` : ""}`,
+      + `${v.externas > 0 ? ` · ${v.externas} se ven en el historial` : ""}`
+      // Lo enriquecido de verdad (P82), no lo que la clasificación predijo.
+      + `${v.enriquecimiento && v.enriquecimiento.matcheadas > 0
+          ? ` · ${v.enriquecimiento.matcheadas} sesión${v.enriquecimiento.matcheadas !== 1 ? "es" : ""} con biometría`
+          : ""}`
+      + `${v.errorEnriquecimiento ? ` · ⚠ la biometría falló: ${v.errorEnriquecimiento}` : ""}`,
     );
 
     // Refrescar lo que cambió — la primera página, no la colección entera.

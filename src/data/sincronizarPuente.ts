@@ -23,6 +23,8 @@ import {
 } from "../lib/importSelectivo";
 import { TITULO_SHAPEUP, adaptarRegistros } from "../lib/adaptadorSdk";
 import { leerRegistrosSdk } from "./ingestaSdk";
+import { enriquecerTrasImport } from "./enriquecimiento";
+import type { ResultadoEnriquecimiento } from "../lib/enriquecerImport";
 import { importarCardioIdempotente, importarMedicionesIdempotente } from "./salud";
 
 export interface ResumenSincronizacion {
@@ -63,6 +65,14 @@ export interface ResumenSincronizacion {
    * error: se sube cuando haya señal (mismo criterio que P69).
    */
   enCola: boolean;
+  /**
+   * Qué enriqueció esta corrida (P82). `null` en vista previa —enriquecer
+   * escribe— y cuando el enriquecimiento falló, que no cancela la
+   * sincronización: lo que ya se escribió queda escrito.
+   */
+  enriquecimiento: ResultadoEnriquecimiento | null;
+  /** El enriquecimiento falló, con su motivo. La sincronización igual sirvió. */
+  errorEnriquecimiento: string | null;
 }
 
 export interface OpcionesSincronizacion {
@@ -120,6 +130,8 @@ export async function sincronizarDesdePuente(
     escrito: false,
     escritos: { cardio: 0, mediciones: 0 },
     enCola: false,
+    enriquecimiento: null,
+    errorEnriquecimiento: null,
   };
 
   if (opciones.soloVistaPrevia) return ok(resumen);
@@ -170,7 +182,32 @@ export async function sincronizarDesdePuente(
     }
   }
 
-  return ok({ ...resumen, escrito: true, escritos, enCola });
+  // ── Enriquecimiento biométrico (P82) ───────────────────────────────────
+  //
+  // El puente trae la curva de FC, que es lo que el ZIP transportaba en
+  // `live_data.json`. Se arma una `ZipExtraccion` con la MISMA forma y se corre
+  // `enriquecerTrasImport`, la misma función del ZIP: no hay un segundo match
+  // que mantener.
+  //
+  // `muestrasFcCrudas` va vacío a propósito: el nivel "rango" (S-match, P57)
+  // sale de `tracker.heart_rate`, que el puente no trae. Vacío significa que
+  // ese nivel no está disponible, no que no haya muestras.
+  let enriquecimiento: ResultadoEnriquecimiento | null = null;
+  let errorEnriquecimiento: string | null = null;
+  try {
+    const r = await enriquecerTrasImport(miembro, {
+      sesionesSamsung: adaptado.sesionesSamsung,
+      liveData: adaptado.liveData,
+      shapeUpCustomId: TITULO_SHAPEUP,
+      muestrasFcCrudas: [],
+    });
+    if (r.ok) enriquecimiento = r.value;
+    else errorEnriquecimiento = r.error;
+  } catch (e) {
+    errorEnriquecimiento = firebaseErrorMessage(e);
+  }
+
+  return ok({ ...resumen, escrito: true, escritos, enCola, enriquecimiento, errorEnriquecimiento });
 }
 
 /** Si el servidor no confirma en este tiempo, el paso queda "en cola" (P69). */

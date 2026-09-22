@@ -8,7 +8,6 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import type { MiembroId } from "../types/models";
-import type { ZipExtraccion } from "../import/samsungZip";
 import { calcularEnriquecimiento, type ResultadoEnriquecimiento } from "../lib/enriquecerImport";
 import { getHistorialEnLaApp, enriquecerHistorial } from "./historial";
 import { getPerfiles } from "./perfiles";
@@ -21,7 +20,10 @@ import type { Result } from "../lib/result";
  */
 export async function enriquecerTrasImport(
   miembro: MiembroId,
-  extraccion: ZipExtraccion,
+  // El mismo contrato chico que `calcularEnriquecimiento`: lo único que el
+  // match necesita. Así lo puede llamar el ZIP (que pasa una `ZipExtraccion`
+  // entera) y también el puente (P82), que arma solo estos tres campos.
+  extraccion: Parameters<typeof calcularEnriquecimiento>[1],
 ): Promise<Result<ResultadoEnriquecimiento>> {
   const [histRes, perfRes] = await Promise.all([
     getHistorialEnLaApp(miembro),

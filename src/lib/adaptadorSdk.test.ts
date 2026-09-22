@@ -1,12 +1,14 @@
 import { describe, it, expect } from "vitest";
 import {
   adaptarEjercicio, adaptarComposicion, adaptarRegistros, elegirPorPuente,
-  actividadDeTipo, TITULO_SHAPEUP, type MedicionSdk, type RegistroSdk,
+  actividadDeTipo, TITULO_SHAPEUP, curvaDeSesion, sesionSamsungDe,
+  type MedicionSdk, type RegistroSdk,
 } from "./adaptadorSdk";
 import { esAutodetectada, origenDe, clasificarImport, type ConfigClasificacion } from "./importSelectivo";
 import { idCardioDe } from "../data/salud";
 import { marcasDe } from "./actividadRelevante";
 import { parsearEjercicio } from "../import/samsungHealth";
+import { calcularEnriquecimiento } from "./enriquecerImport";
 import type { Historial } from "../types/models";
 import {
   CRUDO_SHAPEUP, CRUDO_CAMINATA, CRUDO_COMPOSICION_GARMIN,
@@ -402,5 +404,146 @@ describe("verificación cruzada ZIP ↔ SDK — misma sesión, mismo inicioMs", 
 
   it("y por lo tanto caen en el mismo documento de /cardio", () => {
     expect(idCardioDe(porZip._uuid)).toBe(idCardioDe(porSdk._uuid));
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P82 — la curva de FC entra por el puente
+//
+//  El adaptador venía tirando `SesionSdk.log`, que es lo mismo que el ZIP
+//  transporta en `live_data.json`. Sin eso, la biometría por serie dependía de
+//  exportar el ZIP a mano, que es exactamente lo que la serie H vino a sacar.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("P82 · la curva sale del crudo", () => {
+  const sesionDe = (crudo: unknown) =>
+    (crudo as { fields: { sessions: Parameters<typeof curvaDeSesion>[0][] } }).fields.sessions[0];
+
+  it("las entradas sin heartRate no son puntos: un cero sería inventado", () => {
+    // La fixture de ShapeUp tiene 3 entradas y la primera viene con `null`.
+    expect(curvaDeSesion(sesionDe(CRUDO_SHAPEUP))).toEqual([
+      { ms: 1783427671729, fc: 96 },
+      { ms: 1783427683729, fc: 101 },
+    ]);
+  });
+
+  it("los puntos salen ordenados por tiempo", () => {
+    const desordenada = {
+      log: [
+        { timestamp: { epochMs: 300 }, heartRate: 130 },
+        { timestamp: { epochMs: 100 }, heartRate: 110 },
+        { timestamp: { epochMs: 200 }, heartRate: 120 },
+      ],
+    } as unknown as Parameters<typeof curvaDeSesion>[0];
+    expect(curvaDeSesion(desordenada).map((p) => p.ms)).toEqual([100, 200, 300]);
+  });
+
+  it("sin log, curva vacía y no explota", () => {
+    expect(curvaDeSesion({ log: null } as unknown as Parameters<typeof curvaDeSesion>[0])).toEqual([]);
+  });
+});
+
+describe("P82 · la sesión con la forma del match", () => {
+  it("customTitle hace de custom_id: el SDK no transporta custom_id", () => {
+    const s = sesionSamsungDe(CRUDO_SHAPEUP)!;
+    expect(s.datauuid).toBe("078f3af5-f086-4b09-9bfd-aeac9305f6a3");
+    expect(s.startMs).toBe(1783427640729);
+    expect(s.endMs).toBe(1783430898914);
+    expect(s.customId).toBe(TITULO_SHAPEUP);
+    expect(s.fecha).toBe("2026-07-07");
+  });
+
+  it("una caminata sin customTitle no lleva customId", () => {
+    expect(sesionSamsungDe(CRUDO_CAMINATA)!.customId).toBeUndefined();
+  });
+
+  it("fcMedia es meanHeartRate tal cual, no el promedio del log", () => {
+    // El log de la fixture promedia 98,5; meanHeartRate dice 130. Samsung la
+    // computa sobre las muestras crudas, que el log —agregado a 1 Hz— no tiene.
+    const s = sesionSamsungDe(CRUDO_SHAPEUP)!;
+    expect(s.fcMedia).toBe(130);
+    const puntos = curvaDeSesion(CRUDO_SHAPEUP.fields.sessions[0]);
+    const delLog = puntos.reduce((a, p) => a + p.fc, 0) / puntos.length;
+    expect(s.fcMedia).not.toBe(delLog);
+  });
+
+  it("un crudo sin sesión no produce nada", () => {
+    expect(sesionSamsungDe({ uid: "x", fields: { sessions: [] } })).toBeNull();
+    expect(sesionSamsungDe(null)).toBeNull();
+  });
+});
+
+describe("P82 · adaptarRegistros entrega lo que el match necesita", () => {
+  const registros: RegistroSdk[] = [
+    { id: "exercise_a", dataType: "exercise", crudo: CRUDO_SHAPEUP },
+    { id: "exercise_b", dataType: "exercise", crudo: CRUDO_CAMINATA },
+  ];
+  const r = adaptarRegistros(registros, MIEMBRO);
+
+  it("las sesiones salen con la forma de SesionSamsung", () => {
+    expect(r.sesionesSamsung.map((s) => s.datauuid)).toEqual([
+      "078f3af5-f086-4b09-9bfd-aeac9305f6a3",
+      "01ff83bf-c12c-43d8-a565-cf14933422c0",
+    ]);
+  });
+
+  it("la curva se indexa por uid, que ES el datauuid del ZIP", () => {
+    expect(Object.keys(r.liveData).sort()).toEqual([
+      "01ff83bf-c12c-43d8-a565-cf14933422c0",
+      "078f3af5-f086-4b09-9bfd-aeac9305f6a3",
+    ]);
+    expect(r.liveData["078f3af5-f086-4b09-9bfd-aeac9305f6a3"]).toHaveLength(2);
+  });
+
+  it("una sesión sin ningún punto útil no ocupa lugar en liveData", () => {
+    const sinFc = JSON.parse(JSON.stringify(CRUDO_CAMINATA)) as typeof CRUDO_CAMINATA;
+    sinFc.fields.sessions[0].log = sinFc.fields.sessions[0].log.map((e) => ({ ...e, heartRate: null }));
+    const solo = adaptarRegistros([{ id: "x", dataType: "exercise", crudo: sinFc }], MIEMBRO);
+    expect(solo.liveData).toEqual({});
+    expect(solo.sesionesSamsung).toHaveLength(1);   // la sesión sigue estando
+  });
+
+  it("lo que ya devolvía no cambió", () => {
+    expect(r.ejercicios).toHaveLength(2);
+    expect(r.ignorados).toEqual([]);
+  });
+});
+
+describe("P82 · el match corre igual que con el ZIP", () => {
+  /** La sesión de la app que se jugó en la misma ventana que CRUDO_SHAPEUP. */
+  const historial = [{
+    idHist: "H-1", fechaRealizada: "2026-07-07", fechaRealizadaTimestamp: { seconds: 0, nanoseconds: 0 },
+    idSesion: "SES-1", idRutina: "RUT-0001", nombreRutina: "Fuerza A", tipo: "rutina",
+    semanaInicio: "2026-07-06", miembro: MIEMBRO,
+    duracionRealMin: 54, rpe: null, tonelajeKg: null, totalSeriesHechas: null,
+    inicioMs: 1783427640729, finMs: 1783430898914,
+    bloques: [],
+  } as unknown as Historial];
+
+  const r = adaptarRegistros(
+    [{ id: "exercise_a", dataType: "exercise", crudo: CRUDO_SHAPEUP }], MIEMBRO,
+  );
+
+  it("una sesión del puente enriquece una sesión de la app", () => {
+    const res = calcularEnriquecimiento(historial, {
+      liveData: r.liveData,
+      shapeUpCustomId: TITULO_SHAPEUP,
+      sesionesSamsung: r.sesionesSamsung,
+      muestrasFcCrudas: [],
+    });
+    expect(res.matcheadas).toBe(1);
+    expect(res.porCustomId).toBe(1);
+    expect(res.updates[0].idHist).toBe("H-1");
+    expect(res.updates[0].biometria.datauuidSamsung).toBe("078f3af5-f086-4b09-9bfd-aeac9305f6a3");
+  });
+
+  it("la biometría escrita NO lleva la curva: son puntos, no un dato a persistir", () => {
+    const res = calcularEnriquecimiento(historial, {
+      liveData: r.liveData, shapeUpCustomId: TITULO_SHAPEUP,
+      sesionesSamsung: r.sesionesSamsung, muestrasFcCrudas: [],
+    });
+    const json = JSON.stringify(res.updates[0].biometria);
+    expect(json).not.toContain("1783427671729");   // el ms del primer punto
+    expect(json).not.toContain("\"log\"");
   });
 });

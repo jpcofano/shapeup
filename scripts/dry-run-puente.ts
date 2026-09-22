@@ -22,6 +22,7 @@ import {
   type ConfigClasificacion, type CardioClasificable, type DestinoImport,
 } from "../src/lib/importSelectivo";
 import { marcasDe, actividadRelevante } from "../src/lib/actividadRelevante";
+import { calcularEnriquecimiento } from "../src/lib/enriquecerImport";
 import type { Historial, MiembroId, PerfilMiembro, OrigenExterna, MotivoIngreso } from "../src/types/models";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -85,7 +86,8 @@ async function run() {
 
   // ── Adaptar ─────────────────────────────────────────────────────────────
   const perfSnap = await db.collection("config").doc("perfiles").get();
-  const zonasFC = (perfSnap.data()?.[miembro] as PerfilMiembro | undefined)?.zonasFC;
+  const perfil = perfSnap.data()?.[miembro] as PerfilMiembro | undefined;
+  const zonasFC = perfil?.zonasFC;
   const adaptado = adaptarRegistros(registros, miembro, zonasFC);
 
   console.log(`\n  ejercicios adaptados : ${adaptado.ejercicios.length}`);
@@ -95,7 +97,7 @@ async function run() {
 
   // ── Clasificar con el pipeline del ZIP ──────────────────────────────────
   const histSnap = await db.collection("historial")
-    .where("miembro", "==", miembro).where("tipo", "in", ["rutina", "libre"]).get();
+    .where("miembro", "==", miembro).where("tipo", "in", ["rutina", "libre", "juego"]).get();
   const historial = histSnap.docs.map((d) => d.data() as Historial);
   console.log(`  historial ShapeUp    : ${historial.length} sesiones`);
 
@@ -176,6 +178,28 @@ async function run() {
   console.log("\n  -- Contra lo que ya está guardado --------------------");
   console.log(`  mediciones nuevas : ${nuevasMed} de ${adaptado.mediciones.length}`);
   console.log(`  cardio nuevo      : ${nuevasCard} de ${clasificadas.length}`);
+
+  // -- Biometria que traeria el puente (P82) -------------------------------
+  // El mismo calculo que corre la sincronizacion. Aca no escribe nada.
+  const enr = calcularEnriquecimiento(historial, {
+    sesionesSamsung: adaptado.sesionesSamsung,
+    liveData: adaptado.liveData,
+    shapeUpCustomId: TITULO_SHAPEUP,
+    muestrasFcCrudas: [],
+  }, perfil);
+
+  const conCurva = Object.keys(adaptado.liveData).length;
+  const puntos = Object.values(adaptado.liveData).reduce((a, c) => a + c.length, 0);
+  console.log("\n  -- Biometria que traeria el puente (P82) -------------");
+  console.log(`  sesiones del SDK  : ${adaptado.sesionesSamsung.length}`);
+  console.log(`  con curva de FC   : ${conCurva}  (${puntos} puntos en total)`);
+  console.log(`  enriqueceria      : ${enr.matcheadas}  (${enr.porCustomId} custom-id, ${enr.porVentana} ventana, ${enr.porDia} dia)`);
+  console.log(`  sin match         : ${enr.sinMatch}   ambiguas: ${enr.ambiguas}   ya al dia: ${enr.omitidas}`);
+  for (const u of enr.updates) {
+    const b = u.biometria;
+    console.log(`      ${u.idHist}  match=${b.matchPor} gran=${b.granularidad} fcMedia=${b.fcMedia ?? "-"} tramos=${b.tramosSamsung?.length ?? 1}`);
+  }
+  for (const a of enr.ambiguasDetalle) console.log(`      AMBIGUA ${a.idHist} ${a.fecha} "${a.nombreRutina}"`);
   console.log("");
   process.exit(0);
 }
