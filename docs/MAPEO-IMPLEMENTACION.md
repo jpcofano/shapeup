@@ -110,6 +110,9 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P79 · P79b · P79c | Progresión de VR medida (ADR #039), datos sucios (rondas válidas, doble toque), `bajar` exige dato limpio | ✅ | 2026-09-21 |
 | **P80** | **En VR se mide el tiempo, no las rondas** (ADR #040): sesión por tiempo, palancas de tiempo, `fcDudosa` de ventana | ✅ | 2026-09-21 |
 | **P81** | **Juegos que se registran pero no cuentan** (ADR #041): `esShapeUp` positiva, `seEnriquece`, sesión de juego, sección Juegos | ✅ | 2026-09-21 |
+| **P82** | **La curva de FC entra por el puente**: `adaptarRegistros` devuelve `liveData` y `sesionesSamsung`; la sincronización corre `enriquecerTrasImport` | ✅ | 2026-09-22 |
+| fix | `finalizarSesion` escribía `tipo` solo para libre/juego: una sesión de rutina quedaba sin el campo, y por lo tanto **invisible** para toda consulta con `where("tipo","in",…)` | ✅ | 2026-09-22 |
+| **P83** | **La app define cuánto dura la sesión** (ADR #042): se elimina el umbral del 80 % de solape; la duración medida pasa a la unión | ✅ | 2026-09-22 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -2149,6 +2152,34 @@ Tests de reglas: `src/__tests__/firestore.rules.test.ts` (38 tests; `npm run tes
   tipo in ["rutina","libre"], así que un juego no habría llegado nunca a la app.
   Ahora trae los tres tipos y la función se llama getHistorialEnLaApp.
   Prompt de origen: docs/prompts/81-juegos-sin-ejercicio.md.
+#042 [2026-09-22] La app define cuanto dura la sesion; el reloj aporta los datos (P83)
+  Regla del owner, y es la de P78 llevada hasta el final: "en la app el inicio y
+  el fin en general son mas amplios, y esta bien. En Health a veces sin querer
+  lo paro, o queda corriendo. El que marca de cuanto tiempo es la sesion es la
+  app, y Health aporta los datos."
+  Contexto: elegirTramosAdicionales exigia que un tramo cayera al 80 % adentro
+  de la ventana (SOLAPE_TRAMO_MIN) para sumarse a la agregacion.
+  Decision: se ELIMINA el umbral. Alcanza con que el tramo toque la ventana.
+  Por que el umbral no protegia nada: su motivo era que un workout de tres horas
+  sin cortar no entrara y arrastrara la FC de todo el rato que el reloj siguio
+  grabando. Eso ya lo resuelve construirBiometriaDeTramos aguas abajo: recorta
+  cada tramo a la ventana con interseccion antes de usarlo, toma solo las
+  muestras de adentro, prorratea las kcal por el tiempo que solapa y marca
+  kcalEstimada. El umbral no agregaba una garantia; tiraba tramos buenos.
+  Caso real que lo destapo (20/09/2026): un entrenamiento, dos marcas "ShapeUp"
+  en el reloj (19:48-20:11 y 20:12-20:25). La primera siguio grabando despues de
+  que la app corto, caia al 11 % y se perdia entera, con los 2,6 minutos de
+  curva que si estaban adentro de la ventana. La sesion pasa de tramos:1 a 2.
+  Se conserva sin tocar: el ranking por Delta-inicio del #025 elige el principal
+  (esto solo cambia que lo acompania); solo entran tramos marcados ShapeUp, del
+  pool que ya paso el techo de 30 min; sobre ventana sintetica no se agrega
+  nada; el recorte por olvido de corte (OLVIDO_CORTE_MS) sigue igual.
+  Arreglo que vino con esto: duracionMedidaMin sumaba las intersecciones de cada
+  tramo, asi que dos tramos que se pisan contaban dos veces el mismo minuto e
+  inflaban duracion y cobertura. Ahora se calcula sobre la UNION (unionMs).
+  VERSION_ENRIQUECIMIENTO sube a 5 (ADR #038).
+  Prompt de origen: P83 (conversacion, sin archivo de prompt).
+
 ```
 
 ---

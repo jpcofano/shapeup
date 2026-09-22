@@ -471,6 +471,47 @@ progresión. Ahora es `tipo === "rutina" || tipo === "libre"`: lo que cuenta se 
   `tipo in ["rutina","libre"]`, así que un juego no habría llegado nunca a la app. Ahora trae
   los tres tipos y la función se llama **`getHistorialEnLaApp`**, no `getHistorialShapeUp`.
 
+## ADR #042 — La app define cuánto dura la sesión; el reloj aporta los datos (P83, 2026-09-22)
+
+Regla dicha por el owner, y es la de P78 llevada hasta el final:
+
+> *En la app el inicio y el fin en general son más amplios, y está bien. En Health a veces sin
+> querer lo paro, o queda corriendo. El que marca de cuánto tiempo es la sesión es la app, y
+> Health aporta los datos.*
+
+`elegirTramosAdicionales` exigía que un tramo cayera al **80 %** adentro de la ventana
+(`SOLAPE_TRAMO_MIN`) para sumarse a la agregación. **Ese umbral se elimina**: ahora alcanza
+con que el tramo **toque** la ventana.
+
+**Por qué el umbral no protegía nada.** Su motivo era que un workout de tres horas sin cortar
+no entrara y arrastrara la FC de todo el rato que el reloj siguió grabando. Pero eso ya lo
+resuelve `construirBiometriaDeTramos`, aguas abajo: **recorta cada tramo a la ventana** con
+`interseccion` antes de usarlo — toma solo las muestras de adentro, prorratea las kcal por el
+tiempo que solapa y marca `kcalEstimada`. El umbral no agregaba una garantía; solo tiraba
+tramos buenos enteros en vez de recortarlos.
+
+**El caso real que lo destapó (20/09/2026).** Un entrenamiento, dos marcas "ShapeUp" en el
+reloj: `19:48→20:11` y `20:12→20:25`. La primera siguió grabando después de que la app cortó,
+así que caía al **11 %** de solape relativo y se perdía **entera** — con los 2,6 minutos de
+curva que sí estaban adentro de la ventana. Con el cambio, la sesión pasa de `tramos: 1` a
+`tramos: 2`.
+
+**Lo que se conserva sin tocar:**
+
+- El **ranking por Δinicio** del ADR #025 elige el principal. Esto solo cambia qué *acompaña*.
+- Solo entran los tramos **marcados como ShapeUp** (`customId`), y solo del pool que ya pasó
+  el techo de 30 minutos del #025.
+- Sobre una **ventana sintética** no se agrega nada: no hay contenedor en el que confiar.
+- El recorte por "olvido de corte" (`OLVIDO_CORTE_MS`) y `excedeVentana` siguen igual.
+
+**Lo que hubo que arreglar con esto**: `duracionMedidaMin` sumaba las intersecciones de cada
+tramo. Con dos tramos que se pisan, el mismo minuto contaba dos veces e inflaba la duración y
+la cobertura. Ahora se calcula sobre la **unión** (`unionMs`). Con el umbral del 80 % el caso
+era raro; sin él, dos marcas del reloj que se solapan son normal.
+
+`VERSION_ENRIQUECIMIENTO` sube a **5** (ADR #038: todo cambio de algoritmo la sube, si no el
+cambio no llega a lo ya escrito).
+
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3; progresión de cargas y costo cardíaco por rutina
 ya se implementaron como I2/I3 — ver "Serie I" arriba):

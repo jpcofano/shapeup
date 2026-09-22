@@ -12,7 +12,6 @@ import {
   MIN_MUESTRAS_SERIE,
   elegirTramosAdicionales,
   solapeRelativo,
-  SOLAPE_TRAMO_MIN,
   COBERTURA_MINIMA,
   type SesionSamsung,
 } from "./matchBiometrico";
@@ -570,21 +569,53 @@ describe("P78 · tramos", () => {
   const tramo = (uuid: string, ini: number, fin: number): SesionSamsung =>
     ({ datauuid: uuid, startMs: ini, endMs: fin, customId: "shapeup", fcMedia: 130, kcal: 100 });
 
-  it("un workout de 3 h con solape relativo 0,15 NO entra como tramo", () => {
-    const largo = tramo("largo", 0, 6 * 60 * 60_000);   // 6 h → solape 60/360 = 0,17
-    expect(solapeRelativo(largo, V)).toBeLessThan(SOLAPE_TRAMO_MIN);
-    expect(elegirTramosAdicionales(V, [largo], "principal", "shapeup")).toEqual([]);
+  // ── P83: alcanza con que toquen la ventana ──────────────────────────────
+  //
+  // Antes hacía falta el 80 % del tramo adentro. El umbral se fue porque la
+  // garantía que decía dar ya la da el recorte: la app define cuánto dura la
+  // sesión, el reloj aporta los datos.
+
+  it("un workout de 6 h que solapa la ventana entra, y se recorta", () => {
+    const largo = tramo("largo", 0, 6 * 60 * 60_000);   // solape relativo 0,17
+    expect(solapeRelativo(largo, V)).toBeCloseTo(0.17, 2);
+    expect(elegirTramosAdicionales(V, [largo], "principal", "shapeup").map((t) => t.datauuid))
+      .toEqual(["largo"]);
   });
 
-  it("0,79 no entra y 0,81 sí", () => {
-    // Un tramo de 100 min con 79 adentro, y otro de 100 con 81 adentro.
-    const casi = tramo("casi", -21 * 60_000, 79 * 60_000);
-    const justo = tramo("justo", -19 * 60_000, 81 * 60_000);
-    expect(solapeRelativo(casi, V)).toBeCloseTo(0.60, 2);   // recortado por el fin de la ventana
+  it("uno que no toca la ventana sigue afuera", () => {
+    const antes   = tramo("antes",   -120 * 60_000, -61 * 60_000);
+    const despues = tramo("despues",  61 * 60_000,  120 * 60_000);
+    expect(elegirTramosAdicionales(V, [antes, despues], "p", "shapeup")).toEqual([]);
+  });
+
+  it("el caso real del 20/09: el tramo que solapa 11 % ahora aporta", () => {
+    // El reloj marcó ShapeUp dos veces; la primera siguió grabando después de
+    // que la app cortó, y caía al 11 %. Se perdía entera, con los minutos de
+    // curva que sí estaban adentro de la ventana.
+    const cola = tramo("cola", -21 * 60_000, 3 * 60_000);
+    expect(solapeRelativo(cola, V)).toBeCloseTo(0.125, 2);
+    expect(elegirTramosAdicionales(V, [cola], "p", "shapeup").map((t) => t.datauuid))
+      .toEqual(["cola"]);
+  });
+
+  it("los que no están marcados como ShapeUp siguen sin entrar", () => {
+    const ajeno = { ...tramo("ajeno", 5 * 60_000, 55 * 60_000), customId: "otra-cosa" };
+    expect(elegirTramosAdicionales(V, [ajeno], "p", "shapeup")).toEqual([]);
+  });
+
+  it("sobre una ventana sintética no se agrega nada", () => {
+    const sint = { ...V, sintetica: true };
     const dentro = tramo("dentro", 5 * 60_000, 55 * 60_000);
-    expect(solapeRelativo(dentro, V)).toBe(1);
-    expect(elegirTramosAdicionales(V, [dentro], "p", "shapeup").map((t) => t.datauuid)).toEqual(["dentro"]);
-    expect(elegirTramosAdicionales(V, [justo], "p", "shapeup")).toEqual([]);
+    expect(elegirTramosAdicionales(sint, [dentro], "p", "shapeup")).toEqual([]);
+  });
+
+  it("dos tramos que se pisan no cuentan dos veces el mismo minuto", () => {
+    // 0→30 y 20→50: la unión son 50 min, no 60. Sumar inflaría la duración
+    // medida y la cobertura, que es justo lo que el umbral tapaba antes.
+    const a = tramo("a", 0, 30 * 60_000);
+    const b = tramo("b", 20 * 60_000, 50 * 60_000);
+    const bio = construirBiometriaDeTramos([{ sesion: a }, { sesion: b }], "custom-id", V);
+    expect(bio.duracionMedidaMin).toBe(50);
   });
 
   it("dos workouts contenidos → kcal sumadas, duración medida sin el hueco, FC máx global", () => {

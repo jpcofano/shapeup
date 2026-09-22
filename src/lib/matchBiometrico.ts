@@ -362,11 +362,9 @@ export function construirBiometriaSesion(
  *   2 — P78: recorte por ventana, tramos, cobertura, kcal prorrateadas
  *   3 — P79: FC media y detección de artefactos por serie
  *   4 — P80: artefactos también sobre la ventana entera (VR de corrido)
+ *   5 — P83: todo tramo marcado ShapeUp aporta, recortado a la ventana
  */
-export const VERSION_ENRIQUECIMIENTO = 4;
-
-/** Solape mínimo de un tramo **relativo al tramo** para entrar en la agregación. */
-export const SOLAPE_TRAMO_MIN = 0.80;
+export const VERSION_ENRIQUECIMIENTO = 5;
 
 // ── Calidad de la FC por serie (P79, §9.3) ─────────────────────────────────
 
@@ -429,7 +427,24 @@ export function solapeRelativo(tramo: SesionSamsung, ventana: SesionApp): number
  * De las candidatas sobrantes, las que son tramos de la misma sesión.
  *
  * El principal ya fue elegido por `elegirSesionSamsung`; estas son las demás
- * del pool custom-id que caen casi enteras adentro de la ventana.
+ * del pool custom-id que **tocan** la ventana.
+ *
+ * **Alcanza con que toquen** (ADR #042, P83). Antes se exigía que cayeran al
+ * 80 % adentro, para que un workout de tres horas sin cortar no entrara y
+ * arrastrara la FC de todo el rato que siguió grabando. Pero ese miedo ya está
+ * resuelto aguas abajo: `construirBiometriaDeTramos` **recorta cada tramo a la
+ * ventana** antes de usarlo — solo toma las muestras de adentro, prorratea las
+ * kcal por el tiempo que solapa y lo marca `kcalEstimada`. El umbral no
+ * agregaba una garantía; solo tiraba tramos buenos.
+ *
+ * El caso real que lo destapó (20/09/2026): dos sesiones marcadas "ShapeUp" en
+ * el reloj para un mismo entrenamiento, y la primera —que el reloj siguió
+ * grabando después de que la app cortó— caía al 11 % y se perdía entera, con
+ * los 2,6 minutos de curva que sí estaban adentro de la ventana.
+ *
+ * La regla que gobierna esto es la de P78, dicha por el owner: **la app define
+ * cuánto dura la sesión; el reloj aporta los datos.** A veces el reloj se para
+ * sin querer o queda corriendo, y por eso no puede definir el contenedor.
  */
 export function elegirTramosAdicionales(
   ventana: SesionApp,
@@ -441,7 +456,7 @@ export function elegirTramosAdicionales(
   return candidatas
     .filter((c) => c.datauuid !== principalUuid)
     .filter((c) => shapeUpCustomId == null || c.customId === shapeUpCustomId)
-    .filter((c) => solapeRelativo(c, ventana) >= SOLAPE_TRAMO_MIN)
+    .filter((c) => interseccion(ventana.inicioMs, ventana.finMs, c.startMs, c.endMs).ms > 0)
     .sort((a, b) => a.startMs - b.startMs);
 }
 
@@ -451,6 +466,21 @@ interface Segmento {
   finMs: number;
   fcs: number[];
   fina: boolean;
+}
+
+/** Milisegundos cubiertos por la unión de los intervalos, sin contar dos veces. */
+function unionMs(intervalos: { inicioMs: number; finMs: number }[]): number {
+  const ordenados = [...intervalos].sort((a, b) => a.inicioMs - b.inicioMs);
+  let total = 0;
+  let cursor = -Infinity;
+  for (const i of ordenados) {
+    const desde = Math.max(i.inicioMs, cursor);
+    if (i.finMs > desde) {
+      total += i.finMs - desde;
+      cursor = i.finMs;
+    }
+  }
+  return total;
 }
 
 /** Los huecos de `ventana` que ningún tramo cubre, ordenados. */
@@ -544,7 +574,6 @@ export function construirBiometriaDeTramos(
     if (recortado) algunRecorte = true;
     if (sesion.endMs - ventanaApp.finMs > OLVIDO_CORTE_MS) excedeVentana = true;
 
-    msMedidos += inter.ms;
     cubiertos.push({ inicioMs: inter.inicioMs, finMs: inter.finMs });
 
     // kcal: prorrateadas por tiempo, y marcadas si hubo recorte. **Siempre**,
@@ -579,6 +608,12 @@ export function construirBiometriaDeTramos(
       if (sesion.fcMin != null) fcMinFila.push(sesion.fcMin);
     }
   }
+
+  // Minutos medidos: la UNIÓN de lo cubierto, no la suma (P83). Sumando, dos
+  // tramos que se pisan contarían dos veces el mismo minuto e inflarían la
+  // duración y la cobertura. Con el umbral del 80 % esto casi no pasaba; sin
+  // él, dos marcas del reloj que se solapan son un caso normal.
+  msMedidos = unionMs(cubiertos);
 
   // Los huecos de la ventana se completan con las muestras crudas que caigan ahí.
   const huecos = huecosDe(ventanaApp, cubiertos);
