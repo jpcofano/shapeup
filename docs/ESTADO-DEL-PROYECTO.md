@@ -39,8 +39,8 @@ forma de trabajo de "Comida Familiar".
   `juego`, así que una sesión de rutina quedaba **sin el campo** y, en Firestore, fuera de
   todo `where("tipo","in",…)`: invisible para Home, la racha, la progresión y el
   enriquecimiento. Dos sesiones de VR estaban así. Corregido y backfilleado.
-- **Tests: 1163 verdes, 82 skipped** (`firestore.rules.test.ts` requiere emulador: sin Java
-  en la máquina de trabajo, se permite el skip). `tsc -b` limpio, `npm run build` OK.
+- **Tests: 1177 verdes + 82 de reglas verdes con el emulador** (P84, 25/09; sin emulador
+  `firestore.rules.test.ts` se permite en skip). `tsc -b` limpio, `npm run build` OK.
 - **Deployado y pusheado al 24/09**: hosting en https://shapeup-41e74.web.app, `main` en
   `23a62e0`.
 
@@ -153,43 +153,39 @@ forma de trabajo de "Comida Familiar".
 
 ## Puesta a punto de una MÁQUINA NUEVA (25/09/2026)
 
-El repo no alcanza: cinco cosas quedan afuera de git a propósito y hay que reponerlas a mano.
+**El proyecto vive adentro de OneDrive** (`C:\Users\juany\OneDrive\Documentos\AppsScript\`),
+así que **casi todo viaja solo**: el repo, el `.git` (commits sin pushear incluidos), los
+archivos que git ignora a propósito —`scripts/service-account.json`, `.env.local`,
+`scripts/data/familia.local.json`, `docs/auditorias/`— y hasta `node_modules`. No hay nada
+que copiar a mano.
 
-**1. Lo que NO viaja con el repo** (está en `.gitignore`, hay que copiarlo de la máquina
-vieja o regenerarlo):
+**Lo único que NO viaja**, porque vive fuera de la carpeta de OneDrive:
 
-| Archivo | Qué es | Cómo se repone |
+| Qué | Dónde vive | Cómo se repone |
 |---|---|---|
-| `scripts/service-account.json` | Credencial admin de Firebase. **Sin esto no corre ningún script de `scripts/`.** | Copiar de la máquina vieja, o bajar una clave nueva de Consola Firebase → Configuración → Cuentas de servicio |
-| `.env.local` | Config web de Firebase | Copiar. `.env.example` tiene la forma |
-| `scripts/data/familia.local.json` | Mails reales de la familia (menores) | Copiar. `familia.example.json` tiene la forma |
-| `docs/auditorias/` | **Todos los reportes, incluido `ultimochat.md`** | Copiar la carpeta entera si querés conservar el historial de reportes |
-| `node_modules/` | — | `npm install` |
+| Sesión de la CLI de Firebase | `~/.config/configstore/firebase-tools.json` | `npx firebase login` |
+| Credenciales de `gcloud` (si hacen falta) | `%APPDATA%\gcloud` | `gcloud auth login` |
+| Java, Node | instalación del sistema | ver abajo |
 
-**2. Instalar y loguear**
-
-```bash
-npm install
-npx firebase login          # la CLI necesita su propia sesión
-```
-
-**3. Trampas de esta máquina, que pueden no repetirse en la nueva**
+**Trampas de la máquina actual, que pueden no repetirse en la nueva**
 
 - **`npx vitest run` necesita `--pool=threads`.** Con el pool por defecto (`forks`) la suite
-  se cuelga. Si en la máquina nueva anda sin el flag, mejor — probalo primero.
+  se cuelga. Probá sin el flag primero: si anda, mejor.
 - **No hay Java**, así que `npm run test:rules` (emulador de Firestore) no corre y
   `firestore.rules.test.ts` falla siempre. CLAUDE.md permite el skip. **Si la máquina nueva
-  tiene Java, corré `npm run test:rules` una vez**: hace años que esas reglas no se prueban.
+  tiene Java, corré `npm run test:rules` una vez**: hace mucho que esas reglas no se prueban.
+- `node_modules` viaja por OneDrive, pero trae binarios compilados. Si algo raro falla al
+  construir, `npm install` de nuevo y listo.
 - Los heredocs de bash con contenido largo fallan seguido en esta consola; escribir archivos
   con la herramienta de escritura o con un script de Python es más confiable.
 
-**4. Verificación de que quedó bien**
+**Verificación de que quedó bien**
 
 ```bash
 npx tsc -b                              # limpio
 npx vitest run --pool=threads           # 1163 verdes, 82 skipped, solo falla rules
 npm run build                           # OK
-npx tsx scripts/dry-run-puente.ts       # prueba que la credencial admin funciona
+npx tsx scripts/dry-run-puente.ts       # prueba credencial admin + red + producción
 ```
 
 El último es el mejor semáforo: si imprime las sesiones del SDK y lo que enriquecería, la

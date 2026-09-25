@@ -236,8 +236,11 @@ puntos)**, enriquecería **7 de las 8 sesiones del historial con `granularidad: 
 
 **Lo que la vía D todavía NO hace:**
 
-1. **No sincroniza sola.** Está declarado fuera de alcance en PU4: hoy es un botón en
-   /salud, con vista previa y confirmación. **Es el pendiente #1 de la serie H.**
+1. ~~No sincroniza sola.~~ **Resuelto en P85 (25/09/2026):** `useSincronizacionAutomatica`
+   en `AppShell` sincroniza una vez por carga si `/estado/puente.ultimaCorridaMs` avanzó y
+   pasaron 6 h (`lib/sincronizacionAutomatica.debeSincronizar`, marcas en `localStorage`
+   por uid). Caso normal: **una** lectura. Chip en Home; el botón de /salud queda para la
+   vista previa. **Sigue sin correr con la app cerrada** (eso es "PWA completa").
 2. **No enlaza ni convierte entradas externas** (bloque 5 del roadmap, P76).
 3. **No cubre el nivel `"rango"` del match**: sale de `tracker.heart_rate`, que el puente no
    trae. Con la curva fina andando, importa poco.
