@@ -225,17 +225,22 @@ Lo que hay en el repo: `data/ingestaSdk.ts` (lee y rearma las partes),
 `components/salud/PuentePanel.tsx` (estado del puente + vista previa),
 `scripts/dry-run-puente.ts`. Reglas en `firestore.rules` líneas 88 y 114.
 
-**Lo que la vía D todavía NO hace, y es lo que falta para cerrar el objetivo:**
+**✅ La curva de FC ya entra por el puente (P82, 22/09/2026).** Era el hueco que faltaba y
+está cerrado: `adaptarRegistros` devuelve `liveData` y `sesionesSamsung` con la misma forma
+que produce el ZIP, y `sincronizarDesdePuente` corre `enriquecerTrasImport` — **la misma
+función del ZIP**, sin un segundo camino de match. La curva sigue **sin persistirse**
+(ADR #016): vive en memoria durante la sincronización y se descarta.
 
-1. **No enriquece la biometría por serie.** `sincronizarDesdePuente` escribe `/cardio` y
-   `/mediciones`, y nunca llama a `enriquecerTrasImport` — que hoy solo corre en el camino
-   del ZIP (`Salud.tsx`). El crudo del puente **sí trae la curva** (`SesionSdk.log`), pero
-   `adaptadorSdk` la descarta a propósito (PU4: "la curva completa no se persiste", solo
-   cuenta `_muestrasCurva`). **Conclusión: la FC por serie, `recuperacionBpm` y
-   `granularidad: "serie"` siguen entrando únicamente por el ZIP a mano.**
-2. **No sincroniza sola.** Está declarado fuera de alcance en PU4: hoy es un botón en
-   /salud, con vista previa y confirmación.
-3. **No enlaza ni convierte entradas externas** (bloque 5 del roadmap, P76).
+Medido en seco sobre los datos reales el 22/09: 87 sesiones del SDK, **84 con curva (83.816
+puntos)**, enriquecería **7 de las 8 sesiones del historial con `granularidad: "serie"`**.
+
+**Lo que la vía D todavía NO hace:**
+
+1. **No sincroniza sola.** Está declarado fuera de alcance en PU4: hoy es un botón en
+   /salud, con vista previa y confirmación. **Es el pendiente #1 de la serie H.**
+2. **No enlaza ni convierte entradas externas** (bloque 5 del roadmap, P76).
+3. **No cubre el nivel `"rango"` del match**: sale de `tracker.heart_rate`, que el puente no
+   trae. Con la curva fina andando, importa poco.
 
 ### Qué cambió respecto del plan de P61
 
@@ -280,10 +285,10 @@ Samsung Health** con el Data SDK (`ExerciseSession.log`) y trae la curva complet
 **La vía A no se retira.** Es la única automática hoy (cardio, pasos, sueño, FC pasiva); la
 D la complementa en el hueco que A no cubre. **Health Sync sigue siendo necesario** aunque
 se adopte la D: es el puente que mete la medición de la balanza en Samsung Health (§15.9).
-⚠ **Corregido (21/09/2026):** esta sección decía "mientras la D no se construya". La D **ya
-está construida** (PU1–PU4, ver el estado real arriba). Lo que sigue siendo cierto es más
-chico y más preciso: **la única vía implementada de la CURVA de FC sigue siendo el ZIP**,
-porque el adaptador del puente no la persiste ni dispara el enriquecimiento.
+⚠ **Corregido dos veces.** El 21/09 decía "mientras la D no se construya": la D ya estaba
+construida (PU1–PU4). El 22/09 decía que la curva entraba solo por el ZIP: **P82 lo cerró**.
+Hoy la vía D trae la curva y dispara el enriquecimiento. El import por ZIP queda como
+respaldo y para la historia previa, no como la única vía.
 
 Riesgos de la vía A que siguen abiertos: con la app OAuth en **Testing**, Google revoca los
 refresh tokens **a los 7 días**; y leer archivos de otra app requiere `drive.readonly`,

@@ -21,7 +21,7 @@ forma de trabajo de "Comida Familiar".
 - federico (16) → PRG-0010 (rugby, prevención).
 - sofia (17) → PRG-0011 (fútbol, prevención).
 
-## Estado funcional (al 2026-09-21)
+## Estado funcional (al 2026-09-25)
 - E0–E6 + fix multiusuario (ADR #014) + importador de salud + ingesta completa de métricas (P22).
 - Match biométrico (P23) y importador zip-first (P24): `inicioMs/finMs` en `SerieRegistro`,
   pipeline `matchBiometrico.ts` completo.
@@ -32,8 +32,17 @@ forma de trabajo de "Comida Familiar".
   sustitución de ejercicio (P73), aislamiento por tipo e ingesta en tres destinos (P74–P75c),
   adherencia derivada (P77a/b, ADR #037), la ventana de la app manda (P78), progresión de VR
   (P79, ADR #039), VR por tiempo (P80, ADR #040) y juegos que no cuentan (P81, ADR #041).
-- **Tests: 1138 verdes, 82 skipped** (`firestore.rules.test.ts` requiere emulador: sin Java
+- **✅ La curva de FC entra por el puente (P82, 22/09)** — la serie H cumple su objetivo: la
+  biometría por serie ya no depende de exportar el ZIP a mano. Y **P83 (ADR #042)**: todo
+  tramo marcado ShapeUp aporta, recortado a la ventana.
+- **Fix del 22/09 que vale recordar:** `finalizarSesion` escribía `tipo` solo para `libre` y
+  `juego`, así que una sesión de rutina quedaba **sin el campo** y, en Firestore, fuera de
+  todo `where("tipo","in",…)`: invisible para Home, la racha, la progresión y el
+  enriquecimiento. Dos sesiones de VR estaban así. Corregido y backfilleado.
+- **Tests: 1163 verdes, 82 skipped** (`firestore.rules.test.ts` requiere emulador: sin Java
   en la máquina de trabajo, se permite el skip). `tsc -b` limpio, `npm run build` OK.
+- **Deployado y pusheado al 24/09**: hosting en https://shapeup-41e74.web.app, `main` en
+  `23a62e0`.
 
 ## Datos sembrados
 - Ejercicios: `EJ-0001+` (873 FEDB) · `EJ-8001..8034` (34 propios) · `EJ-9001..9010` (10 VR).
@@ -60,14 +69,39 @@ forma de trabajo de "Comida Familiar".
 - `88prima-poc-data-sdk.md` — PoC de la vía D, escrito; H2 ya cumplió su criterio de éxito.
 - `BRIEF-para-design.md` — brief de diseño.
 
-## Pendientes (orden sugerido, al 2026-09-21)
-1. **Cerrar la serie H**: que la curva de FC entre por el puente. Hoy el crudo la trae pero el
-   adaptador no la persiste ni dispara el enriquecimiento, así que la FC por serie sigue
-   entrando solo por el ZIP a mano. Es lo único que separa a la serie H de su objetivo.
-2. **Sincronización automática del puente** (fuera de alcance de PU4): hoy es un botón.
+## Pendientes (orden sugerido, al 2026-09-25)
+
+**Lo primero, y no es código:**
+
+0. **Abrir /salud y apretar "Sincronizar ahora"** (tarjeta "Puente Samsung"), mirar la vista
+   previa y confirmar. Entra la biometría de 7 sesiones con curva fina y lo que el puente
+   juntó desde el 18/09. **Ya no hace falta ningún ZIP.** Nada de lo de abajo se valida bien
+   hasta que esto corra una vez.
+1. **Usar la app dos o tres días.** P80 (VR por tiempo) y P81 (sesiones de juego) **no tienen
+   un solo dato real adentro**: hace falta una sesión de VR jugada de corrido y una sesión de
+   juego con el workout "Shape up" arrancado en el reloj. Construir encima antes de eso es
+   ir a ciegas.
+
+**Después, por orden:**
+
+2. **Sincronización automática del puente** — hoy es un botón. Estaba fuera de alcance de PU4
+   y es el pendiente real de la serie H.
 3. **Enlazar y convertir entradas externas** — bloque 5 del roadmap, P76.
 4. **PRs y logros** + **panel familiar de adherencia** (corto plazo del roadmap de CLAUDE.md).
 5. **PWA completa** — offline con cola de escrituras + notificaciones.
+
+**Decisiones abiertas del owner** (no arrancar sin respuesta):
+
+- **La ventana de las sesiones viejas de VR es corta.** Las anteriores a P80 miden entre 10 y
+  24 minutos menos que `duracionRealMin`, porque salía de las rondas marcadas. P83 aprovecha
+  mejor lo que hay adentro pero no recupera lo que quedó afuera. ¿Se reescriben las
+  históricas tomando `duracionRealMin` como ventana? Es un script, y es decisión suya.
+- **Sesiones anteriores a P80 sin `modo` ni `duracionObjetivoMin` sellados.** Hoy se heredan
+  al leer (`conObjetivo`); nada se reescribió en Firestore.
+
+**Suelto, de la corrida nocturna:** `scripts/corregir-mecanica.ts` y
+`scripts/serie-adherencia.ts` están escritos y **nunca se corrieron**, y no tienen alias en
+`package.json`.
 
 ## Futuro / ideas registradas
 - **Sync de salud automático — serie H** (plan en `CLAUDE.md`, taxonomía en ADR #032, auditoría
@@ -112,5 +146,51 @@ forma de trabajo de "Comida Familiar".
   preguntas distintas.
 
 ## Cómo retomar
+
 - Mismo Proyecto (memoria + repo sincronizado). Sincronizá el repo o adjuntá este archivo + `docs/`.
-- Primer mensaje sugerido: *"Seguimos con ShapeUp (mirá ESTADO-DEL-PROYECTO). Próximo: [Design / aplicar P23-P24 / PWA]."*
+- Primer mensaje sugerido: *"Seguimos con ShapeUp. Leé CLAUDE.md y
+  docs/ESTADO-DEL-PROYECTO.md. Lo próximo es [sincronizar el puente / el pendiente que sea]."*
+
+## Puesta a punto de una MÁQUINA NUEVA (25/09/2026)
+
+El repo no alcanza: cinco cosas quedan afuera de git a propósito y hay que reponerlas a mano.
+
+**1. Lo que NO viaja con el repo** (está en `.gitignore`, hay que copiarlo de la máquina
+vieja o regenerarlo):
+
+| Archivo | Qué es | Cómo se repone |
+|---|---|---|
+| `scripts/service-account.json` | Credencial admin de Firebase. **Sin esto no corre ningún script de `scripts/`.** | Copiar de la máquina vieja, o bajar una clave nueva de Consola Firebase → Configuración → Cuentas de servicio |
+| `.env.local` | Config web de Firebase | Copiar. `.env.example` tiene la forma |
+| `scripts/data/familia.local.json` | Mails reales de la familia (menores) | Copiar. `familia.example.json` tiene la forma |
+| `docs/auditorias/` | **Todos los reportes, incluido `ultimochat.md`** | Copiar la carpeta entera si querés conservar el historial de reportes |
+| `node_modules/` | — | `npm install` |
+
+**2. Instalar y loguear**
+
+```bash
+npm install
+npx firebase login          # la CLI necesita su propia sesión
+```
+
+**3. Trampas de esta máquina, que pueden no repetirse en la nueva**
+
+- **`npx vitest run` necesita `--pool=threads`.** Con el pool por defecto (`forks`) la suite
+  se cuelga. Si en la máquina nueva anda sin el flag, mejor — probalo primero.
+- **No hay Java**, así que `npm run test:rules` (emulador de Firestore) no corre y
+  `firestore.rules.test.ts` falla siempre. CLAUDE.md permite el skip. **Si la máquina nueva
+  tiene Java, corré `npm run test:rules` una vez**: hace años que esas reglas no se prueban.
+- Los heredocs de bash con contenido largo fallan seguido en esta consola; escribir archivos
+  con la herramienta de escritura o con un script de Python es más confiable.
+
+**4. Verificación de que quedó bien**
+
+```bash
+npx tsc -b                              # limpio
+npx vitest run --pool=threads           # 1163 verdes, 82 skipped, solo falla rules
+npm run build                           # OK
+npx tsx scripts/dry-run-puente.ts       # prueba que la credencial admin funciona
+```
+
+El último es el mejor semáforo: si imprime las sesiones del SDK y lo que enriquecería, la
+credencial, la red y el acceso a producción están bien.
