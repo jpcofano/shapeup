@@ -6,7 +6,16 @@
 //  registros partidos y se parsea el JSON; traducir es trabajo de
 //  `lib/adaptadorSdk.ts`, que es puro.
 //
-//  Son pocos documentos: el puente lee una ventana de 14 días.
+//  El puente lee una ventana de 14 días, pero **lo que sube no se borra**: la
+//  subcolección crece con cada actividad, para siempre.
+//
+//  ⚠ Paginación pendiente (P85). `leerRegistrosSdk` trae la subcolección
+//  ENTERA. Al 25/09/2026 eran **130 documentos** en
+//  /ingesta-sdk/{uid}/registros (el de juanpablo). Con la sincronización
+//  automática esto corre solo cuando `/estado/puente.ultimaCorridaMs` avanzó
+//  y pasaron 6 h (`lib/sincronizacionAutomatica`), así que sigue siendo barato.
+//  Si el número crece un orden de magnitud, **ahí** se pagina — o se filtra por
+//  fecha, si el puente empieza a escribir una.
 // ════════════════════════════════════════════════════════════════════════════
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "../firebase";

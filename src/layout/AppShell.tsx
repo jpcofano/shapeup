@@ -3,6 +3,7 @@ import { Home, Library, Heart, Zap, History, User, Sun, Moon } from "lucide-reac
 import { useAuth } from "../auth/useAuth";
 import { getHomeLayout } from "../lib/homeLayout";
 import { useTheme } from "../contexts/ThemeProvider";
+import { useSincronizacionAutomatica } from "../hooks/useSincronizacionAutomatica";
 
 const NAV = [
   { to: "/",           label: "Inicio",    Icon: Home,    end: true  },
@@ -40,7 +41,9 @@ function ModoToggle() {
 
 /** Shell principal: área de contenido + navegación inferior fija. */
 export function AppShell() {
-  const { memberId } = useAuth();
+  const { user, memberId } = useAuth();
+  // El puente entra solo (P85): una vez por carga, acá y en ningún otro lado.
+  useSincronizacionAutomatica(user?.uid, memberId);
   const layout = memberId ? getHomeLayout(memberId) : "aurora";
   const redux = layout === "pulse" || layout === "premium";
   const { tema, modoEfectivo } = useTheme();

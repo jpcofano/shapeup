@@ -247,7 +247,7 @@ export function topeInicioSiguiente(finVentanaAppMs: number, finDatosDisponibles
  * Bandas estándar de %FCmáx (fallback cuando no hay `zonasFC` configuradas a
  * medida): Z1 50-60%, Z2 60-70%, Z3 70-80%, Z4 80-90%, Z5 90-100%.
  */
-const BANDAS_PCT_FC_MAX: Record<ZonaFC, { min: number; max: number }> = {
+export const BANDAS_PCT_FC_MAX: Record<ZonaFC, { min: number; max: number }> = {
   Z1: { min: 0.50, max: 0.60 },
   Z2: { min: 0.60, max: 0.70 },
   Z3: { min: 0.70, max: 0.80 },

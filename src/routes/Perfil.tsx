@@ -10,6 +10,10 @@ import { useTheme, type ThemeName, type Modo } from "../contexts/ThemeProvider";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { MIEMBRO_IDS, type MiembroId, type PerfilMiembro } from "../types/models";
 import { EditorPerfil } from "../components/perfil/EditorPerfil";
+import { ConfigVisibilidad } from "../components/perfil/ConfigVisibilidad";
+import { ConfigJuegos } from "../components/perfil/ConfigJuegos";
+import { ConfigImport } from "../components/perfil/ConfigImport";
+import { esOwner } from "../data/visibilidad";
 import { metaSemanal } from "../lib/adherencia";
 import { getHomeLayout, setHomeLayout, type HomeLayout } from "../lib/homeLayout";
 
@@ -92,6 +96,13 @@ export function Perfil() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Configuración (P86): todo lo configurable vive de acá para abajo ── */}
+      {memberId && (
+        <h2 id="configuracion" className="section-title" style={{ margin: "8px 0 0", fontSize: 15 }}>
+          Configuración
+        </h2>
       )}
 
       {/* ── Entrenamiento: lugar habitual, equipo por lugar, objetivos (P72) ─ *
@@ -230,6 +241,22 @@ export function Perfil() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* ── Configuración de la familia (P86, solo owner) ───────────────── *
+         Lo que antes solo se cambiaba desde la consola de Firebase, más la   *
+         lista de juegos que se editaba adentro de la sesión de juego.        *
+         Las reglas ya reservan estas escrituras al owner (menos import).     */}
+      {esOwner(memberId as MiembroId | null) && (
+        <div id="config-familia" className="card" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div>
+            <p className="section-title" style={{ margin: "0 0 2px" }}>Familia y datos</p>
+            <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Vale para todos. Solo lo ves vos.</p>
+          </div>
+          <ConfigVisibilidad />
+          <ConfigJuegos />
+          <ConfigImport />
         </div>
       )}
 

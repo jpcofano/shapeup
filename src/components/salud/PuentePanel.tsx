@@ -27,17 +27,19 @@ function fechaHora(ms: number): string {
 
 /**
  * Tarjeta "Puente Samsung" (PU4): cuándo corrió por última vez y qué traería.
- * Sin sincronización automática todavía — primero hay que ver que los números
- * den bien.
+ * Desde P85 la sincronización corre sola al abrir la app; el botón queda para
+ * cuando uno quiere mirar la vista previa.
  */
 export function PuentePanel({
-  estado, ahora, sincronizando, onSincronizar, error,
+  estado, ahora, sincronizando, onSincronizar, error, ultimaAutoMs,
 }: {
   estado: EstadoPuente | null;
   ahora: number;
   sincronizando: boolean;
   onSincronizar: () => void;
   error?: string | null;
+  /** Última sincronización automática en esta máquina (P85). */
+  ultimaAutoMs?: number | null;
 }) {
   const ultima = estado?.ultimaCorridaMs;
   const frenado = ultima != null && ahora - ultima > HORAS_SIN_CORRER_AVISO * 3_600_000;
@@ -50,6 +52,11 @@ export function PuentePanel({
           {ultima != null
             ? <>Última corrida: <strong style={{ color: "var(--fg)" }}>{fechaHora(ultima)}</strong> · {hace(ultima, ahora)}</>
             : "El puente todavía no corrió en este teléfono."}
+        </p>
+        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
+          {ultimaAutoMs != null
+            ? <>Sincronización automática: {fechaHora(ultimaAutoMs)} · {hace(ultimaAutoMs, ahora)}</>
+            : "Sincronización automática: todavía no corrió en este dispositivo."}
         </p>
       </div>
 

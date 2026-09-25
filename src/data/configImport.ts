@@ -4,8 +4,8 @@
 // y en ese caso se usan los defaults que viven en lib/importSelectivo.ts. Por eso
 // esta función no devuelve error por documento ausente — solo por fallo de red.
 //
-// Sin UI de edición: por ahora se cambia desde la consola de Firebase.
-import { doc, getDoc } from "firebase/firestore";
+// Se edita desde Perfil → Configuración (P86); antes, solo desde la consola.
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
@@ -53,6 +53,22 @@ export async function getConfigImport(): Promise<Result<ConfigImport>> {
     const snap = await getDoc(doc(db, "config", "import"));
     _cache = normalizar(snap.exists() ? (snap.data() as Record<string, unknown>) : undefined);
     return ok(_cache);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/**
+ * Guarda los parámetros del import (P86: antes solo se cambiaban desde la
+ * consola). Escribe el documento entero con los dos campos ya normalizados;
+ * la caché queda con lo escrito.
+ */
+export async function setConfigImport(cfg: ConfigImport): Promise<Result<ConfigImport>> {
+  const limpio = normalizar(cfg as unknown as Record<string, unknown>);
+  try {
+    await setDoc(doc(db, "config", "import"), limpio, { merge: true });
+    _cache = limpio;
+    return ok(limpio);
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }

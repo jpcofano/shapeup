@@ -60,8 +60,8 @@ service cloud.firestore {
     // Perfiles: cada miembro edita el suyo (equipo disponible, objetivos, zonas FC, color).
     match /config/perfiles { allow read, write: if isFamilyMember(); }
     // Parámetros del import de salud (umbral de duración, actividades) — P75.
-    // Se lee como el resto de /config y se escribe como /config/perfiles: no hay
-    // UI, se toca desde la consola, y no vale la pena reservarlo al owner.
+    // Se lee como el resto de /config y se escribe como /config/perfiles. Se edita
+    // en Perfil → Configuración (P86), y no vale la pena reservarlo al owner.
     match /config/import { allow read, write: if isFamilyMember(); }
     // Programa activo por miembro: cada miembro puede activar su propio programa.
     match /config/programaActivo { allow read, write: if isFamilyMember(); }

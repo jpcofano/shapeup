@@ -537,6 +537,14 @@
   border-color: rgba(248,113,113,0.25);
   color: var(--danger);
 }
+/* Sincronización automática del puente (P85): neutro, sin dramatismo. */
+.sync-chip .pendientes-chip-boton {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--muted);
+  font-weight: 500;
+}
+.sync-chip.ok .pendientes-chip-boton { color: var(--accent); }
 .pendientes-detalle {
   margin: 0;
   padding: 8px 12px;

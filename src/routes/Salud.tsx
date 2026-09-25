@@ -35,6 +35,9 @@ import { correrPaso, resumirPasos } from "../lib/pasoImport";
 import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
 import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
 import { PuentePanel, PuentePreview } from "../components/salud/PuentePanel";
+import {
+  anotarSincronizacionManual, ultimaSincronizacionAutomatica, useEstadoSincronizacion,
+} from "../hooks/useSincronizacionAutomatica";
 import { useAuth } from "../auth/useAuth";
 import { ResumenTab }    from "../components/salud/ResumenTab";
 import { ComposicionTab } from "../components/salud/ComposicionTab";
@@ -198,6 +201,11 @@ export function Salud() {
     leerEstadoPuente(user.uid).then((r) => { if (r.ok) setEstadoPuente(r.value); });
   }, [user?.uid]);
 
+  // Cuándo corrió sola (P85). Suscribirse al estado hace que se relea cuando la
+  // automática termina; leer localStorage en cada render es gratis.
+  useEstadoSincronizacion();
+  const ultimaAutoMs = user?.uid ? ultimaSincronizacionAutomatica(user.uid) : null;
+
   /** Lee el puente y muestra la vista previa. No escribe nada todavía. */
   async function vistaPreviaPuente() {
     if (!user?.uid || !memberId) return;
@@ -253,6 +261,8 @@ export function Salud() {
     if (!r.ok) { setErrorPuente(r.error); return; }
 
     const v = r.value;
+    // Que la automática no repita esto ni lo cuente como nuevo (P85).
+    anotarSincronizacionManual(user.uid, estadoPuente?.ultimaCorridaMs, v);
     // Los contadores son los de la escritura real, no los de la clasificación.
     setImportMsg(
       (v.enCola
@@ -659,6 +669,7 @@ export function Salud() {
           sincronizando={sincronizando}
           onSincronizar={vistaPreviaPuente}
           error={errorPuente}
+          ultimaAutoMs={ultimaAutoMs}
         />
       )}
 

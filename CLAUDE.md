@@ -520,6 +520,22 @@ era raro; sin él, dos marcas del reloj que se solapan son normal.
 `VERSION_ENRIQUECIMIENTO` sube a **5** (ADR #038: todo cambio de algoritmo la sube, si no el
 cambio no llega a lo ya escrito).
 
+## Configuración: un solo lugar (P86, 2026-09-25)
+
+Pedido del owner: **todo lo configurable vive en Perfil → Configuración**, no en la pantalla
+donde se usa ni en la consola de Firebase. Reglas puras en `lib/configuracion.ts`.
+
+- Por miembro (`EditorPerfil`): lugar, equipo por lugar, objetivos, meta semanal, y **FC
+  máxima + zonas** (editables desde P86; antes de solo lectura, con un texto falso sobre
+  la edad). Apariencia y estilo de inicio.
+- Solo owner (tarjeta "Familia y datos"): **visibilidad** por miembro (`/config/visibilidad`),
+  **juegos que no cuentan** (antes se editaban adentro de `SesionJuego`) y **duración
+  mínima del import** (`/config/import`).
+- `actividadesSiempreRelevantes` **no se ofrece**: desde P75 la regla 5 de
+  `clasificarImport` deja entrar cualquier actividad que llegue al mínimo, así que la lista
+  solo cambia el texto del motivo. Si algún día vuelve a decidir algo, se agrega.
+- Si aparece un parámetro nuevo que alguien pueda querer cambiar, va acá.
+
 ## Roadmap (ideas evaluadas, orden tentativo)
 Corto plazo (después de S1–S3; progresión de cargas y costo cardíaco por rutina
 ya se implementaron como I2/I3 — ver "Serie I" arriba):

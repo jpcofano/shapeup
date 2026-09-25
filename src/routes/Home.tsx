@@ -9,6 +9,8 @@ import { getHistorialEnLaApp, getDiasActivos, conciliarPendientes } from "../dat
 import { barrerSesionesHuerfanas } from "../data/sesiones";
 import { usePendientes } from "../hooks/usePendientes";
 import { PendientesChip } from "../components/PendientesChip";
+import { SincronizacionChip } from "../components/SincronizacionChip";
+import { useGeneracionDatosSalud } from "../hooks/useSincronizacionAutomatica";
 import { getMediciones, getMetricasSalud, getRegistrosSueno } from "../data/salud";
 import { calcularResumenSalud, type SenalSalud } from "../lib/resumenSalud";
 import { calcularRecomendacion, seleccionarEstadoDiario, type EstadoDiario } from "../lib/recomendaciones";
@@ -235,6 +237,8 @@ function BentoTile({ label, children, animClass }: {
 export function Home() {
   const navigate             = useNavigate();
   const { memberId }         = useAuth();
+  // Sube cuando la sincronización automática trae algo: Home recarga sola (P85).
+  const generacionDatos = useGeneracionDatosSalud();
   const { tema, modoEfectivo } = useTheme();
 
   const [programa,  setPrograma]  = useState<Programa | null>(null);
@@ -302,7 +306,12 @@ export function Home() {
     const dismissKey = `rec-descartada-${memberId}-${ymdLocal()}`;
     if (localStorage.getItem(dismissKey) === "1") setRecDescartada(true);
 
+    // Una PWA suspendida puede pasar de una semana a otra sin remontar Home.
+    semanaRef.current = lunesDeSemana();
     const semanaInicio = semanaRef.current;
+    // Si la sincronización automática trajo algo, el "este miembro no tiene
+    // salud" que haya quedado cacheado ya no vale.
+    if (generacionDatos > 0) sessionStorage.removeItem(`su-${memberId}`);
     // Cargamos salud solo si el miembro tiene datos importados (evitar 2 queries vacías por visita)
     const loadSalud = sessionStorage.getItem(`su-${memberId}`) !== "0";
 
@@ -389,7 +398,7 @@ export function Home() {
 
       setLoading(false);
     });
-  }, [memberId]);
+  }, [memberId, generacionDatos]);
 
   const primerNombre  = memberId ? PRIMER_NOMBRE[memberId as MiembroId] : "";
 
@@ -536,6 +545,7 @@ export function Home() {
     return (
       <div className={`page ${direccion === "pulse" ? "dir-a" : "dir-c v21"}`} data-mode={modoEfectivo} data-accent={tema}>
         <PendientesChip pendientes={pendientes} />
+        <SincronizacionChip />
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
@@ -561,6 +571,7 @@ export function Home() {
         </div>
 
         <PendientesChip pendientes={pendientes} />
+        <SincronizacionChip />
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
@@ -678,6 +689,7 @@ export function Home() {
         </h1>
 
         <PendientesChip pendientes={pendientes} />
+        <SincronizacionChip />
         {recVisible && (
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
@@ -784,6 +796,7 @@ export function Home() {
       )}
 
       <PendientesChip pendientes={pendientes} />
+      <SincronizacionChip />
       {!loading && recVisible && (
         <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
       )}

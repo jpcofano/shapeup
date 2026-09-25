@@ -12,11 +12,10 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { esOwner } from "../data/visibilidad";
-import { getJuegosSinEjercicio, setJuegosSinEjercicio } from "../data/diccionarios";
-import { agregarJuego, quitarJuego, renombrarJuego } from "../lib/juegos";
+import { getJuegosSinEjercicio } from "../data/diccionarios";
 import { finalizarSesion } from "../data/historial";
 import { SesionPorTiempo } from "../components/entrenar/SesionPorTiempo";
 import { useWakeLock } from "../hooks/useWakeLock";
@@ -45,8 +44,6 @@ export function SesionJuego() {
   const [juegos, setJuegos] = useState<string[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [nuevo, setNuevo] = useState("");
-  const [editando, setEditando] = useState(false);
   const [enCurso, setEnCurso] = useState<EnCurso | null>(() => leerEnCurso());
   const [guardando, setGuardando] = useState(false);
 
@@ -59,13 +56,6 @@ export function SesionJuego() {
       setCargando(false);
     })();
   }, []);
-
-  /** Guarda la lista y la deja en pantalla solo si el servidor la aceptó. */
-  async function guardarLista(lista: string[]) {
-    const r = await setJuegosSinEjercicio(lista);
-    if (r.ok) { setJuegos(r.value); setError(null); }
-    else setError(r.error);
-  }
 
   function empezar(juego: string) {
     const v: EnCurso = { juego, inicioMs: Date.now() };
@@ -143,40 +133,15 @@ export function SesionJuego() {
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {juegos.map((j) => (
           <div key={j} className="card" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {editando ? (
-              // Editando, el nombre es el campo: renombrar es escribir encima.
-              // Se guarda al salir del campo, y solo si cambió.
-              <input
-                className="form-input"
-                style={{ flex: 1 }}
-                defaultValue={j}
-                aria-label={`Renombrar ${j}`}
-                onBlur={(e) => {
-                  const nombre = e.target.value.trim();
-                  if (!nombre || nombre === j) { e.target.value = j; return; }
-                  void guardarLista(renombrarJuego(juegos, j, nombre));
-                }}
-              />
-            ) : (
-              <button
-                style={{
-                  flex: 1, textAlign: "left", background: "none", border: "none",
-                  color: "var(--fg)", fontSize: 15, fontWeight: 600, cursor: "pointer", padding: 0,
-                }}
-                onClick={() => empezar(j)}
-              >
-                {j}
-              </button>
-            )}
-            {editando && (
-              <button
-                className="btn-icon-sm"
-                title={`Quitar ${j}`}
-                onClick={() => void guardarLista(quitarJuego(juegos, j))}
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
+            <button
+              style={{
+                flex: 1, textAlign: "left", background: "none", border: "none",
+                color: "var(--fg)", fontSize: 15, fontWeight: 600, cursor: "pointer", padding: 0,
+              }}
+              onClick={() => empezar(j)}
+            >
+              {j}
+            </button>
           </div>
         ))}
         {!cargando && juegos.length === 0 && (
@@ -186,42 +151,16 @@ export function SesionJuego() {
         )}
       </div>
 
-      {/* La edición es del owner. La garantía está en las reglas de Firestore;
-          esconder el botón es solo para no ofrecer lo que va a fallar. */}
+      {/* La lista se edita en Perfil → Configuración (P86), junto con el resto
+          de lo configurable. Solo el owner: lo garantizan las reglas. */}
       {puedeEditar && (
-        <div style={{ marginTop: 16 }}>
-          {!editando ? (
-            <button className="btn-secondary" style={{ fontSize: 13 }} onClick={() => setEditando(true)}>
-              Editar la lista
-            </button>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  className="form-input"
-                  style={{ flex: 1 }}
-                  placeholder="Nombre del juego"
-                  value={nuevo}
-                  onChange={(e) => setNuevo(e.target.value)}
-                />
-                <button
-                  className="btn-primary"
-                  style={{ fontSize: 13 }}
-                  disabled={!nuevo.trim()}
-                  onClick={() => { void guardarLista(agregarJuego(juegos, nuevo)); setNuevo(""); }}
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-              <button className="btn-secondary" style={{ fontSize: 13 }} onClick={() => setEditando(false)}>
-                Listo
-              </button>
-              <p style={{ fontSize: 11, color: "var(--muted)", margin: 0 }}>
-                Sacar un juego de la lista no borra sus sesiones: quedan en el historial con su nombre.
-              </p>
-            </div>
-          )}
-        </div>
+        <button
+          className="btn-secondary"
+          style={{ fontSize: 13, marginTop: 16 }}
+          onClick={() => navigate("/perfil#config-familia")}
+        >
+          Editar la lista en Configuración
+        </button>
       )}
     </div>
   );
