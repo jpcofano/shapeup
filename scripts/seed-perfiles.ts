@@ -6,7 +6,8 @@
 //  (estimación poblacional; para precisión, un test de campo o el dato del reloj).
 //
 //  Siembra `equipoPorLugar`, no el `equipoDisponible` plano y obsoleto: así un
-//  reseed no deshace la migración de scripts/migrar-equipo-por-lugar.ts.
+//  reseed no deshace la migración a equipo por lugar (P72; el script que la
+//  aplicó, migrar-equipo-por-lugar.ts, se borró en P87 — ver docs/SEEDS.md).
 //
 //  Zonas (% de FCmáx): Z1 50–60 · Z2 60–70 · Z3 70–80 · Z4 80–90 · Z5 90–100.
 //
@@ -14,6 +15,7 @@
 //  (Sin --force no pisa si /config/perfiles ya existe.)
 // ════════════════════════════════════════════════════════════════════════════
 
+// corrida: exento — pendiente (P87, se migra cuando se toque): informa cada escritura después de confirmarla, así que lo que hizo se reconstruye leyendo la salida.
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";

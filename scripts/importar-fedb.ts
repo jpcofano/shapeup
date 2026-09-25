@@ -150,7 +150,9 @@ async function main() {
 
     // B2: video representativo por patrón, mientras no haya footage propio
     const patronFinal = t?.patron ?? patronCalculado;
-    const clipGenerico = videoGenericoPorPatron(patronFinal);
+    // Sin patrón no hay clip. Antes se pasaba `undefined` igual y el lookup daba
+    // `undefined`: mismo resultado, ahora dicho en voz alta (P87, tsc de scripts/).
+    const clipGenerico = patronFinal ? videoGenericoPorPatron(patronFinal) : undefined;
 
     catalogo.push({
       idEjercicio: `EJ-${String(n).padStart(4, "0")}`,

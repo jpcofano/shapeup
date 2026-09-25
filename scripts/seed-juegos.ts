@@ -13,6 +13,7 @@
 //  (Sin --force no pisa una lista que ya exista: podría estar editada a mano.)
 // ════════════════════════════════════════════════════════════════════════════
 
+// corrida: exento — pendiente (P87, se migra cuando se toque): informa cada escritura después de confirmarla, así que lo que hizo se reconstruye leyendo la salida.
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync } from "fs";

@@ -9,6 +9,7 @@
 //  Uso: npx tsx scripts/dry-run-puente.ts [--miembro=juanpablo]
 // ════════════════════════════════════════════════════════════════════════════
 
+// corrida: exento — solo lectura: no escribe en Firestore.
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync } from "fs";

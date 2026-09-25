@@ -18,7 +18,8 @@
 //   EJ-8026  Apertura torácica     — movilidad (de seed-planes-extra.ts)
 //   EJ-8027  Estiramiento de isquios y flexores — movilidad (de seed-planes-extra.ts)
 //
-//  Uso: npx tsx scripts/seed-salud-rutinas.ts   ·   Flags: --dry-run | --force
+//  Uso: npx tsx scripts/seed-salud-rutinas.ts [--aplicar] [--force]
+//  Simula por defecto (P87); --aplicar escribe; --force pisa las que existen.
 // ════════════════════════════════════════════════════════════════════════════
 
 import { initializeApp, cert } from "firebase-admin/app";
@@ -26,9 +27,9 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { correr } from "./lib/corrida";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-const dryRun = process.argv.includes("--dry-run");
 const force  = process.argv.includes("--force");
 
 const serviceAccount = JSON.parse(readFileSync(resolve(__dir, "service-account.json"), "utf8"));
@@ -198,35 +199,28 @@ function rutinaDoc(r: RutDef): Record<string, unknown> {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-async function run() {
-  console.log(`\nSeed salud-rutinas — ${RUTINAS.length} rutinas — modo: ${dryRun ? "DRY RUN" : force ? "FORCE" : "SAFE"}\n`);
+// P87: corre con `scripts/lib/corrida.ts`. Antes escribía por defecto y, con
+// --dry-run, terminaba diciendo "Escritas: N" sin haber escrito nada.
+correr("seed-salud-rutinas", async (c) => {
+  console.log(`  ${RUTINAS.length} rutinas · ${force ? "FORCE (pisa las que existen)" : "SAFE (solo crea las que faltan)"}\n`);
 
-  const existentes = new Set<string>();
-  if (!force && !dryRun) {
-    const snap = await db.collection("rutinas").select().get();
-    snap.forEach((d) => existentes.add(d.id));
+  // Se leen siempre, también en simulación: si no, la simulación diría que
+  // escribiría rutinas que en realidad se saltearían.
+  const snap = await db.collection("rutinas").get();
+  const existentes = new Map(snap.docs.map((d) => [d.id, d.data()]));
+
+  const aPisar = RUTINAS.filter((r) => force && existentes.has(r.id));
+  if (aPisar.length > 0) {
+    if (!c.abrirRespaldo(aPisar.map((r) => ({ id: r.id, antes: existentes.get(r.id) })))) return;
+  } else {
+    c.sinRespaldo("solo crea rutinas que no existen");
   }
-
-  let escritas = 0;
-  let saltadas = 0;
 
   for (const r of RUTINAS) {
-    if (!force && existentes.has(r.id)) {
-      console.log(`  SKIP  ${r.id}  ${r.nombre}`);
-      saltadas++;
-      continue;
-    }
-    const doc = rutinaDoc(r);
-    if (dryRun) {
-      console.log(`  [DRY] ${r.id}  ${r.nombre}  (${r.bloques.length} bloques, ~${r.durEstMin} min)`);
-    } else {
-      await db.collection("rutinas").doc(r.id).set(doc);
-      console.log(`  OK    ${r.id}  ${r.nombre}`);
-    }
-    escritas++;
+    if (!force && existentes.has(r.id)) { c.omitir(`${r.id}  ${r.nombre}`, "ya existe"); continue; }
+    await c.escribir(
+      `${r.id}  ${r.nombre}  (${r.bloques.length} bloques, ~${r.durEstMin} min)`,
+      () => db.collection("rutinas").doc(r.id).set(rutinaDoc(r)),
+    );
   }
-
-  console.log(`\n  Escritas: ${escritas}  Saltadas: ${saltadas}\n`);
-}
-
-run().catch((e) => { console.error(e); process.exit(1); });
+});

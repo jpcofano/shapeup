@@ -19,6 +19,10 @@ que Spark, así que las decisiones tomadas "por costo Spark" siguen en pie.
 - Métricas de salud con granularidad diaria, no crudas (ADR #016, costo: plan Blaze, con los
   mismos topes que Spark).
 - IDs con rangos reservados (ADR #010). Result<T> en toda la capa de datos.
+- **Los scripts se chequean como el resto; son el código que más daño puede hacer** (P87).
+  `tsconfig.scripts.json` está en `tsc -b`. Todo script con `firebase-admin` corre y
+  cuenta con `scripts/lib/corrida.ts`: respaldo antes de escribir, una línea final con lo
+  escrito de verdad, código 1 si algo falló, y en simulación nunca dice "escritas".
 - Antes de dar por terminado un prompt: `npx tsc -b` limpio + `npx vitest run` verde
   (la suite `firestore.rules.test.ts` requiere emulador; sin emulador se permite skip).
 - Al terminar cada tarea, escribí el reporte final completo —tal cual se lo darías a Juan,
@@ -45,6 +49,8 @@ esos datos, y simplificar la pantalla de Salud para mostrar solo lo relevante.
 
 **Flujo de prueba de S1 (P48):**
 `npm run limpiar:salud -- --miembro=juanpablo --confirmar [--limpiar-biometria]`
+⚠ **P87: `limpiar-salud` no se corre, ni en simulación, hasta que Juan lo diga** (cambió de
+comportamiento y su salida real nunca se vio).
 → importar ZIP real nivel biométrico → validar resumen de matcheo en la UI.
 `scripts/limpiar-salud.ts`: depura solo salud; nunca toca historial/sesiones/rutinas.
 

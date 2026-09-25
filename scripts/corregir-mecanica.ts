@@ -25,9 +25,9 @@ import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { correr } from "./lib/corrida";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-const aplicar = process.argv.includes("--aplicar");
 
 /**
  * Las cuatro, con el motivo al lado. El id es lo que manda; el nombre está
@@ -64,9 +64,9 @@ const serviceAccount = JSON.parse(
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
-async function run() {
-  console.log(`\nCorrección de mecánica — modo: ${aplicar ? "ESCRITURA" : "SIMULACIÓN"}\n`);
-
+// P87: corre con `scripts/lib/corrida.ts`. Antes las cuatro escrituras iban
+// sin log por ficha: si fallaba la tercera, no se sabía que dos ya habían entrado.
+correr("corregir-mecanica", async (corrida) => {
   const aEscribir: { id: string; nombre: string; desde: string }[] = [];
   const yaEstaban: string[] = [];
   const noEncontrados: string[] = [];
@@ -103,17 +103,14 @@ async function run() {
     console.log(`  ⚠ ${n.id} NO se toca: esperaba "${n.esperado}" y encontré "${n.encontrado}"`);
   }
 
-  if (!aplicar) {
-    console.log("\n  [simulación] No se escribió nada. Corré con --aplicar para escribir.\n");
-    return;
-  }
+  for (const id of yaEstaban) corrida.omitir(id, `ya está en ${NUEVA_MECANICA}`);
+  for (const id of noEncontrados) corrida.omitir(id, "no existe");
+  for (const n of nombreDistinto) corrida.omitir(n.id, "el nombre no coincide");
+  if (aEscribir.length === 0) return;
 
-  let escritos = 0;
+  if (!corrida.abrirRespaldo(aEscribir.map((e) => ({ id: e.id, mecanicaAntes: e.desde })))) return;
   for (const e of aEscribir) {
-    await db.collection("ejercicios").doc(e.id).update({ mecanica: NUEVA_MECANICA });
-    escritos++;
+    await corrida.escribir(`${e.id}  ${e.nombre}: ${e.desde} → ${NUEVA_MECANICA}`,
+      () => db.collection("ejercicios").doc(e.id).update({ mecanica: NUEVA_MECANICA }));
   }
-  console.log(`\n  ✅ ${escritos} fichas corregidas con update().\n`);
-}
-
-run().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
+});

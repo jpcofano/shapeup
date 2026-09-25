@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { importarCardioIdempotente, getMetricasSalud, guardarCardio, idCardioDe } from "./salud";
+import { importarCardioIdempotente, getMetricasSalud, guardarCardio } from "./salud";
+import { idCardioDe } from "../lib/idsSalud";
 
 vi.mock("../firebase", () => ({ db: {} }));
 

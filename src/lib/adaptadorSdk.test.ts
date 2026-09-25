@@ -5,7 +5,7 @@ import {
   type MedicionSdk, type RegistroSdk,
 } from "./adaptadorSdk";
 import { esAutodetectada, origenDe, clasificarImport, type ConfigClasificacion } from "./importSelectivo";
-import { idCardioDe } from "../data/salud";
+import { idCardioDe } from "./idsSalud";
 import { marcasDe } from "./actividadRelevante";
 import { parsearEjercicio } from "../import/samsungHealth";
 import { calcularEnriquecimiento } from "./enriquecerImport";

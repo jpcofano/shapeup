@@ -20,6 +20,7 @@
 //  recombinan los agregados. Eso se decide aparte.
 // ════════════════════════════════════════════════════════════════════════════
 
+// corrida: exento — pendiente (P87, se migra cuando se toque): informa cada escritura después de confirmarla, así que lo que hizo se reconstruye leyendo la salida.
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync, readdirSync } from "fs";

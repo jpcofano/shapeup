@@ -16,20 +16,9 @@ import type {
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
 import { marcasDe } from "../lib/actividadRelevante";
+import { idCardioDe } from "../lib/idsSalud";
 
 function idMedicion(): string { return `MED-${Date.now()}`; }
-
-/**
- * Id de una sesión de cardio (P75). Con `datauuid` de Samsung es
- * determinístico — reimportar el mismo ZIP pisa la fila en vez de duplicarla.
- * Sin uuid (carga manual) se genera uno único: el sufijo aleatorio evita que
- * dos items guardados en el mismo milisegundo se pisen entre sí.
- */
-export function idCardioDe(datauuid?: string): string {
-  return datauuid
-    ? `CAR-${datauuid}`
-    : `CAR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 // ── MedicionCorporal ──────────────────────────────────────────────────────────
 

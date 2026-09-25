@@ -21,6 +21,7 @@
 //  dos documentos de config. No pagina /cardio: el rango es de 12 semanas.
 // ════════════════════════════════════════════════════════════════════════════
 
+// corrida: exento — solo lectura: no escribe en Firestore.
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync } from "fs";

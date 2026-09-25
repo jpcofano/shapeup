@@ -38,6 +38,7 @@ import { fileURLToPath } from "url";
 import type { Historial, SesionCardio, PerfilesConfig } from "../src/types/models";
 import { elegirSesionSamsung, type SesionSamsung } from "../src/lib/matchBiometrico";
 import { ventanaDeHistorial, calcularEnriquecimiento } from "../src/lib/enriquecerImport";
+import { correr, type Corrida } from "./lib/corrida";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
@@ -51,7 +52,6 @@ function argValor(flag: string): string | undefined {
   const arg = args.find((a) => a.startsWith(`--${flag}=`));
   return arg?.split("=").slice(1).join("=");
 }
-const confirmar   = args.includes("--confirmar");
 const miembroFlag = argValor("miembro");
 
 // --help sale 0 sin tocar service-account.json ni Firebase Admin — sirve
@@ -150,8 +150,8 @@ function candidataMasCercana(ventana: { inicioMs: number; finMs: number }, candi
 
 // ── Runner ────────────────────────────────────────────────────────────────────
 
-async function main(): Promise<void> {
-  console.log(`\n── rematch-salud · miembro: ${miembro} ${confirmar ? "" : "(DRY-RUN)"} ──\n`);
+async function main(c: Corrida): Promise<void> {
+  console.log(`\n── rematch-salud · miembro: ${miembro} ${c.aplicar ? "" : "(DRY-RUN)"} ──\n`);
 
   const [historialSnap, cardioSnap, perfilesSnap] = await Promise.all([
     db.collection("historial").where("miembro", "==", miembro).get(),
@@ -170,7 +170,7 @@ async function main(): Promise<void> {
 
   if (sesionesSamsung.length === 0) {
     console.log("Sin candidatas: ningún doc de /cardio tiene inicioMs/finMs (importalos primero con S-audit-b/P54, o re-importá el ZIP).");
-    process.exit(0);
+    return;
   }
 
   // ── Diagnóstico por Historial (mismo algoritmo que calcularEnriquecimiento,
@@ -235,12 +235,8 @@ async function main(): Promise<void> {
     `${ambiguas} ambiguas · ${omitidas} omitidas (ya enriquecidas) · ${sinVentana} sin ventana\n`,
   );
 
-  if (!confirmar) {
-    console.log("DRY-RUN: no se escribió nada. Repetí con --confirmar para persistir.");
-    process.exit(0);
-  }
-
   // ── Persistir: usa calcularEnriquecimiento (sin tocar) para el cálculo real ──
+  // P87: se calcula también en simulación, para que diga qué se escribiría.
   const resultado = calcularEnriquecimiento(
     historial,
     { sesionesSamsung, liveData: {}, shapeUpCustomId: CUSTOM_ID_SHAPEUP },
@@ -249,25 +245,26 @@ async function main(): Promise<void> {
 
   if (resultado.updates.length === 0) {
     console.log("Nada para persistir.");
-    process.exit(0);
+    return;
   }
 
-  let escritos = 0, errores = 0;
+  // Respaldo: la biometría y los bloques que se pisan, tal como estaban.
+  const porId = new Map(historial.map((h) => [h.idHist, h]));
+  if (!c.abrirRespaldo(resultado.updates.map(({ idHist }) => ({
+    idHist,
+    biometriaAntes: porId.get(idHist)?.biometria ?? null,
+    bloquesAntes: porId.get(idHist)?.bloques ?? null,
+  })))) return;
+
   for (const { idHist, biometria, bloques } of resultado.updates) {
     const patch: Record<string, unknown> = { biometria };
     if (bloques) patch.bloques = bloques;
-    try {
-      await db.collection("historial").doc(idHist).update(patch);
-      escritos++;
-    } catch (e) {
-      errores++;
-      console.error(`  ❌ Error escribiendo ${idHist}: ${e instanceof Error ? e.message : String(e)}`);
-    }
+    await c.escribir(`${idHist}  biometría (granularidad "sesion")`,
+      () => db.collection("historial").doc(idHist).update(patch));
   }
-
-  console.log(`\n✅  ${escritos} historiales actualizados con biometría (granularidad "sesion").`);
-  if (errores > 0) console.log(`⚠ ${errores} errores — revisá la salida arriba.`);
 }
 
-await main();
-process.exit(0);
+// P87: corre con `scripts/lib/corrida.ts`. Antes salía con código 0 aunque
+// fallaran escrituras. `--confirmar` sigue valiendo (está documentado), igual
+// que `--aplicar`.
+await correr("rematch-salud", main, { flagsAplicar: ["--aplicar", "--confirmar"] });

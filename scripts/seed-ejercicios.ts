@@ -1,8 +1,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  scripts/seed-ejercicios.ts — Sube catalogo-ejercicios.json a Firestore.
 //
-//  Uso: npx tsx scripts/seed-ejercicios.ts
-//  Flags: --dry-run  (muestra qué haría sin escribir)
+//  Uso: npx tsx scripts/seed-ejercicios.ts [--aplicar] [--force]
+//  Simula por defecto (P87); --aplicar escribe.
 //         --force    (sobreescribe documentos existentes)
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -11,10 +11,10 @@ import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { correr } from "./lib/corrida";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const dryRun = process.argv.includes("--dry-run");
 const force  = process.argv.includes("--force");
 
 // ── Init Firebase Admin ───────────────────────────────────────────────────────
@@ -32,52 +32,48 @@ const catalogo: Record<string, unknown>[] = JSON.parse(
 // ── Upload en batches de 400 ──────────────────────────────────────────────────
 const BATCH_SIZE = 400;
 
-async function run() {
-  console.log(`\nSeed ejercicios — ${catalogo.length} docs — modo: ${dryRun ? "DRY RUN" : force ? "FORCE" : "SAFE"}\n`);
+// P87: corre con `scripts/lib/corrida.ts`. Antes contaba cada documento como
+// escrito al meterlo en el batch, antes del commit, y el progreso por batch
+// restaba los salteados acumulados en vez de los del batch.
+correr("seed-ejercicios", async (c) => {
+  console.log(`  ${catalogo.length} docs en el catálogo · ${force ? "FORCE (pisa los que existen)" : "SAFE (solo crea los que faltan)"}\n`);
 
-  // En modo SAFE chequeamos cuántos ya existen (una lectura rápida de IDs)
-  const existentes = new Set<string>();
-  if (!force && !dryRun) {
-    const snap = await db.collection("ejercicios").select().get();
-    snap.forEach((d) => existentes.add(d.id));
-    if (existentes.size > 0) {
-      console.log(`  Ya existen ${existentes.size} docs. Se saltean (usá --force para sobreescribir).\n`);
-    }
+  // Se leen siempre, también en simulación, para que la simulación diga la verdad.
+  // Con --force hace falta el contenido para el respaldo; si no, alcanzan los ids.
+  const snap = force
+    ? await db.collection("ejercicios").get()
+    : await db.collection("ejercicios").select().get();
+  const existentes = new Map(snap.docs.map((d) => [d.id, force ? d.data() : null]));
+
+  const idsCatalogo = catalogo.map((ej) => ej.idEjercicio as string);
+  const aPisar = idsCatalogo.filter((id) => force && existentes.has(id));
+  if (aPisar.length > 0) {
+    if (!c.abrirRespaldo(aPisar.map((id) => ({ id, antes: existentes.get(id) })))) return;
+  } else {
+    c.sinRespaldo("solo crea ejercicios que no existen");
   }
-
-  let escritos = 0;
-  let saltados = 0;
 
   for (let i = 0; i < catalogo.length; i += BATCH_SIZE) {
     const chunk = catalogo.slice(i, i + BATCH_SIZE);
+    const numero = Math.floor(i / BATCH_SIZE) + 1;
+    const aEscribir = chunk.filter((ej) => force || !existentes.has(ej.idEjercicio as string));
+    const salteados = chunk.length - aEscribir.length;
+    if (salteados > 0) c.omitir(`batch ${numero}`, `${salteados} ya existen`, salteados);
+    if (aEscribir.length === 0) continue;
 
-    if (dryRun) {
-      escritos += chunk.length;
-      continue;
-    }
-
-    const batch = db.batch();
-    for (const ej of chunk) {
-      const id = ej.idEjercicio as string;
-      if (!force && existentes.has(id)) { saltados++; continue; }
-
-      // Limpiar campo interno del script (no va a Firestore)
-      const { traduccion: _t, ...data } = ej as Record<string, unknown> & { traduccion: unknown };
-      void _t;
-
-      batch.set(db.collection("ejercicios").doc(id), {
-        ...data,
-        vecesUsado: 0,
-        origen: "import",
-      });
-      escritos++;
-    }
-    await batch.commit();
-    process.stdout.write(`  Batch ${Math.floor(i / BATCH_SIZE) + 1}: +${Math.min(BATCH_SIZE, chunk.length - saltados)} docs\r`);
+    await c.escribir(`batch ${numero}: ${aEscribir.length} docs`, () => {
+      const batch = db.batch();
+      for (const ej of aEscribir) {
+        // Limpiar campo interno del script (no va a Firestore)
+        const { traduccion: _t, ...data } = ej as Record<string, unknown> & { traduccion: unknown };
+        void _t;
+        batch.set(db.collection("ejercicios").doc(ej.idEjercicio as string), {
+          ...data,
+          vecesUsado: 0,
+          origen: "import",
+        });
+      }
+      return batch.commit();
+    }, aEscribir.length);
   }
-
-  console.log(`\n  ✅  ${dryRun ? "[dry]" : ""} ${escritos} escritos, ${saltados} saltados.\n`);
-  process.exit(0);
-}
-
-run().catch((e) => { console.error(e); process.exit(1); });
+});

@@ -6,8 +6,8 @@
 //  IDs reservados EJ-9001+ (fuera del rango del importador FEDB, que arranca en 0001),
 //  así nunca colisionan corra antes o después seed-ejercicios.ts.
 //
-//  Uso: npx tsx scripts/seed-vr.ts
-//  Flags: --dry-run  (muestra qué haría sin escribir)
+//  Uso: npx tsx scripts/seed-vr.ts [--aplicar] [--force]
+//  Simula por defecto (P87); --aplicar escribe.
 //         --force    (sobreescribe documentos existentes)
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -16,10 +16,10 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { correr } from "./lib/corrida";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
-const dryRun = process.argv.includes("--dry-run");
 const force  = process.argv.includes("--force");
 
 const serviceAccount = JSON.parse(
@@ -297,24 +297,28 @@ function aEjercicio(j: EjVR): Record<string, unknown> {
 }
 
 // ── Runner (mismo patrón idempotente que seed-config / seed-ejercicios) ───────
-async function run() {
-  console.log(`\nSeed VR — ${JUEGOS.length} juegos — modo: ${dryRun ? "DRY RUN" : force ? "FORCE" : "SAFE"}\n`);
+// P87: corre con `scripts/lib/corrida.ts`. Antes, en --dry-run sumaba a
+// "Escritos" lo que solo escribiría.
+correr("seed-vr", async (c) => {
+  console.log(`  ${JUEGOS.length} juegos · ${force ? "FORCE (pisa los que existen)" : "SAFE (solo crea los que faltan)"}\n`);
 
-  let escritos = 0, saltados = 0;
+  // Se leen siempre, también en simulación, para que la simulación diga la verdad.
+  const existentes = new Map<string, FirebaseFirestore.DocumentData>();
   for (const j of JUEGOS) {
-    const ref = db.collection("ejercicios").doc(j.idEjercicio);
-    if (!force && !dryRun) {
-      const snap = await ref.get();
-      if (snap.exists) { console.log(`  SKIP  ${j.idEjercicio}  ${j.nombre}`); saltados++; continue; }
-    }
-    if (dryRun) { console.log(`  [dry] WRITE ${j.idEjercicio}  ${j.nombre}`); escritos++; continue; }
-    await ref.set(aEjercicio(j), { merge: false });
-    console.log(`  ✅   WRITE ${j.idEjercicio}  ${j.nombre}`);
-    escritos++;
+    const snap = await db.collection("ejercicios").doc(j.idEjercicio).get();
+    if (snap.exists) existentes.set(j.idEjercicio, snap.data()!);
   }
 
-  console.log(`\nListo. Escritos: ${escritos} · Salteados: ${saltados}\n`);
-  process.exit(0);
-}
+  const aPisar = JUEGOS.filter((j) => force && existentes.has(j.idEjercicio));
+  if (aPisar.length > 0) {
+    if (!c.abrirRespaldo(aPisar.map((j) => ({ id: j.idEjercicio, antes: existentes.get(j.idEjercicio) })))) return;
+  } else {
+    c.sinRespaldo("solo crea ejercicios que no existen");
+  }
 
-run().catch((e) => { console.error(e); process.exit(1); });
+  for (const j of JUEGOS) {
+    if (!force && existentes.has(j.idEjercicio)) { c.omitir(`${j.idEjercicio}  ${j.nombre}`, "ya existe"); continue; }
+    await c.escribir(`${j.idEjercicio}  ${j.nombre}`,
+      () => db.collection("ejercicios").doc(j.idEjercicio).set(aEjercicio(j), { merge: false }));
+  }
+});

@@ -55,18 +55,23 @@ npm run seed:salud-rutinas -- --dry-run
 npm run seed:config
 npm run seed:perfiles
 npm run import:fedb
-npm run seed:ejercicios
-npm run seed:vr
+npm run seed:ejercicios    -- --aplicar   # P87: simula por defecto
+npm run seed:vr            -- --aplicar   # P87: simula por defecto
 npm run seed:plan
 npm run seed:planes-extra
 npm run seed:rugby-juvenil
 npm run seed:futbol-juvenil
 npm run seed:maria
 npm run seed:visibilidad
-npm run seed:salud-rutinas
+npm run seed:salud-rutinas -- --aplicar   # P87: simula por defecto
 ```
 
 ## Notas
+- **P87:** `seed:ejercicios`, `seed:vr` y `seed:salud-rutinas` corren con `scripts/lib/corrida.ts`:
+  **simulan por defecto** (su `--dry-run` ya no hace falta), escriben con `--aplicar`, y con
+  `--force` escriben antes un respaldo de lo que pisan. Terminan con
+  `escritas · fallidas · omitidas` (o `se escribirían` en simulación). Los demás seeds siguen
+  como estaban hasta que se migren.
 - **`SKIP`** en la salida = el documento ya existía; el seed no lo pisa. Para sobreescribir uno
   puntual: `npm run seed:<nombre> -- --force`.
 - **`seed:plan` va antes que todo lo de miembros**: crea los `EJ-80xx` y las rutinas de VR
@@ -135,3 +140,22 @@ npm run rematch:salud -- --miembro=juanpablo --confirmar
 **Flags:**
 - `--miembro=<id>` — Obligatorio. IDs válidos: juanpablo, maria, sofia, federico.
 - `--confirmar` — Sin este flag es dry-run: solo imprime el diagnóstico, no escribe.
+
+## Scripts borrados (P87, 25/09/2026)
+
+Se borraron en el commit **«Herramientas — P84 y P87»** (el que sigue a «App — P85 y P86»).
+El último commit que los tiene sin tocar es **`d99623e`**. Para recuperarlos:
+
+```bash
+git show d99623e:scripts/auditoria-features.ts      > scripts/auditoria-features.ts
+git show d99623e:scripts/borrar-rut-0006.ts         > scripts/borrar-rut-0006.ts
+git show d99623e:scripts/migrar-equipo-por-lugar.ts > scripts/migrar-equipo-por-lugar.ts
+# o, para ver en qué commit se borró cada uno:
+git log --diff-filter=D --oneline -- scripts/auditoria-features.ts
+```
+
+| Script | Por qué se borró |
+|---|---|
+| `auditoria-features.ts` | Auditaba feature por feature las series S e I (cerradas en julio) para contestar una pregunta de P62 que hoy se contesta con la app. No compilaba: importaba `filtrarCardioRelevante`, que ya no existe. Era también el alias `auditoria:features`, que se sacó. |
+| `borrar-rut-0006.ts` | Script de una vez, ya corrido: borró `RUT-0006`. |
+| `migrar-equipo-por-lugar.ts` | Migró `/config/perfiles` de `equipoDisponible` a `equipoPorLugar` (P72). Ya no hace falta: `seed-perfiles` siembra `equipoPorLugar` directamente, y la app migra en lectura cualquier perfil viejo (`lib/perfil.migrarEquipoPorLugar`). |

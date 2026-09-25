@@ -39,7 +39,7 @@ forma de trabajo de "Comida Familiar".
   `juego`, así que una sesión de rutina quedaba **sin el campo** y, en Firestore, fuera de
   todo `where("tipo","in",…)`: invisible para Home, la racha, la progresión y el
   enriquecimiento. Dos sesiones de VR estaban así. Corregido y backfilleado.
-- **Tests: 1177 verdes + 82 de reglas verdes con el emulador** (P84, 25/09; sin emulador
+- **Tests: 1204 verdes + 82 de reglas verdes con el emulador** (P84/P85, 25/09; sin emulador
   `firestore.rules.test.ts` se permite en skip). `tsc -b` limpio, `npm run build` OK.
 - **Deployado y pusheado al 24/09**: hosting en https://shapeup-41e74.web.app, `main` en
   `23a62e0`.
@@ -167,13 +167,17 @@ que copiar a mano.
 | Credenciales de `gcloud` (si hacen falta) | `%APPDATA%\gcloud` | `gcloud auth login` |
 | Java, Node | instalación del sistema | ver abajo |
 
-**Trampas de la máquina actual, que pueden no repetirse en la nueva**
+**Trampas conocidas**
 
-- **`npx vitest run` necesita `--pool=threads`.** Con el pool por defecto (`forks`) la suite
-  se cuelga. Probá sin el flag primero: si anda, mejor.
-- **No hay Java**, así que `npm run test:rules` (emulador de Firestore) no corre y
-  `firestore.rules.test.ts` falla siempre. CLAUDE.md permite el skip. **Si la máquina nueva
-  tiene Java, corré `npm run test:rules` una vez**: hace mucho que esas reglas no se prueban.
+- **`npx vitest run` anda sin `--pool=threads`** (P84, verificado el 25/09 en la máquina
+  `Usuario`). El cuelgue con el pool `forks` era de la máquina `juany`: si allá vuelve a
+  pasar, el flag sigue sirviendo, pero ya no es el camino por defecto.
+- **La suite no necesita `.env.local`** (P84): ningún test carga Firebase de verdad. Si un
+  test nuevo falla con `auth/invalid-api-key`, está importando algo de `src/data/` sin
+  mockear `../firebase`; la función pura va en `src/lib/`.
+- **Las reglas se prueban con Java** (`npm run test:rules`, emulador de Firestore). En la
+  máquina `Usuario` hay Temurin 25 y dan **82/82 verdes** (25/09). En `juany` no hay Java:
+  ahí `firestore.rules.test.ts` falla en `npx vitest run` y CLAUDE.md permite el skip.
 - `node_modules` viaja por OneDrive, pero trae binarios compilados. Si algo raro falla al
   construir, `npm install` de nuevo y listo.
 - Los heredocs de bash con contenido largo fallan seguido en esta consola; escribir archivos
@@ -183,9 +187,10 @@ que copiar a mano.
 
 ```bash
 npx tsc -b                              # limpio
-npx vitest run --pool=threads           # 1163 verdes, 82 skipped, solo falla rules
+npx vitest run                          # todo verde salvo rules si no hay emulador
+npm run test:rules                      # 82 verdes (necesita Java)
 npm run build                           # OK
-npx tsx scripts/dry-run-puente.ts       # prueba credencial admin + red + producción
+npm run dry-run:puente                  # prueba credencial admin + red + producción
 ```
 
 El último es el mejor semáforo: si imprime las sesiones del SDK y lo que enriquecería, la

@@ -1,0 +1,26 @@
+{
+  // P87: los scripts se chequean como el resto. Son el código que escribe en
+  // Firestore a mano, sin UI y sin nadie mirando: el que más daño puede hacer.
+  // Incluye src/lib, src/import y src/types porque los scripts importan los
+  // módulos puros.
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./.tsc-out/tsconfig.scripts.tsbuildinfo",
+    "outDir": "./.tsc-out/scripts",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["scripts/**/*.ts", "src/lib/**/*.ts", "src/import/**/*.ts", "src/types/**/*.ts", "src/vite-env.d.ts"]
+  // Sin "exclude": ningún script queda afuera "pendiente de decidir" (P87).
+}

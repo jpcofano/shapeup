@@ -20,6 +20,7 @@
 //  ni src/firebase.ts (SDK cliente, usa import.meta.env — crashea bajo tsx).
 // ════════════════════════════════════════════════════════════════════════════
 
+// corrida: exento — solo lectura: no escribe en Firestore.
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";

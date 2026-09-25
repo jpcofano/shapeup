@@ -82,7 +82,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P58 (I1) | Tendencias largas de salud en Progreso (`lib/tendencias.ts` + `TrendChart`) + fix `zonaPrincipal` | ✅ | 2026-07-13 |
 | P59 (I2) | Costo cardíaco por rutina (`lib/costoCardiaco.ts`) + frase en HistorialDetalle + sección en RutinaDetalle | ✅ | 2026-07-14 |
 | P60 (I3) | Progresión de cargas por doble progresión (`lib/progresion.ts`) + sugerencia en EntrenarSesion + indicador en RutinaDetalle | ✅ | 2026-07-14 |
-| P62 | `scripts/auditoria-features.ts`: auditoría read-only de features de salud y recomendaciones | ✅ | 2026-07-15 |
+| P62 | `scripts/auditoria-features.ts`: auditoría read-only de features de salud y recomendaciones (**borrado en P87**, ver `docs/SEEDS.md`) | ✅ | 2026-07-15 |
 | P63 | Métricas de salud visibles en el cliente (índice compuesto faltante + error propagado) + pulido de charts | ✅ | 2026-07-16 |
 | P64 | Cierre S/I: Resumen pulido, conclusiones por rango, estado diario en Home, estados honestos | ✅ | 2026-07-17 |
 | P65 | Theming: 5 temas claro/oscuro globales + toggle en el copete | ✅ | 2026-07-17 |
