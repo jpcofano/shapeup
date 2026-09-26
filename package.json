@@ -12,7 +12,8 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:rules": "firebase emulators:exec --only firestore --project shapeup-41e74 \"npx vitest run --config vitest.rules.config.ts\"",
-    "test:all": "npm run test:run && npm run test:rules",
+    "test:functions": "firebase emulators:exec --only firestore --project shapeup-41e74 \"npx vitest run --config vitest.functions.config.ts\"",
+    "test:all": "npm run test:run && npm run test:rules && npm run test:functions",
     "seed:config": "npx tsx scripts/seed-config.ts",
     "seed:ejercicios": "npx tsx scripts/seed-ejercicios.ts",
     "seed:vr": "npx tsx scripts/seed-vr.ts",
@@ -31,7 +32,8 @@
     "corregir:mecanica": "npx tsx scripts/corregir-mecanica.ts",
     "corregir:ventanas": "npx tsx scripts/corregir-ventanas-vr.ts",
     "serie:adherencia": "npx tsx scripts/serie-adherencia.ts",
-    "dry-run:puente": "npx tsx scripts/dry-run-puente.ts"
+    "dry-run:puente": "npx tsx scripts/dry-run-puente.ts",
+    "functions:build": "npm --prefix functions run build"
   },
   "dependencies": {
     "firebase": "^11.0.0",
