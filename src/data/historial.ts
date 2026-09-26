@@ -13,7 +13,9 @@ import {
   serverTimestamp, updateDoc, writeBatch,
   query, where, orderBy, limit,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
+import { pedirSincronizacion } from "./pedidoPuente";
+import { guardarMarcas } from "../lib/sincronizacionAutomatica";
 import type {
   Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia, SesionCardio,
 } from "../types/models";
@@ -168,7 +170,10 @@ export async function finalizarSesion(
 
   try {
     const r = await conTimeout(commit, TIMEOUT_GUARDADO_MS);
-    if (r.tipo === "ok") return ok({ idHist, pendiente: false });
+    if (r.tipo === "ok") {
+      pedirCorridaTrasGuardar(ventana.finMs ?? Date.now());
+      return ok({ idHist, pendiente: false });
+    }
   } catch (e) {
     return err(firebaseErrorMessage(e));
   }
@@ -182,7 +187,29 @@ export async function finalizarSesion(
     () => quitarPendiente(idHist),
     (e: unknown) => marcarErrorPendiente(idHist, firebaseErrorMessage(e)),
   );
+  pedirCorridaTrasGuardar(ventana.finMs ?? Date.now());
   return ok({ idHist, pendiente: true });
+}
+
+/**
+ * P89: guardada la sesión, se le pide al puente que corra, así la biometría
+ * viaja mientras la persona se baña. Sin esperar, sin mostrar nada, y si algo
+ * falla **no rompe nada**: la sesión ya está guardada y es el dato que importa.
+ *
+ * Anota además el fin de la sesión en las marcas locales: la sincronización
+ * automática lo usa para saber si el puente quedó atrás, sin lecturas de más.
+ */
+export function pedirCorridaTrasGuardar(finMs: number): void {
+  try {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    let almacen: Storage | null = null;
+    try { almacen = window.localStorage; } catch { /* sesión privada */ }
+    guardarMarcas(almacen, uid, { ultimaSesionFinMs: finMs });
+    void pedirSincronizacion(uid, "fin-sesion").catch(() => undefined);
+  } catch {
+    /* nunca rompe el guardado */
+  }
 }
 
 /** Escribe el historial (con el mismo `idHist`, así no se duplica) y el merge de la sesión. */

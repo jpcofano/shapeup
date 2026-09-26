@@ -1,6 +1,11 @@
-import { RefreshCw, AlertTriangle } from "lucide-react";
+import type { ReactNode } from "react";
+import { RefreshCw, AlertTriangle, Clock } from "lucide-react";
 import type { EstadoPuente } from "../../data/ingestaSdk";
 import type { ResumenSincronizacion } from "../../data/sincronizarPuente";
+import {
+  textoImportacion, estadoDelPedido, type UltimaImportacion, type PedidoVisto,
+} from "../../lib/estadoPuente";
+import type { FasePedido } from "../../lib/pedirYTraer";
 
 /** Sin corridas en este lapso, el puente probablemente esté frenado por batería. */
 export const HORAS_SIN_CORRER_AVISO = 12;
@@ -25,40 +30,61 @@ function fechaHora(ms: number): string {
   return `${dd}/${mm} ${hh}:${mi}`;
 }
 
+/** Subtítulo de cada mitad de la tarjeta. */
+function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--muted)" }}>
+        {titulo}
+      </p>
+      {children}
+    </div>
+  );
+}
+
 /**
- * Tarjeta "Puente Samsung" (PU4): cuándo corrió por última vez y qué traería.
- * Desde P85 la sincronización corre sola al abrir la app; el botón queda para
- * cuando uno quiere mirar la vista previa.
+ * Tarjeta "Puente Samsung" (PU4). Desde P88 separa dos cosas que antes se
+ * mezclaban: lo que el reloj SUBIÓ (la corrida del puente) y lo que la app
+ * IMPORTÓ (la última importación, a mano o automática, diciendo cuál). Antes
+ * mostraba la subida y la automática, pero no la manual: se sincronizaba a mano,
+ * entraban 91 actividades, y la tarjeta seguía mostrando horas viejas.
  */
 export function PuentePanel({
-  estado, ahora, sincronizando, onSincronizar, error, ultimaAutoMs,
+  estado, ahora, sincronizando, onSincronizar, error, ultimaImportacion, sesionSinLlegar,
+  fase, pedido,
 }: {
   estado: EstadoPuente | null;
   ahora: number;
   sincronizando: boolean;
   onSincronizar: () => void;
   error?: string | null;
-  /** Última sincronización automática en esta máquina (P85). */
-  ultimaAutoMs?: number | null;
+  /** La última importación en este dispositivo, manual o automática (P88). */
+  ultimaImportacion?: UltimaImportacion | null;
+  /** Texto si la última sesión terminó después de la última subida (P88). */
+  sesionSinLlegar?: string | null;
+  /** En qué paso está el botón (P89): pidiéndole al reloj, o importando. */
+  fase?: FasePedido | null;
+  /** El último pedido al puente (P89), para decir si el reloj respondió. */
+  pedido?: PedidoVisto | null;
 }) {
   const ultima = estado?.ultimaCorridaMs;
   const frenado = ultima != null && ahora - ultima > HORAS_SIN_CORRER_AVISO * 3_600_000;
+  const delPedido = estadoDelPedido(pedido ?? null, ultima, ahora);
+  const etiquetaBoton = fase === "pidiendo" ? "Pidiéndole los datos al reloj…"
+    : fase === "importando" || sincronizando ? "Importando…"
+    : "Sincronizar ahora";
 
   return (
     <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div>
-        <p className="section-title" style={{ margin: "0 0 2px" }}>Puente Samsung</p>
+      <p className="section-title" style={{ margin: 0 }}>Puente Samsung</p>
+
+      <Seccion titulo="Del reloj">
         <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
           {ultima != null
-            ? <>Última corrida: <strong style={{ color: "var(--fg)" }}>{fechaHora(ultima)}</strong> · {hace(ultima, ahora)}</>
-            : "El puente todavía no corrió en este teléfono."}
+            ? <>El puente subió datos el <strong style={{ color: "var(--fg)" }}>{fechaHora(ultima)}</strong> · {hace(ultima, ahora)}</>
+            : "El puente todavía no subió nada desde el teléfono."}
         </p>
-        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
-          {ultimaAutoMs != null
-            ? <>Sincronización automática: {fechaHora(ultimaAutoMs)} · {hace(ultimaAutoMs, ahora)}</>
-            : "Sincronización automática: todavía no corrió en este dispositivo."}
-        </p>
-      </div>
+      </Seccion>
 
       {ultima != null && (
         <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
@@ -83,16 +109,46 @@ export function PuentePanel({
         </p>
       )}
 
+      {pedido && delPedido && (
+        <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+          Último pedido al reloj: {fechaHora(pedido.pedidoMs)} ({delPedido.como}) ·{" "}
+          {delPedido.estado === "respondio" ? "respondió"
+            : delPedido.estado === "esperando" ? "esperando respuesta"
+            : "sin respuesta"}
+        </p>
+      )}
+      {delPedido?.estado === "sin-respuesta" && (
+        <p style={{ display: "flex", alignItems: "flex-start", gap: 6, margin: 0, fontSize: 12, color: "var(--warning)" }}>
+          <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
+          El teléfono puede tener la app del puente detenida o con ahorro de batería.
+        </p>
+      )}
+
+      <Seccion titulo="A la app">
+        <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+          {ultimaImportacion
+            ? <>Última importación: <strong style={{ color: "var(--fg)" }}>{fechaHora(ultimaImportacion.ms)}</strong> · {textoImportacion(ultimaImportacion)}</>
+            : "Todavía no se importó nada desde este dispositivo."}
+        </p>
+      </Seccion>
+
+      {sesionSinLlegar && (
+        <p style={{ display: "flex", alignItems: "flex-start", gap: 6, margin: 0, fontSize: 12, color: "var(--fg)" }}>
+          <Clock size={14} style={{ flexShrink: 0, marginTop: 1, color: "var(--muted)" }} aria-hidden />
+          {sesionSinLlegar}
+        </p>
+      )}
+
       {error && <p className="inline-error" style={{ margin: 0 }}>{error}</p>}
 
       <button
         className="btn-secondary"
         onClick={onSincronizar}
-        disabled={sincronizando}
+        disabled={sincronizando || fase != null}
         style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
       >
         <RefreshCw size={15} />
-        {sincronizando ? "Leyendo el puente…" : "Sincronizar ahora"}
+        {etiquetaBoton}
       </button>
     </div>
   );
@@ -100,13 +156,15 @@ export function PuentePanel({
 
 /** Vista previa de la sincronización: los mismos tres grupos que el ZIP. */
 export function PuentePreview({
-  resumen, umbralMin, confirmando, onConfirmar, onCancelar,
+  resumen, umbralMin, confirmando, onConfirmar, onCancelar, aviso,
 }: {
   resumen: ResumenSincronizacion;
   umbralMin: number;
   confirmando: boolean;
   onConfirmar: () => void;
   onCancelar: () => void;
+  /** Si el reloj no mandó nada nuevo (P89): "no contestó a tiempo; esto es lo que ya estaba". */
+  aviso?: string | null;
 }) {
   const soloSalud = resumen.clasificadas.filter((c) => c.destino === "descartada");
   const total = resumen.clasificadas.length;
@@ -118,6 +176,9 @@ export function PuentePreview({
           <span>Puente Samsung — vista previa</span>
         </div>
         <div style={{ padding: "12px 16px", maxHeight: "65vh", overflowY: "auto" }}>
+          {aviso && (
+            <p style={{ margin: "0 0 10px", fontSize: 12, color: "var(--warning)" }}>{aviso}</p>
+          )}
           <p style={{ margin: "0 0 10px", fontSize: 12, color: "var(--muted)" }}>
             {resumen.documentos} documentos → <strong style={{ color: "var(--fg)" }}>{resumen.registros} registros</strong>
             {resumen.rearmados > 0 && ` (${resumen.rearmados} venían partidos)`}

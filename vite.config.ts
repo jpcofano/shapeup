@@ -25,6 +25,8 @@ export default defineConfig({
   ],
   test: {
     environment: "jsdom",
-    exclude: [".tsc-out/**", "node_modules/**"],
+    // Reemplaza los excludes por defecto de vitest: por eso van todos los
+    // node_modules (functions/ tiene los suyos, P89) y el build de functions.
+    exclude: [".tsc-out/**", "**/node_modules/**", "functions/lib/**", "**/*.emulador.test.ts"],
   },
 });

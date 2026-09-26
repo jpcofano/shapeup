@@ -110,18 +110,51 @@ service cloud.firestore {
         && request.resource.data.uidSamsung is string;
     }
 
-    // Estado de la última corrida del puente (PU3). Un solo documento: "puente".
+    // Estado del puente. Tres documentos, cada uno con su lista de campos cerrada:
+    //  - "puente"      (PU3): la última corrida. Lo escribe el puente.
+    //  - "pedido"      (P89): ShapeUp le pide una corrida al puente.
+    //  - "dispositivo" (P89/P90): el token FCM del puente. Lo escribe el puente,
+    //    y `ultimoPushMs` lo escribe la Cloud Function (con Admin SDK).
+    // Ojo: `request.resource.data` es el documento DESPUÉS del merge, así que
+    // `ultimoPushMs` tiene que estar en la lista de "dispositivo" aunque el
+    // puente no lo escriba: si no, su próxima escritura se rechaza en silencio.
     match /ingesta-sdk/{uid}/estado/{docId} {
+      function esDueno() {
+        return request.auth != null && request.auth.uid == uid && isFamilyMember();
+      }
+      function intSiEsta(d, campo) {
+        return !(campo in d) || d[campo] is int;
+      }
+      function stringSiEsta(d, campo) {
+        return !(campo in d) || d[campo] is string;
+      }
+      function puenteValido(d) {
+        return d.keys().hasOnly([
+               'ultimaCorridaMs', 'versionPuente', 'origen',
+               'leidos', 'subidos', 'sinCambios', 'omitidos', 'errores',
+               'duracionMs', 'mensaje'])
+          && d.ultimaCorridaMs is int
+          && d.origen in ['manual', 'segundo-plano', 'pedido'];
+      }
+      function pedidoValido(d) {
+        return d.keys().hasOnly(['pedidoMs', 'origen'])
+          && d.pedidoMs is int
+          && d.origen in ['boton', 'fin-sesion', 'automatica'];
+      }
+      function dispositivoValido(d) {
+        return d.keys().hasOnly(['fcmToken', 'actualizadoMs', 'modelo', 'versionPuente', 'ultimoPushMs'])
+          && stringSiEsta(d, 'fcmToken')
+          && intSiEsta(d, 'actualizadoMs')
+          && stringSiEsta(d, 'modelo')
+          && stringSiEsta(d, 'versionPuente')
+          && intSiEsta(d, 'ultimoPushMs');
+      }
+
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow create, update: if request.auth != null && request.auth.uid == uid
-        && isFamilyMember()
-        && docId == 'puente'
-        && request.resource.data.keys().hasOnly([
-             'ultimaCorridaMs', 'versionPuente', 'origen',
-             'leidos', 'subidos', 'sinCambios', 'omitidos', 'errores',
-             'duracionMs', 'mensaje'])
-        && request.resource.data.ultimaCorridaMs is int
-        && request.resource.data.origen in ['manual', 'segundo-plano'];
+      allow create, update: if esDueno() && (
+           (docId == 'puente'      && puenteValido(request.resource.data))
+        || (docId == 'pedido'      && pedidoValido(request.resource.data))
+        || (docId == 'dispositivo' && dispositivoValido(request.resource.data)));
     }
   }
 }

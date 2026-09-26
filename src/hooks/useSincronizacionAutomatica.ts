@@ -28,8 +28,10 @@ import {
   debeSincronizar, puedeConsultarPuente, leerMarcas, guardarMarcas, contarNuevas,
   TIMEOUT_SYNC_AUTO_MS, type Almacen, type EstadoSincronizacion,
 } from "../lib/sincronizacionAutomatica";
+import type { UltimaImportacion } from "../lib/estadoPuente";
 import { limpiarCacheDiasActivos } from "../lib/cacheDiasActivos";
 import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
+import { pedirSincronizacion, esperarCorridaDelPuente, type RespuestaPuente } from "../data/pedidoPuente";
 import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialEnLaApp } from "../data/historial";
@@ -109,6 +111,13 @@ export interface DepsSincronizacion {
   online: () => boolean;
   /** Tras escribir actividades: la caché de días activos puede haber quedado vieja. */
   trasEscribir?: () => void;
+  /**
+   * P89: pedirle una corrida al puente y esperarla. Se usan solo si la última
+   * sesión guardada terminó DESPUÉS de la última corrida: el caso en que se
+   * sabe que falta algo. Opcionales para los tests que no los necesitan.
+   */
+  pedir?: (uid: string) => Promise<Result<number>>;
+  esperar?: (uid: string, desdeMs: number) => Promise<RespuestaPuente>;
 }
 
 const esCuota = (msg: string) => msg === MSG_CUOTA_AGOTADA || esCuotaAgotada(msg);
@@ -138,7 +147,24 @@ export async function correrSincronizacionAutomatica(
       console.warn("Sincronización automática: no se pudo leer el estado del puente:", est.error);
       return false;
     }
-    const ultimaCorridaPuenteMs = est.value?.ultimaCorridaMs;
+    let ultimaCorridaPuenteMs = est.value?.ultimaCorridaMs;
+
+    // P89: si el puente corrió antes de que terminara la última sesión, su
+    // biometría todavía está en el teléfono. Se le pide una corrida y se espera
+    // (en segundo plano: esto no bloquea nada). Conteste o no, se sigue.
+    const finSesion = marcas.ultimaSesionFinMs;
+    if (deps.pedir && deps.esperar && finSesion != null
+        && ultimaCorridaPuenteMs != null && ultimaCorridaPuenteMs < finSesion) {
+      try {
+        const p = await deps.pedir(uid);
+        if (p.ok) {
+          const r = await deps.esperar(uid, p.value);
+          if (r.contesto && r.estado.ultimaCorridaMs != null) ultimaCorridaPuenteMs = r.estado.ultimaCorridaMs;
+        }
+      } catch {
+        /* sin respuesta: se importa lo que haya */
+      }
+    }
     if (!debeSincronizar({
       ultimaCorridaPuenteMs, ultimaImportadaMs: marcas.ultimaImportadaMs,
       ultimaAutoMs: marcas.ultimaAutoMs, ahora: deps.ahora(), online,
@@ -173,6 +199,7 @@ export async function correrSincronizacionAutomatica(
       ultimaImportadaMs: ultimaCorridaPuenteMs!,
       ultimaAutoMs: deps.ahora(),
       uuidsConocidos: uuids,
+      ultimaImportacion: { ms: deps.ahora(), tipo: "automatica", actividades: v.escritos.cardio },
     });
     if (v.escritos.cardio > 0) deps.trasEscribir?.();
     const conBiometria = v.enriquecimiento?.matcheadas ?? 0;
@@ -196,17 +223,24 @@ export function uuidsDe(v: ResumenSincronizacion): string[] {
  */
 export function anotarSincronizacionManual(
   uid: string, ultimaCorridaPuenteMs: number | undefined, v: ResumenSincronizacion,
-  almacen: Almacen | null = almacenLocal(),
+  almacen: Almacen | null = almacenLocal(), ahora: number = Date.now(),
 ) {
   guardarMarcas(almacen, uid, {
     ...(ultimaCorridaPuenteMs != null ? { ultimaImportadaMs: ultimaCorridaPuenteMs } : {}),
     uuidsConocidos: uuidsDe(v),
+    // P88: que la tarjeta muestre esta importación, no solo la automática.
+    ultimaImportacion: { ms: ahora, tipo: "manual", actividades: v.escritos.cardio },
   });
 }
 
 /** Cuándo fue la última sincronización automática en esta máquina. */
 export function ultimaSincronizacionAutomatica(uid: string, almacen: Almacen | null = almacenLocal()): number | null {
   return leerMarcas(almacen, uid).ultimaAutoMs ?? null;
+}
+
+/** La última importación en esta máquina, manual o automática (P88). */
+export function ultimaImportacionDe(uid: string, almacen: Almacen | null = almacenLocal()): UltimaImportacion | null {
+  return leerMarcas(almacen, uid).ultimaImportacion ?? null;
 }
 
 export function almacenLocal(): Almacen | null {
@@ -241,6 +275,8 @@ function depsReales(): DepsSincronizacion {
     ahora: () => Date.now(),
     online: () => navigator.onLine,
     trasEscribir: limpiarCacheDiasActivos,
+    pedir: (uid) => pedirSincronizacion(uid, "automatica"),
+    esperar: (uid, desde) => esperarCorridaDelPuente(uid, desde),
   };
 }
 

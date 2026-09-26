@@ -35,8 +35,14 @@ import { correrPaso, resumirPasos } from "../lib/pasoImport";
 import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
 import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
 import { PuentePanel, PuentePreview } from "../components/salud/PuentePanel";
+import { sesionSinLlegar, textoSesionSinLlegar } from "../lib/estadoPuente";
+import { pedirYTraer, avisoRespuesta, type ComoContesto, type FasePedido } from "../lib/pedirYTraer";
 import {
-  anotarSincronizacionManual, ultimaSincronizacionAutomatica, useEstadoSincronizacion,
+  pedirSincronizacion, esperarCorridaDelPuente, leerPedido, leerDispositivo, type PedidoPuente,
+} from "../data/pedidoPuente";
+import { ymdLocal } from "../lib/semana";
+import {
+  anotarSincronizacionManual, ultimaImportacionDe, useEstadoSincronizacion,
 } from "../hooks/useSincronizacionAutomatica";
 import { useAuth } from "../auth/useAuth";
 import { ResumenTab }    from "../components/salud/ResumenTab";
@@ -101,6 +107,10 @@ export function Salud() {
   // ── Puente Samsung (PU4) ──────────────────────────────────────────────────
   const [estadoPuente,   setEstadoPuente]   = useState<EstadoPuente | null>(null);
   const [sincronizando,  setSincronizando]  = useState(false);
+  // P89: el botón primero le pide al reloj y después importa.
+  const [fasePuente,     setFasePuente]     = useState<FasePedido | null>(null);
+  const [contestoPuente, setContestoPuente] = useState<ComoContesto | null>(null);
+  const [pedidoPuente,   setPedidoPuente]   = useState<PedidoPuente | null>(null);
   const [confirmandoSync,setConfirmandoSync]= useState(false);
   const [previaPuente,   setPreviaPuente]   = useState<ResumenSincronizacion | null>(null);
   const [errorPuente,    setErrorPuente]    = useState<string | null>(null);
@@ -199,34 +209,69 @@ export function Salud() {
   useEffect(() => {
     if (!user?.uid) return;
     leerEstadoPuente(user.uid).then((r) => { if (r.ok) setEstadoPuente(r.value); });
+    // P89: el último pedido, para que la tarjeta diga si el reloj respondió.
+    leerPedido(user.uid).then((r) => { if (r.ok) setPedidoPuente(r.value); });
   }, [user?.uid]);
 
   // Cuándo corrió sola (P85). Suscribirse al estado hace que se relea cuando la
   // automática termina; leer localStorage en cada render es gratis.
   useEstadoSincronizacion();
-  const ultimaAutoMs = user?.uid ? ultimaSincronizacionAutomatica(user.uid) : null;
+  const ultimaImportacion = user?.uid ? ultimaImportacionDe(user.uid) : null;
+  // La última sesión de la app, si terminó después de la última subida del
+  // puente: su biometría todavía no puede estar (P88). Sale del historial que
+  // ya está cargado, sin lecturas nuevas.
+  const pendienteDelReloj = sesionSinLlegar(historial, estadoPuente?.ultimaCorridaMs);
+  const textoPendiente = pendienteDelReloj ? textoSesionSinLlegar(pendienteDelReloj.fechaRealizada, ymdLocal()) : null;
 
-  /** Lee el puente y muestra la vista previa. No escribe nada todavía. */
+  /**
+   * El botón (P89), en dos pasos: 1) le pide al reloj y espera hasta 45 s,
+   * 2) lee lo que hay y muestra la vista previa — haya contestado o no. No
+   * escribe nada en salud todavía: eso lo hace "Confirmar".
+   */
   async function vistaPreviaPuente() {
     if (!user?.uid || !memberId) return;
+    const uid = user.uid;
     setSincronizando(true);
     setErrorPuente(null);
-    const [perfRes, histRes, cfgRes] = await Promise.all([
-      getPerfiles(),
-      getHistorialEnLaApp(memberId as MiembroId),
-      getConfigImport(),
-    ]);
-    const config = cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT;
-    setUmbralPuente(config.duracionMinimaMin);
+    setContestoPuente(null);
 
-    const r = await sincronizarDesdePuente(
-      user.uid, memberId as MiembroId, histRes.ok ? histRes.value : [], config,
-      {
-        soloVistaPrevia: true,
-        zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined,
+    const { contesto, resultado: r } = await pedirYTraer({
+      // Sin puente registrado (falta P90) no se espera a nadie.
+      hayPuenteEscuchando: async () => {
+        const d = await leerDispositivo(uid);
+        return !d.ok || typeof d.value?.fcmToken === "string";
       },
-    );
+      pedir: async () => {
+        const p = await pedirSincronizacion(uid, "boton");
+        if (p.ok) setPedidoPuente({ pedidoMs: p.value, origen: "boton" });
+        return p;
+      },
+      esperar: async (desde) => {
+        const res = await esperarCorridaDelPuente(uid, desde);
+        if (res.contesto) setEstadoPuente(res.estado);
+        return res;
+      },
+      traer: async () => {
+        const [perfRes, histRes, cfgRes] = await Promise.all([
+          getPerfiles(),
+          getHistorialEnLaApp(memberId as MiembroId),
+          getConfigImport(),
+        ]);
+        const config = cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT;
+        setUmbralPuente(config.duracionMinimaMin);
+        return sincronizarDesdePuente(
+          uid, memberId as MiembroId, histRes.ok ? histRes.value : [], config,
+          {
+            soloVistaPrevia: true,
+            zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined,
+          },
+        );
+      },
+      alCambiarFase: setFasePuente,
+    });
+    setFasePuente(null);
     setSincronizando(false);
+    setContestoPuente(contesto);
     if (!r.ok) { setErrorPuente(r.error); return; }
     setPreviaPuente(r.value);
   }
@@ -275,7 +320,9 @@ export function Salud() {
       + `${v.enriquecimiento && v.enriquecimiento.matcheadas > 0
           ? ` · ${v.enriquecimiento.matcheadas} sesión${v.enriquecimiento.matcheadas !== 1 ? "es" : ""} con biometría`
           : ""}`
-      + `${v.errorEnriquecimiento ? ` · ⚠ la biometría falló: ${v.errorEnriquecimiento}` : ""}`,
+      + `${v.errorEnriquecimiento ? ` · ⚠ la biometría falló: ${v.errorEnriquecimiento}` : ""}`
+      // P89: si el reloj no mandó nada nuevo, se dice.
+      + `${contestoPuente && avisoRespuesta(contestoPuente, "importado") ? `\n${avisoRespuesta(contestoPuente, "importado")}` : ""}`,
     );
 
     // Refrescar lo que cambió — la primera página, no la colección entera.
@@ -654,6 +701,7 @@ export function Salud() {
           padding: "10px 14px", borderRadius: "var(--r-sm)", marginBottom: 8,
           background: importMsg.startsWith("✅") ? "rgba(74,222,128,0.12)" : "var(--danger-dim)",
           color: importMsg.startsWith("✅") ? "#4ade80" : "var(--danger)", fontSize: 13,
+          whiteSpace: "pre-line",   // P89: el aviso del reloj va en su propia línea
         }}>
           {importMsg}
         </div>
@@ -669,13 +717,17 @@ export function Salud() {
           sincronizando={sincronizando}
           onSincronizar={vistaPreviaPuente}
           error={errorPuente}
-          ultimaAutoMs={ultimaAutoMs}
+          ultimaImportacion={ultimaImportacion}
+          sesionSinLlegar={textoPendiente}
+          fase={fasePuente}
+          pedido={pedidoPuente}
         />
       )}
 
       {previaPuente && (
         <PuentePreview
           resumen={previaPuente}
+          aviso={contestoPuente ? avisoRespuesta(contestoPuente, "vista-previa") : null}
           umbralMin={umbralPuente}
           confirmando={confirmandoSync}
           onConfirmar={confirmarPuente}

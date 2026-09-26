@@ -247,6 +247,14 @@ puntos)**, enriquecería **7 de las 8 sesiones del historial con `granularidad: 
    pasaron 6 h (`lib/sincronizacionAutomatica.debeSincronizar`, marcas en `localStorage`
    por uid). Caso normal: **una** lectura. Chip en Home; el botón de /salud queda para la
    vista previa. **Sigue sin correr con la app cerrada** (eso es "PWA completa").
+   **P89 (25/09/2026), lado ShapeUp:** el botón le **pide** una corrida al puente, espera
+   hasta 45 s e importa igual si no contesta. Al guardar una sesión el pedido sale solo
+   (`origen: 'fin-sesion'`). El mensajero es la **primera Cloud Function del proyecto**
+   (`functions/`, gen 2, `southamerica-east1`), que manda un push de datos silencioso al
+   token del puente (`estado/dispositivo`). **Falta P90** (el puente Android registra el
+   token y responde al push): sin eso el pedido se escribe y la función anota `sin-token`.
+   `functions/` tiene su propio `npm install`; sin él `tsc -b` falla. Nada de esto está
+   deployado: función y reglas se suben a mano (ver `functions/README.md`).
 2. **No enlaza ni convierte entradas externas** (bloque 5 del roadmap, P76).
 3. **No cubre el nivel `"rango"` del match**: sale de `tracker.heart_rate`, que el puente no
    trae. Con la curva fina andando, importa poco.

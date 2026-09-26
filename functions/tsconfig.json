@@ -1,0 +1,19 @@
+{
+  // Cloud Functions (P89). Entra en `tsc -b` desde la raíz: el código que
+  // corre en el servidor se chequea como el resto (regla de P87).
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./lib/.tsbuildinfo",
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

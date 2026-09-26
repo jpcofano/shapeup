@@ -410,3 +410,65 @@ describe("resolución de memberId (login)", () => {
     return assertSucceeds(getDoc(doc(ctx.firestore(), "ejercicios", "EJ-0001")));
   });
 });
+
+// ── P89: pedido y dispositivo ────────────────────────────────────────────────
+describe("ingesta-sdk: estado/pedido y estado/dispositivo (P89)", () => {
+  const pedidoRef = (quien: string, uid: string) =>
+    doc(as(quien).firestore(), "ingesta-sdk", uid, "estado", "pedido");
+  const dispRef = (uid: string) =>
+    doc(as(uid).firestore(), "ingesta-sdk", uid, "estado", "dispositivo");
+
+  it("el dueño escribe su pedido", () =>
+    assertSucceeds(setDoc(pedidoRef("juanpablo", "juanpablo"), { pedidoMs: 1790000000000, origen: "boton" })));
+
+  it("acepta los tres orígenes de pedido", async () => {
+    for (const origen of ["boton", "fin-sesion", "automatica"]) {
+      await assertSucceeds(setDoc(pedidoRef("juanpablo", "juanpablo"), { pedidoMs: 1790000000000, origen }));
+    }
+  });
+
+  it("otro uid no puede pedir por el dueño", () =>
+    assertFails(setDoc(pedidoRef("sofia", "juanpablo"), { pedidoMs: 1790000000000, origen: "boton" })));
+
+  it("un campo de más en el pedido se rechaza", () =>
+    assertFails(setDoc(pedidoRef("juanpablo", "juanpablo"), { pedidoMs: 1790000000000, origen: "boton", fcmToken: "x" })));
+
+  it("pedidoMs que no es int se rechaza", () =>
+    assertFails(setDoc(pedidoRef("juanpablo", "juanpablo"), { pedidoMs: "ahora", origen: "boton" })));
+
+  it("un origen de pedido inventado se rechaza", () =>
+    assertFails(setDoc(pedidoRef("juanpablo", "juanpablo"), { pedidoMs: 1790000000000, origen: "otro" })));
+
+  it("un docId inventado se rechaza", () =>
+    assertFails(setDoc(doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "inventado"),
+      { pedidoMs: 1790000000000, origen: "boton" })));
+
+  it("el puente registra su token", () =>
+    assertSucceeds(setDoc(dispRef("juanpablo"),
+      { fcmToken: "tok", actualizadoMs: 1790000000000, modelo: "SM-S911B", versionPuente: "1.3.0" })));
+
+  it("el puente puede reescribir su token DESPUÉS de que la función escribió ultimoPushMs", async () => {
+    // La función escribe con Admin SDK (sin reglas); acá se simula con las reglas apagadas.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "ingesta-sdk", "juanpablo", "estado", "dispositivo"),
+        { fcmToken: "tok", actualizadoMs: 1, ultimoPushMs: 1790000000000 });
+    });
+    // request.resource.data es el doc después del merge: incluye ultimoPushMs.
+    await assertSucceeds(setDoc(dispRef("juanpablo"),
+      { fcmToken: "tok2", actualizadoMs: 2 }, { merge: true }));
+  });
+
+  it("un campo de más en dispositivo se rechaza", () =>
+    assertFails(setDoc(dispRef("juanpablo"), { fcmToken: "tok", actualizadoMs: 1, otro: true })));
+
+  it("fcmToken que no es string se rechaza", () =>
+    assertFails(setDoc(dispRef("juanpablo"), { fcmToken: 123, actualizadoMs: 1 })));
+
+  it("otro uid no escribe el dispositivo del dueño", () =>
+    assertFails(setDoc(doc(as("sofia").firestore(), "ingesta-sdk", "juanpablo", "estado", "dispositivo"),
+      { fcmToken: "tok", actualizadoMs: 1 })));
+
+  it("el puente puede registrar una corrida pedida (origen 'pedido')", () =>
+    assertSucceeds(setDoc(doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"),
+      estadoPuente({ origen: "pedido" }))));
+});

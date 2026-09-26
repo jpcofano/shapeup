@@ -11,6 +11,11 @@ import { compararConPrevias } from "../lib/costoCardiaco";
 import { motivoSaltoLabel, MOTIVOS_SUSTITUCION } from "../lib/entrenarState";
 import { ZONAS_MOLESTIA } from "../lib/resumenSesion";
 import type { ComparativaCardiaca } from "../lib/costoCardiaco";
+import { useAuth } from "../auth/useAuth";
+import { leerEstadoPuente } from "../data/ingestaSdk";
+import { explicarSinBiometria } from "../lib/estadoPuente";
+import { seEnriquece } from "../lib/tipoHistorial";
+import { ymdLocal } from "../lib/semana";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
@@ -74,6 +79,19 @@ export function HistorialDetalle() {
   const [nocheAnterior, setNocheAnterior] = useState<NocheSueno | null>(null);
   const [fcDia,          setFcDia]        = useState<MetricaSalud | null>(null);
   const [comparativa,    setComparativa]  = useState<ComparativaCardiaca | null>(null);
+  const { user } = useAuth();
+  /** Última subida del puente, solo si hace falta explicar una sesión sin biometría (P88). */
+  const [ultimaCorrida,  setUltimaCorrida] = useState<number | null>(null);
+
+  // Hook ANTES de los returns tempranos de abajo (ver el fix del React #310 en
+  // EntrenarSesion). Una sola lectura, y solo para sesiones de la app que
+  // todavía no tienen biometría: ahí puede ser que simplemente no haya llegado.
+  useEffect(() => {
+    if (!h || h.biometria || !seEnriquece(h) || !user?.uid) return;
+    void leerEstadoPuente(user.uid).then((r) => {
+      if (r.ok) setUltimaCorrida(r.value?.ultimaCorridaMs ?? null);
+    });
+  }, [h, user?.uid]);
 
   useEffect(() => {
     if (!id) return;
@@ -309,7 +327,9 @@ export function HistorialDetalle() {
       )}
       {!h.biometria && (
         <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
-          Sin datos del reloj para esta sesión.
+          {/* P88: si terminó después de la última subida del puente, no es que
+              falten datos: todavía no llegaron. */}
+          {explicarSinBiometria(h, ultimaCorrida, ymdLocal()) ?? "Sin datos del reloj para esta sesión."}
         </p>
       )}
 

@@ -8,6 +8,7 @@ vi.mock("../firebase", () => ({ db: {}, auth: {} }));
 import {
   useSincronizacionAutomatica, correrSincronizacionAutomatica,
   _reiniciarSincronizacionAutomatica, reabrirApp, useGeneracionDatosSalud,
+  anotarSincronizacionManual, ultimaImportacionDe,
   type DepsSincronizacion,
 } from "./useSincronizacionAutomatica";
 import { leerMarcas, type Almacen } from "../lib/sincronizacionAutomatica";
@@ -54,6 +55,7 @@ describe("correrSincronizacionAutomatica", () => {
     expect(d.trasEscribir).toHaveBeenCalledTimes(1);
     expect(leerMarcas(d.almacen, "u1")).toEqual({
       ultimaImportadaMs: CORRIDA, ultimaAutoMs: AHORA, uuidsConocidos: ["a", "b"],
+      ultimaImportacion: { ms: AHORA, tipo: "automatica", actividades: 2 },
     });
   });
 
@@ -123,6 +125,48 @@ describe("correrSincronizacionAutomatica", () => {
     reabrirApp();
     await correrSincronizacionAutomatica("u1", "juanpablo", d);
     expect(d.sincronizar).toHaveBeenCalledTimes(1);
+  });
+
+  it("la sincronización a mano queda como la última importación, diciendo que fue a mano (P88)", () => {
+    const almacen = almacenMemoria();
+    anotarSincronizacionManual("u1", CORRIDA, resumen(Array.from({ length: 91 }, (_, i) => `u${i}`)), almacen, AHORA);
+    expect(ultimaImportacionDe("u1", almacen)).toEqual({ ms: AHORA, tipo: "manual", actividades: 91 });
+  });
+
+  describe("P89: pide primero si el puente quedó atrás de la última sesión", () => {
+    function conSesion(finSesionMs: number, over: Partial<DepsSincronizacion> = {}) {
+      const d = deps({
+        pedir: vi.fn(() => Promise.resolve(ok(AHORA))),
+        esperar: vi.fn(() => Promise.resolve({ contesto: true as const, estado: { ultimaCorridaMs: AHORA + 5_000 } })),
+        ...over,
+      });
+      d.almacen!.setItem("sync-puente-u1", JSON.stringify({ ultimaSesionFinMs: finSesionMs }));
+      return d;
+    }
+
+    it("corrida anterior al fin de la sesión → pide, espera e importa con la corrida nueva", async () => {
+      const d = conSesion(CORRIDA + 10 * 60_000);   // la sesión terminó 10 min después de la corrida
+      expect(await correrSincronizacionAutomatica("u1", "juanpablo", d)).toBe(true);
+      expect(d.pedir).toHaveBeenCalledWith("u1");
+      expect(d.esperar).toHaveBeenCalledWith("u1", AHORA);
+      expect(leerMarcas(d.almacen, "u1").ultimaImportadaMs).toBe(AHORA + 5_000);
+    });
+
+    it("corrida posterior al fin de la sesión → no pide", async () => {
+      const d = conSesion(CORRIDA - 60_000);
+      await correrSincronizacionAutomatica("u1", "juanpablo", d);
+      expect(d.pedir).not.toHaveBeenCalled();
+      expect(d.sincronizar).toHaveBeenCalledTimes(1);
+    });
+
+    it("si el puente no contesta, importa igual lo que había", async () => {
+      const d = conSesion(CORRIDA + 10 * 60_000, {
+        esperar: vi.fn(() => Promise.resolve({ contesto: false as const, motivo: "timeout" as const })),
+      });
+      expect(await correrSincronizacionAutomatica("u1", "juanpablo", d)).toBe(true);
+      expect(d.sincronizar).toHaveBeenCalledTimes(1);
+      expect(leerMarcas(d.almacen, "u1").ultimaImportadaMs).toBe(CORRIDA);
+    });
   });
 
   it("un rechazo inesperado no tira", async () => {

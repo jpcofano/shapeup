@@ -1,0 +1,20 @@
+{
+  "name": "shapeup-functions",
+  "private": true,
+  "description": "Cloud Functions de ShapeUp (P89). Ver README.md.",
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": { "node": "22" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "deploy": "npm run build && firebase deploy --only functions",
+    "logs": "firebase functions:log --only pedirCorridaAlPuente"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0",
+    "firebase-functions": "^7.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

@@ -357,6 +357,81 @@ export function EntrenarSesion() {
     />
   );
 
+  // ── Hooks ANTES de cualquier return temprano (fix React #310) ───────────
+  // Estos dos useEffect (P79) estaban después de los returns de carga: el
+  // render "cargando" llamaba dos hooks menos que el siguiente y React cortaba
+  // con "Rendered more hooks than during the previous render". La derivación
+  // de VR sube con ellos porque la necesitan; es pura y ya se protege con
+  // `rutina && …`, así que mientras carga da null. Test: EntrenarSesion.hooks.test.tsx.
+
+  // ── Progresión de VR (P79) ────────────────────────────────────────────────
+  // Todo derivado del historial: la rutina nunca se muta (ADR #039).
+  const vrDeLaRutina = rutina && esRutinaVR(rutina) ? bloqueVRDeRutina(rutina) : null;
+  const sesionesDeEstaRutina = (historialMiembro ?? [])
+    .filter((h) => rutina && h.idRutina === rutina.idRutina)
+    .sort((a, b) => b.fechaRealizada.localeCompare(a.fechaRealizada));
+
+  const tarjetaVR = (() => {
+    if (!rutina || !vrDeLaRutina || vrDecidido || state.prescripcionVR) return null;
+    const [ultima, ...anteriores] = sesionesDeEstaRutina;
+    if (!ultima) return null;   // sin historia de esta rutina no hay tarjeta
+
+    const sugerencia = sugerirProgresionVR({ ultima, anteriores, rutina, perfil: perfilMiembro });
+    if (!sugerencia) return null;
+
+    const bloque = bloqueVRDeSesion(ultima, vrDeLaRutina.idEjercicio);
+    const base = prescripcionDeRutina(vrDeLaRutina.prescripcion);
+    const usada = conObjetivo(bloque?.prescripcionUsada ?? base, base);
+    // Medido con el filtro de validez de P79b: las rondas de dos segundos no
+    // son rondas y las pausas no son descansos. La ventana de la sesión entra
+    // acá porque en modo tiempo es ella la que mide (P80).
+    const medicion = medirSesionVR(bloque?.series ?? [], usada, ultima);
+    const fc = medicion.fcTrabajo;
+    const muneca = munecaNoMide(sesionesDeEstaRutina, vrDeLaRutina.idEjercicio);
+
+    return {
+      sugerencia, usada,
+      ultima: {
+        fecha: ultima.fechaRealizada,
+        rondasHechas: medicion.validas,
+        rondasPedidas: usada.rondas,
+        fcTrabajo: fc,
+        zona: fc != null ? (derivarZona(fc, perfilMiembro) ?? null) : null,
+        zonaObjetivo: vrDeLaRutina.prescripcion.zonaObjetivo ?? null,
+        descartadas: medicion.descartadas,
+        durDescartadasSeg: medicion.durDescartadasSeg,
+        descansoSeg: medicion.descansoSeg,
+        pausaMayorSeg: medicion.pausaMayorSeg,
+        modo: medicion.modo,
+        minutosReales: medicion.minutosReales,
+        objetivoMin: usada.duracionObjetivoMin ?? 0,
+      },
+      avisoMuneca: muneca.aplica
+        ? {
+            juego: vrDeLaRutina.prescripcion.juegoSugerido ?? "este juego",
+            conArtefactos: muneca.conArtefactos,
+            miradas: muneca.miradas,
+          }
+        : null,
+    };
+  })();
+
+  // Al retomar una sesión ya empezada, los parámetros vuelven del estado
+  // persistido: no se vuelve a negociar con qué se estaba jugando (P79).
+  useEffect(() => {
+    if (state.prescripcionVR && !prescVR) setPrescVR(state.prescripcionVR);
+  }, [state.prescripcionVR, prescVR]);
+
+  // Sin tarjeta que mostrar pero con rutina VR, los parámetros igual salen de
+  // la historia: la sesión tiene que jugarse con ellos aunque nadie decida.
+  useEffect(() => {
+    if (!rutinaBase || !vrDeLaRutina || state.prescripcionVR || tarjetaVR) return;
+    const { prescripcion } = parametrosDeArranque(historialMiembro ?? [], rutinaBase);
+    setPrescVR(prescripcion);
+    session.sellarProgresionVR(prescripcion, null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rutinaBase, vrDeLaRutina, state.prescripcionVR, tarjetaVR]);
+
   if (loading) {
     return (
       <div className="workout-screen">
@@ -469,57 +544,6 @@ export function EntrenarSesion() {
   /** Equipo del lugar donde estás, para filtrar los sustitutos (P72/P73). */
   const equipoDelLugar = equipoDe(perfilMiembro, state.lugar ?? "Casa");
 
-  // ── Progresión de VR (P79) ────────────────────────────────────────────────
-  // Todo derivado del historial: la rutina nunca se muta (ADR #039).
-  const vrDeLaRutina = rutina && esRutinaVR(rutina) ? bloqueVRDeRutina(rutina) : null;
-  const sesionesDeEstaRutina = (historialMiembro ?? [])
-    .filter((h) => rutina && h.idRutina === rutina.idRutina)
-    .sort((a, b) => b.fechaRealizada.localeCompare(a.fechaRealizada));
-
-  const tarjetaVR = (() => {
-    if (!rutina || !vrDeLaRutina || vrDecidido || state.prescripcionVR) return null;
-    const [ultima, ...anteriores] = sesionesDeEstaRutina;
-    if (!ultima) return null;   // sin historia de esta rutina no hay tarjeta
-
-    const sugerencia = sugerirProgresionVR({ ultima, anteriores, rutina, perfil: perfilMiembro });
-    if (!sugerencia) return null;
-
-    const bloque = bloqueVRDeSesion(ultima, vrDeLaRutina.idEjercicio);
-    const base = prescripcionDeRutina(vrDeLaRutina.prescripcion);
-    const usada = conObjetivo(bloque?.prescripcionUsada ?? base, base);
-    // Medido con el filtro de validez de P79b: las rondas de dos segundos no
-    // son rondas y las pausas no son descansos. La ventana de la sesión entra
-    // acá porque en modo tiempo es ella la que mide (P80).
-    const medicion = medirSesionVR(bloque?.series ?? [], usada, ultima);
-    const fc = medicion.fcTrabajo;
-    const muneca = munecaNoMide(sesionesDeEstaRutina, vrDeLaRutina.idEjercicio);
-
-    return {
-      sugerencia, usada,
-      ultima: {
-        fecha: ultima.fechaRealizada,
-        rondasHechas: medicion.validas,
-        rondasPedidas: usada.rondas,
-        fcTrabajo: fc,
-        zona: fc != null ? (derivarZona(fc, perfilMiembro) ?? null) : null,
-        zonaObjetivo: vrDeLaRutina.prescripcion.zonaObjetivo ?? null,
-        descartadas: medicion.descartadas,
-        durDescartadasSeg: medicion.durDescartadasSeg,
-        descansoSeg: medicion.descansoSeg,
-        pausaMayorSeg: medicion.pausaMayorSeg,
-        modo: medicion.modo,
-        minutosReales: medicion.minutosReales,
-        objetivoMin: usada.duracionObjetivoMin ?? 0,
-      },
-      avisoMuneca: muneca.aplica
-        ? {
-            juego: vrDeLaRutina.prescripcion.juegoSugerido ?? "este juego",
-            conArtefactos: muneca.conArtefactos,
-            miradas: muneca.miradas,
-          }
-        : null,
-    };
-  })();
 
   // La forma que se ofrece primero sale de la última sesión de esta rutina
   // (P80): no se guarda un ajuste aparte, se deriva.
@@ -575,21 +599,6 @@ export function EntrenarSesion() {
     setVrDecidido(true);
   }
 
-  // Al retomar una sesión ya empezada, los parámetros vuelven del estado
-  // persistido: no se vuelve a negociar con qué se estaba jugando (P79).
-  useEffect(() => {
-    if (state.prescripcionVR && !prescVR) setPrescVR(state.prescripcionVR);
-  }, [state.prescripcionVR, prescVR]);
-
-  // Sin tarjeta que mostrar pero con rutina VR, los parámetros igual salen de
-  // la historia: la sesión tiene que jugarse con ellos aunque nadie decida.
-  useEffect(() => {
-    if (!rutinaBase || !vrDeLaRutina || state.prescripcionVR || tarjetaVR) return;
-    const { prescripcion } = parametrosDeArranque(historialMiembro ?? [], rutinaBase);
-    setPrescVR(prescripcion);
-    session.sellarProgresionVR(prescripcion, null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rutinaBase, vrDeLaRutina, state.prescripcionVR, tarjetaVR]);
 
   // Valores para el log rápido
   function getLogValues(): Partial<SerieRegistro> {

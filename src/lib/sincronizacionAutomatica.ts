@@ -16,6 +16,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 /** Mínimo entre dos sincronizaciones automáticas, aunque el puente corra de nuevo. */
+import type { UltimaImportacion } from "./estadoPuente";
+
 export const MIN_ENTRE_SYNC_MS = 6 * 60 * 60 * 1000;
 
 /** Techo de la sincronización automática entera. Cada escritura ya tiene sus 8 s (P69). */
@@ -65,6 +67,18 @@ export interface MarcasSync {
    * Se guarda solo el último lote: la ventana se corre y lo viejo no vuelve.
    */
   uuidsConocidos?: string[];
+  /**
+   * La última vez que la app importó lo del puente, a mano o sola (P88). Es lo
+   * que la tarjeta del puente muestra como "a la app", separado de lo que subió
+   * el reloj. Por dispositivo, como el resto de las marcas.
+   */
+  ultimaImportacion?: UltimaImportacion;
+  /**
+   * Cuándo terminó la última sesión guardada en este dispositivo (P89). Si el
+   * puente corrió antes que eso, falta algo: la automática le pide una corrida
+   * antes de importar. Local para no sumar lecturas.
+   */
+  ultimaSesionFinMs?: number;
 }
 
 export interface Almacen {

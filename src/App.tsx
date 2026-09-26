@@ -21,36 +21,45 @@ import { ProgramaDetalle } from "./routes/ProgramaDetalle";
 import { QaHomeRedux } from "./routes/QaHomeRedux";
 import { QaSaludResumen } from "./routes/QaSaludResumen";
 import { QaTemas } from "./routes/QaTemas";
+import { PantallaErrorRuta } from "./components/PantallaError";
 
 const router = createBrowserRouter([
-  // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
-  { path: "/entrenar/libre",                element: <EntrenarSesionLibre /> },
-  { path: "/entrenar/juego",                element: <SesionJuego /> },
-  { path: "/entrenar/ejercicio/:idEjercicio", element: <EntrenarSesionLibre /> },
-  { path: "/entrenar/:rutinaId",            element: <EntrenarSesion /> },
-  { path: "/qa/home-redux",                 element: <QaHomeRedux /> },
-  { path: "/qa/salud-resumen",              element: <QaSaludResumen /> },
-  { path: "/qa/temas",                      element: <QaTemas /> },
-
-  // ── App con AppShell ───────────────────────────────────────────────────────
+  // Una ruta sin path que envuelve a todas: si cualquier pantalla se rompe al
+  // renderizar, se ve PantallaErrorRuta en castellano en vez de la página por
+  // defecto de react-router (stack + "Hey developer").
   {
-    path: "/",
-    element: <AppShell />,
+    errorElement: <PantallaErrorRuta />,
     children: [
-      { index: true,                    element: <Home /> },
-      { path: "biblioteca",             element: <Biblioteca /> },
-      { path: "biblioteca/nueva",       element: <RutinaForm /> },
-      { path: "biblioteca/:id",         element: <RutinaDetalle /> },
-      { path: "biblioteca/:id/editar",  element: <RutinaForm /> },
-      { path: "catalogo",               element: <Catalogo /> },
-      { path: "catalogo/nueva",         element: <EjercicioForm /> },
-      { path: "catalogo/:id/editar",    element: <EjercicioForm /> },
-      { path: "entrenar",               element: <Entrenar /> },
-      { path: "programa/:id",            element: <ProgramaDetalle /> },
-      { path: "historial",              element: <Historial /> },
-      { path: "historial/:id",          element: <HistorialDetalle /> },
-      { path: "salud",                  element: <Salud /> },
-      { path: "perfil",                 element: <Perfil /> },
+      // ── Fullscreen (sin AppShell) ──────────────────────────────────────────────
+      { path: "/entrenar/libre",                element: <EntrenarSesionLibre /> },
+      { path: "/entrenar/juego",                element: <SesionJuego /> },
+      { path: "/entrenar/ejercicio/:idEjercicio", element: <EntrenarSesionLibre /> },
+      { path: "/entrenar/:rutinaId",            element: <EntrenarSesion /> },
+      { path: "/qa/home-redux",                 element: <QaHomeRedux /> },
+      { path: "/qa/salud-resumen",              element: <QaSaludResumen /> },
+      { path: "/qa/temas",                      element: <QaTemas /> },
+
+      // ── App con AppShell ───────────────────────────────────────────────────────
+      {
+        path: "/",
+        element: <AppShell />,
+        children: [
+          { index: true,                    element: <Home /> },
+          { path: "biblioteca",             element: <Biblioteca /> },
+          { path: "biblioteca/nueva",       element: <RutinaForm /> },
+          { path: "biblioteca/:id",         element: <RutinaDetalle /> },
+          { path: "biblioteca/:id/editar",  element: <RutinaForm /> },
+          { path: "catalogo",               element: <Catalogo /> },
+          { path: "catalogo/nueva",         element: <EjercicioForm /> },
+          { path: "catalogo/:id/editar",    element: <EjercicioForm /> },
+          { path: "entrenar",               element: <Entrenar /> },
+          { path: "programa/:id",            element: <ProgramaDetalle /> },
+          { path: "historial",              element: <Historial /> },
+          { path: "historial/:id",          element: <HistorialDetalle /> },
+          { path: "salud",                  element: <Salud /> },
+          { path: "perfil",                 element: <Perfil /> },
+        ],
+      },
     ],
   },
 ]);
