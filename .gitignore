@@ -33,3 +33,5 @@ Thumbs.db
 *.zip
 service-account*.json
 **/service-account*.json
+# Permisos locales de Claude Code en esta maquina
+.claude/settings.local.json

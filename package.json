@@ -33,7 +33,9 @@
     "corregir:ventanas": "npx tsx scripts/corregir-ventanas-vr.ts",
     "serie:adherencia": "npx tsx scripts/serie-adherencia.ts",
     "dry-run:puente": "npx tsx scripts/dry-run-puente.ts",
-    "functions:build": "npm --prefix functions run build"
+    "functions:build": "npm --prefix functions run build",
+    "revertir:ventanas": "npx tsx scripts/revertir-ventanas-vr.ts",
+    "inventario:sdk": "npx tsx scripts/inventario-sdk.ts"
   },
   "dependencies": {
     "firebase": "^11.0.0",

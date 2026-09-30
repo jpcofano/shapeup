@@ -1,5 +1,12 @@
 # 84 — Las ventanas viejas, y tres limpiezas
 
+> ⚠ **La Parte 1 quedó corregida por `84b-el-otro-extremo-de-la-ventana.md` (27/09/2026).** Su
+> premisa —«`inicioMs` no se toca: es el arranque sellado»— era falsa para la VR anterior a P80:
+> ahí `inicioMs` salía de la primera ronda marcada y llegaba tarde. Alargar el fin corrió la
+> ventana entera 10 a 24 min hacia adelante. El extremo confiable era el fin: con
+> `inicio = fin viejo − duracionRealMin` las cinco sesiones caen a menos de un minuto del
+> arranque del reloj. No uses la Parte 1 de este prompt como referencia.
+
 Repo: jpcofano/shapeup. Parte de `2b82159`. Es corto: un script y tres arreglos.
 
 ## La decisión
