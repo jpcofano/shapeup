@@ -1,5 +1,10 @@
 import { useState } from "react";
 import type { SesionCardio, Historial } from "../../types/models";
+import { distribucionPorZona } from "../../lib/minutosPorZona";
+import { BarraZonas } from "../BarraZonas";
+
+/** "12 h", o minutos si es menos de una hora. */
+const horas = (min: number) => (min >= 60 ? `${Math.round(min / 60)} h` : `${Math.round(min)} min`);
 
 const ZONA_META: { key: string; label: string }[] = [
   { key: "z1", label: "Z1 recuperación" },
@@ -106,15 +111,10 @@ export function CardioTab({
   );
   const totalVinculadas = cardio.filter((c) => vinculadasIds.has(c.idCardio)).length;
 
-  // Distribución de tiempo por zona FC
-  const minPorZona: Record<string, number> = {};
-  let totalMin = 0;
-  for (const c of cardio) {
-    if (!c.zonaPrincipal || !c.duracionMin) continue;
-    const k = c.zonaPrincipal.toLowerCase();
-    minPorZona[k] = (minPorZona[k] ?? 0) + c.duracionMin;
-    totalMin += c.duracionMin;
-  }
+  // Distribución de tiempo por zona FC (P92): lo medido de la curva, aparte de
+  // lo estimado por zona principal. Antes se dibujaban igual.
+  const dist = distribucionPorZona(cardio, historial);
+  const totalMin = dist.totalMedido + dist.totalEstimado;
 
   const grupos = agruparPorMes(cardio, vinculadasIds);
   const gruposVisibles = grupos.slice(0, mesesVisibles);
@@ -125,32 +125,22 @@ export function CardioTab({
       {totalMin > 0 && (
         <div className="card" style={{ marginBottom: 0 }}>
           <p className="section-title" style={{ marginBottom: 8 }}>Distribución por zona</p>
-          <div style={{ display: "flex", height: 10, borderRadius: 999, overflow: "hidden", gap: 1, marginBottom: 10 }}>
-            {ZONA_META.map(({ key }) => {
-              const pct = ((minPorZona[key] ?? 0) / totalMin) * 100;
-              if (pct < 1) return null;
-              return (
-                <div key={key} style={{
-                  width: `${pct}%`, height: "100%",
-                  background: `var(--zona-${key})`, minWidth: 3,
-                }} />
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {ZONA_META.map(({ key, label }) => {
-              const min = minPorZona[key] ?? 0;
-              if (min === 0) return null;
-              return (
-                <span key={key} style={{
-                  fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 999,
-                  background: `var(--zona-${key}-dim)`, color: `var(--zona-${key})`,
-                }}>
-                  {label} · {Math.round(min / 60)}h
-                </span>
-              );
-            })}
-          </div>
+          {dist.totalMedido > 0 && (
+            <div style={{ marginBottom: dist.totalEstimado > 0 ? 10 : 0 }}>
+              <p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--muted)" }}>
+                Medido de la curva · {horas(dist.totalMedido)}
+              </p>
+              <BarraZonas porZona={dist.medido} />
+            </div>
+          )}
+          {dist.totalEstimado > 0 && (
+            <div style={{ opacity: 0.75 }}>
+              <p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--muted)" }}>
+                Estimado por zona principal · {horas(dist.totalEstimado)}
+              </p>
+              <BarraZonas porZona={dist.estimado} />
+            </div>
+          )}
         </div>
       )}
 

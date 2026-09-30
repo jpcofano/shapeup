@@ -39,7 +39,7 @@ describe("pedirCorridaAlPuente contra el emulador", () => {
   it("pedido de 6 minutos no manda", async () => {
     await disp("u1").set({ fcmToken: "tok" });
     const { deps, enviar } = armar();
-    await procesarPedido("u1", { pedidoMs: AHORA - 6 * 60_000 }, deps);
+    await procesarPedido("u1", { pedidoMs: AHORA }, deps, AHORA - 6 * 60_000);
     expect(enviar).not.toHaveBeenCalled();
   });
 

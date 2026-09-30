@@ -136,7 +136,7 @@ describe("correrSincronizacionAutomatica", () => {
   describe("P89: pide primero si el puente quedó atrás de la última sesión", () => {
     function conSesion(finSesionMs: number, over: Partial<DepsSincronizacion> = {}) {
       const d = deps({
-        pedir: vi.fn(() => Promise.resolve(ok(AHORA))),
+        pedir: vi.fn((_uid: string, previa?: number) => Promise.resolve(ok({ yaPedido: false as const, pedidoMs: AHORA, corridaPreviaMs: previa }))),
         esperar: vi.fn(() => Promise.resolve({ contesto: true as const, estado: { ultimaCorridaMs: AHORA + 5_000 } })),
         ...over,
       });
@@ -147,8 +147,9 @@ describe("correrSincronizacionAutomatica", () => {
     it("corrida anterior al fin de la sesión → pide, espera e importa con la corrida nueva", async () => {
       const d = conSesion(CORRIDA + 10 * 60_000);   // la sesión terminó 10 min después de la corrida
       expect(await correrSincronizacionAutomatica("u1", "juanpablo", d)).toBe(true);
-      expect(d.pedir).toHaveBeenCalledWith("u1");
-      expect(d.esperar).toHaveBeenCalledWith("u1", AHORA);
+      // P91: pasa la corrida que ya leyó (sin lectura de más) y espera contra ella.
+      expect(d.pedir).toHaveBeenCalledWith("u1", CORRIDA);
+      expect(d.esperar).toHaveBeenCalledWith("u1", CORRIDA);
       expect(leerMarcas(d.almacen, "u1").ultimaImportadaMs).toBe(AHORA + 5_000);
     });
 
@@ -243,6 +244,20 @@ describe("useSincronizacionAutomatica", () => {
     await act(async () => { root.unmount(); });
     root = createRoot(contenedor);
     await act(async () => { root.render(createElement(Armazon, { d })); });
+    expect(d.sincronizar).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("automática con ya-pedido (P91)", () => {
+  beforeEach(() => { _reiniciarSincronizacionAutomatica(); });
+  it("si este dispositivo ya pidió hace poco, no espera e importa igual", async () => {
+    const d = deps({
+      pedir: vi.fn(() => Promise.resolve(ok({ yaPedido: true as const, haceMs: 5_000 }))),
+      esperar: vi.fn(() => Promise.resolve({ contesto: true as const, estado: { ultimaCorridaMs: AHORA } })),
+    });
+    d.almacen!.setItem("sync-puente-u1", JSON.stringify({ ultimaSesionFinMs: CORRIDA + 10 * 60_000 }));
+    expect(await correrSincronizacionAutomatica("u1", "juanpablo", d)).toBe(true);
+    expect(d.esperar).not.toHaveBeenCalled();
     expect(d.sincronizar).toHaveBeenCalledTimes(1);
   });
 });

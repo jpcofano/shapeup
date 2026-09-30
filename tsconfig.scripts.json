@@ -21,6 +21,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["scripts/**/*.ts", "src/lib/**/*.ts", "src/import/**/*.ts", "src/types/**/*.ts", "src/vite-env.d.ts"]
+  "include": ["scripts/**/*.ts", "src/lib/**/*.ts", "src/import/**/*.ts", "src/types/**/*.ts", "src/vite-env.d.ts", "functions/src/pedido.ts"]
   // Sin "exclude": ningún script queda afuera "pendiente de decidir" (P87).
 }

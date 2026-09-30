@@ -9,12 +9,13 @@ import { getPerfiles } from "../data/perfiles";
 import { equipoDe } from "../lib/perfil";
 import { SustituirEjercicio } from "../components/entrenar/SustituirEjercicio";
 import { historialPrevio } from "../lib/resumenSesion";
+import { cierreDeSesion } from "../lib/metricas";
 import { getEjercicio, getEjerciciosPorId } from "../data/ejercicios";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, rutinaTerminada, seriesHechasTotales,
   buildBloqueLibre, buildVirtualRutina,
-  duracionParcialMin, sesionVieja, mensajeSesionVieja, quitarBloques,
+  finParcialMs, sesionVieja, mensajeSesionVieja, quitarBloques,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
   type EntrenarState,
 } from "../lib/entrenarState";
@@ -333,13 +334,17 @@ export function EntrenarSesionLibre() {
     if (!memberId) { setErrorSalida("No se pudo identificar al miembro."); return; }
     setGuardandoSalida(true);
     setErrorSalida(null);
+    // Parcial: el cierre es la última serie (P68), no el momento de salir (P84c).
+    const fin = finParcialMs(state);
+    const cierre = fin != null ? cierreDeSesion(state.inicioMs, fin) : { duracionMin: null };
     const result = await finalizarSesion({
       tipo:        "libre",
       nombreLibre: "Sesión libre",
       miembro:     memberId,
       bloques:     session.bloquesRegistro(),
       rpe:         null,
-      duracionMin: duracionParcialMin(state) || null,
+      duracionMin: cierre.duracionMin,
+      ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
       completitud: rutinaCompleta(state, virtualRutina) ? "completa" : "parcial",
     });
     setGuardandoSalida(false);
@@ -654,16 +659,16 @@ export function EntrenarSesionLibre() {
             if (!memberId) { cerrarSesionLocal(); salir(); return; }
             setSaving(true);
             setSaveError(null);
-            const durMin = state.inicioMs != null
-              ? Math.round((Date.now() - state.inicioMs) / 60_000)
-              : null;
+            // Arranque y cierre de la sesión, no primera y última serie (P84c).
+            const cierre = cierreDeSesion(state.inicioMs, Date.now());
             const result = await finalizarSesion({
               tipo:        "libre",
               nombreLibre: "Sesión libre",
               miembro:     memberId,
               bloques:     bloquesFin,
               ...datos,
-              duracionMin: durMin || null,
+              duracionMin: cierre.duracionMin,
+              ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
               completitud: completa ? "completa" : "parcial",
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }

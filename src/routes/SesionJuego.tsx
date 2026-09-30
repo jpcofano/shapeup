@@ -17,6 +17,7 @@ import { useAuth } from "../auth/useAuth";
 import { esOwner } from "../data/visibilidad";
 import { getJuegosSinEjercicio } from "../data/diccionarios";
 import { finalizarSesion } from "../data/historial";
+import { cierreDeSesion } from "../lib/metricas";
 import { SesionPorTiempo } from "../components/entrenar/SesionPorTiempo";
 import { useWakeLock } from "../hooks/useWakeLock";
 
@@ -76,8 +77,7 @@ export function SesionJuego() {
       miembro: memberId,
       bloques: [],                       // un juego no tiene series que registrar
       rpe: null,                         // ni RPE: no hay progresión que alimentar
-      duracionMin: Math.round((finMs - enCurso.inicioMs) / 60_000) || null,
-      ventana: { inicioMs: enCurso.inicioMs, finMs },
+      ...cierreDeSesion(enCurso.inicioMs, finMs),
     });
     if (!r.ok) { setError(r.error); setGuardando(false); return; }
 

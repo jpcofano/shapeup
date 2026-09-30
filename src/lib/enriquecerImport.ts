@@ -21,6 +21,7 @@ import type { ZipExtraccion } from "../import/samsungZip";
 import type { SesionApp } from "./matchBiometrico";
 import type { LiveDataPoint } from "../import/samsungLiveData";
 import { stripUndef } from "../import/samsungHealth";
+import { minutosPorZona } from "./minutosPorZona";
 import { seEnriquece } from "./tipoHistorial";
 import {
   elegirSesionSamsung, construirBiometriaDeTramos, construirBiometriaRango,
@@ -142,8 +143,28 @@ function enriquecerBloquesConCurva(
       // Firestore rechaza la escritura ("Cannot use undefined as a Firestore value").
       return { ...serie, ...stripUndef(enriquecido) };
     });
-    return { ...bloque, series: seriesEnriquecidas };
+    return { ...bloque, series: seriesEnriquecidas, ...zonasDelBloque(bloque, curva, perfil) };
   });
+}
+
+/**
+ * Minutos por zona de un ejercicio (P92), lo que ninguna de las dos apps da.
+ * La ventana va del `inicioMs` de la primera serie al `finMs` de la última,
+ * **descansos de adentro incluidos**: el descanso entre series de un mismo
+ * ejercicio es parte de ese ejercicio. Sin series selladas, o sin curva en esa
+ * ventana, no se devuelve nada: un bloque sin medición no tiene minutos.
+ */
+function zonasDelBloque(
+  bloque: BloqueRegistro, curva: LiveDataPoint[], perfil?: PerfilMiembro,
+): Pick<BloqueRegistro, "minutosPorZona" | "minutosBajoZonas"> {
+  const inicios = bloque.series.map((s) => s.inicioMs).filter((v): v is number => v != null);
+  const fines = bloque.series.map((s) => s.finMs).filter((v): v is number => v != null);
+  if (inicios.length === 0 || fines.length === 0) return {};
+  const ventana = { inicioMs: Math.min(...inicios), finMs: Math.max(...fines) };
+  if (ventana.finMs <= ventana.inicioMs) return {};
+  if (!curva.some((p) => p.ms >= ventana.inicioMs && p.ms <= ventana.finMs)) return {};
+  const z = minutosPorZona(curva, ventana, perfil);
+  return z ? { minutosPorZona: z.porZona, minutosBajoZonas: z.minutosBajoZonas } : {};
 }
 
 // ── Núcleo puro ───────────────────────────────────────────────────────────────
@@ -260,8 +281,8 @@ export function calcularEnriquecimiento(
     else resultado.porVentana++;
 
     const biometria = ventana.sintetica
-      ? construirBiometriaDeTramos([tramos[0]], match.matchPor, ventana, [], perfil)
-      : construirBiometriaDeTramos(tramos, match.matchPor, ventana, muestrasFcCrudas, perfil);
+      ? construirBiometriaDeTramos([tramos[0]], match.matchPor, ventana, [], perfil, match.sesion.datauuid)
+      : construirBiometriaDeTramos(tramos, match.matchPor, ventana, muestrasFcCrudas, perfil, match.sesion.datauuid);
     // El principal es el elegido por Δinicio, aunque otro tramo arranque antes.
     biometria.datauuidSamsung = match.sesion.datauuid;
 

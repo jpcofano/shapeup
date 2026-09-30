@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
-import { pedirYTraer, avisoRespuesta, type DepsPedirYTraer } from "./pedirYTraer";
+import { pedirYTraer, avisoRespuesta, type DepsPedirYTraer, type PedidoHechoLike } from "./pedirYTraer";
 import { ok, err } from "./result";
 
 function deps(over: Partial<DepsPedirYTraer<string>> = {}): DepsPedirYTraer<string> {
   return {
     hayPuenteEscuchando: vi.fn(() => Promise.resolve(true)),
-    pedir: vi.fn(() => Promise.resolve(ok(1000))),
+    pedir: vi.fn(() => Promise.resolve(ok({ yaPedido: false as const, pedidoMs: 1000, corridaPreviaMs: 500 }))),
     esperar: vi.fn(() => Promise.resolve({ contesto: true })),
     traer: vi.fn(() => Promise.resolve(ok("resumen"))),
     alCambiarFase: vi.fn(),
@@ -16,8 +16,8 @@ function deps(over: Partial<DepsPedirYTraer<string>> = {}): DepsPedirYTraer<stri
 describe("pedirYTraer", () => {
   it("pide, espera desde el pedidoMs, e importa", async () => {
     const d = deps();
-    expect(await pedirYTraer(d)).toEqual({ contesto: "contesto", resultado: ok("resumen") });
-    expect(d.esperar).toHaveBeenCalledWith(1000);
+    expect(await pedirYTraer(d)).toMatchObject({ contesto: "contesto", resultado: ok("resumen") });
+    expect(d.esperar).toHaveBeenCalledWith(500);   // espera contra el contador, no contra pedidoMs (P91)
     expect(d.alCambiarFase).toHaveBeenNthCalledWith(1, "pidiendo");
     expect(d.alCambiarFase).toHaveBeenNthCalledWith(2, "importando");
   });
@@ -31,7 +31,7 @@ describe("pedirYTraer", () => {
   });
 
   it("importa igual cuando el pedido no se pudo escribir, sin esperar", async () => {
-    const d = deps({ pedir: vi.fn(() => Promise.resolve(err<number>("sin señal"))) });
+    const d = deps({ pedir: vi.fn(() => Promise.resolve(err<PedidoHechoLike>("sin señal"))) });
     const r = await pedirYTraer(d);
     expect(r.contesto).toBe("no-se-pudo-pedir");
     expect(d.esperar).not.toHaveBeenCalled();
@@ -60,5 +60,26 @@ describe("avisoRespuesta", () => {
     expect(avisoRespuesta("no-contesto", "importado"))
       .toBe("El reloj no contestó a tiempo; se importó lo que ya estaba. Lo que falte entra en la próxima.");
     expect(avisoRespuesta("contesto", "importado")).toBeNull();
+  });
+});
+
+describe("pedirYTraer con ya-pedido (P91)", () => {
+  it("si ya se pidió hace poco, NO llama a esperar y sí a traer", async () => {
+    const d = deps({ pedir: vi.fn(() => Promise.resolve(ok({ yaPedido: true as const, haceMs: 12_000 }))) });
+    const r = await pedirYTraer(d);
+    expect(r.contesto).toBe("ya-pedido");
+    expect(r.haceMs).toBe(12_000);
+    expect(d.esperar).not.toHaveBeenCalled();
+    expect(d.traer).toHaveBeenCalledTimes(1);
+  });
+
+  it("devuelve el pedido escrito, para poder seguir escuchando tarde", async () => {
+    const d = deps({ esperar: vi.fn(() => Promise.resolve({ contesto: false })) });
+    expect((await pedirYTraer(d)).pedido).toEqual({ pedidoMs: 1000, corridaPreviaMs: 500 });
+  });
+
+  it("el aviso dice hace cuántos segundos", () => {
+    expect(avisoRespuesta("ya-pedido", "importado", 12_400))
+      .toBe("Ya le pedimos al reloj hace 12 segundos; se importa lo que haya llegado.");
   });
 });

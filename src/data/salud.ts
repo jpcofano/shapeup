@@ -287,6 +287,8 @@ export type CardioImportable = Omit<SesionCardio, "idCardio" | "fechaCreacion"> 
   _uuid?: string; _startMs?: number; _endMs?: number; _customId?: string;
   _fcMin?: number; _muestrasCurva?: number; _autoDetected?: boolean;
   _marcadaShapeUp?: boolean;
+  /** Duración declarada de la fila (P92). Solo viaja al match; no se guarda. */
+  _durMs?: number;
 };
 
 // Las marcas se derivan con el núcleo puro (ADR #009), que es el mismo que las
@@ -303,7 +305,7 @@ export async function importarCardioIdempotente(
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _uuid, _startMs, _endMs, _customId, _fcMin, _muestrasCurva,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _autoDetected, _marcadaShapeUp, ...data
+          _autoDetected, _marcadaShapeUp, _durMs, ...data
         } = item;
         const id = idCardioDe(_uuid);
         const payload = {

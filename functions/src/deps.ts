@@ -16,10 +16,10 @@ export function crearDeps(
 ): DepsPedido {
   const dispositivoRef = (uid: string) => db.doc(`ingesta-sdk/${uid}/estado/dispositivo`);
   return {
-    reservarTurno: (uid, pedido, ms) => db.runTransaction(async (tx) => {
+    reservarTurno: (uid, pedido, ms, escrituraMs) => db.runTransaction(async (tx) => {
       const ref = dispositivoRef(uid);
       const snap = await tx.get(ref);
-      const decision = decidir(pedido, snap.exists ? (snap.data() as Dispositivo) : null, ms);
+      const decision = decidir(pedido, snap.exists ? (snap.data() as Dispositivo) : null, ms, escrituraMs);
       // Se reserva ANTES de enviar: el segundo pedido simultáneo ya ve el turno tomado.
       if (decision.accion === "mandar") tx.update(ref, { ultimoPushMs: ms });
       return decision;

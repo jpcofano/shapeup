@@ -687,18 +687,27 @@ export function asignarIdSesion(state: EntrenarState, idSesion: string): Entrena
 }
 
 /**
- * Duración (min) de una sesión guardada como parcial: desde `inicioMs` hasta el
- * `finMs` más alto entre las series registradas. No cuenta el tiempo entre la
- * última serie y el momento de salir. `null` si falta alguno de los dos.
+ * Fin de una sesión guardada como parcial: el `finMs` más alto entre las
+ * series registradas. No cuenta el tiempo entre la última serie y el momento
+ * de salir (la pantalla pudo quedar abierta horas, P68). `null` sin series.
  */
-export function duracionParcialMin(state: EntrenarState): number | null {
-  if (state.inicioMs == null) return null;
+export function finParcialMs(state: EntrenarState): number | null {
   let fin: number | null = null;
   for (const series of Object.values(state.registro)) {
     for (const s of series) {
       if (s.finMs != null && (fin == null || s.finMs > fin)) fin = s.finMs;
     }
   }
+  return fin;
+}
+
+/**
+ * Duración (min) de una sesión guardada como parcial: desde `inicioMs` hasta
+ * `finParcialMs`. `null` si falta alguno de los dos.
+ */
+export function duracionParcialMin(state: EntrenarState): number | null {
+  if (state.inicioMs == null) return null;
+  const fin = finParcialMs(state);
   if (fin == null) return null;
   return Math.max(0, Math.round((fin - state.inicioMs) / 60_000));
 }

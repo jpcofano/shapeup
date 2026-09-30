@@ -21,6 +21,8 @@ import type {
 } from "../types/models";
 import type { LiveDataPoint } from "../import/samsungLiveData";
 import { stripUndef } from "../import/samsungHealth";
+import { pisosDe, zonaPorPiso } from "./zonas";
+import { minutosPorZona } from "./minutosPorZona";
 
 /** Representación mínima de una fila exercise de Samsung necesaria para el match. */
 export interface SesionSamsung {
@@ -33,6 +35,12 @@ export interface SesionSamsung {
   fcMax?: number;
   fcMin?: number;
   kcal?: number;
+  /**
+   * El `duration` que declara la fila (P92), que NO cuenta las pausas. Por el
+   * SDK es `duration.ms`; por el ZIP es la columna `duration`. Ojo: en el ZIP
+   * `endMs` ya es `startMs + duration`, así que ahí coinciden.
+   */
+  duracionDeclaradaMs?: number;
   /** Fecha local "YYYY-MM-DD" de la sesión — solo para el fallback "día único". */
   fecha?: string;
 }
@@ -243,17 +251,8 @@ export function topeInicioSiguiente(finVentanaAppMs: number, finDatosDisponibles
   return Math.min(finVentanaAppMs + TOPE_RECUPERACION_ULTIMA_SERIE_MS, finDatosDisponiblesMs);
 }
 
-/**
- * Bandas estándar de %FCmáx (fallback cuando no hay `zonasFC` configuradas a
- * medida): Z1 50-60%, Z2 60-70%, Z3 70-80%, Z4 80-90%, Z5 90-100%.
- */
-export const BANDAS_PCT_FC_MAX: Record<ZonaFC, { min: number; max: number }> = {
-  Z1: { min: 0.50, max: 0.60 },
-  Z2: { min: 0.60, max: 0.70 },
-  Z3: { min: 0.70, max: 0.80 },
-  Z4: { min: 0.80, max: 0.90 },
-  Z5: { min: 0.90, max: 1.00 },
-};
+/** Las bandas viven en lib/zonas (P92); se re-exportan acá por los que ya las importaban. */
+export { BANDAS_PCT_FC_MAX } from "./zonas";
 
 /**
  * Deriva la zona de FC de un valor numérico usando el perfil del miembro.
@@ -270,24 +269,12 @@ export function derivarZona(
   fcMedia: number,
   perfil?: PerfilMiembro,
 ): ZonaFC | undefined {
-  const zonasFC = perfil?.zonasFC;
-  if (zonasFC) {
-    for (const zona of (["Z5", "Z4", "Z3", "Z2", "Z1"] as ZonaFC[])) {
-      const z = zonasFC[zona];
-      if (!z) continue;
-      if (fcMedia >= z.min && fcMedia <= z.max) return zona;
-    }
-  }
-
-  const fcMaxTeorica = perfil?.fcMaxTeorica;
-  if (fcMaxTeorica) {
-    for (const zona of (["Z5", "Z4", "Z3", "Z2", "Z1"] as ZonaFC[])) {
-      const banda = BANDAS_PCT_FC_MAX[zona];
-      if (fcMedia >= banda.min * fcMaxTeorica && fcMedia <= banda.max * fcMaxTeorica) return zona;
-    }
-  }
-
-  return undefined;
+  // P92 (enmienda): la regla única de lib/zonas — la zona más alta cuyo piso se
+  // alcanzó. Antes se exigía `min <= fc <= max` y, en una grieta entre zonas a
+  // medida, se caía a las bandas de fcMaxTeorica: dos reglas mezcladas.
+  const pisos = pisosDe(perfil);
+  if (!pisos) return undefined;
+  return zonaPorPiso(fcMedia, pisos) ?? undefined;
 }
 
 /** Umbral de "olvido de corte" (P57): Samsung siguió grabando más de esto tras el fin de la app. */
@@ -335,6 +322,10 @@ export function construirBiometriaSesion(
     matchPor,
     granularidad:    "sesion",
     versionEnriquecimiento: VERSION_ENRIQUECIMIENTO,
+    // P92: sin ventana confiable no hay tolerancia que evaluar, pero lo que dice
+    // Health se guarda igual, siempre.
+    ventanaAdoptada: "app",
+    samsung:         samsungTalCual([{ sesion: sesionSamsung }]),
   });
 }
 
@@ -363,8 +354,12 @@ export function construirBiometriaSesion(
  *   3 — P79: FC media y detección de artefactos por serie
  *   4 — P80: artefactos también sobre la ventana entera (VR de corrido)
  *   5 — P83: todo tramo marcado ShapeUp aporta, recortado a la ventana
+ *   6 — P92: tolerancia del 12 % (ventana del reloj adoptada), biometria.samsung,
+ *       minutos por zona (sesión y ejercicio) y la regla única de zonas
+ *   7 — P92c: recorteAntesMin / recorteDespuesMin, para que el aviso de recorte
+ *       nombre el extremo que de verdad se recortó
  */
-export const VERSION_ENRIQUECIMIENTO = 5;
+export const VERSION_ENRIQUECIMIENTO = 7;
 
 // ── Calidad de la FC por serie (P79, §9.3) ─────────────────────────────────
 
@@ -532,6 +527,79 @@ function motivoDeCobertura(
   return "hueco-entre-tramos";
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+//  P92 — la tolerancia del 12 % (ADR #043)
+//
+//  El caso normal no es el olvido de corte: es apretar "empezar" en el reloj
+//  unos segundos antes y "terminar" unos segundos después. Ahí P78 recortaba por
+//  nada y marcaba las kcal como estimadas. Si las dos ventanas son casi la misma,
+//  se adopta la del reloj entera.
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Diferencia de duración, relativa a la app, hasta la que se adopta la ventana del reloj. */
+export const TOLERANCIA_DURACION = 0.12;
+
+export interface Tolerancia {
+  adopta: boolean;
+  /** `(durSamsung − durApp) / durApp` en %, un decimal, con signo. Ausente con ventana sintética. */
+  desfasePct?: number;
+}
+
+/**
+ * ¿Se adopta la ventana de Samsung? Las tres a la vez:
+ *   1. `|durSamsung − durApp| / durApp <= 12 %` — el denominador es la app,
+ *      que es la autoridad sobre cuánto duró; `durSamsung` es la UNIÓN de los
+ *      tramos de reloj de pared, no la suma;
+ *   2. ningún tramo se pasa del fin de la app por más de `OLVIDO_CORTE_MS` (en
+ *      una sesión corta el 12 % es un minuto y medio, y un olvido de dieciséis
+ *      tiene que quedar afuera igual);
+ *   3. la ventana no es sintética: contra una suposición no hay porcentaje que
+ *      no parezca medido sin serlo.
+ */
+export function evaluarTolerancia(tramos: TramoSamsung[], ventanaApp: SesionApp): Tolerancia {
+  if (ventanaApp.sintetica || tramos.length === 0) return { adopta: false };
+  const durApp = ventanaApp.finMs - ventanaApp.inicioMs;
+  if (durApp <= 0) return { adopta: false };
+  const durSamsung = unionMs(tramos.map((t) => ({ inicioMs: t.sesion.startMs, finMs: t.sesion.endMs })));
+  const desfase = (durSamsung - durApp) / durApp;
+  const desfasePct = Math.round(desfase * 1000) / 10;
+  const olvido = tramos.some((t) => t.sesion.endMs - ventanaApp.finMs > OLVIDO_CORTE_MS);
+  // Guarda simétrica de la 2 (agregada en P92, no estaba en el prompt): tampoco
+  // si algún tramo ARRANCÓ más de OLVIDO_CORTE_MS antes que la app. Sin esto,
+  // un reloj que arrancó media hora antes y cortó media hora antes dura "lo
+  // mismo" (0 %) y se adoptaría, metiendo 30 min de antes de entrenar y perdiendo
+  // los últimos 30. La regla es para apretar dos botones con la mano, no para
+  // una ventana corrida. (Es el caso del test de P78 "la mitad del workout adentro".)
+  const arranqueAdelantado = tramos.some((t) => ventanaApp.inicioMs - t.sesion.startMs > OLVIDO_CORTE_MS);
+  // El `<=` es la decisión (exactamente 12 % adopta); el épsilon absorbe el
+  // error de coma flotante de la división.
+  const adopta = Math.abs(desfase) <= TOLERANCIA_DURACION + 1e-12 && !olvido && !arranqueAdelantado;
+  return { adopta, desfasePct };
+}
+
+const minutos1 = (ms: number) => Math.round((ms / 60_000) * 10) / 10;
+
+/**
+ * Lo que dice Health, tal cual (P92). Todo del tramo principal, salvo
+ * `datauuids` (todos los tramos) y `kcal` (la suma de las filas: lo que Health
+ * reporta para esos workouts).
+ */
+export function samsungTalCual(tramos: TramoSamsung[], principalUuid?: string): NonNullable<BiometriaSesion["samsung"]> {
+  const p = (tramos.find((t) => t.sesion.datauuid === principalUuid) ?? tramos[0]).sesion;
+  const kcals = tramos.map((t) => t.sesion.kcal).filter((k): k is number => k != null);
+  return stripUndef({
+    inicioMs: p.startMs,
+    finMs: p.endMs,
+    duracionVentanaMin: minutos1(p.endMs - p.startMs),
+    duracionDeclaradaMin: p.duracionDeclaradaMs != null ? minutos1(p.duracionDeclaradaMs) : undefined,
+    kcal: kcals.length > 0 ? Math.round(kcals.reduce((a, b) => a + b, 0)) : undefined,
+    fcMedia: p.fcMedia,
+    fcMax: p.fcMax,
+    fcMin: p.fcMin,
+    datauuids: tramos.map((t) => t.sesion.datauuid),
+  });
+}
+
 /**
  * La biometría de una sesión a partir de uno o más tramos de Samsung, recortados
  * a la ventana de la app y completados con muestras crudas en los huecos (P78).
@@ -547,9 +615,24 @@ export function construirBiometriaDeTramos(
   ventanaApp: SesionApp,
   muestrasCrudas: LiveDataPoint[] = [],
   perfil?: PerfilMiembro,
+  /** El tramo elegido por Δinicio (el llamador lo sabe; `tramos` viene ordenado por inicio). */
+  principalUuid?: string,
 ): BiometriaSesion {
   const principal = tramos[0].sesion;
-  const ventanaMs = Math.max(1, ventanaApp.finMs - ventanaApp.inicioMs);
+
+  // ── P92 (ADR #043): la tolerancia del 12 % ───────────────────────────────
+  // Si el reloj duró casi lo mismo que la app, se adopta su ventana entera: sin
+  // recortar ni prorratear. Lo que decide es QUÉ MUESTRAS entran, no cuánto
+  // duró la sesión (eso sigue siendo la app).
+  const tolerancia = evaluarTolerancia(tramos, ventanaApp);
+  const ventana: SesionApp = tolerancia.adopta
+    ? {
+        inicioMs: Math.min(ventanaApp.inicioMs, ...tramos.map((t) => t.sesion.startMs)),
+        finMs:    Math.max(ventanaApp.finMs, ...tramos.map((t) => t.sesion.endMs)),
+        fecha:    ventanaApp.fecha,
+      }
+    : ventanaApp;
+  const ventanaMs = Math.max(1, ventana.finMs - ventana.inicioMs);
 
   const segmentos: Segmento[] = [];
   const cubiertos: { inicioMs: number; finMs: number }[] = [];
@@ -561,18 +644,23 @@ export function construirBiometriaDeTramos(
   let msFinos = 0;
   let excedeVentana = false;
   let algunRecorte = false;
+  // P92c: cuánto quedó afuera de cada extremo, para que el aviso diga cuál.
+  let recorteAntesMs = 0;
+  let recorteDespuesMs = 0;
   // Con curva, el máximo y el mínimo salen de las muestras. Sin curva, lo
   // mejor que hay es lo que declara la fila.
   const fcMaxFila: number[] = [];
   const fcMinFila: number[] = [];
 
   for (const { sesion, curva } of tramos) {
-    const inter = interseccion(ventanaApp.inicioMs, ventanaApp.finMs, sesion.startMs, sesion.endMs);
+    const inter = interseccion(ventana.inicioMs, ventana.finMs, sesion.startMs, sesion.endMs);
     if (inter.ms <= 0) continue;
     const durWorkout = Math.max(1, sesion.endMs - sesion.startMs);
     const recortado = inter.ms < durWorkout;
     if (recortado) algunRecorte = true;
-    if (sesion.endMs - ventanaApp.finMs > OLVIDO_CORTE_MS) excedeVentana = true;
+    if (sesion.endMs - ventana.finMs > OLVIDO_CORTE_MS) excedeVentana = true;
+    recorteAntesMs = Math.max(recorteAntesMs, ventana.inicioMs - sesion.startMs);
+    recorteDespuesMs = Math.max(recorteDespuesMs, sesion.endMs - ventana.finMs);
 
     cubiertos.push({ inicioMs: inter.inicioMs, finMs: inter.finMs });
 
@@ -592,7 +680,7 @@ export function construirBiometriaDeTramos(
         curvaTotal.push(...dentro);
         msFinos += inter.ms;
       }
-    } else if (sesion.endMs - ventanaApp.finMs > OLVIDO_CORTE_MS) {
+    } else if (sesion.endMs - ventana.finMs > OLVIDO_CORTE_MS) {
       // Sin curva no hay con qué recortar la FC: se conserva solo el pico, que
       // casi seguro fue entrenando. **La media se omite** — la de la fila
       // incluye el tiempo post-sesión y no es un número sumable. Las kcal sí
@@ -616,7 +704,7 @@ export function construirBiometriaDeTramos(
   msMedidos = unionMs(cubiertos);
 
   // Los huecos de la ventana se completan con las muestras crudas que caigan ahí.
-  const huecos = huecosDe(ventanaApp, cubiertos);
+  const huecos = huecosDe(ventana, cubiertos);
   let msCubiertosCrudos = 0;
   for (const hueco of huecos) {
     const dentro = muestrasCrudas.filter((pt) => pt.ms >= hueco.inicioMs && pt.ms <= hueco.finMs);
@@ -629,7 +717,7 @@ export function construirBiometriaDeTramos(
   // donde medirlo, y la FC de la ventana ES la FC de trabajo.
   const curvaVentana = tramos
     .flatMap((t) => t.curva ?? [])
-    .filter((pt) => pt.ms >= ventanaApp.inicioMs && pt.ms <= ventanaApp.finMs)
+    .filter((pt) => pt.ms >= ventana.inicioMs && pt.ms <= ventana.finMs)
     .sort((a, b) => a.ms - b.ms);
 
   const finasYCrudas = segmentos.filter((seg) => seg.fina).flatMap((seg) => seg.fcs)
@@ -640,6 +728,9 @@ export function construirBiometriaDeTramos(
   const fcMax = candidatosMax.length > 0 ? Math.max(...candidatosMax) : undefined;
   const fcMin = candidatosMin.length > 0 ? Math.min(...candidatosMin) : undefined;
   const huboRecorte = algunRecorte || excedeVentana;
+
+  // P92: el reparto por zona sale de la misma curva de la ventana usada.
+  const zonas = curvaVentana.length > 0 ? minutosPorZona(curvaVentana, ventana, perfil) : null;
 
   const coberturaFina = Math.min(1, msFinos / ventanaMs);
   const coberturaTotal = Math.min(1, (msFinos + msCubiertosCrudos) / ventanaMs);
@@ -660,16 +751,63 @@ export function construirBiometriaDeTramos(
     versionEnriquecimiento: VERSION_ENRIQUECIMIENTO,
     ...(huboRecorte
       ? { inicioMsEfectivo: Math.min(...cubiertos.map((c) => c.inicioMs)),
-          finMsEfectivo:    Math.max(...cubiertos.map((c) => c.finMs)) }
+          finMsEfectivo:    Math.max(...cubiertos.map((c) => c.finMs)),
+          ...(recorteAntesMs > 0 ? { recorteAntesMin: minutos1(recorteAntesMs) } : {}),
+          ...(recorteDespuesMs > 0 ? { recorteDespuesMin: minutos1(recorteDespuesMs) } : {}) }
       : {}),
     coberturaFina,
     coberturaTotal,
     ...(curvaVentana.length > 0 && esFcDudosa(curvaVentana, fcMax, perfil)
       ? { fcDudosa: true } : {}),
     motivoCobertura: coberturaFina < COBERTURA_MINIMA
-      ? motivoDeCobertura(ventanaApp, huecos, excedeVentana)
+      ? motivoDeCobertura(ventana, huecos, excedeVentana)
       : undefined,
+    // P92: por qué se usó esta ventana, y lo que dice Health al lado.
+    ventanaAdoptada: tolerancia.adopta ? "samsung" : "app",
+    desfaseDuracionPct: tolerancia.desfasePct,
+    samsung: samsungTalCual(tramos, principalUuid),
+    // Minutos por zona de la curva, sobre la ventana que se usó. Sin curva en
+    // esa ventana no se escriben: un minuto estimado no es un minuto medido.
+    ...(zonas ? {
+      minutosPorZona: zonas.porZona,
+      minutosBajoZonas: zonas.minutosBajoZonas,
+      minutosSinDato: zonas.minutosSinDato,
+    } : {}),
   });
+}
+
+// ── P92c: el aviso de recorte ────────────────────────────────────────────────
+
+/**
+ * Por debajo de esto el recorte no se avisa: es la diferencia entre dos botones
+ * apretados con la mano, no algo que haya que contar (P92c).
+ */
+export const UMBRAL_AVISO_RECORTE_MIN = 1;
+
+const cifraMin = (m: number) =>
+  `${m.toLocaleString("es-AR", { maximumFractionDigits: 1 })} min`;
+
+/**
+ * El aviso del detalle cuando se recortó lo que grabó el reloj, nombrando el
+ * extremo que de verdad quedó afuera (P92c). Antes decía siempre "siguió
+ * grabando de más", también cuando lo recortado era el principio.
+ *
+ * `null` si no hubo recorte, si ningún extremo pasa el umbral, o si la sesión
+ * es de antes de P92c y no dice qué extremo se recortó: no se afirma lo que no
+ * se sabe (la próxima sincronización la sube de versión y trae el dato).
+ */
+export function avisoDeRecorte(
+  b: Pick<BiometriaSesion, "finMsEfectivo" | "recorteAntesMin" | "recorteDespuesMin">,
+): string | null {
+  if (b.finMsEfectivo == null) return null;
+  const antes = (b.recorteAntesMin ?? 0) >= UMBRAL_AVISO_RECORTE_MIN ? b.recorteAntesMin! : 0;
+  const despues = (b.recorteDespuesMin ?? 0) >= UMBRAL_AVISO_RECORTE_MIN ? b.recorteDespuesMin! : 0;
+  if (antes > 0 && despues > 0) {
+    return `El reloj arrancó ${cifraMin(antes)} antes y siguió ${cifraMin(despues)} después de la sesión — esa parte no se cuenta.`;
+  }
+  if (antes > 0) return `El reloj arrancó ${cifraMin(antes)} antes que la sesión — esa parte no se cuenta.`;
+  if (despues > 0) return `El reloj siguió grabando ${cifraMin(despues)} después de que terminaste — esa parte no se cuenta.`;
+  return null;
 }
 
 /** La curva de todos los tramos, ordenada y sin duplicados (P78). */

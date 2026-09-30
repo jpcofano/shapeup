@@ -323,7 +323,7 @@ export async function extraerDesdeZip(
     progress(75, "Identificando sesiones ShapeUp…");
 
     // 5b. Construir SesionSamsung[] desde los items de ejercicio parseados
-    type EjItem = CardioInput & { _uuid: string; _startMs?: number; _endMs?: number; _customId?: string; _fcMin?: number };
+    type EjItem = CardioInput & { _uuid: string; _startMs?: number; _endMs?: number; _customId?: string; _fcMin?: number; _durMs?: number };
     result.sesionesSamsung = (result.cardio as EjItem[])
       .filter((c) => c._startMs != null && c._endMs != null)
       .map((c) => ({
@@ -335,6 +335,7 @@ export async function extraerDesdeZip(
         fcMax:    c.fcMaxima,
         fcMin:    c._fcMin,
         kcal:     c.kcal,
+        duracionDeclaradaMs: c._durMs,
         fecha:    c.fecha,
       }));
 

@@ -480,6 +480,15 @@ export interface BloqueRegistro {
   /** 1RM estimado (Epley) de las series del día, solo Fuerza y solo si hay valor (P70). No se muestra. */
   e1rmKg?: number;
   /**
+   * Minutos por zona de ESTE ejercicio (P92), de la primera serie a la última,
+   * descansos de adentro incluidos. Lo que ninguna de las dos apps da. Sin
+   * series selladas o sin curva en esa ventana, no se escribe. Descripción de
+   * lo que pasó: no entra en tonelaje, progresión ni adherencia.
+   */
+  minutosPorZona?: Partial<Record<ZonaFC, number>>;
+  /** Bajo Z1 en este ejercicio: en fuerza es casi todo descanso, y hace visible la densidad. */
+  minutosBajoZonas?: number;
+  /**
    * Los parámetros con los que **se jugó** esta sesión de VR (P79, ADR #039).
    *
    * La rutina nunca se muta: `/rutinas` es compartida por la familia y
@@ -533,6 +542,15 @@ export interface BiometriaSesion {
    */
   finMsEfectivo?: number;
   inicioMsEfectivo?: number;
+  /**
+   * Cuánto de lo que grabó el reloj quedó afuera, por extremo (P92c), en
+   * minutos con un decimal. Antes: el reloj arrancó antes que la sesión.
+   * Después: siguió grabando cuando la sesión ya había terminado. Solo con
+   * recorte; ausentes si no lo hubo. Es lo que permite que el aviso nombre el
+   * extremo correcto (`avisoDeRecorte`).
+   */
+  recorteAntesMin?: number;
+  recorteDespuesMin?: number;
 
   /**
    * Las kcal salieron de un prorrateo por tiempo, no de la fila entera (P78).
@@ -583,6 +601,46 @@ export interface BiometriaSesion {
    * `granularidad: "serie"` y se quedaba para siempre con el cálculo viejo.
    */
   versionEnriquecimiento?: number;
+
+  // ── P92: la tolerancia del 12 % y lo que dice Health ─────────────────────
+  /**
+   * Qué ventana se usó para las muestras (ADR #043). `'samsung'` = la del reloj
+   * se adoptó entera, porque difería de la app en ≤ 12 % y no hubo olvido de
+   * corte. `'app'` = se recortó a la app, como P78. **La duración de la sesión
+   * sigue siendo la de la app en los dos casos.**
+   */
+  ventanaAdoptada?: "app" | "samsung";
+  /**
+   * El número que decidió: `(durSamsung − durApp) / durApp`, en %, un decimal,
+   * con signo (positivo = Samsung duró más). `durSamsung` es la unión de los
+   * tramos de reloj de pared.
+   */
+  desfaseDuracionPct?: number;
+  /** Lo que dice Health, tal cual, al lado de lo nuestro y nunca en su lugar. */
+  samsung?: {
+    inicioMs: number;
+    finMs: number;
+    /** `endMs − startMs` del tramo principal: reloj de pared. */
+    duracionVentanaMin: number;
+    /** El `duration` que declara la fila, que NO cuenta las pausas. Puede ser menor. */
+    duracionDeclaradaMin?: number;
+    /** Suma de las filas de todos los tramos: lo que Health reporta para esos workouts. */
+    kcal?: number;
+    fcMedia?: number;
+    fcMax?: number;
+    fcMin?: number;
+    datauuids: string[];
+  };
+  /**
+   * Minutos por zona, de la curva (P92). La zona es la más alta cuyo piso se
+   * alcanzó (lib/zonas). Invariante: zonas + `minutosBajoZonas` +
+   * `minutosSinDato` = la ventana usada.
+   */
+  minutosPorZona?: Partial<Record<ZonaFC, number>>;
+  /** Con dato, por debajo del piso de Z1: "estuviste tranquilo". */
+  minutosBajoZonas?: number;
+  /** Sin dato: huecos de la curva y bordes sin muestras. "No sabemos". */
+  minutosSinDato?: number;
 }
 
 /** Quién registró la actividad: vos al arrancarla, o el reloj solo (P75b). */

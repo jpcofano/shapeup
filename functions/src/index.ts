@@ -40,6 +40,10 @@ export const pedirCorridaAlPuente = onDocumentWritten(
   "ingesta-sdk/{uid}/estado/pedido",
   async (event) => {
     const pedido = (event.data?.after.exists ? event.data.after.data() : null) as Pedido | null;
-    await procesarPedido(event.params.uid, pedido, deps);
+    // P91: la edad del pedido se mide con la hora en que Firestore lo escribió,
+    // no con `pedidoMs` (el reloj del navegador). Sin `event.time`, procesarPedido
+    // lo trata como recién escrito.
+    const escrituraMs = event.time ? Date.parse(event.time) : undefined;
+    await procesarPedido(event.params.uid, pedido, deps, escrituraMs);
   },
 );

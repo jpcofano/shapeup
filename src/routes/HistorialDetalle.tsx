@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Historial, MetricaSalud, MiembroId, BiometriaSesion } from "../types/models";
 import { getHistorialEntry, getHistorialEnLaApp } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
-import { COBERTURA_MINIMA } from "../lib/matchBiometrico";
+import { COBERTURA_MINIMA, avisoDeRecorte } from "../lib/matchBiometrico";
 import { consolidarNoches } from "../lib/sueno";
 import type { NocheSueno } from "../lib/sueno";
 import { compararConPrevias } from "../lib/costoCardiaco";
@@ -14,6 +14,8 @@ import type { ComparativaCardiaca } from "../lib/costoCardiaco";
 import { useAuth } from "../auth/useAuth";
 import { leerEstadoPuente } from "../data/ingestaSdk";
 import { explicarSinBiometria } from "../lib/estadoPuente";
+import { BarraZonas } from "../components/BarraZonas";
+import { textoVentanaAdoptada } from "../lib/minutosPorZona";
 import { seEnriquece } from "../lib/tipoHistorial";
 import { ymdLocal } from "../lib/semana";
 
@@ -225,6 +227,12 @@ export function HistorialDetalle() {
                     })()}
                   </p>
                 )}
+                {/* P92: en qué zonas estuviste durante este ejercicio. */}
+                {b.minutosPorZona && (
+                  <div style={{ marginTop: 4, maxWidth: 260 }}>
+                    <BarraZonas porZona={b.minutosPorZona} bajoZonas={b.minutosBajoZonas} />
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -318,9 +326,25 @@ export function HistorialDetalle() {
               Match {MATCH_POR_LABEL[h.biometria.matchPor]} · {h.biometria.granularidad}
             </span>
           </div>
-          {h.biometria.finMsEfectivo != null && (
+          {avisoDeRecorte(h.biometria) && (
             <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--muted)" }}>
-              Samsung siguió grabando de más — datos recortados a tu sesión.
+              {avisoDeRecorte(h.biometria)}
+            </p>
+          )}
+          {/* P92: minutos por zona de la curva, y qué ventana se usó. */}
+          {h.biometria.minutosPorZona && (
+            <div style={{ marginTop: 10 }}>
+              <BarraZonas
+                porZona={h.biometria.minutosPorZona}
+                bajoZonas={h.biometria.minutosBajoZonas}
+                sinDato={h.biometria.minutosSinDato}
+              />
+            </div>
+          )}
+          {h.biometria.ventanaAdoptada === "samsung" && h.biometria.desfaseDuracionPct != null
+            && h.biometria.desfaseDuracionPct !== 0 && (
+            <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--muted)" }}>
+              {textoVentanaAdoptada(h.biometria.desfaseDuracionPct)}
             </p>
           )}
         </div>

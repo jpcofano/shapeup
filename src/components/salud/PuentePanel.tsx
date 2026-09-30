@@ -3,7 +3,7 @@ import { RefreshCw, AlertTriangle, Clock } from "lucide-react";
 import type { EstadoPuente } from "../../data/ingestaSdk";
 import type { ResumenSincronizacion } from "../../data/sincronizarPuente";
 import {
-  textoImportacion, estadoDelPedido, type UltimaImportacion, type PedidoVisto,
+  textoImportacion, estadoDelPedido, type UltimaImportacion, type PedidoVisto, type PedidoPropio,
 } from "../../lib/estadoPuente";
 import type { FasePedido } from "../../lib/pedirYTraer";
 
@@ -51,7 +51,7 @@ function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) 
  */
 export function PuentePanel({
   estado, ahora, sincronizando, onSincronizar, error, ultimaImportacion, sesionSinLlegar,
-  fase, pedido,
+  fase, pedido, pedidoPropio, llegoTarde, onTraerLoQueLlego,
 }: {
   estado: EstadoPuente | null;
   ahora: number;
@@ -66,10 +66,15 @@ export function PuentePanel({
   fase?: FasePedido | null;
   /** El último pedido al puente (P89), para decir si el reloj respondió. */
   pedido?: PedidoVisto | null;
+  /** Lo que ESTE dispositivo sabe de su último pedido (P91): su reloj y si dejó de esperar. */
+  pedidoPropio?: PedidoPropio | null;
+  /** El reloj contestó después de la espera y todavía no se importó (P91). */
+  llegoTarde?: boolean;
+  onTraerLoQueLlego?: () => void;
 }) {
   const ultima = estado?.ultimaCorridaMs;
   const frenado = ultima != null && ahora - ultima > HORAS_SIN_CORRER_AVISO * 3_600_000;
-  const delPedido = estadoDelPedido(pedido ?? null, ultima, ahora);
+  const delPedido = estadoDelPedido(pedido ?? null, ultima, ahora, pedidoPropio);
   const etiquetaBoton = fase === "pidiendo" ? "Pidiéndole los datos al reloj…"
     : fase === "importando" || sincronizando ? "Importando…"
     : "Sincronizar ahora";
@@ -113,8 +118,23 @@ export function PuentePanel({
         <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
           Último pedido al reloj: {fechaHora(pedido.pedidoMs)} ({delPedido.como}) ·{" "}
           {delPedido.estado === "respondio" ? "respondió"
+            : delPedido.estado === "respondio-tarde" ? "respondió · llegó después de la espera"
             : delPedido.estado === "esperando" ? "esperando respuesta"
-            : "sin respuesta"}
+            : delPedido.estado === "sin-respuesta" ? "sin respuesta"
+            : "no se sabe si respondió"}
+        </p>
+      )}
+      {llegoTarde && onTraerLoQueLlego && (
+        <p style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", margin: 0, fontSize: 12, color: "var(--fg)" }}>
+          El reloj contestó tarde.
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ width: "auto", padding: "4px 10px", fontSize: 12 }}
+            onClick={onTraerLoQueLlego}
+          >
+            Traer lo que llegó
+          </button>
         </p>
       )}
       {delPedido?.estado === "sin-respuesta" && (

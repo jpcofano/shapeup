@@ -31,7 +31,9 @@ import {
 import type { UltimaImportacion } from "../lib/estadoPuente";
 import { limpiarCacheDiasActivos } from "../lib/cacheDiasActivos";
 import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
-import { pedirSincronizacion, esperarCorridaDelPuente, type RespuestaPuente } from "../data/pedidoPuente";
+import {
+  pedirSincronizacion, esperarCorridaDelPuente, type RespuestaPuente, type PedidoHecho,
+} from "../data/pedidoPuente";
 import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialEnLaApp } from "../data/historial";
@@ -116,8 +118,8 @@ export interface DepsSincronizacion {
    * sesión guardada terminó DESPUÉS de la última corrida: el caso en que se
    * sabe que falta algo. Opcionales para los tests que no los necesitan.
    */
-  pedir?: (uid: string) => Promise<Result<number>>;
-  esperar?: (uid: string, desdeMs: number) => Promise<RespuestaPuente>;
+  pedir?: (uid: string, corridaPreviaMs?: number) => Promise<Result<PedidoHecho>>;
+  esperar?: (uid: string, corridaPreviaMs: number | undefined) => Promise<RespuestaPuente>;
 }
 
 const esCuota = (msg: string) => msg === MSG_CUOTA_AGOTADA || esCuotaAgotada(msg);
@@ -152,13 +154,19 @@ export async function correrSincronizacionAutomatica(
     // P89: si el puente corrió antes de que terminara la última sesión, su
     // biometría todavía está en el teléfono. Se le pide una corrida y se espera
     // (en segundo plano: esto no bloquea nada). Conteste o no, se sigue.
+    //
+    // ⚠ P91: esta comparación cruza relojes (`ultimaCorridaMs` es del teléfono,
+    // `finSesion` de este dispositivo). Con un desfase de minutos puede pedir de
+    // más o de menos. Queda reportado, no corregido: pedir de más cuesta un push
+    // descartado; pedir de menos lo cubren el pedido `fin-sesion` y la periódica.
     const finSesion = marcas.ultimaSesionFinMs;
     if (deps.pedir && deps.esperar && finSesion != null
         && ultimaCorridaPuenteMs != null && ultimaCorridaPuenteMs < finSesion) {
       try {
-        const p = await deps.pedir(uid);
-        if (p.ok) {
-          const r = await deps.esperar(uid, p.value);
+        const p = await deps.pedir(uid, ultimaCorridaPuenteMs);
+        // `yaPedido`: este dispositivo ya pidió hace menos de un minuto; no se espera (P91).
+        if (p.ok && !p.value.yaPedido) {
+          const r = await deps.esperar(uid, p.value.corridaPreviaMs);
           if (r.contesto && r.estado.ultimaCorridaMs != null) ultimaCorridaPuenteMs = r.estado.ultimaCorridaMs;
         }
       } catch {
@@ -275,8 +283,8 @@ function depsReales(): DepsSincronizacion {
     ahora: () => Date.now(),
     online: () => navigator.onLine,
     trasEscribir: limpiarCacheDiasActivos,
-    pedir: (uid) => pedirSincronizacion(uid, "automatica"),
-    esperar: (uid, desde) => esperarCorridaDelPuente(uid, desde),
+    pedir: (uid, corridaPreviaMs) => pedirSincronizacion(uid, "automatica", { corridaPreviaMs }),
+    esperar: (uid, corridaPreviaMs) => esperarCorridaDelPuente(uid, corridaPreviaMs),
   };
 }
 

@@ -10,10 +10,10 @@ import { getPerfiles } from "../data/perfiles";
 import { useAuth } from "../auth/useAuth";
 import {
   rutinaCompleta, rutinaTerminada, seriesHechasTotales, valorPrefillSerie,
-  duracionParcialMin, sesionVieja, mensajeSesionVieja,
+  finParcialMs, sesionVieja, mensajeSesionVieja,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
 } from "../lib/entrenarState";
-import { estimarDuracionMin } from "../lib/metricas";
+import { estimarDuracionMin, cierreDeSesion } from "../lib/metricas";
 import { sugerirProgresion } from "../lib/progresion";
 import { useEntrenarState } from "../hooks/useEntrenarState";
 import { useConfirmarReinicio } from "../hooks/useConfirmarReinicio";
@@ -151,13 +151,17 @@ export function EntrenarSesion() {
     if (!memberId) { setErrorSalida("No se pudo identificar al miembro."); return; }
     setGuardandoSalida(true);
     setErrorSalida(null);
+    // Parcial: el cierre es la última serie (P68), no el momento de salir (P84c).
+    const fin = finParcialMs(state);
+    const cierre = fin != null ? cierreDeSesion(state.inicioMs, fin) : { duracionMin: null };
     const result = await finalizarSesion({
       rutinaId,
       nombreRutina: rutina.nombre,
       miembro:     memberId,
       bloques:     session.bloquesRegistro(),
       rpe:         null,
-      duracionMin: duracionParcialMin(state) || null,
+      duracionMin: cierre.duracionMin,
+      ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
       idSesion:    state.idSesion ?? undefined,
       completitud: rutinaCompleta(state, rutina) ? "completa" : "parcial",
     });
@@ -500,16 +504,16 @@ export function EntrenarSesion() {
             }
             setSaving(true);
             setSaveError(null);
-            const durMin = state.inicioMs != null
-              ? Math.round((Date.now() - state.inicioMs) / 60_000)
-              : null;
+            // Arranque y cierre de la sesión, no primera y última serie (P84c).
+            const cierre = cierreDeSesion(state.inicioMs, Date.now());
             const result = await finalizarSesion({
               rutinaId,
               nombreRutina: rutina.nombre,
               miembro: memberId,
               bloques: bloquesFin,
               ...datos,
-              duracionMin: durMin || null,
+              duracionMin: cierre.duracionMin,
+              ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
               idSesion: state.idSesion ?? undefined,
               completitud: completa ? "completa" : "parcial",
               // El lazo de evaluación de P79: qué sugirió la app y qué se hizo.
@@ -572,6 +576,7 @@ export function EntrenarSesion() {
     // Se mide desde que arrancó el juego, no desde que se abrió la pantalla (P80).
     const desde = state.vrInicioMs ?? state.inicioMs;
     const minutos = desde != null ? (now - desde) / 60_000 : 0;
+    const cierre = cierreDeSesion(desde, now);
 
     setGuardandoSalida(true);
     setErrorSalida(null);
@@ -581,7 +586,8 @@ export function EntrenarSesion() {
       miembro:     memberId,
       bloques,
       rpe:         null,
-      duracionMin: Math.round(minutos) || null,
+      duracionMin: cierre.duracionMin,
+      ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
       idSesion:    state.idSesion ?? undefined,
       completitud: objetivoMinHoy > 0 && minutos >= objetivoMinHoy * FRACCION_TIEMPO_COMPLETO
         ? "completa" : "parcial",

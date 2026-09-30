@@ -21,7 +21,7 @@ import type {
 } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
-import { tonelajeKg, totalSeriesHechas, ventanaDeBloques } from "../lib/metricas";
+import { tonelajeKg, totalSeriesHechas, resolverVentana } from "../lib/metricas";
 import { ymdLocal, lunesDeSemana } from "../lib/semana";
 import { leerSemanaCache, guardarSemanaCache } from "../lib/cacheDiasActivos";
 import { agruparDiasActivos, type DiaActivo } from "../lib/racha";
@@ -119,9 +119,10 @@ export async function finalizarSesion(
     ? (opts.nombreRutina ?? rutinaId)
     : (tipo === "juego" ? (nombreJuego ?? "Juego") : (nombreLibre ?? "Sesión libre"));
 
-  // Sin bloques no hay series de donde sacar la ventana, así que la sesión de
-  // juego la pasa explícita (P81).
-  const ventana = ventanaExplicita ?? ventanaDeBloques(bloques);
+  // La ventana es el arranque y el cierre de la sesión, que cada ruta pasa
+  // explícitos con `cierreDeSesion` (P84c). Sin ella se ancla en el fin de las
+  // series y se resta la duración: nunca al revés (P84b).
+  const ventana = resolverVentana(ventanaExplicita, bloques, duracionMin);
   const historial: PayloadHistorial = {
     idHist,
     fechaRealizada:          fecha,

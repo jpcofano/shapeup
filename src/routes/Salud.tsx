@@ -37,8 +37,10 @@ import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sinc
 import { PuentePanel, PuentePreview } from "../components/salud/PuentePanel";
 import { sesionSinLlegar, textoSesionSinLlegar } from "../lib/estadoPuente";
 import { pedirYTraer, avisoRespuesta, type ComoContesto, type FasePedido } from "../lib/pedirYTraer";
+import { leerMarcaPedido, marcarEsperaVencida } from "../lib/pedidoLocal";
 import {
   pedirSincronizacion, esperarCorridaDelPuente, leerPedido, leerDispositivo, type PedidoPuente,
+  ESPERA_TARDIA_MS,
 } from "../data/pedidoPuente";
 import { ymdLocal } from "../lib/semana";
 import {
@@ -111,6 +113,12 @@ export function Salud() {
   const [fasePuente,     setFasePuente]     = useState<FasePedido | null>(null);
   const [contestoPuente, setContestoPuente] = useState<ComoContesto | null>(null);
   const [pedidoPuente,   setPedidoPuente]   = useState<PedidoPuente | null>(null);
+  // P91: con `ya-pedido`, hace cuánto; y si el reloj contestó después de la espera.
+  const [haceMsPedido,   setHaceMsPedido]   = useState<number | null>(null);
+  const [llegoTarde,     setLlegoTarde]     = useState(false);
+  /** La escucha tardía en curso: una sola por pantalla, cortada al desmontar. */
+  const esperaTardiaRef = useRef<AbortController | null>(null);
+  useEffect(() => () => { esperaTardiaRef.current?.abort(); }, []);
   const [confirmandoSync,setConfirmandoSync]= useState(false);
   const [previaPuente,   setPreviaPuente]   = useState<ResumenSincronizacion | null>(null);
   const [errorPuente,    setErrorPuente]    = useState<string | null>(null);
@@ -228,50 +236,94 @@ export function Salud() {
    * 2) lee lo que hay y muestra la vista previa — haya contestado o no. No
    * escribe nada en salud todavía: eso lo hace "Confirmar".
    */
+  /** La sincronización de siempre, en vista previa: el paso "importar" del botón. */
+  async function traerVistaPrevia(uid: string) {
+    const [perfRes, histRes, cfgRes] = await Promise.all([
+      getPerfiles(),
+      getHistorialEnLaApp(memberId as MiembroId),
+      getConfigImport(),
+    ]);
+    const config = cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT;
+    setUmbralPuente(config.duracionMinimaMin);
+    return sincronizarDesdePuente(
+      uid, memberId as MiembroId, histRes.ok ? histRes.value : [], config,
+      {
+        soloVistaPrevia: true,
+        zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined,
+      },
+    );
+  }
+
+  /** Corta la escucha tardía, si hay una (P91: un solo listener por pantalla). */
+  function cortarEsperaTardia() {
+    esperaTardiaRef.current?.abort();
+    esperaTardiaRef.current = null;
+  }
+
   async function vistaPreviaPuente() {
     if (!user?.uid || !memberId) return;
     const uid = user.uid;
+    cortarEsperaTardia();                      // si se vuelve a apretar, el viejo se corta
     setSincronizando(true);
     setErrorPuente(null);
     setContestoPuente(null);
+    setLlegoTarde(false);
 
-    const { contesto, resultado: r } = await pedirYTraer({
-      // Sin puente registrado (falta P90) no se espera a nadie.
+    const { contesto, resultado: r, pedido, haceMs } = await pedirYTraer({
+      // Sin puente registrado no se espera a nadie.
       hayPuenteEscuchando: async () => {
         const d = await leerDispositivo(uid);
         return !d.ok || typeof d.value?.fcmToken === "string";
       },
+      // La corrida que ya se ve en la tarjeta es la base: ahorra una lectura.
       pedir: async () => {
-        const p = await pedirSincronizacion(uid, "boton");
-        if (p.ok) setPedidoPuente({ pedidoMs: p.value, origen: "boton" });
+        const p = await pedirSincronizacion(uid, "boton", { corridaPreviaMs: estadoPuente?.ultimaCorridaMs ?? 0 });
+        if (p.ok && !p.value.yaPedido) {
+          setPedidoPuente({ pedidoMs: p.value.pedidoMs, origen: "boton", corridaPreviaMs: p.value.corridaPreviaMs });
+        }
         return p;
       },
-      esperar: async (desde) => {
-        const res = await esperarCorridaDelPuente(uid, desde);
+      esperar: async (corridaPrevia) => {
+        const res = await esperarCorridaDelPuente(uid, corridaPrevia);
         if (res.contesto) setEstadoPuente(res.estado);
         return res;
       },
-      traer: async () => {
-        const [perfRes, histRes, cfgRes] = await Promise.all([
-          getPerfiles(),
-          getHistorialEnLaApp(memberId as MiembroId),
-          getConfigImport(),
-        ]);
-        const config = cfgRes.ok ? cfgRes.value : CONFIG_IMPORT_DEFAULT;
-        setUmbralPuente(config.duracionMinimaMin);
-        return sincronizarDesdePuente(
-          uid, memberId as MiembroId, histRes.ok ? histRes.value : [], config,
-          {
-            soloVistaPrevia: true,
-            zonasFC: perfRes.ok ? perfRes.value[memberId as MiembroId]?.zonasFC : undefined,
-          },
-        );
-      },
+      traer: () => traerVistaPrevia(uid),
       alCambiarFase: setFasePuente,
     });
     setFasePuente(null);
     setSincronizando(false);
     setContestoPuente(contesto);
+    setHaceMsPedido(haceMs ?? null);
+
+    // P91: no contestó a tiempo → se sigue escuchando hasta 3 min más. Si llega,
+    // aparece "Traer lo que llegó". Se corta al vencer, al llegar o al desmontar.
+    if (contesto === "no-contesto" && pedido) {
+      marcarEsperaVencida(window.localStorage, uid, pedido.pedidoMs);
+      const control = new AbortController();
+      esperaTardiaRef.current = control;
+      void esperarCorridaDelPuente(uid, pedido.corridaPreviaMs, ESPERA_TARDIA_MS, control.signal).then((tarde) => {
+        if (esperaTardiaRef.current === control) esperaTardiaRef.current = null;
+        if (!tarde.contesto) return;
+        setEstadoPuente(tarde.estado);
+        setLlegoTarde(true);
+      });
+    }
+
+    if (!r.ok) { setErrorPuente(r.error); return; }
+    setPreviaPuente(r.value);
+  }
+
+  /** "Traer lo que llegó": corre solo el paso de importar, sin volver a pedir (P91). */
+  async function traerLoQueLlego() {
+    if (!user?.uid || !memberId) return;
+    setLlegoTarde(false);
+    setSincronizando(true);
+    setFasePuente("importando");
+    setContestoPuente("contesto");
+    const r = await traerVistaPrevia(user.uid);
+    setFasePuente(null);
+    setSincronizando(false);
     if (!r.ok) { setErrorPuente(r.error); return; }
     setPreviaPuente(r.value);
   }
@@ -322,7 +374,10 @@ export function Salud() {
           : ""}`
       + `${v.errorEnriquecimiento ? ` · ⚠ la biometría falló: ${v.errorEnriquecimiento}` : ""}`
       // P89: si el reloj no mandó nada nuevo, se dice.
-      + `${contestoPuente && avisoRespuesta(contestoPuente, "importado") ? `\n${avisoRespuesta(contestoPuente, "importado")}` : ""}`,
+      + (() => {
+          const aviso = contestoPuente ? avisoRespuesta(contestoPuente, "importado", haceMsPedido ?? undefined) : null;
+          return aviso ? `\n${aviso}` : "";
+        })(),
     );
 
     // Refrescar lo que cambió — la primera página, no la colección entera.
@@ -721,13 +776,16 @@ export function Salud() {
           sesionSinLlegar={textoPendiente}
           fase={fasePuente}
           pedido={pedidoPuente}
+          pedidoPropio={user?.uid ? leerMarcaPedido(window.localStorage, user.uid) : null}
+          llegoTarde={llegoTarde}
+          onTraerLoQueLlego={() => void traerLoQueLlego()}
         />
       )}
 
       {previaPuente && (
         <PuentePreview
           resumen={previaPuente}
-          aviso={contestoPuente ? avisoRespuesta(contestoPuente, "vista-previa") : null}
+          aviso={contestoPuente ? avisoRespuesta(contestoPuente, "vista-previa", haceMsPedido ?? undefined) : null}
           umbralMin={umbralPuente}
           confirmando={confirmandoSync}
           onConfirmar={confirmarPuente}

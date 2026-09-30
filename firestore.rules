@@ -136,10 +136,14 @@ service cloud.firestore {
           && d.ultimaCorridaMs is int
           && d.origen in ['manual', 'segundo-plano', 'pedido'];
       }
+      // `corridaPreviaMs` (P91): la `ultimaCorridaMs` que la app vio justo antes
+      // de pedir. "Respondió" se deriva de que ese contador se movió, sin cruzar
+      // el reloj del teléfono con el de la PC. Opcional: los pedidos viejos no lo tienen.
       function pedidoValido(d) {
-        return d.keys().hasOnly(['pedidoMs', 'origen'])
+        return d.keys().hasOnly(['pedidoMs', 'origen', 'corridaPreviaMs'])
           && d.pedidoMs is int
-          && d.origen in ['boton', 'fin-sesion', 'automatica'];
+          && d.origen in ['boton', 'fin-sesion', 'automatica']
+          && intSiEsta(d, 'corridaPreviaMs');
       }
       function dispositivoValido(d) {
         return d.keys().hasOnly(['fcmToken', 'actualizadoMs', 'modelo', 'versionPuente', 'ultimoPushMs'])

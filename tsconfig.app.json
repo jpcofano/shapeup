@@ -17,5 +17,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src"]
+  // functions/src/pedido.ts es puro y la app importa de ahí MIN_ENTRE_PUSH_MS (P91):
+  // una sola fuente para el "un pedido por minuto" de los dos lados.
+  "include": ["src", "functions/src/pedido.ts"]
 }

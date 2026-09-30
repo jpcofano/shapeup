@@ -15,6 +15,7 @@ import type {
   MetricaSalud, TipoMetrica, AgregacionMetrica,
 } from "../types/models";
 import type { LiveDataPoint } from "./samsungLiveData";
+import { pisosDe, zonaPorPiso } from "../lib/zonas";
 
 export type MedicionInput = Omit<MedicionCorporal, "idMedicion" | "fechaCreacion">;
 export type CardioInput   = Omit<SesionCardio,   "idCardio"   | "fechaCreacion">;
@@ -201,17 +202,21 @@ export function stripUndef<T extends object>(obj: T): T {
 
 // ── Derivar zona de FC ────────────────────────────────────────────────────────
 
-/** Zona de FC principal para una FC media dada. */
+/**
+ * Zona de FC principal para una FC media dada, con las zonas a medida.
+ *
+ * P92 (enmienda): la misma regla que `lib/matchBiometrico.derivarZona`, de
+ * `lib/zonas` — la zona más alta cuyo piso se alcanzó. Antes esta era una
+ * segunda implementación que exigía `min <= fc <= max` y dejaba sin zona una FC
+ * en la grieta entre dos zonas o por encima de Z5.
+ */
 export function derivarZona(
   fc: number,
   zonas?: Partial<Record<ZonaFC, { min: number; max: number }>>,
 ): ZonaFC | undefined {
   if (!zonas || !fc) return undefined;
-  for (const zona of (["Z5", "Z4", "Z3", "Z2", "Z1"] as ZonaFC[])) {
-    const z = zonas[zona];
-    if (z && fc >= z.min && fc <= z.max) return zona;
-  }
-  return undefined;
+  const pisos = pisosDe({ zonasFC: zonas });
+  return pisos ? zonaPorPiso(fc, pisos) ?? undefined : undefined;
 }
 
 // ── Tipos de ejercicio Samsung Health ─────────────────────────────────────────
@@ -349,6 +354,8 @@ export type EjercicioItem = CardioInput & {
    * filtro de lectura la consulta, y el `custom_id` no sobrevive al guardado.
    */
   _marcadaShapeUp?: boolean;
+  /** Duración declarada de la fila, en ms (P92): viaja al match, no se guarda. */
+  _durMs?: number;
 };
 
 export function parsearEjercicio(
@@ -388,6 +395,7 @@ export function parsearEjercicio(
       _endMs:       endMs,
       _customId:    customId,
       _fcMin:       fcMin,
+      _durMs:       durMs,   // P92: la duración declarada, para biometria.samsung
       _marcadaShapeUp: !!customId && shapeUpCustomIds?.has(customId) === true,
       miembro,
       fecha,

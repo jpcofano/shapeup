@@ -77,18 +77,49 @@ describe("textos", () => {
   });
 });
 
-describe("estadoDelPedido (P89)", () => {
-  const P = { pedidoMs: CORRIDA, origen: "boton" };
-  it("respondió si el puente corrió después del pedido", () => {
-    expect(estadoDelPedido(P, CORRIDA + 30_000, CORRIDA + 60_000)).toEqual({ como: "desde el botón", estado: "respondio" });
+describe("estadoDelPedido (P91: sin cruzar relojes)", () => {
+  // La PC (pedidoMs) y el teléfono (ultimaCorridaMs) tienen relojes distintos.
+  const PREVIA = CORRIDA;                          // lo que se vio antes de pedir (reloj del teléfono)
+  const PEDIDO = { pedidoMs: CORRIDA + 10 * 60_000, origen: "boton", corridaPreviaMs: PREVIA };
+  const propio = { ms: PEDIDO.pedidoMs };
+
+  it("reloj corrido: el contador se movió → respondió, AUNQUE ultimaCorridaMs sea menor que pedidoMs", () => {
+    // La PC está 10 min adelantada: la corrida nueva (PREVIA + 30 s) es "anterior" al pedido.
+    const r = estadoDelPedido(PEDIDO, PREVIA + 30_000, PEDIDO.pedidoMs + 60_000, propio);
+    expect(r).toEqual({ como: "desde el botón", estado: "respondio" });
   });
-  it("esperando los primeros minutos", () => {
-    expect(estadoDelPedido(P, CORRIDA - H, CORRIDA + 60_000)?.estado).toBe("esperando");
+
+  it("reloj corrido al revés: una corrida posterior al pedido pero que NO movió el contador no es respuesta", () => {
+    // Con la PC atrasada, la corrida vieja parecía "después del pedido".
+    const pedidoAtrasado = { ...PEDIDO, pedidoMs: PREVIA - 10 * 60_000 };
+    const r = estadoDelPedido(pedidoAtrasado, PREVIA, pedidoAtrasado.pedidoMs + 60_000, { ms: pedidoAtrasado.pedidoMs });
+    expect(r?.estado).toBe("esperando");
   });
-  it("sin respuesta pasados 10 minutos", () => {
-    expect(estadoDelPedido({ pedidoMs: CORRIDA, origen: "fin-sesion" }, CORRIDA - H, CORRIDA + 11 * 60_000))
-      .toEqual({ como: "al terminar una sesión", estado: "sin-respuesta" });
+
+  it("no se movió y hace poco → esperando", () => {
+    expect(estadoDelPedido(PEDIDO, PREVIA, PEDIDO.pedidoMs + 60_000, propio)?.estado).toBe("esperando");
   });
+
+  it("no se movió y hace rato → sin respuesta", () => {
+    expect(estadoDelPedido(PEDIDO, PREVIA, PEDIDO.pedidoMs + 11 * 60_000, propio)?.estado).toBe("sin-respuesta");
+  });
+
+  it("sin corridaPreviaMs (pedido viejo) → no se sabe, aunque haga horas", () => {
+    const viejo = { pedidoMs: PEDIDO.pedidoMs, origen: "fin-sesion" };
+    expect(estadoDelPedido(viejo, PREVIA, PEDIDO.pedidoMs + 5 * H, propio)).toEqual({ como: "al terminar una sesión", estado: "no-se-sabe" });
+  });
+
+  it("se movió después de vencida la espera → respondió tarde", () => {
+    const r = estadoDelPedido(PEDIDO, PREVIA + 81_000, PEDIDO.pedidoMs + 2 * 60_000, { ...propio, esperaVencida: true });
+    expect(r?.estado).toBe("respondio-tarde");
+  });
+
+  it("pedido de otro dispositivo que no se movió → no se sabe (no hay reloj propio contra qué medir)", () => {
+    expect(estadoDelPedido(PEDIDO, PREVIA, PEDIDO.pedidoMs + 11 * 60_000, { ms: 1 })?.estado).toBe("no-se-sabe");
+    // Pero si se movió, respondió: eso no necesita reloj propio.
+    expect(estadoDelPedido(PEDIDO, PREVIA + 1, PEDIDO.pedidoMs, null)?.estado).toBe("respondio");
+  });
+
   it("sin pedido, nada", () => {
     expect(estadoDelPedido(null, CORRIDA, CORRIDA)).toBeNull();
   });

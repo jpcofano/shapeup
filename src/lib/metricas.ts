@@ -260,3 +260,53 @@ export function ventanaDeBloques(
   }
   return { inicioMs: inicio, finMs: fin };
 }
+
+// ─── P84c: la ventana nace del arranque y del cierre de la sesión ────────────
+
+/** Tolerancia de la invariante ventana ↔ cronómetro de la app (P84c). */
+export const TOLERANCIA_VENTANA_MS = 60_000;
+
+/**
+ * El cierre de una sesión (P84c): la duración y la ventana salen del **mismo
+ * par** de instantes, así no pueden discrepar. `inicioMs` es cuándo empezó la
+ * sesión en la app y `finMs` cuándo se cerró; ni la primera serie ni la
+ * primera ronda. Es lo que cada camino de guardado le pasa a `finalizarSesion`.
+ *
+ * Sin arranque no hay cronómetro: devuelve duración `null` y ventana vacía, y
+ * `finalizarSesion` cae a `resolverVentana`.
+ */
+export function cierreDeSesion(
+  inicioMs: number | null | undefined,
+  finMs: number,
+): { duracionMin: number | null; ventana?: { inicioMs: number; finMs: number } } {
+  if (inicioMs == null || finMs < inicioMs) return { duracionMin: null };
+  return {
+    duracionMin: Math.round((finMs - inicioMs) / 60_000) || null,
+    ventana: { inicioMs, finMs },
+  };
+}
+
+/**
+ * La ventana que se escribe en el Historial (P84c). La explícita manda. Sin
+ * ella, **se ancla en el fin y se resta la duración**: el fin es el momento en
+ * que alguien apretó "terminar", y el inicio derivado de las series llega
+ * tarde (P84b). Sin duración, queda la de los bloques tal cual (ADR #019).
+ */
+export function resolverVentana(
+  explicita: { inicioMs: number; finMs: number } | undefined,
+  bloques: BloqueRegistro[],
+  duracionMin: number | null,
+): { inicioMs?: number; finMs?: number } {
+  if (explicita) return explicita;
+  const deBloques = ventanaDeBloques(bloques);
+  if (deBloques.finMs == null || duracionMin == null || duracionMin <= 0) return deBloques;
+  return { inicioMs: deBloques.finMs - duracionMin * 60_000, finMs: deBloques.finMs };
+}
+
+/** ¿La ventana mide lo que dice el cronómetro de la app? (P84c) */
+export function ventanaCumpleInvariante(
+  s: { inicioMs?: number; finMs?: number; duracionRealMin?: number | null },
+): boolean {
+  if (s.inicioMs == null || s.finMs == null || s.duracionRealMin == null) return true;
+  return Math.abs((s.finMs - s.inicioMs) - s.duracionRealMin * 60_000) <= TOLERANCIA_VENTANA_MS;
+}

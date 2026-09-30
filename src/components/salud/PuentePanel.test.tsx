@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { PuentePanel } from "./PuentePanel";
@@ -41,24 +41,48 @@ describe("PuentePanel (P88)", () => {
   });
 });
 
-describe("PuentePanel (P89)", () => {
+describe("PuentePanel: el último pedido (P89, P91)", () => {
   const PEDIDO_MS = new Date(2026, 8, 25, 15, 50).getTime();
+  const PREVIA = new Date(2026, 8, 25, 12, 40).getTime();   // la corrida que se veía al pedir
 
-  it("muestra el último pedido y que el reloj respondió", () => {
+  it("respondió: el contador se movió (aunque la corrida sea 'anterior' al pedido por reloj)", () => {
     const div = montar({
-      estado: { ultimaCorridaMs: PEDIDO_MS + 20_000 },
-      pedido: { pedidoMs: PEDIDO_MS, origen: "boton" },
+      estado: { ultimaCorridaMs: PREVIA + 20_000 },           // menor que PEDIDO_MS: reloj corrido
+      pedido: { pedidoMs: PEDIDO_MS, origen: "boton", corridaPreviaMs: PREVIA },
+      pedidoPropio: { ms: PEDIDO_MS },
     });
     expect(div.textContent).toContain("Último pedido al reloj: 25/09 15:50 (desde el botón) · respondió");
     expect(div.textContent).not.toContain("ahorro de batería");
   });
 
-  it("sin respuesta hace rato: nombra la causa probable", () => {
+  it("sin respuesta hace rato (pedido propio): nombra la causa probable", () => {
     const div = montar({
-      pedido: { pedidoMs: new Date(2026, 8, 25, 15, 0).getTime(), origen: "fin-sesion" },
+      pedido: { pedidoMs: new Date(2026, 8, 25, 15, 0).getTime(), origen: "fin-sesion", corridaPreviaMs: PREVIA },
+      pedidoPropio: { ms: new Date(2026, 8, 25, 15, 0).getTime() },
     });
     expect(div.textContent).toContain("sin respuesta");
     expect(div.textContent).toContain("El teléfono puede tener la app del puente detenida o con ahorro de batería.");
+  });
+
+  it("pedido viejo sin corridaPreviaMs: 'no se sabe' y SIN aviso de batería", () => {
+    const div = montar({ pedido: { pedidoMs: new Date(2026, 8, 25, 10, 0).getTime(), origen: "boton" } });
+    expect(div.textContent).toContain("no se sabe si respondió");
+    expect(div.textContent).not.toContain("ahorro de batería");
+  });
+
+  it("respondió tarde, y el botón para traer lo que llegó", () => {
+    const traer = vi.fn();
+    const div = montar({
+      estado: { ultimaCorridaMs: PREVIA + 81_000 },
+      pedido: { pedidoMs: PEDIDO_MS, origen: "boton", corridaPreviaMs: PREVIA },
+      pedidoPropio: { ms: PEDIDO_MS, esperaVencida: true },
+      llegoTarde: true, onTraerLoQueLlego: traer,
+    });
+    expect(div.textContent).toContain("respondió · llegó después de la espera");
+    expect(div.textContent).toContain("El reloj contestó tarde.");
+    const boton = [...div.querySelectorAll("button")].find((b) => b.textContent === "Traer lo que llegó")!;
+    act(() => boton.click());
+    expect(traer).toHaveBeenCalledTimes(1);
   });
 
   it("el botón dice en qué paso está", () => {

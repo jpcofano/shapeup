@@ -534,6 +534,38 @@ era raro; sin él, dos marcas del reloj que se solapan son normal.
 `VERSION_ENRIQUECIMIENTO` sube a **5** (ADR #038: todo cambio de algoritmo la sube, si no el
 cambio no llega a lo ya escrito).
 
+**Invariante (P84c): la app define cuánto duró la sesión, y la ventana tiene que coincidir con
+eso.** `|(finMs − inicioMs) − duracionRealMin × 60000| <= 60_000`. `inicioMs` es el arranque de
+la sesión en la app y `finMs` el cierre —nunca la primera ni la última serie—, y las dos salen del
+mismo par con `cierreDeSesion` (`lib/metricas.ts`) en todos los caminos de guardado. Sin ventana
+explícita, `finalizarSesion` **ancla en el fin y resta la duración** (`resolverVentana`), nunca al
+revés. Tests en `data/historial.ventana.test.ts`, uno por tipo.
+
+## ADR #043 — La tolerancia del 12 %: qué muestras entran, no cuánto duró (P92, 2026-09-27)
+
+P78 recortaba la ventana de Samsung a la de la app siempre, y en el caso normal —apretar
+"empezar" en el reloj unos segundos antes y "terminar" unos segundos después— recortaba por nada
+y marcaba las kcal como estimadas. `TOLERANCIA_DURACION = 0.12` en `lib/matchBiometrico.ts`:
+
+- **Se adopta la ventana del reloj entera** (sin recortar ni prorratear, kcal enteras, sin
+  `kcalEstimada`) si `|durSamsung − durApp| / durApp <= 12 %` (el denominador es la app;
+  `durSamsung` es la **unión** de los tramos), **y** ningún tramo termina más de
+  `OLVIDO_CORTE_MS` después del fin de la app, **y** —guarda simétrica agregada en P92—
+  ninguno **arranca** más de `OLVIDO_CORTE_MS` antes del inicio, **y** la ventana no es sintética.
+- `biometria.ventanaAdoptada` (`'app'` · `'samsung'`) y `desfaseDuracionPct` (con signo) dicen
+  por qué. `biometria.samsung` guarda lo que dice Health tal cual, al lado de lo nuestro.
+- **La duración de la sesión sigue siendo la de la app.** `duracionRealMin`, adherencia y racha
+  no se tocan: la tolerancia decide qué muestras entran en la biometría. El ADR #042 sigue entero.
+- Con esto vienen los **minutos por zona** (`lib/minutosPorZona.ts`), de la sesión y de cada
+  ejercicio, con la **regla única de zonas** (`lib/zonas.ts`: la zona es la más alta cuyo piso se
+  alcanzó) que también usa `derivarZona`. Invariante: zonas + `minutosBajoZonas` +
+  `minutosSinDato` = ventana. `VERSION_ENRIQUECIMIENTO` = 6.
+- **P92c — la sesión testigo** (`lib/sesionTestigo.test.ts`, fixture real del 27/09 en
+  `lib/__fixtures__/sesionTestigo20260927.ts`): el primer test contra una medición externa.
+  Con los rangos de Samsung, las cinco zonas caen a menos de 1 min de su pantalla. El aviso de
+  recorte nombra el extremo (`recorteAntesMin` / `recorteDespuesMin`, `avisoDeRecorte`) y no
+  sale por menos de `UMBRAL_AVISO_RECORTE_MIN` (1 min). `VERSION_ENRIQUECIMIENTO` = 7.
+
 ## Configuración: un solo lugar (P86, 2026-09-25)
 
 Pedido del owner: **todo lo configurable vive en Perfil → Configuración**, no en la pantalla

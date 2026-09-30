@@ -95,12 +95,20 @@ export const SIN_RESPUESTA_MS = 10 * 60_000;
 export interface PedidoVisto {
   pedidoMs: number;
   origen: string;
+  /** La `ultimaCorridaMs` que se vio antes de pedir (P91). Los pedidos viejos no la tienen. */
+  corridaPreviaMs?: number;
 }
 
 export interface EstadoDelPedido {
   /** "desde el botón", "al terminar una sesión", "automático". */
   como: string;
-  estado: "respondio" | "esperando" | "sin-respuesta";
+  estado: "respondio" | "respondio-tarde" | "esperando" | "sin-respuesta" | "no-se-sabe";
+}
+
+/** Lo que este dispositivo sabe de su propio último pedido (de `lib/pedidoLocal`). */
+export interface PedidoPropio {
+  ms: number;
+  esperaVencida?: boolean;
 }
 
 const COMO: Record<string, string> = {
@@ -110,18 +118,36 @@ const COMO: Record<string, string> = {
 };
 
 /**
- * ¿El reloj respondió al último pedido? Respondió si el puente corrió después
- * de que se pidió. Si pasaron más de 10 minutos sin corrida, "sin-respuesta":
- * ahí la tarjeta nombra la causa más común (app del puente detenida o con
- * ahorro de batería), que no hay forma de detectar desde acá.
+ * ¿El reloj respondió al último pedido? (P91: sin cruzar relojes.)
+ *
+ * Antes era `ultimaCorridaMs >= pedidoMs`: el reloj del teléfono contra el de
+ * la PC. Con la PC adelantada, una corrida real parecía ninguna y la tarjeta
+ * acusaba al ahorro de batería; atrasada, "respondía" una corrida anterior al
+ * pedido. Ahora:
+ *
+ * - **respondió** si el contador del puente se movió (`ultimaCorridaMs >
+ *   corridaPreviaMs`): los dos los escribe el mismo reloj, el del teléfono;
+ *   **respondió tarde** si además este dispositivo ya había dejado de esperar;
+ * - si no se movió, "esperando" o "sin respuesta" se mide con el reloj de
+ *   ESTE dispositivo contra su propio `pedidoMs` (`propio`). Si el pedido lo
+ *   escribió otro dispositivo, no hay reloj propio contra el que medir;
+ * - sin `corridaPreviaMs` (pedidos anteriores a P91), o sin reloj propio,
+ *   **"no se sabe"**, y la tarjeta no acusa a la batería sin evidencia.
  */
 export function estadoDelPedido(
   pedido: PedidoVisto | null,
   ultimaCorridaMs: number | null | undefined,
   ahora: number,
+  propio?: PedidoPropio | null,
 ): EstadoDelPedido | null {
   if (!pedido) return null;
   const como = COMO[pedido.origen] ?? pedido.origen;
-  if (ultimaCorridaMs != null && ultimaCorridaMs >= pedido.pedidoMs) return { como, estado: "respondio" };
+  if (pedido.corridaPreviaMs == null) return { como, estado: "no-se-sabe" };
+
+  const esPropio = propio?.ms === pedido.pedidoMs;
+  if (ultimaCorridaMs != null && ultimaCorridaMs > pedido.corridaPreviaMs) {
+    return { como, estado: esPropio && propio?.esperaVencida ? "respondio-tarde" : "respondio" };
+  }
+  if (!esPropio) return { como, estado: "no-se-sabe" };
   return { como, estado: ahora - pedido.pedidoMs > SIN_RESPUESTA_MS ? "sin-respuesta" : "esperando" };
 }

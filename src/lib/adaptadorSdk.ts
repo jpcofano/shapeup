@@ -365,6 +365,8 @@ export function sesionSamsungDe(crudo: unknown): SesionSamsung | null {
     ...(numOpt(ses.maxHeartRate) != null ? { fcMax: numOpt(ses.maxHeartRate) } : {}),
     ...(numOpt(ses.minHeartRate) != null ? { fcMin: numOpt(ses.minHeartRate) } : {}),
     ...(numOpt(ses.calories) != null ? { kcal: numOpt(ses.calories) } : {}),
+    // P92: lo que declara la fila, sin pausas. Puede ser menor que end − start.
+    ...(numOpt(ses.duration?.ms) != null ? { duracionDeclaradaMs: numOpt(ses.duration?.ms) } : {}),
     fecha: fechaLocal(c.startLocalDateTime, startMs),
   };
 }

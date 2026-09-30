@@ -12,8 +12,14 @@
 
 /** Un pedido con más de esto ya no importa: un reintento no despierta al teléfono por nada. */
 export const MAX_EDAD_PEDIDO_MS = 5 * 60_000;
-/** Como mucho un push por minuto por uid. */
+/**
+ * Como mucho un push por minuto por uid. **Fuente única**: la app la importa
+ * de acá (`src/lib/pedidoLocal.ts`) para no pedir dos veces en el mismo minuto
+ * (P91), así los dos lados no se desincronizan.
+ */
 export const MIN_ENTRE_PUSH_MS = 60_000;
+/** Pasado esto entre `pedidoMs` y la hora de escritura, se anota el desfase (P91). */
+export const DESFASE_AVISO_MS = 60_000;
 
 export interface Pedido {
   pedidoMs?: unknown;
@@ -27,8 +33,7 @@ export interface Dispositivo {
 
 export type MotivoIgnorar =
   | "borrado"          // el documento del pedido se borró
-  | "pedido-invalido"  // sin pedidoMs numérico
-  | "pedido-viejo"     // más de 5 minutos
+  | "pedido-viejo"     // escrito hace más de 5 minutos (reloj de Firestore, P91)
   | "sin-token"        // el puente todavía no registró su token (P90)
   | "muy-seguido";     // ya hubo un push hace menos de un minuto
 
@@ -39,13 +44,18 @@ export type Decision =
 /**
  * ¿Se manda el push? Pura. `dispositivo` es lo que hay en estado/dispositivo
  * (o `null` si no existe).
+ *
+ * P91: **el reloj del cliente no decide.** La edad del pedido se mide con
+ * `escrituraMs` —cuándo Firestore escribió el documento— contra `ahora`, los
+ * dos del lado del servidor. Antes se usaba `pedidoMs`, que lo escribe el
+ * navegador: con un reloj atrasado seis minutos, ningún pedido salía nunca. Y
+ * un `pedidoMs` inválido ya no mata un pedido bien escrito y a tiempo.
  */
-export function decidir(pedido: Pedido | null, dispositivo: Dispositivo | null, ahora: number): Decision {
+export function decidir(
+  pedido: Pedido | null, dispositivo: Dispositivo | null, ahora: number, escrituraMs: number,
+): Decision {
   if (!pedido) return { accion: "ignorar", motivo: "borrado" };
-  if (typeof pedido.pedidoMs !== "number" || !Number.isFinite(pedido.pedidoMs)) {
-    return { accion: "ignorar", motivo: "pedido-invalido" };
-  }
-  if (ahora - pedido.pedidoMs > MAX_EDAD_PEDIDO_MS) return { accion: "ignorar", motivo: "pedido-viejo" };
+  if (ahora - escrituraMs > MAX_EDAD_PEDIDO_MS) return { accion: "ignorar", motivo: "pedido-viejo" };
   const token = dispositivo?.fcmToken;
   if (typeof token !== "string" || token.length === 0) return { accion: "ignorar", motivo: "sin-token" };
   const ultimo = dispositivo?.ultimoPushMs;
@@ -55,13 +65,29 @@ export function decidir(pedido: Pedido | null, dispositivo: Dispositivo | null, 
   return { accion: "mandar", token };
 }
 
-/** El payload del push: solo datos, nada visible. Los valores de FCM son strings. */
+/**
+ * El payload del push: solo datos, nada visible. Los valores de FCM son
+ * strings. `pedidoMs` viaja para el eco del puente; si no es un número, "0".
+ */
 export function payloadPush(pedido: Pedido): Record<string, string> {
   return {
     tipo: "pedido-corrida",
-    pedidoMs: String(pedido.pedidoMs),
+    pedidoMs: esNumero(pedido.pedidoMs) ? String(pedido.pedidoMs) : "0",
     origen: typeof pedido.origen === "string" ? pedido.origen : "desconocido",
   };
+}
+
+const esNumero = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+
+/**
+ * El desfase entre el reloj del cliente y el de Firestore, si pasa de un
+ * minuto. Es el único lugar del sistema donde se puede ver (P91). `null` si
+ * está bien o si `pedidoMs` no es un número.
+ */
+export function desfaseCliente(pedido: Pedido, escrituraMs: number): number | null {
+  if (!esNumero(pedido.pedidoMs)) return null;
+  const d = pedido.pedidoMs - escrituraMs;
+  return Math.abs(d) > DESFASE_AVISO_MS ? d : null;
 }
 
 /** Errores de FCM que quieren decir "este token está muerto, no lo reintentes". */
@@ -77,7 +103,7 @@ export interface DepsPedido {
    * `ultimoPushMs = ahora` — todo en UNA transacción. Reservar el turno antes
    * de enviar es lo que hace que dos pedidos simultáneos manden un solo push.
    */
-  reservarTurno: (uid: string, pedido: Pedido, ahora: number) => Promise<Decision>;
+  reservarTurno: (uid: string, pedido: Pedido, ahora: number, escrituraMs: number) => Promise<Decision>;
   enviar: (token: string, datos: Record<string, string>) => Promise<void>;
   /** Borra `fcmToken` de estado/dispositivo. */
   borrarToken: (uid: string) => Promise<void>;
@@ -91,13 +117,31 @@ export type ResultadoPedido =
   | { resultado: "token-muerto" }
   | { resultado: "error"; mensaje: string };
 
-/** Procesa un pedido. Nunca tira: una función que tira se reintenta. */
-export async function procesarPedido(uid: string, pedido: Pedido | null, deps: DepsPedido): Promise<ResultadoPedido> {
+/**
+ * Procesa un pedido. Nunca tira: una función que tira se reintenta.
+ *
+ * `escrituraMs` es la hora de Firestore (`event.time`). Si no viniera, el
+ * pedido se acaba de escribir y se trata como nuevo (`ahora`). **Nunca se usa
+ * `pedidoMs` como respaldo**: es el reloj del cliente (P91).
+ */
+export async function procesarPedido(
+  uid: string, pedido: Pedido | null, deps: DepsPedido, escrituraMs?: number,
+): Promise<ResultadoPedido> {
   const ahora = deps.ahora();
+  const escrito = escrituraMs != null && Number.isFinite(escrituraMs) ? escrituraMs : ahora;
+
+  if (pedido) {
+    const desfase = desfaseCliente(pedido, escrito);
+    if (desfase != null) {
+      deps.log("warn", "reloj del cliente corrido respecto de Firestore",
+        { uid, pedidoMs: pedido.pedidoMs, escrituraMs: escrito, desfaseMs: desfase });
+    }
+  }
+
   // Sin documento no hay nada que reservar: ni se toca Firestore.
   const decision = pedido === null
-    ? decidir(null, null, ahora)
-    : await deps.reservarTurno(uid, pedido, ahora);
+    ? decidir(null, null, ahora, escrito)
+    : await deps.reservarTurno(uid, pedido, ahora, escrito);
 
   if (decision.accion === "ignorar") {
     deps.log(decision.motivo === "sin-token" ? "warn" : "info",

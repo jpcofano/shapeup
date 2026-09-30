@@ -472,3 +472,20 @@ describe("ingesta-sdk: estado/pedido y estado/dispositivo (P89)", () => {
     assertSucceeds(setDoc(doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "puente"),
       estadoPuente({ origen: "pedido" }))));
 });
+
+// ── P91: corridaPreviaMs en el pedido ────────────────────────────────────────
+describe("ingesta-sdk: estado/pedido con corridaPreviaMs (P91)", () => {
+  const ref = () => doc(as("juanpablo").firestore(), "ingesta-sdk", "juanpablo", "estado", "pedido");
+
+  it("corridaPreviaMs int se acepta", () =>
+    assertSucceeds(setDoc(ref(), { pedidoMs: 1790000000000, origen: "boton", corridaPreviaMs: 1789990000000 })));
+
+  it("corridaPreviaMs 0 (el puente nunca corrió) se acepta", () =>
+    assertSucceeds(setDoc(ref(), { pedidoMs: 1790000000000, origen: "fin-sesion", corridaPreviaMs: 0 })));
+
+  it("corridaPreviaMs string se rechaza", () =>
+    assertFails(setDoc(ref(), { pedidoMs: 1790000000000, origen: "boton", corridaPreviaMs: "ayer" })));
+
+  it("un campo de más se sigue rechazando", () =>
+    assertFails(setDoc(ref(), { pedidoMs: 1790000000000, origen: "boton", corridaPreviaMs: 1, extra: 1 })));
+});
