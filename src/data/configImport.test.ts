@@ -38,7 +38,22 @@ describe("getConfigImport", () => {
     expect(r.value).toEqual({
       duracionMinimaMin: 25,
       actividadesSiempreRelevantes: ["Pádel", "Natación"],
+      semanasAnalisisGlobal: 8,   // P93: sin el campo, el default
     });
+  });
+
+  it("semanasAnalisisGlobal (P93): usa el del documento, y uno inválido cae a 8", async () => {
+    docData = { semanasAnalisisGlobal: 12 };
+    let r = await getConfigImport();
+    if (!r.ok) throw new Error(r.error);
+    expect(r.value.semanasAnalisisGlobal).toBe(12);
+    for (const malo of [0, 53, 2.5, "8"]) {
+      invalidarCacheConfigImport();
+      docData = { semanasAnalisisGlobal: malo };
+      r = await getConfigImport();
+      if (!r.ok) throw new Error(r.error);
+      expect(r.value.semanasAnalisisGlobal).toBe(8);
+    }
   });
 
   it("un documento a medio completar cae al default campo por campo", async () => {

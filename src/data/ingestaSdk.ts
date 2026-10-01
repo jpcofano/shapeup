@@ -21,7 +21,9 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
-import type { RegistroSdk } from "../lib/adaptadorSdk";
+import { adaptarRegistros, type RegistroSdk } from "../lib/adaptadorSdk";
+import type { LiveDataPoint } from "../import/samsungLiveData";
+import type { MiembroId } from "../types/models";
 
 /** Sufijo que el puente le pone a las partes: `{id}__p1`, `{id}__p2`… */
 const SUFIJO_PARTE = /__p\d+$/;
@@ -135,5 +137,56 @@ function parsear(texto: string | undefined): unknown | undefined {
     return JSON.parse(texto) as unknown;
   } catch {
     return undefined;
+  }
+}
+
+/**
+ * La curva de FC de una sesión, leyendo solo los registros de sus tramos
+ * (`exercise_{datauuid}`, rearmando las partes si vino partido). Es lo que usa
+ * el análisis asistido (P93): la curva **nunca se persiste** (ADR #016), así
+ * que se vuelve a sacar del crudo del puente cuando hace falta, y se descarta.
+ *
+ * Una lectura por tramo (más una por parte), no la subcolección entera. Si un
+ * tramo no está —el puente lee una ventana de días, o la sesión es de otro
+ * miembro— se lo saltea: la curva que vuelve es la que hay, y vacía si no hay.
+ */
+export async function leerCurvaDeSesion(
+  uid: string, miembro: MiembroId, datauuids: string[],
+): Promise<Result<LiveDataPoint[]>> {
+  try {
+    const registros: RegistroSdk[] = [];
+    for (const uuid of datauuids) {
+      const id = `exercise_${uuid}`;
+      const col = collection(db, "ingesta-sdk", uid, "registros");
+      const entero = await getDoc(doc(col, id));
+      if (entero.exists()) {
+        const data = entero.data() as DocRegistro;
+        const crudo = parsear(data.crudo);
+        if (crudo !== undefined) registros.push({ id, dataType: data.dataType ?? "exercise", crudo });
+        continue;
+      }
+      const p1 = await getDoc(doc(col, `${id}__p1`));
+      if (!p1.exists()) continue;
+      const primera = p1.data() as DocRegistro;
+      const total = primera.totalPartes ?? 1;
+      const trozos: string[] = [primera.crudo ?? ""];
+      let completo = true;
+      for (let n = 2; n <= total; n++) {
+        const pn = await getDoc(doc(col, `${id}__p${n}`));
+        if (!pn.exists()) { completo = false; break; }
+        trozos.push((pn.data() as DocRegistro).crudo ?? "");
+      }
+      // Un JSON incompleto nunca se parsea (igual que leerRegistrosSdk).
+      if (!completo) continue;
+      const crudo = parsear(trozos.join(""));
+      if (crudo !== undefined) registros.push({ id, dataType: primera.dataType ?? "exercise", crudo });
+    }
+    if (registros.length === 0) return ok([]);
+    const { liveData } = adaptarRegistros(registros, miembro);
+    const porMs = new Map<number, LiveDataPoint>();
+    for (const u of datauuids) for (const p of liveData[u] ?? []) porMs.set(p.ms, p);
+    return ok([...porMs.values()].sort((a, b) => a.ms - b.ms));
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
   }
 }

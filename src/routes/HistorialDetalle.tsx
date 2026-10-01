@@ -18,6 +18,7 @@ import { BarraZonas } from "../components/BarraZonas";
 import { textoVentanaAdoptada } from "../lib/minutosPorZona";
 import { seEnriquece } from "../lib/tipoHistorial";
 import { ymdLocal } from "../lib/semana";
+import { AnalisisSesion } from "../components/historial/AnalisisSesion";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
@@ -81,6 +82,8 @@ export function HistorialDetalle() {
   const [nocheAnterior, setNocheAnterior] = useState<NocheSueno | null>(null);
   const [fcDia,          setFcDia]        = useState<MetricaSalud | null>(null);
   const [comparativa,    setComparativa]  = useState<ComparativaCardiaca | null>(null);
+  /** El historial del miembro: el costo cardíaco lo usa, y el análisis asistido (P93) como contexto. */
+  const [historialMiembro, setHistorialMiembro] = useState<Historial[] | null>(null);
   const { user } = useAuth();
   /** Última subida del puente, solo si hace falta explicar una sesión sin biometría (P88). */
   const [ultimaCorrida,  setUltimaCorrida] = useState<number | null>(null);
@@ -122,6 +125,7 @@ export function HistorialDetalle() {
       }
       if (histRes.ok) {
         setComparativa(compararConPrevias(entry, histRes.value));
+        setHistorialMiembro(histRes.value);
       }
     });
   }, [id]);
@@ -390,6 +394,15 @@ export function HistorialDetalle() {
           </div>
         </div>
       )}
+
+      {/* P93: análisis asistido. Interpretación, al final y separada de lo medido (ADR #044). */}
+      <AnalisisSesion
+        h={h}
+        historial={historialMiembro}
+        nocheAnterior={nocheAnterior}
+        fcReposoDia={fcDia?.valor ?? null}
+        onCambio={setH}
+      />
 
     </div>
   );

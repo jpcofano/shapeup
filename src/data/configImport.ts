@@ -13,13 +13,19 @@ import {
   ACTIVIDADES_SIEMPRE_RELEVANTES, DURACION_MIN_ACTIVIDAD_MIN,
   type ConfigClasificacion,
 } from "../lib/importSelectivo";
+import { SEMANAS_ANALISIS_GLOBAL_DEFAULT } from "../lib/analisis";
 
-export type ConfigImport = ConfigClasificacion;
+/**
+ * `semanasAnalisisGlobal` (P93, decisión 2): el rango por defecto del análisis
+ * global. Lo usa P94; vive acá con el resto de lo configurable (P86).
+ */
+export type ConfigImport = ConfigClasificacion & { semanasAnalisisGlobal: number };
 
 /** Lo que se usa si `/config/import` no existe o viene incompleto. */
 export const CONFIG_IMPORT_DEFAULT: ConfigImport = {
   duracionMinimaMin: DURACION_MIN_ACTIVIDAD_MIN,
   actividadesSiempreRelevantes: ACTIVIDADES_SIEMPRE_RELEVANTES,
+  semanasAnalisisGlobal: SEMANAS_ANALISIS_GLOBAL_DEFAULT,
 };
 
 let _cache: ConfigImport | null = null;
@@ -36,6 +42,7 @@ export function invalidarCacheConfigImport(): void {
 function normalizar(data: Record<string, unknown> | undefined): ConfigImport {
   const dur = data?.duracionMinimaMin;
   const act = data?.actividadesSiempreRelevantes;
+  const sem = data?.semanasAnalisisGlobal;
   return {
     duracionMinimaMin: typeof dur === "number" && Number.isFinite(dur) && dur >= 0
       ? dur
@@ -43,6 +50,9 @@ function normalizar(data: Record<string, unknown> | undefined): ConfigImport {
     actividadesSiempreRelevantes: Array.isArray(act) && act.every((a) => typeof a === "string")
       ? (act as string[])
       : CONFIG_IMPORT_DEFAULT.actividadesSiempreRelevantes,
+    semanasAnalisisGlobal: typeof sem === "number" && Number.isInteger(sem) && sem >= 1 && sem <= 52
+      ? sem
+      : CONFIG_IMPORT_DEFAULT.semanasAnalisisGlobal,
   };
 }
 
@@ -60,7 +70,7 @@ export async function getConfigImport(): Promise<Result<ConfigImport>> {
 
 /**
  * Guarda los parámetros del import (P86: antes solo se cambiaban desde la
- * consola). Escribe el documento entero con los dos campos ya normalizados;
+ * consola). Escribe el documento entero con los campos ya normalizados;
  * la caché queda con lo escrito.
  */
 export async function setConfigImport(cfg: ConfigImport): Promise<Result<ConfigImport>> {

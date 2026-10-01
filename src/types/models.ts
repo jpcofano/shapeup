@@ -750,6 +750,77 @@ export interface Historial {
   /** Zonas con molestia, estructuradas para poder contarlas (P70). */
   molestias?: ZonaMolestia[];
   notas?: string;
+
+  /**
+   * El análisis asistido de esta sesión (P93, ADR #044). **Interpretación, no
+   * medición**: lo trae la persona de un chat y la app solo lo valida y lo
+   * muestra. ⛔ **Ningún cálculo lo lee**: ni racha, ni adherencia, ni
+   * tonelaje, ni progresión, ni meta. `aislamiento.test.ts` lo fija.
+   */
+  analisis?: AnalisisGuardado;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ANÁLISIS ASISTIDO (P93) — lo que vuelve del chat, ya validado.
+//  El diseño está en docs/ANALISIS-ASISTIDO.md. Genérico por `tipo`: la sesión
+//  es "sesion"; el global (P94) va a ser "global" con la misma forma.
+// ════════════════════════════════════════════════════════════════════════════
+export type ConfianzaAnalisis = "alta" | "media" | "baja";
+export type TipoBanderaAnalisis = "dato-dudoso" | "inconsistencia" | "consultar-profesional" | "otro";
+
+export interface HallazgoAnalisis {
+  tema: string;
+  detalle: string;
+  /** Obligatoria: el número del paquete en que se apoya. Sin evidencia no se guarda. */
+  evidencia: string;
+  /** Lo que dijo el que analizó, sin reinterpretar. */
+  confianza?: ConfianzaAnalisis;
+}
+export interface SugerenciaAnalisis { accion: string; porque: string; cuando?: string }
+export interface BanderaAnalisis { tipo: TipoBanderaAnalisis; detalle: string }
+
+/** El contenido del análisis, tal como lo acepta el validador. */
+export interface ContenidoAnalisis {
+  version: number;
+  tipo: "sesion";
+  idHist: string;
+  generadoEn: string;
+  modelo: string;
+  resumen: string;
+  hallazgos: HallazgoAnalisis[];
+  sugerencias: SugerenciaAnalisis[];
+  banderas: BanderaAnalisis[];
+  preguntas: string[];
+  /**
+   * Lo que faltó para analizar mejor, en una lista corta y sin reproche (esquema
+   * 2, prompt v3). La app lo usa para mostrar qué completar. Ausente en los
+   * análisis del esquema 1.
+   */
+  datosFaltantes?: string[];
+}
+
+/**
+ * Con qué se armó el paquete (decisión 3 de P93): el paquete no se guarda,
+ * porque con esto se vuelve a armar igual. Si la biometría cambió después,
+ * `versionEnriquecimiento` lo delata.
+ */
+export interface ArmadoAnalisis {
+  versionPrompt: number;
+  versionEsquema: number;
+  /** La ventana de la sesión con la que se armó (epoch ms), o null si no tenía. */
+  ventana: { inicioMs: number; finMs: number } | null;
+  /** La de la biometría en ese momento; null = la sesión no tenía biometría. */
+  versionEnriquecimiento: number | null;
+}
+
+export interface AnalisisGuardado extends ContenidoAnalisis {
+  armado: ArmadoAnalisis;
+  /**
+   * De dónde salió `armado`: `"eco"` si el chat devolvió el bloque del paquete
+   * tal cual; `"carga"` si no lo devolvió y se tomó de la sesión al cargar.
+   */
+  armadoOrigen: "eco" | "carga";
+  cargadoMs: number;
 }
 
 // ════════════════════════════════════════════════════════════════════════════

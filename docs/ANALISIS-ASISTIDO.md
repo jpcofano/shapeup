@@ -1,6 +1,8 @@
 # Análisis asistido — diseño
 
-Estado: **propuesta para revisar**. Nada de esto está construido.
+Estado: **la sesión está construida (P93, 30/09/2026)**; el análisis global es P94. La regla es el
+**ADR #044** en `CLAUDE.md`. Las tres decisiones abiertas del final quedaron cerradas en P93 (ver
+ahí).
 
 ## La idea
 
@@ -167,7 +169,14 @@ Se guarda aparte, no colgando de una sesión.
 - Que el análisis modifique cualquier dato de entrenamiento.
 - Análisis automático de cada sesión. Se pide cuando se quiere.
 
-## Decisiones abiertas
+## Decisiones (cerradas en P93)
+
+- **La curva va a 30 segundos.**
+- **El global arranca en 8 semanas**, configurable en `/config/import.semanasAnalisisGlobal`.
+- **El paquete enviado no se guarda**: se guarda con qué se armó (versión de prompt, de esquema,
+  ventana y `versionEnriquecimiento`), que alcanza para reconstruirlo.
+
+Lo que se planteó, para la historia:
 
 1. **La curva submuestreada**: ¿va a 30 segundos, o alcanza con las cifras por serie? Yo la
    pondría: es lo que permite ver la deriva y la forma de la recuperación.

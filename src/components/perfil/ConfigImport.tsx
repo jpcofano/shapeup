@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getConfigImport, setConfigImport, CONFIG_IMPORT_DEFAULT, type ConfigImport as Config } from "../../data/configImport";
-import { validarDuracionMinima } from "../../lib/configuracion";
+import { validarDuracionMinima, validarSemanasAnalisis } from "../../lib/configuracion";
 
 /**
  * Cuánto tiene que durar una actividad del reloj para entrar al historial
@@ -15,6 +15,7 @@ import { validarDuracionMinima } from "../../lib/configuracion";
 export function ConfigImport() {
   const [original, setOriginal] = useState<Config | null>(null);
   const [duracion, setDuracion] = useState("");
+  const [semanas, setSemanas] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -22,6 +23,7 @@ export function ConfigImport() {
   function cargar(c: Config) {
     setOriginal(c);
     setDuracion(String(c.duracionMinimaMin));
+    setSemanas(String(c.semanasAnalisisGlobal));
   }
 
   useEffect(() => {
@@ -30,12 +32,15 @@ export function ConfigImport() {
 
   const duracionNum = Number(duracion);
   const errorDuracion = duracion.trim() === "" ? "Completá la duración." : validarDuracionMinima(duracionNum);
-  const hayCambios = original != null && duracionNum !== original.duracionMinimaMin;
+  const semanasNum = Number(semanas);
+  const errorSemanas = semanas.trim() === "" ? "Completá las semanas." : validarSemanasAnalisis(semanasNum);
+  const hayCambios = original != null
+    && (duracionNum !== original.duracionMinimaMin || semanasNum !== original.semanasAnalisisGlobal);
 
   async function guardar() {
-    if (errorDuracion || !original) return;
+    if (errorDuracion || errorSemanas || !original) return;
     setGuardando(true); setError(null); setAviso(null);
-    const r = await setConfigImport({ ...original, duracionMinimaMin: duracionNum });
+    const r = await setConfigImport({ ...original, duracionMinimaMin: duracionNum, semanasAnalisisGlobal: semanasNum });
     setGuardando(false);
     if (!r.ok) { setError(r.error); return; }
     cargar(r.value);
@@ -66,7 +71,19 @@ export function ConfigImport() {
         </span>
       </div>
       {errorDuracion && <p style={{ margin: 0, fontSize: 11, color: "var(--warning)" }}>{errorDuracion}</p>}
-      <button className="btn-primary" disabled={!hayCambios || !!errorDuracion || guardando} onClick={() => void guardar()}>
+      {/* P93: el rango por defecto del análisis global (lo usa P94). */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <label htmlFor="sem-analisis" style={{ fontSize: 12, color: "var(--muted)" }}>Análisis global</label>
+        <input
+          id="sem-analisis" type="number" inputMode="numeric" className="form-input" style={{ maxWidth: 80 }}
+          value={semanas} onChange={(e) => setSemanas(e.target.value)}
+        />
+        <span style={{ fontSize: 12, color: "var(--muted)" }}>
+          semanas · por defecto {CONFIG_IMPORT_DEFAULT.semanasAnalisisGlobal}
+        </span>
+      </div>
+      {errorSemanas && <p style={{ margin: 0, fontSize: 11, color: "var(--warning)" }}>{errorSemanas}</p>}
+      <button className="btn-primary" disabled={!hayCambios || !!errorDuracion || !!errorSemanas || guardando} onClick={() => void guardar()}>
         {guardando ? "Guardando…" : "Guardar"}
       </button>
       {error && <p style={{ margin: 0, fontSize: 12, color: "var(--danger)" }}>{error}</p>}

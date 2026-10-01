@@ -566,6 +566,52 @@ y marcaba las kcal como estimadas. `TOLERANCIA_DURACION = 0.12` en `lib/matchBio
   recorte nombra el extremo (`recorteAntesMin` / `recorteDespuesMin`, `avisoDeRecorte`) y no
   sale por menos de `UMBRAL_AVISO_RECORTE_MIN` (1 min). `VERSION_ENRIQUECIMIENTO` = 7.
 
+## ADR #044 — Lo medido y lo interpretado no se mezclan (P93, 2026-09-30)
+
+Es la misma familia que el aislamiento por tipo (P74) y que «el sistema decide solo con lo que
+mide» (P79). El **análisis asistido** (`docs/ANALISIS-ASISTIDO.md`) funciona así:
+- la app arma un paquete con los datos de una sesión (`lib/paqueteAnalisis.ts`);
+- la persona lo pega en un chat;
+- el JSON que vuelve se valida (`lib/validarAnalisis.ts`) y se guarda en `historial.analisis`.
+
+Sin claves, sin servidor, sin costo: la persona es el transporte, a propósito.
+
+- **El análisis vive en su propio campo**, se muestra etiquetado como *interpretación* con su
+  fecha y su modelo, y **nunca alimenta la racha, la adherencia, el tonelaje, la progresión ni la
+  meta**. Si un análisis dice que una sesión fue floja, eso no mueve un número medido.
+- **Se prueba, no se promete.** `aislamiento.test.ts` calcula todas las métricas con el historial
+  sin análisis y con un análisis cargado en cada sesión, y exige resultados idénticos. Si alguien
+  lee `analisis` desde un cálculo, falla ahí.
+- **El JSON es dato externo.** Reglas del validador:
+  - `idHist` tiene que coincidir con la sesión («Este análisis es de otra sesión»);
+  - todo hallazgo trae `evidencia`, o no se guarda;
+  - los campos que no están en el esquema se descartan;
+  - hay topes de largo y de cantidad;
+  - nada se ejecuta: React escapa los textos al mostrarlos.
+- **El paquete no se guarda**: se guarda con qué se armó (`armado`: versión de prompt, de esquema,
+  ventana y `versionEnriquecimiento`). Es reconstruible, y si la biometría cambió la versión lo
+  delata.
+- **El prompt vive en el repo** (`docs/analisis/prompt-sesion-v{N}.md`) y es la fuente. Si cambia,
+  se crea el archivo nuevo y sube `VERSION_PROMPT_SESION` (`lib/analisis.ts`). Vigente: **v3**
+  (esquema 2). El v3 pide un análisis corto que empieza por lo que salió bien. El validador hace
+  cumplir sus topes:
+  - resumen de 2 o 3 oraciones;
+  - hasta 4 hallazgos, 2 sugerencias y 2 preguntas;
+  - las limitaciones una sola vez, en `banderas`;
+  - `datosFaltantes` aparte y sin reproche;
+  - nunca pedir RPE ni sensación (P79).
+- **El paquete declara lo que no es de primera mano** (enmienda de P93):
+  - `ventanaOrigen` vale `sesion` o `series`. El respaldo de las series va contra P84c. Si la
+    duración y el tramo de las series difieren más de 12 %, va `discrepanciaDuracion` con los dos
+    números, y el prompt pide no concluir de duración ni de densidad.
+  - `prescripcionOrigen` vale `sesion` (hoy solo VR, `prescripcionUsada`) o `rutina-actual`, que
+    es solo una referencia.
+- **Nada de consejo médico**: una señal de salud va como bandera `consultar-profesional`, nunca
+  como diagnóstico.
+- La curva no se persiste (ADR #016): para el paquete se vuelve a leer del crudo del puente
+  (`leerCurvaDeSesion`, un documento por tramo) y se descarta.
+- El análisis global es P94: `semanasAnalisisGlobal` (8 por defecto) ya vive en `/config/import`.
+
 ## Configuración: un solo lugar (P86, 2026-09-25)
 
 Pedido del owner: **todo lo configurable vive en Perfil → Configuración**, no en la pantalla

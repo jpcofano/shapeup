@@ -74,6 +74,18 @@ export function validarDuracionMinima(min: number): string | null {
   return null;
 }
 
+/** Rango aceptable del análisis global, en semanas (P93). */
+export const SEMANAS_ANALISIS_RANGO = { min: 1, max: 52 } as const;
+
+/** El problema del rango del análisis global, o `null` si está bien (P93). */
+export function validarSemanasAnalisis(semanas: number): string | null {
+  if (!Number.isFinite(semanas) || !Number.isInteger(semanas)) return "Las semanas tienen que ser un número entero.";
+  if (semanas < SEMANAS_ANALISIS_RANGO.min || semanas > SEMANAS_ANALISIS_RANGO.max) {
+    return `Las semanas tienen que estar entre ${SEMANAS_ANALISIS_RANGO.min} y ${SEMANAS_ANALISIS_RANGO.max}.`;
+  }
+  return null;
+}
+
 // ── Visibilidad (/config/visibilidad) ────────────────────────────────────────
 
 /**

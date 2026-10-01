@@ -458,7 +458,12 @@ registrando el motivo.
 
 ## 10. Diferidos (no descartados)
 
-- **Análisis por LLM.** El usuario exporta un snapshot de salud e historial, lo pega en un
+- **Análisis por LLM → construido para la sesión en P93 (30/09/2026).** Diseño en
+  [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), regla en el **ADR #044** (lo medido y lo
+  interpretado no se mezclan). Se guarda en `historial.analisis`, no en `/recomendaciones`:
+  **el ADR #023 no se toca**, porque las recomendaciones de Home siguen derivándose al vuelo. El
+  análisis global de varias semanas es P94. Texto original del diferido, para la historia:
+  El usuario exporta un snapshot de salud e historial, lo pega en un
   chat de IA, y el análisis vuelve como JSON que la app ingiere y muestra. El tipo
   `Recomendacion` y la regla de `/recomendaciones` existen, pero **ningún código los usa**:
   Home renderiza lo que `lib/recomendaciones.ts` calcula al vuelo, por decisión explícita

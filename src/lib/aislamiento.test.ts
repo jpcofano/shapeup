@@ -620,3 +620,79 @@ describe("aislamiento · los juegos no cuentan como ejercicio (P81)", () => {
       .toEqual(JUEGOS.map((h) => h.idHist).sort());
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P93 — ADR #044: lo medido y lo interpretado no se mezclan.
+//
+//  El mismo historial, sin análisis y con un análisis cargado en CADA sesión
+//  (que dice que todas fueron flojas y sugiere cambiar todo): todas las
+//  métricas tienen que dar idéntico. Si mañana algún cálculo lee `analisis`,
+//  falla acá y no en producción.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("aislamiento · el análisis asistido no mueve ninguna métrica (P93, ADR #044)", () => {
+  const conAnalisis = (hs: Historial[]): Historial[] => hs.map((h) => ({
+    ...h,
+    analisis: {
+      version: 1, tipo: "sesion" as const, idHist: h.idHist, generadoEn: "2026-09-30", modelo: "prueba",
+      resumen: "Sesión floja: hay que bajar todo.",
+      hallazgos: [{ tema: "esfuerzo", detalle: "Fue floja.", evidencia: "RPE 2", confianza: "alta" as const }],
+      sugerencias: [{ accion: "Bajar la carga a la mitad", porque: "floja", cuando: "proxima-sesion" }],
+      banderas: [], preguntas: [],
+      armado: { versionPrompt: 1, versionEsquema: 1, ventana: null, versionEnriquecimiento: null },
+      armadoOrigen: "carga" as const, cargadoMs: 1,
+    },
+  }));
+  const CON = conAnalisis(HISTORIAL_MIXTO);
+  const SIN = HISTORIAL_MIXTO;
+  const prog = programa([
+    { orden: 1, tipo: "rutina", idRutina: ID_RUTINA, diaSemana: "lunes" },
+    { orden: 2, tipo: "rutina", idRutina: "RUT-0002", diaSemana: "miércoles" },
+  ]);
+  const presc = {
+    modalidad: "Fuerza" as const, series: 3,
+    repsObjetivo: { value: 8, min: 8, max: 10, raw: "8-10" }, descansoSeg: 90,
+  };
+  const senales = [senal("sueno", "ok"), senal("fc-reposo", "ok"), senal("hrv", "ok")];
+
+  /** Todas las métricas del plan y de progresión sobre un historial. */
+  function metricas(hs: Historial[]) {
+    const serie = seriesDeAdherencia(agruparDiasActivos(hs), 2, HOY);
+    const miercoles = hs.find((h) => h.idHist === rutinaMiercoles.idHist)!;
+    const previo = hs.filter((h) => h.idHist !== rutinaMiercoles.idHist);
+    return {
+      serie, racha: rachaActual(serie), tasa: tasaCumplimiento(serie),
+      meta: metaSemanal(prog, { metaSemanalDias: 2 }),
+      diasActivos: diasActivos(hs, "2026-09-07", "2026-09-13"),
+      chips: calcularWeekChips(agruparDiasActivos(hs), SEMANA, HOY),
+      semanasSinDescarga: semanasSinDescarga(hs, HOY),
+      recomendacion: calcularRecomendacion(senales, hs, HOY, MIEMBRO),
+      sesionesEjercicio: sesionesDelEjercicio(ID_EJERCICIO, hs),
+      progresion: sugerirProgresion(ID_EJERCICIO, hs, presc),
+      delta: deltaEjercicio(miercoles.bloques[0], previo),
+      pr: esPR(miercoles.bloques[0], previo),
+      costo: compararConPrevias(miercoles, hs),
+      serieCosto: serieCostoRutina(ID_RUTINA, hs),
+      tonelaje: hs.map((h) => tonelajeKg(h)),
+      series: hs.map((h) => totalSeriesHechas(h)),
+      hoy: sesionDeHoy(prog, 0, hs),
+      proxima: proximaSesion(prog, hs),
+    };
+  }
+
+  it("todas las métricas dan idéntico con y sin análisis", () => {
+    expect(CON.every((h) => h.analisis != null)).toBe(true);
+    expect(metricas(CON)).toEqual(metricas(SIN));
+  });
+
+  it("también en el enriquecimiento y el import", () => {
+    const extraccion = {
+      sesionesSamsung: [{ datauuid: "uuid-a", startMs: Date.UTC(2026, 8, 9, 12, 2), endMs: Date.UTC(2026, 8, 9, 12, 56), fcMedia: 128, kcal: 320, fecha: "2026-09-09" }],
+      liveData: {}, shapeUpCustomId: undefined,
+    };
+    const a = calcularEnriquecimiento(CON, extraccion);
+    const b = calcularEnriquecimiento(SIN, extraccion);
+    expect(a.updates.map((u) => [u.idHist, u.biometria])).toEqual(b.updates.map((u) => [u.idHist, u.biometria]));
+    expect(a.matcheadas).toBe(b.matcheadas);
+  });
+});

@@ -39,6 +39,9 @@ forma de trabajo de "Comida Familiar".
   `juego`, así que una sesión de rutina quedaba **sin el campo** y, en Firestore, fuera de
   todo `where("tipo","in",…)`: invisible para Home, la racha, la progresión y el
   enriquecimiento. Dos sesiones de VR estaban así. Corregido y backfilleado.
+- **Análisis asistido de una sesión (P93, 30/09, ADR #044):** diseño en
+  [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md). «Preparar análisis» y «Cargar análisis» en el
+  detalle de la sesión, con el prompt versionado en `docs/analisis/`. El global es P94.
 - **Tests: 1204 verdes + 82 de reglas verdes con el emulador** (P84/P85, 25/09; sin emulador
   `firestore.rules.test.ts` se permite en skip). `tsc -b` limpio, `npm run build` OK.
 - **Deployado y pusheado al 24/09**: hosting en https://shapeup-41e74.web.app, `main` en

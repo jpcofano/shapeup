@@ -10,14 +10,14 @@
 // ════════════════════════════════════════════════════════════════════════════
 import {
   collection, doc, getDocs, getDoc, getDocFromServer,
-  serverTimestamp, updateDoc, writeBatch,
+  serverTimestamp, updateDoc, writeBatch, deleteField,
   query, where, orderBy, limit,
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { pedirSincronizacion } from "./pedidoPuente";
 import { guardarMarcas } from "../lib/sincronizacionAutomatica";
 import type {
-  Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia, SesionCardio,
+  Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia, SesionCardio, AnalisisGuardado,
 } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
@@ -514,6 +514,34 @@ export async function enriquecerHistorial(
     const patch: Record<string, unknown> = { biometria };
     if (bloques) patch.bloques = bloques;
     await updateDoc(doc(db, "historial", idHist), patch);
+    return ok(undefined);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+// ── Análisis asistido (P93, ADR #044) ─────────────────────────────────────────
+
+/**
+ * Guarda el análisis de una sesión, ya validado (`lib/validarAnalisis`) y
+ * armado (`lib/analisis.analisisParaGuardar`). `update()`, nunca `set()`: el
+ * resto del documento es medido y no se toca. **Un análisis por sesión**: el
+ * campo se reemplaza entero, así que cargar otro pisa al anterior (la pantalla
+ * avisa antes).
+ */
+export async function guardarAnalisis(idHist: string, analisis: AnalisisGuardado): Promise<Result<void>> {
+  try {
+    await updateDoc(doc(db, "historial", idHist), { analisis });
+    return ok(undefined);
+  } catch (e) {
+    return err(firebaseErrorMessage(e));
+  }
+}
+
+/** Saca el análisis de una sesión. Si no se puede sacar, no se carga tranquilo. */
+export async function borrarAnalisis(idHist: string): Promise<Result<void>> {
+  try {
+    await updateDoc(doc(db, "historial", idHist), { analisis: deleteField() });
     return ok(undefined);
   } catch (e) {
     return err(firebaseErrorMessage(e));
