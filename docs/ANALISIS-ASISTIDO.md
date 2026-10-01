@@ -255,7 +255,7 @@ Van en una fila discreta, sin color, en este orden:
 
 #### Qué agrega al esquema
 
-El esquema pasa a la **versión 3** y el prompt a la **versión 4**. El detalle de la v3 actual queda igual.
+El esquema pasa a la **versión 3** y el prompt a la **versión 5** (01/10: P98 crea la v4). El detalle de la v3 actual queda igual.
 
 | Campo | Contenido | Tope que valida la app |
 |---|---|---|
