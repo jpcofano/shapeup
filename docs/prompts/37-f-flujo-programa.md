@@ -4,7 +4,7 @@
 > con días **por día de semana** y descansos visibles, y **programa activo por miembro**. Target
 > visual: `ui_kits/shapeup/screens-programa.jsx` + `screens-home.jsx` (variante aurora). Respetá
 > el nav de 6 ítems (Programas entra por tab en Biblioteca). Tokens siempre, voseo.
-> Ver decisiones y ADRs en `MAPEO-ADDENDUM.md` §B.
+> Ver decisiones y ADRs en `docs/reportes/MAPEO-ADDENDUM.md` §B.
 >
 > ## F1 — Programa activo POR MIEMBRO
 > - Nuevo doc `config/programaActivo` = mapa `{ miembroId: programaId }` (análogo a

@@ -38,6 +38,15 @@ tratala como la fuente de verdad del pulido. Sus piezas clave:
 > se construyó algo y no quedó en el mapeo, se considera no hecho. JSDoc en lo público de
 > `data/` y `lib/`. `tsc -b` limpio y tests verdes. `git add -A && git commit` + `git push`.
 
+## ⛳ El MAPEO es la fuente de verdad (LEER)
+> `docs/MAPEO-IMPLEMENTACION.md` es la **única fuente de verdad** del estado — no el número de
+> prompt. **Siempre** actualizalo al cerrar cada etapa, **antes de frenar**: Bitácora (archivos,
+> decisiones, desviaciones, tests, cómo probarlo) + tabla de Estado + Mapa del código + ADR para
+> decisiones de peso. Si se construyó algo y no quedó en el mapeo, **se considera no hecho**.
+> Las pistas conviven (Prompts NN · Etapas E1–E6 · Diseño D1–D10 · A/B/C del backlog); el mapeo
+> es lo que las reconcilia. Antes de cada etapa de diseño, releé el repo para construir sobre lo
+> último (Code avanza la pista funcional en paralelo).
+
 ## Qué NO tocar (restricciones de diseño — repetir en cada etapa)
 > Design toca **presentación**. No toques la lógica: `src/lib/`, `src/data/`, `src/types/`,
 > `src/auth/`. El **nav inferior de 6 ítems** (Inicio/Rutinas/Entrenar/Historial/Salud/Perfil)
@@ -59,6 +68,13 @@ tratala como la fuente de verdad del pulido. Sus piezas clave:
 5. **27 · D5 — Historial + Progreso:** lista con badge bíceps, detalle, MiniChart.
 6. **28 · D6 — Salud:** tabs, chips de zona FC, MiniChart, flujo de import con preview.
 7. **29 · D7 — Perfil + auth:** perfil, **selector de tema** refinado, Login / no-autorizado con marca.
+8. **30 · D8 — PWA + botón "Instalar app":** app instalable (patrón de Comida: `vite-plugin-pwa` + `public/manifest.json` + `public/icons/`), hook `useInstallPrompt`, botón "Instalar app" en Perfil (+ hint iOS). Íconos en `assets/pwa/`.
+
+### Tanda siguiente (funcional + diseño intercalados · el diseño va SIEMPRE detrás de lo funcional en cada pantalla)
+9. **31 · D9 — Home "Aurora+":** rediseño premium (anillo de progreso con glow + gradiente por tema con `color-mix`, card glass "Próxima sesión", fila de 3 tiles bento, WeekStrip). Monta sobre la lógica de A1. Animado + micro-fades. Ver `explorations/DECISION-home-aurora.md`.
+10. **32 · A2 — Modo libre / un ejercicio (funcional):** sesión ad-hoc sin rutina, Historial `tipo:"libre"`. UI funcional sin pulir.
+11. **33 · B1 — Explicaciones ricas de ejercicio (funcional):** surfacear datos FEDB ya importados (músculos/nivel/mecánica/patrón/equipo) como ficha técnica. UI funcional sin pulir.
+12. **34 · D10 — Pulido de Sesión libre + Ficha de ejercicio:** viste A2 y B1 (selector premium, distintivo "Libre", ficha jerárquica, micro-animaciones).
 
 ### Notas
 - Un prompt por vez; revisá y recién ahí seguís.

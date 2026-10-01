@@ -211,7 +211,7 @@ MiniChart, la tira semanal, los avatares de color. Frío, oscuro, de alto contra
 | `assets/shapeup-wordmark-light.svg` | Lockup para fondos claros. |
 | `preview/*.html` | Tarjetas del Design System (color, type, spacing, componentes). |
 | `ui_kits/shapeup/` | **UI kit interactivo** de la app — ver abajo. |
-| `prompts-code/` | **Prompts para Claude Code** (pulido D1–D7, numerados 23–29) — implementan este sistema en el repo `jpcofano/shapeup`. Empezá por `PROMPTS-design.md`. |
+| `docs/prompts/` | **Prompts para Claude Code** (pulido D1–D7, numerados 23–29) — implementan este sistema en el repo `jpcofano/shapeup`. Empezá por `PROMPTS-design.md`. (P100: `prompts-code/` se integró a `docs/prompts/`.) |
 
 ### UI Kits
 - **`ui_kits/shapeup/`** — recreación interactiva de la app ShapeUp. Abrí

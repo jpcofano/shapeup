@@ -2,7 +2,7 @@
 
 Repo: jpcofano/shapeup. Es la parte de PU2 que vive en este repo: el puente Android
 (repo aparte) va a escribir lecturas crudas del Samsung Health Data SDK en Firestore, y
-necesita una regla. Diseño del puente: `docs/ROADMAP-producto.md` §15.8 (hitos PU1–PU4).
+necesita una regla. Diseño del puente: `docs/reportes/roadmap-informes-P66.md` §15.8 (hitos PU1–PU4).
 
 Las decisiones están cerradas. Si algo es inviable, **pará y reportá**. No commitees.
 
