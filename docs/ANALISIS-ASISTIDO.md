@@ -1,8 +1,16 @@
 # Análisis asistido — diseño
 
-Estado: **la sesión está construida (P93, 30/09/2026)**; el análisis global es P94. La regla es el
-**ADR #044** en `CLAUDE.md`. Las tres decisiones abiertas del final quedaron cerradas en P93 (ver
-ahí).
+Estado (01/10/2026):
+
+- **El análisis de una sesión está construido** (P93, commit `600aa37`). Vigentes: el prompt
+  **v3** (`docs/analisis/prompt-sesion-v3.md`) y el esquema **2**. La regla es el **ADR #044** en
+  `CLAUDE.md`. El JSON de ejemplo y la descripción del prompt de más abajo son los del diseño
+  original (esquema 1, prompt v1); lo vigente está en el código y en `docs/analisis/`.
+- **Lo que sigue** está en la sección «Marcas y análisis en dos capas (P99) y análisis general
+  (P94)»: marcas que calcula la app, un análisis de sesión que las comenta, y el análisis general
+  con focos. El orden es P97 → P98 → P99 → P94.
+- Las tres decisiones abiertas del diseño original quedaron cerradas en P93 (ver al final). Las que
+  siguen abiertas para P99 están en el §8 de la sección nueva.
 
 ## La idea
 
@@ -162,6 +170,157 @@ Se guarda aparte, no colgando de una sesión.
 - Global: una colección propia, por miembro y por rango.
 - En los dos casos se guarda **qué versión de prompt y de esquema** se usó.
 
+## Marcas y análisis en dos capas (P99) y análisis general (P94)
+
+_Integrado el 01/10/2026 desde `docs/plan-marcas-y-analisis.md`, que se borró. Las decisiones están
+copiadas tal cual; la pantalla (§6) sigue siendo una propuesta._
+
+Decisiones del chat del 30/09 sobre cómo el análisis deja de ser solo un texto largo y pasa a **marcar la sesión**. Este plan es la base de **P99** (marcas y análisis de sesión) y del diseño de **P94** (análisis general). No es un prompt para Code: los prompts salen de acá.
+
+### 1 · El objetivo
+
+Hoy el análisis de una sesión es un detalle largo que se pega y se lee. Ese detalle está bien y se queda, pero abajo y plegado.
+
+En primer plano tiene que haber pocas cosas:
+
+- **Marcas que calcula la app**, en todas las sesiones, se hayan analizado o no.
+- **Un veredicto, dos destacados y algunas marcas del análisis**, en las sesiones analizadas.
+
+Además habrá **un análisis general** sobre un rango de semanas que propone qué conviene mirar en los próximos análisis de sesión.
+
+### 2 · Decisiones cerradas
+
+**Arquitectura**
+
+1. **Dos capas (opción C).** La app calcula las marcas medidas. El análisis las comenta, pero no las reemplaza ni las recalcula.
+2. **Dos análisis:** uno **por sesión** (P99) y uno **general** sobre un rango de semanas (P94).
+3. **Las marcas del análisis no escriben números propios.** Apuntan a una marca de la app (por id) o a un tramo de la curva. Así el LLM no puede inventar una cifra (ADR #044: lo medido y lo interpretado no se mezclan).
+4. **La prioridad de las marcas la fija la app, no el análisis.** El análisis comenta, pero no sube ni baja una marca. Una sesión sin analizar se ve igual que una analizada en todo lo que es medido.
+5. **Las marcas que tienen un momento o un tramo se dibujan además sobre la curva**, sin importar su nivel.
+
+**Qué analiza el análisis**
+
+6. **Solo lo realizado.** La prescripción viaja en el paquete **como contexto** (para saber qué tipo de sesión era), pero **no se evalúa el cumplimiento**: nada de «duró el doble de lo prescripto» ni «eran 5 rondas y quedó una serie».
+7. **Las calorías salen del paquete.** No son una medida relevante. Se siguen mostrando en la sesión, pero el análisis no las recibe y por eso no las puede comentar.
+8. **Fuerza:** el análisis puede recomendarla siempre que corresponda, aunque hoy Juan haga solo VR.
+
+**Análisis general (P94)**
+
+9. **El análisis general no reescribe el prompt de sesión.** Propone **focos** (por ejemplo, «mirar si el tramo sostenido crece semana a semana»). **Juan los acepta o los descarta.** Los aceptados viajan **como dato** en el paquete de sesión, con su versión. El prompt queda fijo, para que los análisis sigan siendo comparables entre sí.
+10. **Si el análisis general propone una marca nueva de la app**, eso es código: sale como pedido para un prompt de Code y no se aplica solo.
+
+**Descartado**
+
+- La marca **«Contra lo prescripto»**: contradice la decisión 6.
+- La **progresión como marca de la sesión**. La regla de P98 sigue en pie y propone igual; se muestra **en la rutina**, no en la sesión.
+- Las **calorías** en el análisis (decisión 7).
+
+### 3 · Catálogo de marcas de la app
+
+Las marcas se calculan con **las zonas guardadas en la sesión**, no con las vigentes. Así, un cambio trimestral de FC máxima no reescribe marcas viejas. La corrección del piso de Z5 (152 → 153, P97) sí las rehace, igual que rehace las zonas.
+
+#### Nivel 1 — badges
+
+Son pocos a propósito: en una sesión típica se ven 3, y 4 o 5 cuando pasa algo.
+
+| # | id | Marca | Qué muestra | Cuándo aparece | Sobre la curva |
+|---|---|---|---|---|---|
+| 1 | `calidad` | Calidad de la medición | Cobertura baja o FC dudosa | Solo si hay un problema, con estilo de aviso. Va primero porque cambia cómo se leen las demás | — |
+| 2 | `record` | Récord | La sesión más larga, de más carga o de más tiempo en zona alta, por tipo de actividad. En fuerza, el récord por ejercicio | Solo si hubo uno | — |
+| 3 | `picoSobreVigente` | Pico sobre la FC máxima vigente | FC pico de la sesión contra la FC máxima vigente | Solo si la supera; abre la revisión de la FC máxima (opción C) | sí |
+| 4 | `carga` | Carga | Σ (minutos en Zi × i), de Z1×1 a Z5×5. Un solo número que compara VR con fuerza | Siempre | — |
+| 5 | `zonaAlta` / `volumen` | Zona alta (VR y cardio) / Volumen (fuerza) | Minutos y porcentaje en Z4+Z5 / kilos × repeticiones totales | Siempre; cambia según el tipo de sesión | — |
+| 6 | `semana` | Semana | Días entrenados contra la meta, y cuántos de fuerza: «2 de 5 · sin fuerza» | Siempre | — |
+
+#### Nivel 2 — secundarias
+
+Van en una fila discreta, sin color, en este orden:
+
+| # | id | Marca | Qué muestra | Sobre la curva |
+|---|---|---|---|---|
+| 7 | `tramoSostenido` | Tramo sostenido | El tramo continuo más largo sin bajar del piso de Z4 | sí |
+| 8 | `mitades` | Mitades | FC media de la primera mitad contra la segunda, sin contar la entrada en calor. La app mide; si hubo deriva o no, lo interpreta el análisis | — |
+| 9 | `recuperacionSeries` | Recuperación entre series | Cuánto baja la FC en cada pausa. Solo con 2 o más series | sí |
+| 10 | `picosZ5` | Picos en Z5 | Cuántas veces entró a Z5 y cuánto duró la más larga | sí |
+| 11 | `entradaEnCalor` | Entrada en calor | Minutos hasta llegar por primera vez a Z4. Si nunca llegó, no aparece | sí |
+| 12 | `recuperacionFinal` | Recuperación al terminar | Cuánto baja la FC en el primer minuto después del fin. **Condicional** | sí |
+| 13 | `pico` | Pico | FC máxima de la sesión, cuando **no** supera la vigente | sí |
+
+#### Condicionales: se confirman en el diagnóstico antes de construirlas
+
+- **`recuperacionFinal`** necesita FC después del fin. El 27/09 el reloj siguió apenas 6,8 s. Si no hay datos suficientes, se descarta.
+- **`volumen` y el récord de fuerza** necesitan que las series guarden la carga y las repeticiones.
+
+### 4 · Análisis de sesión (P99)
+
+#### Qué agrega al esquema
+
+El esquema pasa a la **versión 3** y el prompt a la **versión 4**. El detalle de la v3 actual queda igual.
+
+| Campo | Contenido | Tope que valida la app |
+|---|---|---|
+| `veredicto` | Una oración: cómo salió la sesión | 1 oración |
+| `destacados` | Lo más importante de la sesión | exactamente 2, de 1 o 2 oraciones cada uno |
+| `marcasAnalisis` | Comentarios cortos anclados a una marca de la app (`refMarca`) o a un tramo (`inicioS`, `finS`), con tono `positivo` o `atencion` | un número máximo a fijar en P99 |
+
+**El validador rechaza:**
+- una `refMarca` que no exista entre las marcas del paquete;
+- un tramo fuera de la ventana de la sesión;
+- cualquier campo que pase su tope.
+
+**Queda solo en el prompt** «no escribir números propios en las marcas del análisis». Es un juicio de contenido, igual que en la v3: un chequeo por dígitos rechazaría «Z4».
+
+#### Qué cambia en el paquete y en el prompt
+
+- El paquete **incluye las marcas de la app** con sus ids y valores.
+- El paquete **no incluye las calorías** (decisión 7).
+- El prompt **no evalúa el cumplimiento de la prescripción** (decisión 6).
+- El prompt **puede recomendar fuerza** (decisión 8).
+- Cuando exista P94, el paquete incluye **los focos aceptados** con su versión.
+
+### 5 · Análisis general (P94)
+
+- Mira **todas las sesiones de un rango de semanas**. La serie semanal de **carga** es su base para comparar.
+- Devuelve dos cosas: una **lectura del rango** y **focos propuestos** para los próximos análisis de sesión.
+- Juan **acepta o descarta** cada foco. Los aceptados se versionan y viajan en el paquete de sesión (decisión 9).
+- Las **marcas nuevas** que proponga salen como pedido para Code (decisión 10).
+- Code ya avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango). El diseño fino se hace cuando le toque.
+
+### 6 · Pantalla — propuesta, a confirmar
+
+De arriba hacia abajo:
+
+1. **Veredicto** (solo si hay análisis).
+2. **Badges** (nivel 1).
+3. **Dos destacados** (solo si hay análisis).
+4. **Curva** con las marcas que tienen momento o tramo.
+5. **Secundarias** (nivel 2).
+6. **Detalle del análisis**, plegado.
+
+Para distinguir el origen de cada marca: las de la app van **sólidas**, y las del análisis con **borde punteado** y la etiqueta «análisis».
+
+### 7 · Orden de ejecución
+
+1. **Cerrar P93**: commit y deploy de hosting. _(Commit hecho: `600aa37`, 01/10/2026. El deploy de hosting lo hace Juan.)_
+2. **P97**: zonas como Samsung. Las marcas usan zonas, y no se mide sobre datos que se están por corregir.
+3. **P98**: rutinas de VR y progresión.
+4. **P99**: marcas y análisis de sesión, por partes:
+   - **Parte 1, diagnóstico.** Qué datos hay para las condicionales; si las marcas se guardan en la sesión o se calculan al mostrar; cómo define hoy la app la semana; y propuestas para lo abierto en §8.
+   - **Parte 2, marcas de la app.** Valen solas, sin el LLM.
+   - **Parte 3, esquema 3 y prompt 4.**
+   - **Parte 4, pantalla.**
+5. **P94**: análisis general y focos.
+
+**Verificación:** las marcas se prueban contra la **sesión testigo del 27/09**. Los valores esperados se toman **después de P97**, con las zonas corregidas, y no ahora.
+
+### 8 · Abierto: lo propone Code en el diagnóstico de P99 y se decide en el chat
+
+- El umbral de cobertura para que aparezca `calidad`.
+- La tolerancia de `tramoSostenido`: si una caída de pocos segundos bajo el piso de Z4 corta el tramo o no.
+- Cómo se define el récord de fuerza: carga máxima o carga × repeticiones.
+- El tope de `marcasAnalisis`.
+- Si la pantalla de §6 queda así.
+
 ## Fuera de alcance
 
 - Llamar a un modelo desde la app. Esto es a mano y a propósito: sin claves, sin costo, sin
@@ -169,18 +328,25 @@ Se guarda aparte, no colgando de una sesión.
 - Que el análisis modifique cualquier dato de entrenamiento.
 - Análisis automático de cada sesión. Se pide cuando se quiere.
 
-## Decisiones (cerradas en P93)
+## Decisiones abiertas
 
-- **La curva va a 30 segundos.**
-- **El global arranca en 8 semanas**, configurable en `/config/import.semanasAnalisisGlobal`.
-- **El paquete enviado no se guarda**: se guarda con qué se armó (versión de prompt, de esquema,
-  ventana y `versionEnriquecimiento`), que alcanza para reconstruirlo.
-
-Lo que se planteó, para la historia:
+Las tres del diseño original quedaron **cerradas en P93**. Cada una con su planteo y cómo se
+resolvió:
 
 1. **La curva submuestreada**: ¿va a 30 segundos, o alcanza con las cifras por serie? Yo la
    pondría: es lo que permite ver la deriva y la forma de la recuperación.
+   **Cerrada en P93: va a 30 segundos.** Promedio de cada balde, sin interpolar los huecos
+   (`submuestrear` en `lib/paqueteAnalisis.ts`). Si el paquete pasa los 60 KB, baja a 60 s y
+   después sale.
 2. **El rango por defecto del análisis global**: 4, 8 o 12 semanas. Yo arrancaría en 8, que es
    la ventana que ya usa la tasa de cumplimiento.
+   **Cerrada en P93: 8 semanas**, configurable en Perfil → Configuración
+   (`/config/import.semanasAnalisisGlobal`). Lo usa P94.
 3. **¿Se guarda también el paquete enviado**, o solo la respuesta? Guardarlo hace el análisis
    reproducible y permite ver qué datos tenía a la vista; cuesta espacio.
+   **Cerrada en P93: el paquete no se guarda.** Se guarda con qué se armó (`armado`: versión de
+   prompt, de esquema, ventana y `versionEnriquecimiento`), que alcanza para reconstruirlo; si la
+   biometría cambió después, la versión lo delata.
+
+**Siguen abiertas**, para el diagnóstico de P99: las del §8 de la sección «Marcas y análisis en
+dos capas (P99) y análisis general (P94)».

@@ -74,6 +74,11 @@ forma de trabajo de "Comida Familiar".
 
 ## Pendientes (orden sugerido, al 2026-09-25)
 
+**Próximos prompts (01/10/2026), en este orden: P97 → P98 → P99 → P94.** Zonas como Samsung,
+rutinas de VR y progresión, marcas y análisis de sesión, y análisis general. El plan y sus
+decisiones están en [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), «Marcas y análisis en dos capas
+(P99) y análisis general (P94)».
+
 **Lo primero, y no es código:**
 
 0. **Abrir /salud y apretar "Sincronizar ahora"** (tarjeta "Puente Samsung"), mirar la vista

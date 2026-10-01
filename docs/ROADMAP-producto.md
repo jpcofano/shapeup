@@ -526,6 +526,10 @@ silencioso toda la sesión.
 | P88′ | PoC de la vía D: proyecto Android aparte, sin plugin (`docs/prompts/88prima-poc-data-sdk.md`). H2 ya confirmó que el camino existe: P88′ **mide cuánto cuesta y si es estable sin intervención** (ADR #036) | H2 ✅ |
 | P89 | H3 — adaptador Health Sync → tipos de entrada existentes | P75, P88′ |
 | P90 | H4 — lectura de Drive, sync al abrir, idempotencia de doble vía | P89 |
+| P97 | Zonas como las cuenta Samsung: la convención de redondeo, la FC máxima declarada con su origen y las zonas guardadas en cada sesión. Las marcas usan zonas, y no se mide sobre datos que se están por corregir. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), «Marcas y análisis en dos capas» | P92c, P93 |
+| P98 | Rutinas de VR y progresión: rutinas por tiempo, dos modos y una regla que calcula el sistema. La progresión se muestra en la rutina, no como marca de la sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P93 |
+| P99 | Marcas de la app y análisis de sesión en dos capas, en cuatro partes: diagnóstico, marcas de la app, esquema 3 y prompt 4, pantalla. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
+| P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
 **P89 depende de P75 y de P88′.**
 - **P75** (P66e): define el tipo normalizado del ADR #033; un adaptador escrito antes tendría
