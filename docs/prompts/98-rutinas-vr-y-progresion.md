@@ -177,3 +177,11 @@ Escribí el reporte en `docs/auditorias/ultimochat.md`, con:
 Agregá la regla como ADR en `CLAUDE.md`, con el umbral marcado como provisorio. No commitees.
 
 Guardá este prompt como `docs/prompts/98-rutinas-vr-y-progresion.md`.
+
+---
+
+## Enmienda del 01/10
+
+P98 no modifica el prompt de análisis ni el paquete. La propuesta de progresión no viaja al análisis de sesión.
+La pantalla de la rutina muestra la propuesta con los datos que usó la regla: la FC media de esta sesión, la de la referencia, la diferencia contra el umbral y si contó como completada. Son solo datos medidos, sin texto interpretativo.
+Lo demás de P98 no cambia. Donde el prompt pida que el análisis explique la regla, esta enmienda lo reemplaza.

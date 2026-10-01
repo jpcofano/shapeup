@@ -176,12 +176,12 @@ Cuando haya que decidir entre suponer y medir, se mide.
 
 ## Observaciones del cierre de P93 (01/10)
 
-La primera quedó **cerrada** el 01/10; la segunda sigue **abierta**.
+Las dos quedaron **cerradas** el 01/10.
 
 - **La versión del prompt entre P98 y P99.** El plan de marcas (§4) dice que P99 lleva el esquema a 3
   y el prompt a v4. Pero P98, que va antes, en su Parte 5 le agrega una regla al prompt vigente, y por
   el ADR #044 todo cambio del prompt es un archivo nuevo: P98 lo dejaría en v4 y P99 lo llevaría a v5.
-  **01/10: P98 crea la v4 del prompt de análisis y P99 la v5.**
+  **01/10: el análisis de sesión no menciona la progresión (ver ANALISIS-ASISTIDO.md). P98 no toca el prompt; P99 crea la v4.**
 - **La progresión en el análisis de sesión.** P98 (Parte 5) pide que el análisis explique el estado de
   la regla de progresión, que mide si se completó lo prescripto. El plan descarta la progresión como
   marca de la sesión (se muestra en la rutina) y su decisión 6 dice que el análisis no evalúa el
