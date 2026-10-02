@@ -1,24 +1,38 @@
-# ShapeUp — traspaso de sesión · 30/09/2026
+# ShapeUp — traspaso de sesión · 02/10/2026
 
-Para el próximo chat. Reemplaza al traspaso del 28/09: lo que sigue vale de ese documento está repetido acá, y lo que estaba mal está corregido.
+Para el próximo chat. Reemplaza al traspaso del 30/09. Desde P100, este documento **es** `docs/ESTADO-DEL-PROYECTO.md`: Code lo copia ahí tal cual y reemplaza al anterior.
+
+---
+
+## 0 · Para el próximo chat: primero clonar y leer
+
+El repo de la app es público: `https://github.com/jpcofano/shapeup`. Antes de responder, clonalo y leé, en este orden:
+
+1. `CLAUDE.md`: las reglas de trabajo, el índice de ADRs y la sección **«Documentación»**, que dice dónde va cada cosa.
+2. `docs/ESTADO-DEL-PROYECTO.md`: tendría que ser este documento (con el cierre de P98 del 02/10). Si es más viejo, la copia todavía no se commiteó.
+3. `docs/ANALISIS-ASISTIDO.md`: el plan de marcas y análisis (P99 y P94), con sus insumos de las pruebas del 30/09 y el 02/10. **Es la base de P99.**
+4. `docs/ADR.md`: los ADRs completos. Los nuevos son el #045 (zonas y FC máxima) y el #046 (rutinas de VR y progresión).
+5. `docs/ROADMAP-producto.md` §11: el orden de lo que viene.
+6. `docs/prompts/97-…`, `98-…` y `100-…`: muestran el formato de los prompts que funcionan.
+
+Para ver lo último commiteado, corré `git log --oneline -15`. Al cierre del 02/10, `HEAD` era `6a5a98a` (más el commit de esta copia).
 
 ---
 
 ## 1 · Quién y cómo
 
-**Juan**, Buenos Aires, castellano rioplatense con voseo. Construye **ShapeUp**, una app de entrenamiento familiar. Hoy la usa él solo; la familia todavía no, pero lo que se construye tiene que dejarla prevista.
+**Juan**, Buenos Aires, castellano rioplatense con voseo. Construye **ShapeUp**, una app de entrenamiento familiar. Hoy la usa él solo; lo que se construye tiene que dejar prevista a la familia.
 
-**El método, que no cambia:**
+**El método:**
+- Juan conversa el diseño **conmigo**. Yo escribo **prompts numerados y autocontenidos**, que declaran las decisiones cerradas y le piden a Claude Code **«pará y reportá»** en vez de reinterpretar.
+- **Code** ejecuta y reporta en `docs/auditorias/ultimochat.md`, que está ignorado por git en los dos repos.
+- **Commits:** cuando lo hace Code, muestra antes la lista de archivos y confirma árbol limpio y `origin/main` = `HEAD`.
+- **Juan corre a mano cualquier script que escriba en Firestore**, primero en seco y después con `-- --aplicar`.
+- Code trabaja en **dos sesiones**, una por repo. Cuando le paso un texto para Code, digo **en qué sesión va**. Si la respuesta de Code no corresponde a lo pedido, suele ser que se pegó en la sesión equivocada.
+- **Juan a veces no sabe si ya le pasó un texto a Code.** Antes de dar el paso siguiente, se verifica con el último reporte.
+- Juan a veces pega cosas de otros proyectos (Apps Script, E3, formularios). Se aclara en una línea y se sigue.
 
-- Juan conversa el diseño **conmigo**. Yo escribo **prompts numerados y autocontenidos** que declaran las decisiones cerradas y le ordenan a Claude Code **"pará y reportá"** en vez de reinterpretar.
-- Juan le pasa el prompt a **Code**, que ejecuta y reporta en `docs/auditorias/ultimochat.md` (ignorado por git en **los dos** repos).
-- **Commits:** por defecto commitea Juan. A veces le pide a Code que commitee él; en ese caso Code muestra antes la lista de archivos y confirma árbol limpio y `origin/main` = `HEAD`.
-- **Juan corre a mano cualquier script que escriba en Firestore.**
-- Los prompts se entregan como archivos y Juan los guarda en `docs/prompts/` del repo que corresponda.
-- Code trabaja en **dos sesiones separadas**: una en el repo de la app y otra en el del puente. Juan a veces pega un texto en la sesión equivocada: si la respuesta de Code no corresponde a lo pedido, suele ser eso. Cuando le paso un texto para Code, digo **en qué sesión va**.
-- Juan también pega a veces cosas de **otros proyectos** (Apps Script, experimento E3, formularios e inscriptos). No son de ShapeUp: se aclara en una línea y se sigue.
-
-**Lo que funciona conmigo:** empezar por el hallazgo; una decisión por vez; nombrar el motivo; opciones con pros y contras cuando la decisión es suya. Juan corrige rápido cuando algo no le cierra: se reconoce y se sigue.
+**Lo que funciona:** empezar por el hallazgo; una decisión por vez; opciones con pros y contras cuando la decisión es suya; textos para Code listos para pegar. Juan corrige rápido: se reconoce y se sigue.
 
 ---
 
@@ -26,165 +40,177 @@ Para el próximo chat. Reemplaza al traspaso del 28/09: lo que sigue vale de ese
 
 | | |
 |---|---|
-| **App** | `github.com/jpcofano/shapeup` — React + TypeScript + Firebase, público. Clon en `C:\Users\Usuario\OneDrive\Documentos\AppsScript\ShapeUp`, dentro de OneDrive a propósito (corregido el 01/10: el traspaso del 30/09 decía C:\dev\shapeup) |
-| **Puente** | `github.com/jpcofano/shapeup-bridge` — Android/Kotlin, proyecto en `ShapeUpBridge/`. Clon en `C:\dev\shapeup-bridge` |
+| **App** | `github.com/jpcofano/shapeup`: React, TypeScript y Firebase, público. **El clon está en OneDrive, a propósito** (corregido el 01/10: el traspaso del 30/09 decía `C:\dev\shapeup`) |
+| **Puente** | `github.com/jpcofano/shapeup-bridge`: Android y Kotlin. Clon en `C:\dev\shapeup-bridge` |
 | **Firebase** | `shapeup-41e74`, Firestore en `southamerica-east1`, nivel gratuito |
 | **Máquina** | Windows, cmd.exe |
 
-La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` en Firestore → ShapeUp importa y enriquece.** ShapeUp también le **pide** corridas al puente con un push silencioso.
+La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` → ShapeUp importa y enriquece.**
 
 ---
 
-## 3 · Estado al cierre
+## 3 · Estado al cierre (02/10)
 
-**Cerrado y pusheado:**
+**Commits de la app, del 30/09 al 02/10:**
 
-| Repo | Commit | Qué |
-|---|---|---|
-| App | `d2ce189` | P91, P92, 84c y **92c** |
-| App | `e50c50f` | Herramientas: 84b, 84c, 92b; `.claude/settings.local.json` ignorado |
-| Puente | `acac1aa` | **P96** y el cierre de la prueba 2b de P90; `docs/auditorias/` al `.gitignore` |
+| Commit | Qué |
+|---|---|
+| `600aa37` | P93: análisis asistido, con las enmiendas de ventana y prescripción y el prompt v3 |
+| `d0decc9` | El plan de marcas integrado en `ANALISIS-ASISTIDO.md` |
+| `fa1014f` | Los prompts 97 y 98 |
+| `a636dce` | **P100**: el orden de la documentación |
+| `557749b` / `817d74f` | Decisión del 01/10: el análisis no menciona la progresión; enmienda a P98 |
+| `9529fdb` + `aa0d8a1` | **P97**: zonas como Samsung, FC máxima declarada, estimación, revisión y enriquecimiento v8 |
+| `6a90eaf` | Los insumos de las pruebas del 30/09 y el 02/10 para P99 |
+| `ba9e41f` | **P98** (app): las rutinas de VR por escalones, con dos modos y la regla de progresión, y su documentación |
+| `6a5a98a` | **P98** (herramientas): el seed `seed:rutinas-vr`, `package.json` y `SEEDS.md` |
 
-Deploys de reglas, functions y hosting hechos el 28/09.
+**P98: cerrado.** Seed aplicado, hosting deployado (antes del commit: ver §8) y commiteado. `tsc` limpio y 1564 tests; falla solo la suite de reglas, que necesita el emulador.
+- **Reglas: sin cambios y sin deploy.**
+  - `/config/progresion` cae en `/config/{docId}`: lo lee cualquier miembro y lo escribe solo el owner. Lo escribe solo la tarjeta de «Familia y datos», que ve solo Juan.
+  - `archivada` en `/rutinas`, `subidasVR` en `/config/perfiles` y el escalón en `/historial` pasan porque esas reglas no validan campos.
 
-**Sin commitear en la app: P93 completo**, en tres pasadas: el análisis asistido, la enmienda de ventana y prescripción, y la enmienda **v3** del prompt de análisis. Code confirmó la v3 terminada (`tsc` limpio, 1472 tests, build OK). **Falta la prueba a mano de la v3** (ver §6, paso 1). _(01/10: commiteado en `600aa37`.)_
+**Ya aplicado en Firestore:**
+- `corregir:zonas`: las zonas de los cuatro perfiles con la convención de Samsung, y el origen de la FC máxima;
+- `seed:rutinas-vr`.
 
-**Escritos y sin pasar a Code:** `97-zonas-como-samsung.md` y `98-rutinas-vr-y-progresion.md`. _(01/10: commiteados en `fa1014f`.)_
+**Deployado:** el hosting con P93, P97 y P98. Las sesiones se rehicieron a la biometría v8.
 
-_(01/10: el plan de marcas y análisis quedó integrado en `docs/ANALISIS-ASISTIDO.md`, `d0decc9`.)_
-
-_(01/10: P100, el orden de la documentación, en curso.)_
-
-_(02/10: P97 commiteado. Falta que Juan corra `npm run corregir:zonas -- --aplicar` y después deploye el hosting, en ese orden.)_
+**Lo que muestra la app ahora:**
+- **Revisión de la FC máxima de Juan:** la estimación de ShapeUp da **173** y la vigente es **169** (origen `samsung`). **La decisión es de Juan.** Quedarse en 169 mantiene las zonas iguales a las de la pantalla de Samsung; con 173 suben unos 3 latidos. Hay tres sesiones excluidas de la estimación (12/09, 18/09 y 29/09), con picos suavizados de 174, 179 y 183, por la regla «pico > vigente + 10».
+- **maria, sofia y federico:** «falta confirmar». Su origen es `edad-provisoria` (220 − edad).
+- **Programa activo de Juan: el PRG-0013, de 5 días:** Combat largo, Ritmo suave, Creed, Ritmo suave, Combat largo. El PRG-0012 de María no se tocó.
+  - Qué programa usa cada miembro lo dice `config/programaActivo`, no el estado del programa. El PRG-0013 queda en estado «Plantilla» **a propósito**: si estuviera en «Activo», la app se lo daría por defecto a los miembros sin programa elegido.
+  - El PRG-0004 (6 días) lleva la etiqueta «Pausado», que la app no lee.
 
 ---
 
 ## 4 · Lo que se aprendió en esta sesión
 
-**P96 — el push que se dormía.** En Doze pasaban **72 s** entre el push y la corrida del puente, y la corrida arrancaba solo porque otra app despertaba el teléfono. Causa: `onMessageReceived` encolaba en WorkManager **sin esperar el resultado**, y la CPU se dormía antes de que el trabajo quedara agendado. El trabajo ya era expedited y el push llegaba con prioridad alta (hipótesis B y C descartadas con evidencia). Arreglo: esperar el encolado con tope de 3 s, fuera del hilo principal. Resultado: **55 ms** en Doze profundo forzado y **45 ms en Doze profundo natural** (42 min en profundo). Cada push registra su prioridad en `corridas.json`.
-- La noche entera de Doze **no se hace**: afecta a la sincronización periódica, no al push. Queda como "no probada, riesgo bajo".
-- Doze **sin exclusión** de batería tampoco: el teléfono de Juan queda "sin restricciones" y quien use el puente lo configura así con el botón.
-
-**92c — la sesión testigo del 27/09.** El **método de zonas quedó verificado contra Samsung**: con sus rangos, las cinco zonas quedan a menos de un minuto, la resta de la Parte 4 cierra al segundo y las calorías coinciden (504). La tolerancia del 12 % adoptó (desfase −2,2 %).
-- **Corrección al traspaso anterior:** el cartel "Samsung siguió grabando de más" **no** acusaba al extremo equivocado. El reloj arrancó **70 s después** que la app, y lo recortado fueron 6,8 s del final. El problema real era que el cartel salía por segundos. Ahora nombra el extremo correcto y solo aparece si lo recortado pasa de un minuto.
-- Lo que no coincidió: **Z5 con las zonas del perfil da +1,1 min** porque el piso de Z5 está en 152 y no en 153. Es redondeo en `seed-perfiles.ts`. Lo resuelve P97. _(02/10: resuelto; con las zonas corregidas Z5 da 3,6 contra 4,08.)_
-- Z5 queda 32 s abajo aun con los rangos de Samsung, dentro de tolerancia: nosotros atribuimos por intervalo (promedio de dos muestras). En picos cortos tendemos a quedar un poco abajo. No se toca.
-
-**P93 — análisis asistido.** La primera prueba devolvió un análisis largo y solo con reparos. La mitad de las quejas eran por datos que faltaban o que el paquete no explicaba, y la otra mitad por el formato. De ahí salieron las dos enmiendas:
-- **Ventana y prescripción:** el paquete declara `ventanaOrigen` (`sesion` · `series` · `null`) y `discrepanciaDuracion` cuando no cierra; y `prescripcionOrigen` (`sesion` en VR, `rutina-actual` en el resto, con aclaración). Las sesiones de **fuerza no guardan la prescripción** del día: queda en el backlog.
-- **v3:** resumen de 2-3 oraciones, máximo 4 hallazgos con al menos uno positivo, 2 sugerencias sobre entrenamiento (nunca cómo cargar datos ni RPE), 2 preguntas, cada limitación una sola vez en `banderas`, `datosFaltantes` en campo propio y sin reproche, y no marcar como dudoso lo que el paquete explica. El validador rechaza los topes; los juicios de contenido quedan solo en el prompt.
-
-**Zonas y FC máxima — lo que dicen Samsung y el SDK.**
-- El SDK **no expone** ni la FC máxima ni las zonas de Samsung, ni en el perfil ni en el registro de ejercicio (Code revisó el `.aar` 1.1.0 y las 79 claves). Solo expone la fecha de nacimiento, sin fecha de cambio. `MAX_HEART_RATE` es el máximo del registro, no el de la persona.
-- Samsung calcula su FC máxima con un modelo propio (edad, altura, peso y mediciones) y la ajusta sola, pero **no sigue los picos**: Juan ya tuvo sesiones con 170 y sigue en 169.
-- La convención de zonas de Samsung está confirmada por su propia pantalla: techo = `floor(pct × fcMax)` con 60/70/80/90 %, piso siguiente = techo + 1, piso de Z1 = `floor(0,5 × fcMax)`. Con 169: **84-101 · 102-118 · 119-135 · 136-152 · 153-169**.
+- **P97: las zonas quedaron verificadas.** En la sesión testigo del 27/09, Z5 da 3,6 min contra 4,08 de Samsung, y las cinco zonas quedan a menos de medio minuto.
+  - Había **tres copias** del cálculo de zonas: el seed, el botón del editor y el respaldo de `pisosDe`. Ahora hay una sola, `zonasDesdeFcMax`.
+  - **Trampa de redondeo:** en punto flotante, `0.7 × 170 = 118,999…`. El cálculo se hace con enteros.
+- **La estimación de la FC máxima puede subir como mucho 10 latidos por revisión,** por la regla de `fcDudosa`. Lo que distingue un pico real de uno falso es la cadencia como testigo, que está en el backlog.
+- **P98: había cuatro rutinas de VR, no una,** y el diseño chocaba con los ADR #039 y #040. Se resolvió con el #046:
+  - la rutina no se modifica, y las subidas de escalón van en `perfiles.{miembro}.subidasVR[]`;
+  - el modo se elige al empezar;
+  - la confirmación de Juan entra en la regla como condición «y»: puede frenar una subida, nunca causarla.
+- **«2 de 6» en el análisis del 30/09:** salía del PRG-0004, que es de 6 días. Lo resuelve el PRG-0013.
+- **Análisis de prueba** (chat «PowerBeatsVR sesión análisis», 27/09 y 30/09): la v3 todavía compara contra lo prescripto y comenta las calorías. Pide datos que la app tiene (FC de reposo, sueño y edad) y duda de la FC aunque la app no la marcó como dudosa. Todo eso está en los insumos de P99.
 
 ---
 
-## 5 · Decisiones cerradas — no se re-discuten
+## 5 · Decisiones cerradas: no se re-discuten
 
-Las del traspaso anterior siguen en pie: ADR #042 (la app define la duración), ADR #043 (el 12 %), la zona de un intervalo es la más alta cuyo piso alcanzó, la ventana nace del mismo par de instantes que la duración, ADR #044 (lo medido y lo interpretado no se mezclan) y P79 (el sistema mide, no pregunta cómo te sentiste). Nuevas:
+Las de antes siguen en pie: ADR #042 a #044, P79, la FC máxima en la opción C, VR por tiempo con modo por bloques y modo corrido, que no se marque nada durante la sesión, y que la progresión la calcule el sistema y la acepte Juan. Las nuevas:
 
-- **FC máxima: opción C.** Samsung queda en **automático**. ShapeUp tiene su **FC máxima vigente declarada** (hoy 169, origen `samsung`) y calcula **su propia estimación** (segundo pico de la curva suavizada, últimas 12 semanas, solo sube), pero **no la aplica sola**. Cada 3 meses, o antes si la estimación supera la vigente, muestra estimación, vigente y el valor de Samsung que Juan copia, y **Juan elige**. Cada sesión guarda con qué zonas se calculó: los cambios trimestrales no reescriben la historia. La única excepción es la corrección del 152, que es un error de redondeo y sí rehace las sesiones pasadas.
-- **No se lee el perfil de Samsung desde el puente.** "220 − edad" queda descartada: no es lo que usa Samsung.
-- **Cuando Samsung cambie las zonas,** Juan anota la fecha y el valor y lo traemos al chat para entender qué lo movió antes de adoptarlo.
-- **Rutinas de VR por tiempo, no por lo que dura cada entrenamiento del juego.** Bloques largos (ninguno bajo 12 min); Juan los llena encadenando entrenamientos y sigue los tiempos él. **Cada rutina tiene modo por bloques y modo corrido**, con escaleras independientes, y la regla **nunca compara modos distintos**.
-- **Durante la sesión no se marca nada** (con el visor es impráctico). Al cerrar, Juan confirma si completó y en qué nivel. "Completó" = confirmación + ventana ≥ 90 % del tiempo prescripto.
-- **La progresión la calcula el sistema** con una regla pura sobre la FC media de toda la ventana; **propone y Juan acepta**; el análisis solo la explica. Umbral de 5 latidos **provisorio**, a revisar tras un mes de datos.
-- **Meta semanal: 5 días, todos de VR por ahora.** Fuerza se suma más adelante. Nunca dos días duros seguidos.
-- **Juegos de ejercicio:** Les Mills BodyCombat (nivel intermedio, 2 entrenamientos de 15-20 min), Creed: Rise to Glory, Beat the Beats VR y PowerBeatsVR. **Beat Saber no.** Behemoth, Drums Rock y similares no son ejercicio: se registran sin contar.
-- **Numeración de prompts:** P94 (análisis global) y P95 (sincronización incremental y duplicados) siguen **reservados**. P96 hecho. P97 y P98 escritos.
+**Marcas y análisis (P99 y P94).** El detalle está en `ANALISIS-ASISTIDO.md`.
+- **Dos capas.** La app calcula las marcas medidas en todas las sesiones. El análisis suma un veredicto, dos destacados y marcas propias que **apuntan a una marca de la app o a un tramo**, sin escribir números propios.
+- **La prioridad de las marcas la fija la app.**
+  - **Nivel 1 (badges):** calidad, récord, pico sobre la vigente, carga, zona alta o volumen, y semana con meta.
+  - **Nivel 2 (secundarias):** tramo sostenido, mitades, recuperación, picos en Z5, entrada en calor, recuperación al terminar y pico.
+  - **Candidata nueva: tramo bajo.**
+- Las marcas que tienen un momento o un tramo se dibujan sobre la curva.
+- **El análisis mira solo lo realizado:** no evalúa el cumplimiento de la prescripción.
+- **Las calorías salen del paquete.**
+- **El análisis puede recomendar fuerza.**
+- **El análisis de sesión no menciona la progresión (opción A):** la propuesta se explica en la rutina, con los datos que usó la regla.
+- **P99 crea el prompt v4 y el esquema 3.** P98 no tocó el prompt.
+- **P94, el análisis general,** propone **focos**; Juan los acepta y viajan como dato en el paquete. Nunca reescribe el prompt. Si propone una marca nueva, sale como pedido de código.
+
+**Documentación (P100).** El detalle está en la sección «Documentación» de `CLAUDE.md`.
+- Cada tipo de información tiene un solo lugar.
+- Las decisiones de diseño van en el documento del área, no solo en ESTADO, porque ESTADO se reemplaza en cada traspaso.
+- No se borra nada: se archiva en `docs/archivo/`.
+- Los ADRs van en `docs/ADR.md`, con su línea en el índice de `CLAUDE.md`.
+
+**Zonas (P97, ADR #045).**
+- La convención de Samsung: el techo es `floor(pct × fcMax)` y el piso de la zona siguiente es techo + 1.
+- El origen de la FC máxima es uno de cuatro: `samsung`, `estimacion-shapeup`, `medida` o `edad-provisoria`.
+- Las sesiones guardan las zonas con que se calcularon (`zonasUsadas`).
+- `fcDudosa` sigue excluyendo sesiones de la estimación.
+- El editor recalcula las zonas solo con un botón, y avisa si no corresponden a la FC máxima.
+
+**Rutinas de VR (P98, ADR #046).**
+- Las cuatro rutinas viejas están archivadas; la 0014 sigue.
+- La regla compara la última sesión contra el promedio de las dos primeras del escalón, con el mismo modo y el mismo juego.
+- En Ritmo suave, la regla se evalúa por juego.
+- Las dificultades son relativas («por defecto», «+1», «+2»), salvo Bodycombat, hasta que Juan pase los nombres reales.
+- Los números de la regla están en `/config/progresion`: el umbral de 5 bpm, que es provisorio, 3 sesiones, 2 semanas y 90 %.
+- «VR» sigue en `LUGARES`.
+- `progresionVR.ts` convive con las rutinas viejas.
+- Cómo quedó implementada (reporte de P98, 02/10):
+  - el 90 % se mide contra el tiempo prescripto con descansos (2 × 20 con 2 min de descanso = 42 min);
+  - las exclusiones se aplican antes de contar las 3 sesiones, las 2 semanas y las «dos seguidas»;
+  - «mantener» tiene cinco motivos a la vista, incluidos: la FC bajó menos que el umbral, una sesión no completada suelta y el último escalón;
+  - el modo que se ofrece primero es el de la rutina (bloques en Combat y Creed, corrido en Ritmo suave), no el de la última sesión como en P80; Combat corto tiene un solo modo y no pregunta;
+  - en Ritmo suave, PowerBeats se guarda como el ejercicio de la sesión, no como reemplazo;
+  - salir a mitad con la hoja de salida guarda la sesión sin escalón, y la regla no la cuenta;
+  - «completa» usa el mismo criterio que la regla: la confirmación de Juan y el 90 %.
+
+**Numeración:** P94 y P95 están reservados y P99 es el próximo. El ajuste de diseño será **P101**.
 
 ---
 
 ## 6 · Próximos pasos, en orden
 
-### Paso 1 — Probar la v3 de P93 y cerrarlo (sesión de la **app**) _(01/10: hecho; P93 en `600aa37`. El deploy de hosting lo hace Juan.)_
+**1. P98: cerrado el 02/10** (ver §3).
 
-Probarlo **en local** (`npm run dev`, reiniciado para que tome la v3), así no se publica nada sin commitear. Con la sesión de VR del 27/09:
+**2. Verificar P98 en la app:**
+- la semana de Home muestra 5 días;
+- la Biblioteca no muestra las rutinas viejas;
+- el umbral se puede editar en la tarjeta de «Familia y datos» (solo la ve el owner);
+- al empezar, la app pregunta el modo;
+- al cerrar, pide confirmar si completó y en qué nivel.
 
-1. Borrar el análisis viejo desde la app.
-2. **Preparar análisis** y verificar que `versionPrompt` diga 3.
-3. Pegarlo en un **chat nuevo**, copiar el JSON y **Cargar análisis**.
-4. Revisar: resumen corto que arranca por cómo salió; al menos un hallazgo positivo; la serie única y la FC de muñeca aparecen una sola vez; no pide RPE; los datos faltantes salen en gris bajo «Para completar».
-5. Agregar a mano un quinto hallazgo al JSON e intentar cargarlo: tiene que rechazarlo.
+**3. Decidir la revisión de la FC máxima** (173 o 169), desde la tarjeta de Perfil.
 
-Si anda, texto para Code:
+**4. Escribir P99: marcas y análisis de sesión.** Es lo próximo que me toca, y sale de `ANALISIS-ASISTIDO.md` (el plan y los insumos). Va por partes:
+- **Parte 1, diagnóstico:**
+  - qué datos hay para las marcas condicionales;
+  - si las marcas se guardan en la sesión o se calculan al mostrar;
+  - de dónde sale la semana: tiene que ser el programa activo;
+  - si existen la FC de reposo y el sueño por día;
+  - propuestas para lo que está abierto en el plan: el umbral de `calidad`, la tolerancia del tramo sostenido, el récord de fuerza, el tope de `marcasAnalisis` y la pantalla.
+- **Parte 2:** las marcas de la app, incluidos el tramo bajo y la recuperación medida en las bajadas de la curva.
+- **Parte 3:** el esquema 3 y el prompt v4. Eso incluye sumar las marcas, la FC de reposo, el sueño y la edad al paquete, y sacar las calorías. El prompt v4 analiza solo lo realizado y no especula sobre artefactos si `fcDudosa` es falso. El validador suma dos rechazos: una `refMarca` que no existe y un `armado` cuyas versiones no coinciden con las de la sesión. **El paquete tiene que mandar el escalón y el modo que se jugaron:** hoy manda la rutina tal como está (el E1 del modo por defecto, aclarado como tal).
+- **Parte 4:** la pantalla.
+- **Verificación:** contra la sesión testigo del 27/09, con los valores de después de P97.
 
-> Probé la v3 y anda. Commiteá y pusheá todo lo de P93 con sus enmiendas. Mostrame antes la lista de archivos, que no incluya `docs/auditorias/`, y confirmame que el árbol quedó limpio y que `origin/main` quedó en el mismo commit que `HEAD`. El deploy de hosting lo hago yo.
+**5. Usar la app.** La regla de P98 empieza a proponer después de 3 sesiones en 2 semanas en el mismo escalón y modo. **Juan anota los nombres de las dificultades** de Creed, Beat the Beats y PowerBeats.
 
-Después: `npm run build` y `npx firebase deploy --only hosting`.
+**6. P101: ajuste de diseño,** después de P99. Se documenta en el sistema de diseño de la raíz (`README.md`, `SKILL.md`, `ui_kits/` y `preview/`).
 
-Si el análisis sigue largo o quejoso, se trae al chat y se ajusta el prompt antes de commitear.
-
-### Paso 2 — P97, las zonas (sesión de la **app**) _(02/10: hecho, ADR #045. Sin cambios de reglas. Falta el script con `--aplicar` y el deploy, en ese orden.)_
-
-Con `97-zonas-como-samsung.md` adjunto:
-
-> Nuevo prompt: guardalo como `docs/prompts/97-zonas-como-samsung.md` y ejecutalo. Arrancá por la Parte 1 (diagnóstico) y reportámela antes de cambiar nada.
-
-Del reporte hay que mirar: la tabla de la sesión testigo con las zonas corregidas (Z5 tiene que entrar en el minuto de tolerancia) y qué da hoy la estimación de ShapeUp. Después Juan corre el script **en seco** (`npm run <comando>`), revisa el antes y el después de cada perfil, y aplica con `npm run <comando> -- --aplicar`. Commit y deploy; si hubo cambios de reglas, primero `firestore:rules`.
-
-### Paso 3 — P98, las rutinas de VR (sesión de la **app**) _(02/10: hecho, ADR #046. Seed aplicado y hosting deployado por Juan; sin cambios de reglas.)_
-
-Va después de P97 porque la regla usa las zonas. Con `98-rutinas-vr-y-progresion.md` adjunto:
-
-> Nuevo prompt: guardalo como `docs/prompts/98-rutinas-vr-y-progresion.md` y ejecutalo. Arrancá por la Parte 1 (diagnóstico, incluida tu propuesta para los modos) y reportámela antes de cambiar nada.
-
-Si Code para porque escaleras y modos no entran en el modelo, se resuelve en el chat antes de seguir. Después, script de rutinas en seco y con `-- --aplicar`, commit y deploy.
-
-### Paso 4 — Usarlo
-
-Jugar como siempre, elegir el modo al empezar, confirmar al cerrar. Semana de referencia: Combat largo, Ritmo suave, Creed, Ritmo suave, Combat largo. Tras 3 sesiones en 2 semanas, la regla empieza a decir algo.
+**7. P94: análisis general y focos.**
 
 ---
 
 ## 7 · Backlog
 
-- **Diagnóstico de la sesión libre del 07/07** (ambigua, dos candidatas) y de la **sesión de fuerza del 29/06** (dura 17 min pero sus series abarcan 38,6 y el reloj midió 39; anterior a P84c, sin inicio ni fin guardados). Ambas de lectura, en un mismo prompt.
-- **Guardar la prescripción al cerrar las sesiones de fuerza.** Chico, no urgente.
-- **P94** — análisis global sobre un rango de semanas. Code avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango).
-- **P95** — sincronización incremental y duplicados (18 MB por sincronización, 12 registros duplicados, `updateTime` disponible).
-- Del inventario del SDK, aprobado como idea: la **cadencia** como testigo de la FC de muñeca en VR y boxeo, `logWithHeartRate` para la cobertura, `skeletal_muscle_mass`.
-- Umbrales aeróbico y anaeróbico de Samsung: no salen por el SDK. Si algún día interesan, van como dato que Juan copia a mano, igual que la FC máxima.
-- Backlog viejo: P76 (convertir 9 `shapeup-sin-sesion`), enlazar externas, PRs y logros, panel familiar, PWA completa, registro de eventos de sesión para diagnosticar casos como el 25/09.
+El vigente está en el roadmap. Lo agregado en estos días:
+- revisar `docs/reportes/pendientes-anteriores-a-P100.md`;
+- cerrar el historial de git al terminar el proyecto (ADR #015);
+- usar la cadencia como testigo de la FC de muñeca (es lo que destraba la estimación de la FC máxima);
+- sacar «VR» de `LUGARES`;
+- retirar `progresionVR.ts` cuando no quede ninguna rutina vieja activa;
+- guardar la prescripción en las sesiones de fuerza;
+- P95 (sincronización incremental y duplicados);
+- el build tardó 48 minutos una vez. Si se repite, sospechar de OneDrive.
 
 ---
 
-## 8 · Las trampas, aprendidas a los golpes
+## 8 · Las trampas
 
-- **Nunca restar dos relojes distintos.** Teléfono, navegador, PC, función y FCM (`sentTime` incluido) son relojes distintos. La evidencia es que **el contador del puente se mueva**, o medir con el mismo reloj en las dos puntas (el historial de batería del teléfono, `corridas.json`).
-- **Anclar en el extremo confiable.** El fin es cuando alguien apretó "terminar"; el inicio derivado de marcas llega tarde.
-- **No medir sobre datos que estás por corregir.**
-- **Verificar contra una medición externa antes de construir encima** (92c antes de 93; P97 antes de P98).
-- **`npm run algo -- --flag`**, con el `--` en el medio.
-- **cmd.exe:** un `-m` por párrafo en los commits.
-- **WorkManager:** si algo tiene que agendarse dentro de un despertar corto (un push en Doze), hay que esperar el resultado del encolado.
-- **`connectedAndroidTest` desinstala la app** y se pierde la sesión del puente: correr los tests instrumentados con `am instrument`.
-- **Pruebas de Doze:** el cable carga y no deja entrar en Doze; `adb` inalámbrico conectado puede mantener el teléfono más despierto (`adb disconnect`); las notificaciones prenden la pantalla (No molestar, boca abajo; nunca modo avión, que corta el push). Y **ShapeUp pide corridas solo**: al guardar cualquier sesión, y al abrir la app si pasaron más de 6 h desde la última sincronización automática exitosa. Durante una prueba, no abrir la app publicada.
-- **Probar en local antes de deployar** lo que todavía no está commiteado.
-- **`docs/auditorias/` está ignorado en los dos repos:** lo que tiene que quedar va a los reportes versionados (`REPORTE-P90.md`, ADR en `CLAUDE.md`).
+Las de antes siguen valiendo: no restar dos relojes distintos; anclar en el extremo confiable; no medir sobre datos que están por corregirse; verificar contra una fuente externa antes de construir encima; `npm run algo -- --flag`; un `-m` por párrafo en cmd.exe; WorkManager y Doze. Las nuevas:
+
+- **Commitear antes de deployar,** así lo publicado siempre corresponde a un commit. (P98 se deployó antes: no repetir.)
+- **Un script que cambia los datos base va antes del deploy** que los usa. P97: si se deployaba antes, la v8 rehacía las sesiones con el 152 y se las guardaba.
+- **Un chat nuevo por cada análisis de sesión.** El bloque `armado` lo escribe la app; el chat solo lo copia.
+- **Revisar las reglas cuando aparece un documento o colección nueva** en Firestore. La suite de reglas necesita el emulador.
+- **Los ADRs cambian de a uno,** con enmiendas anotadas en el ADR original, nunca en silencio.
 
 ---
 
 ## 9 · Un detalle que conviene no perder
 
-Todo lo que se destrabó estas dos semanas salió de **mirar datos reales** contra una fuente externa: el historial de batería del teléfono mostró los 72 s; las capturas de Samsung verificaron las zonas y destaparon el 152; la pantalla de Samsung explicó por qué su FC máxima no se mueve. Y dos veces me equivoqué por suponer en lugar de mirar: el cartel del 27/09 y la hipótesis de "220 − edad".
-
-Cuando haya que decidir entre suponer y medir, se mide.
-
-
----
-
-## Observaciones del cierre de P93 (01/10)
-
-Las dos quedaron **cerradas** el 01/10.
-
-- **La versión del prompt entre P98 y P99.** El plan de marcas (§4) dice que P99 lleva el esquema a 3
-  y el prompt a v4. Pero P98, que va antes, en su Parte 5 le agrega una regla al prompt vigente, y por
-  el ADR #044 todo cambio del prompt es un archivo nuevo: P98 lo dejaría en v4 y P99 lo llevaría a v5.
-  **01/10: el análisis de sesión no menciona la progresión (ver ANALISIS-ASISTIDO.md). P98 no toca el prompt; P99 crea la v4.**
-- **La progresión en el análisis de sesión.** P98 (Parte 5) pide que el análisis explique el estado de
-  la regla de progresión, que mide si se completó lo prescripto. El plan descarta la progresión como
-  marca de la sesión (se muestra en la rutina) y su decisión 6 dice que el análisis no evalúa el
-  cumplimiento de la prescripción.
+Lo que destrabó P97 y P98 fue lo mismo que antes: **mirar los datos reales.** La tabla contra Samsung cerró el 152, la lectura de Firestore mostró las cuatro rutinas, y el «2 de 6» llevó al programa de 6 días. Cuando haya que decidir entre suponer y medir, se mide.

@@ -298,6 +298,8 @@ El 30/09 el análisis dijo «2 de 6 días» y el 27/09 «2 de 5». Verificá en 
 
 El "2 de 6" del 30/09 sale del programa activo PRG-0004, que es de 6 días; la meta de 5 llega con el programa nuevo de P98.
 
+El paquete de análisis manda la rutina tal como está (E1 del modo por defecto, aclarado como tal) y no el escalón ni el modo jugados. P99 tiene que sumarlos (reporte de P98, punto 10).
+
 ### 5 · Análisis general (P94)
 
 - Mira **todas las sesiones de un rango de semanas**. La serie semanal de **carga** es su base para comparar.
