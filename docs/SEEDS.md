@@ -29,6 +29,7 @@ apuntan a ejercicios que todavía no existen). Corré siempre `--dry-run` primer
 | 10 | `seed:maria` | `EJ-8033/8034` + `RUT-0021/0022` + `PRG-0012` | `seed:plan`, `seed:vr`, `seed:futbol-juvenil` | 13 |
 | 11 | `seed:visibilidad` | `config/visibilidad` | `seed:maria` (ref `PRG-0012`) | 14 |
 | 12 | `seed:salud-rutinas` | `RUT-0023..0025` (Cardio Z2, HIIT corto, Descarga activa) | `seed:plan`, `seed:planes-extra` (reutiliza EJ-8023..8027) | 50 |
+| 13 | `seed:rutinas-vr` | dificultades de `EJ-9003/9004/9009/9010` + `RUT-0026..0029` (VR por escalones) + `PRG-0013`; archiva `RUT-0004/0005/0007/0008`, pausa `PRG-0004` y activa `PRG-0013` para juanpablo | `seed:vr`, `seed:plan` | 98 |
 
 ## Pasada de prueba (no escribe nada)
 
@@ -47,6 +48,7 @@ npm run seed:futbol-juvenil -- --dry-run
 npm run seed:maria         -- --dry-run
 npm run seed:visibilidad   -- --dry-run
 npm run seed:salud-rutinas -- --dry-run
+npm run seed:rutinas-vr
 ```
 
 ## Pasada real
@@ -64,10 +66,11 @@ npm run seed:futbol-juvenil
 npm run seed:maria
 npm run seed:visibilidad
 npm run seed:salud-rutinas -- --aplicar   # P87: simula por defecto
+npm run seed:rutinas-vr    -- --aplicar   # P98: simula por defecto
 ```
 
 ## Notas
-- **P87:** `seed:ejercicios`, `seed:vr`, `seed:salud-rutinas` y `seed:perfiles` (migrado en P97) corren con `scripts/lib/corrida.ts`:
+- **P87:** `seed:ejercicios`, `seed:vr`, `seed:salud-rutinas`, `seed:perfiles` (migrado en P97) y `seed:rutinas-vr` (P98) corren con `scripts/lib/corrida.ts`:
   **simulan por defecto** (su `--dry-run` ya no hace falta), escriben con `--aplicar`, y con
   `--force` escriben antes un respaldo de lo que pisan. Terminan con
   `escritas · fallidas · omitidas` (o `se escribirían` en simulación). Los demás seeds siguen
