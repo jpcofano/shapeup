@@ -280,6 +280,24 @@ El esquema pasa a la **versión 3** y el prompt a la **versión 4**. El detalle 
 - El prompt **puede recomendar fuerza** (decisión 8).
 - Cuando exista P94, el paquete incluye **los focos aceptados** con su versión.
 
+#### Insumos de las pruebas del 30/09 y el 02/10
+
+El paquete no manda FC de reposo, sueño de la noche anterior ni edad, aunque la app los tiene: el análisis los pide en «Para completar». P99 los suma al paquete cuando existan.
+
+Candidata a marca de la app (nivel 2, sobre la curva): tramo bajo, el tramo más largo por debajo del piso de Z3 después de la entrada en calor. El análisis del 02/10 preguntó qué pasó entre los minutos 8 y 22; con la marca, ese tramo se ve sin preguntar.
+
+recuperacionSeries también tiene que medir las bajadas de la curva, no solo las pausas entre series: en VR corrido hay una sola serie. El análisis del 02/10 lo calculó a mano (caídas de 26 a 29 bpm en 1 o 2 min).
+
+Regla para el prompt v4: si fcDudosa es falso, el análisis no especula sobre artefactos. El 02/10 marcó como posible artefacto una caída de 156 a 133 en 30 s, que es una recuperación normal.
+
+Las preguntas del análisis se responden en el mismo chat, se pide el JSON corregido y se vuelve a cargar. Cada sesión se analiza en un chat nuevo.
+
+El bloque armado lo escribe la app y el chat solo lo copia. P99 suma al validador el rechazo de un armado cuyas versiones no coincidan con las de la sesión al momento de cargar.
+
+El 30/09 el análisis dijo «2 de 6 días» y el 27/09 «2 de 5». Verificá en el diagnóstico de P99 de dónde sale el total de la semana en el paquete.
+
+El "2 de 6" del 30/09 sale del programa activo PRG-0004, que es de 6 días; la meta de 5 llega con el programa nuevo de P98.
+
 ### 5 · Análisis general (P94)
 
 - Mira **todas las sesiones de un rango de semanas**. La serie semanal de **carga** es su base para comparar.
