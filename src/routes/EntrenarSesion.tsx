@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { X, AlignJustify, Zap } from "lucide-react";
-import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId, PerfilMiembro } from "../types/models";
+import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId, PerfilMiembro, ConfigProgresion } from "../types/models";
 import { getRutina } from "../data/rutinas";
 import { getEjercicio } from "../data/ejercicios";
 import { finalizarSesion, getHistorialEnLaApp } from "../data/historial";
@@ -12,7 +12,12 @@ import {
   rutinaCompleta, rutinaTerminada, seriesHechasTotales, valorPrefillSerie,
   finParcialMs, sesionVieja, mensajeSesionVieja,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
+  vrEscalonCerrado, indiceBloqueVR,
 } from "../lib/entrenarState";
+import { InicioEscalonVR } from "../components/entrenar/InicioEscalonVR";
+import { CierreEscalonVR } from "../components/entrenar/CierreEscalonVR";
+import { getConfigProgresion } from "../data/configProgresion";
+import { CONFIG_PROGRESION_DEFAULT, minutosPrescriptos } from "../lib/escalonesVR";
 import { estimarDuracionMin, cierreDeSesion } from "../lib/metricas";
 import { sugerirProgresion } from "../lib/progresion";
 import { useEntrenarState } from "../hooks/useEntrenarState";
@@ -107,6 +112,10 @@ export function EntrenarSesion() {
    * eligió; el modo que se ofrece primero sale de la última sesión.
    */
   const [modoVR, setModoVR] = useState<ModoVR | null>(null);
+  /** Combat corto sigue la dificultad de Combat largo: esa rutina, si la sigue (P98). */
+  const [rutinaSeguida, setRutinaSeguida] = useState<Rutina | null>(null);
+  /** Los números de la regla de VR, para la completitud al cerrar (P98). */
+  const [configProg, setConfigProg] = useState<ConfigProgresion>(CONFIG_PROGRESION_DEFAULT);
   const [sugerenciasDescartadas, setSugerenciasDescartadas] = useState<Set<number>>(new Set());
 
   // Log rápido para modo guiado
@@ -295,10 +304,12 @@ export function EntrenarSesion() {
       // muestra sin ellos (P69).
       setLoading(false);
       const map = new Map<string, Ejercicio>();
+      // P98: los juegos alternativos de una rutina de VR por escalones también.
+      const ids = [...rutina.bloques.map((b) => b.idEjercicio), ...(rutina.vr?.alternativas ?? [])];
       void Promise.all(
-        rutina.bloques.map(async (b) => {
-          const ej = await getEjercicio(b.idEjercicio);
-          if (ej.ok) map.set(b.idEjercicio, ej.value);
+        ids.map(async (id) => {
+          const ej = await getEjercicio(id);
+          if (ej.ok) map.set(id, ej.value);
         }),
       // Lo que ya está en memoria (p. ej. un paso de carga editado) gana.
       ).then(() => setCatalogo((prev) => new Map([...map, ...prev])));
@@ -306,6 +317,17 @@ export function EntrenarSesion() {
     // Solo al montar (o al cambiar de rutina/miembro): state.idSesion se lee una vez.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rutinaId, memberId]);
+
+  // P98: la rutina que sigue Combat corto, y los números de la regla.
+  useEffect(() => {
+    const id = rutinaBase?.vr?.sigueA?.idRutina;
+    if (!id) return;
+    getRutina(id).then((r) => { if (r.ok) setRutinaSeguida(r.value); });
+  }, [rutinaBase]);
+  useEffect(() => {
+    if (!rutinaBase?.vr) return;
+    getConfigProgresion().then((r) => { if (r.ok) setConfigProg(r.value); });
+  }, [rutinaBase]);
 
   // Historial del miembro para la sugerencia de progresión (I3) — una sola carga.
   useEffect(() => {
@@ -475,6 +497,62 @@ export function EntrenarSesion() {
   const terminada = rutinaTerminada(state, rutina);
   const completa  = rutinaCompleta(state, rutina);
   const bloquesFin = terminada ? session.bloquesRegistro() : [];
+
+  // ── VR por escalones: el cierre (P98) ─────────────────────────────────────
+  // Va antes que la pantalla de fin genérica: la rutina tiene un solo bloque y,
+  // con «Terminar», `rutinaTerminada` ya da verdadero. Si se cerró la app en
+  // este paso, al volver se retoma acá.
+  if (rutina.vr && state.vrEscalon && vrEscalonCerrado(state, rutina)) {
+    const esc = state.vrEscalon;
+    const serie = state.registro[indiceBloqueVR(rutina)]?.[0];
+    const desde = state.vrInicioMs ?? state.inicioMs;
+    const hasta = serie?.finMs ?? Date.now();
+    const minutos = desde != null ? (hasta - desde) / 60_000 : 0;
+    const guardarEscalon = async (d: { completoDeclarado: boolean | null; dificultad: string | null }) => {
+      if (!rutinaId || !memberId) return;
+      setSaving(true);
+      setSaveError(null);
+      const cierre = cierreDeSesion(desde, hasta);
+      const completa = d.completoDeclarado === true
+        && minutos >= configProg.fraccionTiempo * minutosPrescriptos(esc.prescripto);
+      const result = await finalizarSesion({
+        rutinaId,
+        nombreRutina: rutina.nombre,
+        miembro: memberId,
+        bloques: session.bloquesRegistro(),
+        rpe: null,
+        duracionMin: cierre.duracionMin,
+        ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
+        idSesion: state.idSesion ?? undefined,
+        completitud: completa ? "completa" : "parcial",
+        vr: {
+          modo: esc.modo, escalon: esc.escalon, idEjercicio: esc.idEjercicio, prescripto: esc.prescripto,
+          completoDeclarado: d.completoDeclarado, dificultad: d.dificultad,
+        },
+      });
+      if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
+      salirTrasGuardar(result.value.pendiente);
+    };
+    return (
+      <div className="workout-screen">
+        <div className="workout-header">
+          <p className="workout-title">{rutina.nombre}</p>
+          <SinConexion />
+        </div>
+        <div className="workout-content">
+          <CierreEscalonVR
+            prescripto={esc.prescripto}
+            minutosJugados={minutos}
+            dificultades={catalogo.get(esc.idEjercicio)?.dificultadesVR ?? []}
+            guardando={saving}
+            error={saveError}
+            onGuardar={(d) => void guardarEscalon(d)}
+          />
+        </div>
+        {avisoPendiente}
+      </div>
+    );
+  }
 
   // ── Pantalla de finalización ──────────────────────────────────────────────
   if (terminada) {
@@ -656,6 +734,44 @@ export function EntrenarSesion() {
   const saltadoActual = state.saltados[state.bloqueActual];
   const mostrarChipAnterior =
     !state.descanso && idxCerrado != null && idxCerrado !== state.bloqueActual;
+
+  // ── VR por escalones (P98) ────────────────────────────────────────────────
+  // Se elige el modo (y el juego), se ve el escalón y se juega con un reloj. Sin
+  // TarjetaProgresionVR: la progresión de P79 convive solo con las rutinas viejas.
+  if (rutina.vr) {
+    return (
+      <div className="workout-screen" onPointerDown={unlockAudio}>
+        <div className="workout-header">
+          <button className="btn-icon-sm" onClick={() => abrirSalida()} title="Salir">
+            <X size={18} />
+          </button>
+          <p className="workout-title">{rutina.nombre}</p>
+          <SinConexion />
+        </div>
+        <div className="workout-content">
+          {!state.vrEscalon ? (
+            <InicioEscalonVR
+              rutina={rutina}
+              perfil={perfilMiembro}
+              seguida={rutinaSeguida}
+              catalogo={catalogo}
+              onEmpezar={(e) => session.sellarEscalonVR(e)}
+            />
+          ) : (
+            <SesionPorTiempo
+              inicioMs={state.vrInicioMs ?? state.inicioMs}
+              objetivoMin={Math.round(minutosPrescriptos(state.vrEscalon.prescripto))}
+              juego={state.vrEscalon.nombreEjercicio}
+              onTerminar={() => { session.cerrarPorTiempo(Date.now()); }}
+              guardando={false}
+            />
+          )}
+        </div>
+        {hojaSalida}
+        {avisoPendiente}
+      </div>
+    );
+  }
 
   // ── Render modo guiado ────────────────────────────────────────────────────
   return (

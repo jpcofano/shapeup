@@ -216,6 +216,13 @@ export interface Ejercicio {
   videoEsGenerico?: boolean;       // true: clip representativo por patrón, no footage propio del ejercicio
 
   sinonimos: string[];
+  /**
+   * Las dificultades del juego, para los ejercicios de VR (P98). La sesión
+   * guarda el `id`; la `etiqueta` se puede renombrar después sin tocar el
+   * historial. Bodycombat trae las suyas; los demás, por ahora, relativas
+   * («Por defecto», «+1», «+2»).
+   */
+  dificultadesVR?: { id: string; etiqueta: string }[];
   // ── Trazabilidad de la fuente (lo que pidió el usuario) ──
   fuente?: string;                 // "Free Exercise DB" | "Plan ShapeUp" | "manual"
   fuenteId?: string;               // id original en la fuente (FEDB id)
@@ -294,6 +301,85 @@ export interface BloqueEjercicio {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+//  RUTINAS DE VR POR ESCALONES (P98, ADR #046)
+// ════════════════════════════════════════════════════════════════════════════
+/** Cómo se juega: por bloques, con descansos, o de corrido. Lo elige la persona al empezar. */
+export type ModoEscaleraVR = "bloques" | "corrido";
+export const MODOS_ESCALERA_VR: readonly ModoEscaleraVR[] = ["bloques", "corrido"];
+
+/** Un escalón: cuántos bloques, de cuántos minutos, con cuánto descanso y en qué dificultad. */
+export interface EscalonVR {
+  bloques: number;
+  minutosBloque: number;
+  /** 0 en modo corrido. */
+  descansoSeg: number;
+  /** El `id` de `Ejercicio.dificultadesVR`. */
+  dificultad: string;
+}
+
+export interface RutinaVR {
+  /** El juego de la rutina. */
+  idEjercicio: string;
+  /** Otros juegos elegibles al empezar (Ritmo suave: PowerBeats). La regla nunca los mezcla. */
+  alternativas?: string[];
+  zonasObjetivo: [ZonaFC, ZonaFC];
+  vecesPorSemana?: number;
+  modoPorDefecto: ModoEscaleraVR;
+  /** Una escalera por modo, del escalón 1 al tope. Un modo sin escalera no se ofrece. */
+  escaleras: Partial<Record<ModoEscaleraVR, EscalonVR[]>>;
+  /**
+   * - `subir`: la escalera de P98 (Combat largo, Creed).
+   * - `bajar-si-pasa-techo`: Ritmo suave, que no sube; sugiere bajar si se pasa del techo.
+   * - `ninguna`: Combat corto, el comodín.
+   */
+  regla: "subir" | "bajar-si-pasa-techo" | "ninguna";
+  /** Combat corto sigue la dificultad del escalón actual de Combat largo por bloques. */
+  sigueA?: { idRutina: string; modo: ModoEscaleraVR };
+}
+
+/** Con qué se jugó una sesión de VR por escalones, y qué confirmó la persona al cerrarla (P98). */
+export interface SesionEscalonVR {
+  modo: ModoEscaleraVR;
+  /** 1 = E1. */
+  escalon: number;
+  /** El juego que se jugó: el de la rutina o una alternativa. */
+  idEjercicio: string;
+  /** El escalón tal cual era al empezar: la historia no depende de la rutina de hoy. */
+  prescripto: EscalonVR;
+  /** Lo confirma la persona al cerrar. `null` = no contestó (no cuenta como completada). */
+  completoDeclarado: boolean | null;
+  /** El `id` de la dificultad jugada, `"mixto"`, o `null` si no contestó. */
+  dificultad: string | null;
+}
+
+/** Una subida de escalón aceptada (P98). Registro de una decisión, no un contador (ADR #037). */
+export interface SubidaVR {
+  fechaMs: number;
+  idRutina: string;
+  modo: ModoEscaleraVR;
+  de: number;
+  a: number;
+  /** Los números que sostenían la propuesta. */
+  datos: {
+    fcUltima: number;
+    fcReferencia: number;
+    diferencia: number;
+    umbral: number;
+    sesiones: string[];
+  };
+}
+
+/** Los números de la regla de progresión de VR (P98). `/config/progresion`. */
+export interface ConfigProgresion {
+  /** ⚠ Provisorio: punto de partida, no un dato medido. Revisar con un mes de datos. */
+  umbralFcBpm: number;
+  sesionesMinimas: number;
+  semanasMinimas: number;
+  /** Qué fracción del tiempo prescripto tiene que durar la ventana para contar como completa. */
+  fraccionTiempo: number;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 //  RUTINA ("Día") — lo compuesto (analog Receta). /rutinas/{RUT-XXXX}
 // ════════════════════════════════════════════════════════════════════════════
 export interface Rutina {
@@ -317,6 +403,19 @@ export interface Rutina {
   superseries?: string[];          // ["A: 1+2", "B: 3+5"] — guía de emparejado
 
   bloques: BloqueEjercicio[];
+
+  /**
+   * Las rutinas de VR por escalones (P98, ADR #046). Ausente en las demás y en
+   * las de VR anteriores, que siguen con la progresión de P79 (`lib/progresionVR`).
+   * **La rutina nunca se muta** (ADR #039): el escalón de cada miembro se deriva
+   * de `perfiles.{miembro}.subidasVR`.
+   */
+  vr?: RutinaVR;
+  /**
+   * Fuera de Biblioteca y de la lista para entrenar (P98). Los programas que la
+   * usan la siguen resolviendo, y sus sesiones viejas también: no se borra.
+   */
+  archivada?: boolean;
 
   // Derivados (cache; lib/metricas.ts)
   duracionEstimadaMin: number | null;
@@ -760,6 +859,12 @@ export interface Historial {
     aceptada: boolean;
     fuente: "fc" | "descanso" | "manual";
   };
+  /**
+   * Las rutinas de VR por escalones (P98): modo, escalón, juego y lo que la
+   * persona confirmó al cerrar. Lo lee la regla de `lib/escalonesVR`; ninguna
+   * métrica de racha, adherencia ni tonelaje lo mira.
+   */
+  vr?: SesionEscalonVR;
 
   comoMeSenti?: string;
   queMejorar?: string;
@@ -1005,6 +1110,12 @@ export interface PerfilMiembro {
   fcMaxDesdeMs?: number;
   /** Las revisiones de la FC máxima, de la más vieja a la más nueva (P97). */
   revisionesFcMax?: RevisionFcMax[];
+  /**
+   * Las subidas de escalón aceptadas en las rutinas de VR (P98, ADR #046), de la
+   * más vieja a la más nueva. El escalón actual se deriva de acá; la rutina no
+   * se toca.
+   */
+  subidasVR?: SubidaVR[];
   /**
    * Meta de días por semana, si el miembro apunta a algo distinto de lo que
    * dice el plan (P77a). Ausente = manda el plan. **No se escribe un valor

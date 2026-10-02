@@ -17,6 +17,7 @@ import {
   saltarBloque as _saltarBloque,
   sellarProgresionVR as _sellarProgresionVR,
   cerrarPorTiempo as _cerrarPorTiempo,
+  sellarEscalonVR as _sellarEscalonVR,
   sustituirBloque as _sustituirBloque,
   deshacerSustitucion as _deshacerSustitucion,
   type SustitucionBloque,
@@ -171,6 +172,10 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
      * siguiente: quien aprieta "Terminar" guarda en el mismo tick, y
      * `bloquesRegistro()` todavía vería el estado viejo.
      */
+    /** Sella el escalón de una rutina de VR por escalones al empezar (P98). */
+    sellarEscalonVR(escalon: Parameters<typeof _sellarEscalonVR>[1]) {
+      setState((s) => _sellarEscalonVR(s, escalon));
+    },
     cerrarPorTiempo(now: number = Date.now()) {
       if (!rutina) return [];
       const cerrado = _cerrarPorTiempo(state, rutina, now);

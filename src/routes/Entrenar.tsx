@@ -4,6 +4,7 @@ import { Zap, List, Dumbbell, Moon, Gamepad2 } from "lucide-react";
 import type { Rutina, Programa } from "../types/models";
 import type { MiembroId } from "../types/models";
 import { getRutinasDelMiembro } from "../data/rutinas";
+import { sinArchivadas } from "../lib/escalonesVR";
 import { getProgramaActivo } from "../data/programas";
 import { getHistorialEnLaApp } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
@@ -32,7 +33,8 @@ export function Entrenar() {
       getProgramaActivo(memberId as MiembroId),
       getHistorialEnLaApp(memberId as MiembroId),
     ]).then(([rutinasR, progR, histR]) => {
-      if (rutinasR.ok) setRutinas(rutinasR.value);
+      // P98: las archivadas no se ofrecen; el programa las sigue resolviendo.
+      if (rutinasR.ok) setRutinas(sinArchivadas(rutinasR.value));
       else             setError(rutinasR.error);
 
       if (progR.ok && progR.value) {

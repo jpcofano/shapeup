@@ -129,6 +129,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P93 | Análisis asistido, el de una sesión (`600aa37`) | ✅ | 2026-10-01 |
 | P100 | Orden de la documentación (sin commitear al cerrar la Parte 4) | ✅ | 2026-10-01 |
 | P97 | Las zonas como las cuenta Samsung; la FC máxima declarada, la estimación y la revisión (ADR #045) | ✅ | 2026-10-02 |
+| P98 | Las rutinas de VR por escalones: dos modos, la regla de progresión y el programa de 5 días (ADR #046) | ✅ | 2026-10-02 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -145,6 +146,30 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-02] P98 — Las rutinas de VR por escalones (ADR #046)
+
+- **Modelo**: `Rutina.vr` (una escalera por modo, zonas objetivo, regla, alternativas de juego,
+  `sigueA`), `Rutina.archivada`, `Historial.vr` (modo, escalón, juego, prescripto, confirmación y
+  dificultad), `perfiles.{miembro}.subidasVR[]` y `Ejercicio.dificultadesVR`.
+- **La regla** (`lib/escalonesVR.ts`), por rutina, modo y juego: subir, mantener, sin datos y, en
+  Ritmo suave, bajar dificultad. Evidencia: FC media de la ventana contra el promedio de las dos
+  primeras del escalón. «Completó» = confirmación **y** 90 % de la ventana (excepción al principio
+  de P79: frena, no causa). Fuera: `fcDudosa`, cobertura baja, discrepancia de duración.
+- **El escalón se deriva de las subidas**; la rutina no se muta (enmienda del #039). El modo se
+  elige (enmienda del #040). Umbral provisorio de 5 bpm en `/config/progresion`, editable en
+  Perfil → Configuración.
+- **Pantallas**: `InicioEscalonVR` y `CierreEscalonVR` en `EntrenarSesion` (sin marcas durante la
+  sesión, sin `TarjetaProgresionVR`); `ProgresionEscalonesVR` en `RutinaDetalle` con solo los datos
+  medidos y «Subir de escalón»; `ConfigProgresion` en la tarjeta del owner. Biblioteca y Entrenar
+  no listan las archivadas.
+- **Seed** `seed:rutinas-vr` (corrido por Juan el 02/10): dificultades de los 4 juegos, RUT-0026 a
+  0029, archivo de RUT-0004/0005/0007/0008, PRG-0013 «VR — 5 días» activo para juanpablo y PRG-0004
+  en «Pausado». PRG-0012 y RUT-0014 sin tocar.
+- **Sin cambios de reglas**: `/config/progresion` cae en `/config/{docId}` (lee miembro, escribe
+  owner) y `/rutinas`, `/historial` y `/config/perfiles` no validan campos.
+- **La Parte 5 quedó afuera** (enmienda del 01/10): ni el paquete ni el prompt de análisis cambian.
+  Para P99: el paquete manda la prescripción de la rutina de hoy, no `vr.prescripto`.
 
 ### [2026-10-02] P97 — Las zonas como las cuenta Samsung (ADR #045)
 

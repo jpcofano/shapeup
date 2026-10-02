@@ -15,6 +15,7 @@ import { RevisionFcMax } from "../components/perfil/RevisionFcMax";
 import { ConfigVisibilidad } from "../components/perfil/ConfigVisibilidad";
 import { ConfigJuegos } from "../components/perfil/ConfigJuegos";
 import { ConfigImport } from "../components/perfil/ConfigImport";
+import { ConfigProgresion } from "../components/perfil/ConfigProgresion";
 import { esOwner } from "../data/visibilidad";
 import { metaSemanal } from "../lib/adherencia";
 import { getHomeLayout, setHomeLayout, type HomeLayout } from "../lib/homeLayout";
@@ -278,6 +279,8 @@ export function Perfil() {
           <ConfigVisibilidad />
           <ConfigJuegos />
           <ConfigImport />
+          {/* P98: los números de la regla de progresión de VR (/config/progresion). */}
+          <ConfigProgresion />
         </div>
       )}
 

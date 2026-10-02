@@ -18,6 +18,7 @@ import { pedirSincronizacion } from "./pedidoPuente";
 import { guardarMarcas } from "../lib/sincronizacionAutomatica";
 import type {
   Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia, SesionCardio, AnalisisGuardado,
+  SesionEscalonVR,
 } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
@@ -79,6 +80,8 @@ export interface FinalizarSesionOpts {
     aceptada: boolean;
     fuente: "fc" | "descanso" | "manual";
   };
+  /** Las rutinas de VR por escalones (P98): modo, escalón, juego y lo confirmado al cerrar. */
+  vr?: SesionEscalonVR;
 }
 
 /**
@@ -107,7 +110,7 @@ export async function finalizarSesion(
     rutinaId, tipo, nombreLibre, nombreJuego, ventana: ventanaExplicita,
     miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
     completitud, comoMeSenti, queMejorar, molestias,
-    dificultadPercibida, progresionVR,
+    dificultadPercibida, progresionVR, vr,
   } = opts;
   const fecha   = ymdLocal();
   const semana  = lunesDeSemana(fecha);
@@ -157,6 +160,7 @@ export async function finalizarSesion(
     // permite ver si la regla acierta.
     ...(dificultadPercibida ? { dificultadPercibida } : {}),
     ...(progresionVR ? { progresionVR } : {}),
+    ...(vr ? { vr } : {}),
   };
   const sesion: PayloadSesion | null = idSesion
     ? { miembro, estado: "Registrada", rpeSesion: rpe }

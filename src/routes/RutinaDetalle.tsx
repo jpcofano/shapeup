@@ -11,6 +11,8 @@ import { serieCostoRutina, MIN_SESIONES_SECCION } from "../lib/costoCardiaco";
 import { sugerirProgresion } from "../lib/progresion";
 import { TrendChart } from "../components/TrendChart";
 import { useAuth } from "../auth/useAuth";
+import { ProgresionEscalonesVR } from "../components/rutina/ProgresionEscalonesVR";
+import type { MiembroId } from "../types/models";
 
 export function RutinaDetalle() {
   const { id } = useParams<{ id: string }>();
@@ -124,6 +126,16 @@ export function RutinaDetalle() {
             );
           })()}
         </div>
+      )}
+
+      {/* P98: la progresión de una rutina de VR por escalones, con los datos que usó la regla */}
+      {rutina.vr && memberId && (
+        <ProgresionEscalonesVR
+          rutina={rutina}
+          historial={historialMiembro}
+          miembro={memberId as MiembroId}
+          catalogo={catalogo}
+        />
       )}
 
       {/* Aviso de balance */}

@@ -696,3 +696,51 @@ describe("aislamiento · el análisis asistido no mueve ninguna métrica (P93, A
     expect(a.matcheadas).toBe(b.matcheadas);
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P98 — ADR #046: el estado de progresión de VR no mueve ninguna métrica.
+//
+//  El mismo historial, sin y con `vr` (modo, escalón, confirmación) en cada
+//  sesión, y un perfil con subidas aceptadas: la racha, la adherencia, la meta
+//  y el tonelaje tienen que dar idéntico.
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("aislamiento · el estado de progresión de VR no mueve la racha, la adherencia ni el tonelaje (P98)", () => {
+  const conVR = (hs: Historial[]): Historial[] => hs.map((h, i) => ({
+    ...h,
+    vr: {
+      modo: i % 2 === 0 ? "bloques" as const : "corrido" as const, escalon: 3, idEjercicio: "EJ-9003",
+      prescripto: { bloques: 2, minutosBloque: 20, descansoSeg: 120, dificultad: "avanzado" },
+      completoDeclarado: i % 3 === 0 ? null : i % 2 === 0, dificultad: "mixto",
+    },
+  }));
+  const CON = conVR(HISTORIAL_MIXTO);
+  const SIN = HISTORIAL_MIXTO;
+  const prog = programa([
+    { orden: 1, tipo: "rutina", idRutina: ID_RUTINA, diaSemana: "lunes" },
+    { orden: 2, tipo: "rutina", idRutina: "RUT-0002", diaSemana: "miércoles" },
+  ]);
+  const subidas = {
+    subidasVR: [{
+      fechaMs: 1, idRutina: "RUT-0026", modo: "bloques" as const, de: 1, a: 2,
+      datos: { fcUltima: 130, fcReferencia: 136, diferencia: -6, umbral: 5, sesiones: ["a", "b", "c"] },
+    }],
+  };
+
+  function metricas(hs: Historial[], perfil: { metaSemanalDias?: number }) {
+    const serie = seriesDeAdherencia(agruparDiasActivos(hs), 2, HOY);
+    return {
+      serie, racha: rachaActual(serie), tasa: tasaCumplimiento(serie),
+      meta: metaSemanal(prog, perfil),
+      diasActivos: diasActivos(hs, "2026-09-07", "2026-09-13"),
+      chips: calcularWeekChips(agruparDiasActivos(hs), SEMANA, HOY),
+      tonelaje: hs.map((h) => tonelajeKg(h)),
+      series: hs.map((h) => totalSeriesHechas(h)),
+    };
+  }
+
+  it("racha, adherencia, meta y tonelaje dan idéntico con y sin estado de progresión", () => {
+    expect(CON.every((h) => h.vr != null)).toBe(true);
+    expect(metricas(CON, { metaSemanalDias: 2, ...subidas })).toEqual(metricas(SIN, { metaSemanalDias: 2 }));
+  });
+});

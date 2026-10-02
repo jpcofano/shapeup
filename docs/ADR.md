@@ -819,6 +819,8 @@ prohíbe.
       solo de las que midieron bien (fcDudosa marca las que tienen artefactos).
 ```
 
+**Enmendado por el ADR #046 (P98, 02/10/2026)** en dos puntos. La rutina sigue sin mutarse: las subidas de escalón van en `perfiles.{miembro}.subidasVR[]` y el escalón actual se deriva. Y la FC media de toda la ventana sí vale como evidencia cuando se compara contra el mismo escalón y el mismo modo, donde la estructura de descansos es la misma; la objeción de este ADR era contra una zona objetivo absoluta.
+
 ## ADR #040 — En VR la completitud se mide por TIEMPO, no por rondas (P80, 2026-09-21)
 
 Las cuatro rutinas de VR daban siempre `mantener` porque ninguna sesión completaba sus
@@ -876,6 +878,8 @@ porque empieza en la primera ronda marcada y termina en la última. Una sesión 
   9 minutos de ventana contra 33 cronometrados: su primera serie no tiene
   inicioMs. Prompt de origen: docs/prompts/80-vr-por-tiempo.md.
 ```
+
+**Enmendado por el ADR #046 (P98, 02/10/2026)**: en las rutinas de VR por escalones **el modo se elige** al empezar y queda guardado en la sesión; no se deriva. Para las rutinas viejas, la app ya lo ofrecía y lo guardaba en `prescripcionUsada.modo` desde P80.
 
 ## ADR #041 — Lo que cuenta como entrenamiento es una lista POSITIVA (P81, 2026-09-21)
 
@@ -1135,3 +1139,59 @@ el redondeo.
   minuto de Samsung (Z5: 3,6 contra 4,08 min; con el 152 daba 5,2).
 - **El orden importa**: `npm run corregir:zonas -- --aplicar` va **antes** de deployar la versión 8.
   Si la sincronización rehace las sesiones con las zonas viejas, quedan guardadas con esas.
+
+## ADR #046 — Las rutinas de VR por escalones (P98, 2026-10-02)
+
+Las cuatro rutinas de VR estaban escritas como rondas cortas con descanso, y Juan no juega así: el
+análisis de P93 le marcaba como fallas cosas de la rutina («duró el doble», «una sola serie»). Y no
+había ninguna regla que dijera cuándo avanzar.
+
+- **Las rutinas se definen por tiempo.** Un bloque son, por ejemplo, 20 minutos de trabajo. Se cubre
+  encadenando los entrenamientos del juego que hagan falta. Ningún bloque baja de 12 minutos.
+- **Cada rutina tiene dos escaleras, una por modo**: por bloques (con descanso) o de corrido.
+  - El campo `Rutina.vr` (`RutinaVR`) guarda las escaleras, las zonas objetivo, la regla, las
+    alternativas de juego y, en Combat corto, a qué rutina sigue.
+  - `bloques[0].prescripcion` queda con el E1 del modo por defecto, en formato `Continuo`, para que
+    la Biblioteca, los programas y la duración estimada sigan andando. **No es `Intervalos` a
+    propósito**: así la rutina no entra en la progresión de P79.
+- **El modo se elige al empezar** y queda guardado en la sesión (`Historial.vr`), junto con el
+  escalón, el juego, el escalón prescripto tal cual era y lo que se confirma al cerrar. Enmienda el
+  ADR #040.
+- **No se marca nada durante la sesión.** Al cerrar, la persona confirma si completó lo prescripto y
+  en qué dificultad jugó (puede ser `mixto`).
+- **La rutina nunca se muta** (ADR #039). Una subida aceptada se registra en
+  `perfiles.{miembro}.subidasVR[]`: cuándo, de qué escalón a cuál, en qué modo y con qué datos. Es
+  el registro de una decisión, no un contador (ADR #037). **El escalón actual se deriva**: es el de
+  la última subida de esa rutina y ese modo, o E1.
+- **La regla** (`lib/escalonesVR.evaluarReglaVR`) se evalúa por rutina, **por modo y por juego**,
+  y nunca los mezcla:
+  - **subir** con al menos 3 sesiones en el escalón, en al menos 2 semanas distintas, todas
+    completadas, y la FC media de la última por lo menos **5 latidos** por debajo del promedio de
+    las dos primeras del escalón;
+  - **mantener** si la FC subió 5 o más, si no se completó en dos sesiones seguidas, si alguna no
+    contó como completada o si la FC no bajó lo suficiente;
+  - **sin datos suficientes** si faltan sesiones o semanas;
+  - **bajar dificultad**, solo en Ritmo suave, que no tiene escalera: si la FC media pasa el techo
+    de Z3 en dos sesiones seguidas.
+- **La evidencia es la FC media de toda la ventana**, descansos incluidos. Vale porque se compara
+  contra el mismo escalón y el mismo modo, donde la estructura de descansos es la misma. El ADR
+  #039 lo prohibía contra una zona objetivo absoluta; queda enmendado para esta comparación.
+- **«Completó» exige las dos cosas**: que la persona lo confirme **y** que la ventana dure al menos
+  el 90 % del tiempo prescripto (bloques más descansos). **Es una excepción al principio de P79** («el
+  sistema decide solo con lo que mide»): la confirmación es declarada, pero **puede frenar una
+  subida, nunca causarla**. `dificultadPercibida` sigue sin entrar en ninguna regla, y su test
+  sigue valiendo.
+- **Fuera del cálculo**: `fcDudosa`, cobertura del reloj bajo `COBERTURA_MINIMA`, ventana de las
+  series con `discrepanciaDuracion`, y sesiones sin FC media.
+- **⚠ El umbral de 5 latidos es provisorio**: un punto de partida, no un dato medido. Vive en
+  `/config/progresion` con los otros tres números (3 sesiones, 2 semanas, 90 %), editable en
+  Perfil → Configuración (P86). Revisarlo después de un mes con datos reales.
+- **Nada de esto entra en la racha, la adherencia ni el tonelaje** (`aislamiento.test.ts`), y **no
+  viaja al análisis** (enmienda del 01/10 a P98). La pantalla de la rutina muestra solo los datos
+  medidos que usó la regla.
+- **Las rutinas viejas** (RUT-0004, 0005, 0007 y 0008) se archivan (`Rutina.archivada`): salen de
+  la Biblioteca y de la lista para entrenar, y los programas las siguen resolviendo. Conservan la
+  progresión de P79 (`lib/progresionVR`), que no aparece en las nuevas.
+- **Dificultades**: Bodycombat tiene las suyas; los demás juegos, por ahora, relativas («Por
+  defecto», «+1», «+2»), en `Ejercicio.dificultadesVR`. La sesión guarda el id, así que se pueden
+  renombrar después sin tocar el historial.

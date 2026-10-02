@@ -125,7 +125,7 @@ Con `97-zonas-como-samsung.md` adjunto:
 
 Del reporte hay que mirar: la tabla de la sesión testigo con las zonas corregidas (Z5 tiene que entrar en el minuto de tolerancia) y qué da hoy la estimación de ShapeUp. Después Juan corre el script **en seco** (`npm run <comando>`), revisa el antes y el después de cada perfil, y aplica con `npm run <comando> -- --aplicar`. Commit y deploy; si hubo cambios de reglas, primero `firestore:rules`.
 
-### Paso 3 — P98, las rutinas de VR (sesión de la **app**)
+### Paso 3 — P98, las rutinas de VR (sesión de la **app**) _(02/10: hecho, ADR #046. Seed aplicado y hosting deployado por Juan; sin cambios de reglas.)_
 
 Va después de P97 porque la regla usa las zonas. Con `98-rutinas-vr-y-progresion.md` adjunto:
 

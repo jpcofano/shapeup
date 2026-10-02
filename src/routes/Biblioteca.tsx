@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import type { Rutina, Programa, FocoRutina, Nivel, Lugar, MiembroId } from "../types/models";
 import { FOCOS_RUTINA, NIVELES, LUGARES } from "../types/models";
 import { getRutinas } from "../data/rutinas";
+import { sinArchivadas } from "../lib/escalonesVR";
 import { getProgramas, getProgramaActivo } from "../data/programas";
 import { getVisibilidad, programaVisible } from "../data/visibilidad";
 import { useAuth } from "../auth/useAuth";
@@ -117,7 +118,8 @@ function RutinasList() {
 
   useEffect(() => {
     getRutinas().then((r) => {
-      if (r.ok) setRutinas(r.value);
+      // P98: las archivadas no se listan; los programas las siguen resolviendo.
+      if (r.ok) setRutinas(sinArchivadas(r.value));
       else      setError(r.error);
       setLoading(false);
     });

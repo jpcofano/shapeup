@@ -18,7 +18,7 @@
 
 import type {
   Rutina, BloqueEjercicio, BloqueRegistro, Prescripcion, SerieRegistro, Modalidad, Ejercicio,
-  MotivoSalto, Lugar, MotivoSustitucion, ZonaMolestia,
+  MotivoSalto, Lugar, MotivoSustitucion, ZonaMolestia, SesionEscalonVR,
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
 import { e1rmKg } from "./resumenSesion";
@@ -95,6 +95,13 @@ export interface EntrenarState {
    * momento: cuando los parámetros quedan fijados—.
    */
   vrInicioMs: number | null;
+  /**
+   * Las rutinas de VR por escalones (P98): modo, escalón, juego y prescripción,
+   * sellados al tocar «Empezar». Lo que se confirma al cerrar (si se completó y
+   * en qué dificultad) no vive acá: se pregunta en el cierre. `null` hasta
+   * empezar, o si la rutina no es de escalones.
+   */
+  vrEscalon: (Omit<SesionEscalonVR, "completoDeclarado" | "dificultad"> & { nombreEjercicio: string }) | null;
   /** Qué sugirió la app al empezar y qué eligió la persona (P79). */
   progresionVR: {
     palanca: "subir-dificultad" | "recortar-descanso" | "sumar-ronda"
@@ -131,6 +138,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   sustituciones: {},
   prescripcionVR: null,
   vrInicioMs: null,
+  vrEscalon: null,
   progresionVR: null,
 };
 
@@ -157,6 +165,35 @@ export function sellarProgresionVR(
 }
 
 /**
+ * Sella el escalón de una rutina de VR por escalones al tocar «Empezar» (P98).
+ * Desde acá cuenta el reloj, y la ventana de la sesión también. Una vez sellado
+ * no se vuelve a tocar.
+ */
+export function sellarEscalonVR(
+  state: EntrenarState,
+  escalon: NonNullable<EntrenarState["vrEscalon"]>,
+  now: number = Date.now(),
+): EntrenarState {
+  if (state.vrEscalon) return state;
+  return { ...state, vrEscalon: escalon, vrInicioMs: now };
+}
+
+/** El índice del bloque de VR: el de la rutina por escalones (P98) o el de intervalos (P79). */
+export function indiceBloqueVR(rutina: Rutina): number {
+  if (rutina.vr) {
+    const i = rutina.bloques.findIndex((b) => b.idEjercicio === rutina.vr!.idEjercicio);
+    return i >= 0 ? i : 0;
+  }
+  return rutina.bloques.findIndex(esBloqueVR_);
+}
+
+/** ¿Ya se tocó «Terminar» en una rutina por escalones? Entonces toca el cierre (P98). */
+export function vrEscalonCerrado(state: EntrenarState, rutina: Rutina): boolean {
+  if (!rutina.vr || !state.vrEscalon) return false;
+  return (state.registro[indiceBloqueVR(rutina)] ?? []).length > 0;
+}
+
+/**
  * Cierra una sesión de VR jugada **por tiempo** (P80).
  *
  * En modo tiempo no hay toques en el medio: se arranca, se juega con el casco
@@ -174,7 +211,7 @@ export function cerrarPorTiempo(
   rutina: Rutina,
   now: number = Date.now(),
 ): EntrenarState {
-  const idx = rutina.bloques.findIndex(esBloqueVR_);
+  const idx = indiceBloqueVR(rutina);
   // La ventana arranca cuando arrancó el juego, no cuando se abrió la pantalla
   // (P80): entre una cosa y la otra está el rato de leer la tarjeta.
   const desde = state.vrInicioMs ?? state.inicioMs;
@@ -938,11 +975,14 @@ export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): 
       }));
     // 1RM estimado, solo Fuerza y solo si hay valor (P70).
     const e1rm = b.modalidad === "Fuerza" ? e1rmKg(series) : undefined;
+    // P98: en Ritmo suave se elige el juego al empezar; el bloque guarda el que se jugó.
+    const juego = state.vrEscalon && rutina.vr && idx === indiceBloqueVR(rutina)
+      && state.vrEscalon.idEjercicio !== b.idEjercicio ? state.vrEscalon : null;
     return {
       orden: b.orden,
       // Con sustitución, el bloque guarda el ejercicio que SE HIZO (P73).
-      idEjercicio: sust ? sust.idNuevo : b.idEjercicio,
-      nombreEjercicio: sust ? sust.nombreNuevo : b.nombreEjercicio,
+      idEjercicio: sust ? sust.idNuevo : juego ? juego.idEjercicio : b.idEjercicio,
+      nombreEjercicio: sust ? sust.nombreNuevo : juego ? juego.nombreEjercicio : b.nombreEjercicio,
       modalidad: b.modalidad as Modalidad,
       series,
       // Solo en bloques salteados (P68b).

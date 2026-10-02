@@ -505,7 +505,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 |---|---|---|
 | P100 | Orden de la documentación ✅ | — |
 | P97 | ✅ (02/10) Zonas como las cuenta Samsung: la convención de redondeo, la FC máxima declarada con su origen y las zonas guardadas en cada sesión. Las marcas usan zonas, y no se mide sobre datos que se están por corregir. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), «Marcas y análisis en dos capas» | P92c, P93 |
-| P98 | Rutinas de VR y progresión: rutinas por tiempo, dos modos y una regla que calcula el sistema. La progresión se muestra en la rutina, no como marca de la sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P93 |
+| P98 | ✅ (02/10) Rutinas de VR y progresión: rutinas por tiempo, dos modos y una regla que calcula el sistema. La progresión se muestra en la rutina, no como marca de la sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P93 |
 | P99 | Marcas de la app y análisis de sesión en dos capas, en cuatro partes: diagnóstico, marcas de la app, esquema 3 y prompt 4, pantalla. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
@@ -521,6 +521,8 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - Backlog viejo: P76 (convertir 9 `shapeup-sin-sesion`), enlazar externas, PRs y logros, panel familiar, PWA completa, registro de eventos de sesión para diagnosticar casos como el 25/09.
 - Cerrar el historial de git al terminar el proyecto (mails de menores, ADR #015): pasar a privado o purgar.
 - Revisar docs/reportes/pendientes-anteriores-a-P100.md y decidir qué pasa al backlog (correlaciones en Salud, backup CSV, aplicar corregir-mecanica, backlog de junio).
+- Sacar «VR» de `LUGARES`: el visor es equipo, no lugar (P98). Las rutinas nuevas ya van en Casa con `equipoNecesario: ["VR"]`; quedan las viejas, el filtro de Biblioteca y el selector de lugar.
+- Retirar `lib/progresionVR.ts` (P79/P80) y `TarjetaProgresionVR` cuando las rutinas de VR viejas ya no se usen (P98, ADR #046).
 
 
 ---
