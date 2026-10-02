@@ -346,8 +346,10 @@ export function armarPaqueteSesion(e: EntradaPaquete): PaqueteArmado {
       objetivos: p?.objetivos ?? [],
       nivelDeLaRutina: e.contexto.rutina?.nivel ?? null,
       objetivoDeLaRutina: e.contexto.rutina?.objetivo ?? null,
-      fcMaxTeorica: p?.fcMaxTeorica ?? null,
-      zonasFC: p?.zonasFC ?? null,
+      // P97: las zonas con que se calcularon los minutos por zona de ESTA
+      // sesión, no las del perfil de hoy. Sin marca (anterior a P97), las del perfil.
+      fcMaxTeorica: h.biometria?.fcMaxUsada ?? p?.fcMaxTeorica ?? null,
+      zonasFC: h.biometria?.zonasUsadas ?? p?.zonasFC ?? null,
     },
     sesion: {
       idHist: h.idHist,

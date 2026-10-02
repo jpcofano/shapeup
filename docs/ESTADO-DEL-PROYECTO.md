@@ -55,6 +55,8 @@ _(01/10: el plan de marcas y análisis quedó integrado en `docs/ANALISIS-ASISTI
 
 _(01/10: P100, el orden de la documentación, en curso.)_
 
+_(02/10: P97 commiteado. Falta que Juan corra `npm run corregir:zonas -- --aplicar` y después deploye el hosting, en ese orden.)_
+
 ---
 
 ## 4 · Lo que se aprendió en esta sesión
@@ -65,7 +67,7 @@ _(01/10: P100, el orden de la documentación, en curso.)_
 
 **92c — la sesión testigo del 27/09.** El **método de zonas quedó verificado contra Samsung**: con sus rangos, las cinco zonas quedan a menos de un minuto, la resta de la Parte 4 cierra al segundo y las calorías coinciden (504). La tolerancia del 12 % adoptó (desfase −2,2 %).
 - **Corrección al traspaso anterior:** el cartel "Samsung siguió grabando de más" **no** acusaba al extremo equivocado. El reloj arrancó **70 s después** que la app, y lo recortado fueron 6,8 s del final. El problema real era que el cartel salía por segundos. Ahora nombra el extremo correcto y solo aparece si lo recortado pasa de un minuto.
-- Lo que no coincidió: **Z5 con las zonas del perfil da +1,1 min** porque el piso de Z5 está en 152 y no en 153. Es redondeo en `seed-perfiles.ts`. Lo resuelve P97.
+- Lo que no coincidió: **Z5 con las zonas del perfil da +1,1 min** porque el piso de Z5 está en 152 y no en 153. Es redondeo en `seed-perfiles.ts`. Lo resuelve P97. _(02/10: resuelto; con las zonas corregidas Z5 da 3,6 contra 4,08.)_
 - Z5 queda 32 s abajo aun con los rangos de Samsung, dentro de tolerancia: nosotros atribuimos por intervalo (promedio de dos muestras). En picos cortos tendemos a quedar un poco abajo. No se toca.
 
 **P93 — análisis asistido.** La primera prueba devolvió un análisis largo y solo con reparos. La mitad de las quejas eran por datos que faltaban o que el paquete no explicaba, y la otra mitad por el formato. De ahí salieron las dos enmiendas:
@@ -115,7 +117,7 @@ Después: `npm run build` y `npx firebase deploy --only hosting`.
 
 Si el análisis sigue largo o quejoso, se trae al chat y se ajusta el prompt antes de commitear.
 
-### Paso 2 — P97, las zonas (sesión de la **app**)
+### Paso 2 — P97, las zonas (sesión de la **app**) _(02/10: hecho, ADR #045. Sin cambios de reglas. Falta el script con `--aplicar` y el deploy, en ese orden.)_
 
 Con `97-zonas-como-samsung.md` adjunto:
 

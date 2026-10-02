@@ -11,9 +11,9 @@
 import { describe, it, expect } from "vitest";
 import { calcularEnriquecimiento } from "./enriquecerImport";
 import { totalMinutos } from "./minutosPorZona";
-import { pisosDe, zonaPorPiso } from "./zonas";
+import { pisosDe, zonaPorPiso, zonasDesdeFcMax } from "./zonas";
 import {
-  avisoDeRecorte, construirBiometriaDeTramos, UMBRAL_AVISO_RECORTE_MIN,
+  avisoDeRecorte, construirBiometriaDeTramos, UMBRAL_AVISO_RECORTE_MIN, VERSION_ENRIQUECIMIENTO,
   type SesionSamsung,
 } from "./matchBiometrico";
 import type { PerfilMiembro, ZonaFC } from "../types/models";
@@ -22,6 +22,12 @@ import {
 } from "./__fixtures__/sesionTestigo20260927";
 
 const ZONAS: ZonaFC[] = ["Z1", "Z2", "Z3", "Z4", "Z5"];
+
+/**
+ * Las zonas del perfil de juanpablo corregidas (P97): las de `zonasDesdeFcMax(169)`.
+ * `ZONAS_PERFIL` del fixture son las que tenía ese día, con Z5 desde 152.
+ */
+const ZONAS_CORREGIDAS = zonasDesdeFcMax(169);
 
 function enriquecer(zonasFC: PerfilMiembro["zonasFC"]) {
   const perfil = { zonasFC, fcMaxTeorica: 169 } as PerfilMiembro;
@@ -36,10 +42,9 @@ function enriquecer(zonasFC: PerfilMiembro["zonasFC"]) {
 }
 
 describe("la sesión testigo del 27/09 (P92c)", () => {
-  // 1. Contra Samsung, con los rangos que Samsung usó para esa pantalla. El
-  //    perfil de juanpablo tiene los pisos 1 bpm más abajo (Z5 desde 152, no
-  //    153): con ellos Z5 da +1,1 min, y eso es de configuración, no de método.
-  //    Esa diferencia está reportada, no escondida acá (ultimochat, P92c).
+  // 1. Contra Samsung, con los rangos que Samsung usó para esa pantalla. Hasta
+  //    P97 el perfil de juanpablo tenía los pisos 1 bpm más abajo (Z5 desde 152,
+  //    no 153): con ellos Z5 daba +1,1 min. Era el redondeo del seed, no el método.
   it("1. los minutos por zona coinciden con los de Samsung, ±1 min por zona", () => {
     const bio = enriquecer(SAMSUNG_APP.rangos);
     for (const z of ZONAS) {
@@ -49,8 +54,31 @@ describe("la sesión testigo del 27/09 (P92c)", () => {
     }
   });
 
+  // P97: el perfil corregido son exactamente los rangos de Samsung, y Z5 vuelve
+  // a quedar dentro del minuto (con las zonas viejas daba 5,2 contra 4,08).
+  it("P97. con las zonas del perfil corregido, las cinco a ±1 min de Samsung", () => {
+    expect(ZONAS_CORREGIDAS).toEqual(SAMSUNG_APP.rangos);
+    const bio = enriquecer(ZONAS_CORREGIDAS);
+    for (const z of ZONAS) {
+      const nuestro = bio.minutosPorZona?.[z] ?? 0;
+      const deSamsung = SAMSUNG_APP.segundosPorZona[z] / 60;
+      expect(Math.abs(nuestro - deSamsung), `${z}: ${nuestro} vs ${deSamsung.toFixed(2)}`).toBeLessThanOrEqual(1);
+    }
+    const viejas = enriquecer(ZONAS_PERFIL);
+    expect(viejas.minutosPorZona!.Z5! - SAMSUNG_APP.segundosPorZona.Z5 / 60).toBeGreaterThan(1);
+  });
+
+  it("P97. la sesión guarda las zonas con que se calculó y el pico suavizado", () => {
+    const bio = enriquecer(ZONAS_CORREGIDAS);
+    expect(bio.versionEnriquecimiento).toBe(VERSION_ENRIQUECIMIENTO);
+    expect(bio.zonasUsadas).toEqual(ZONAS_CORREGIDAS);
+    expect(bio.fcMaxUsada).toBe(169);
+    // El crudo llega a 170; la media móvil de 5 s, a 168,5.
+    expect(bio.fcPicoSuavizado).toBe(169);
+  });
+
   it("2. la suma cierra: zonas + bajo zonas + sin dato = la ventana usada", () => {
-    const bio = enriquecer(ZONAS_PERFIL);
+    const bio = enriquecer(ZONAS_CORREGIDAS);
     // Ventana adoptada: la unión de la app y el reloj (la app arrancó antes, el reloj terminó después).
     const inicio = Math.min(APP.inicioMs, SESION_SAMSUNG.startMs);
     const fin = Math.max(APP.finMs, SESION_SAMSUNG.endMs);
@@ -61,15 +89,15 @@ describe("la sesión testigo del 27/09 (P92c)", () => {
 
   it("3. el 170 cae en Z5 (la FC máxima supera el techo de Z5, 169)", () => {
     expect(Math.max(...CURVA.map((p) => p.fc))).toBe(170);
-    expect(zonaPorPiso(170, pisosDe({ zonasFC: ZONAS_PERFIL })!)).toBe("Z5");
+    expect(zonaPorPiso(170, pisosDe({ zonasFC: ZONAS_CORREGIDAS })!)).toBe("Z5");
     expect(zonaPorPiso(170, pisosDe({ zonasFC: SAMSUNG_APP.rangos })!)).toBe("Z5");
-    const bio = enriquecer(ZONAS_PERFIL);
+    const bio = enriquecer(ZONAS_CORREGIDAS);
     expect(bio.fcMax).toBe(SAMSUNG_APP.fcMax);
     expect(bio.minutosBajoZonas).toBe(0); // nada se pierde por arriba ni por abajo
   });
 
   it("4. la tolerancia adopta: ventana del reloj, 504 kcal enteras, sin recorte ni aviso", () => {
-    const bio = enriquecer(ZONAS_PERFIL);
+    const bio = enriquecer(ZONAS_CORREGIDAS);
     expect(bio.ventanaAdoptada).toBe("samsung");
     expect(bio.desfaseDuracionPct).toBeCloseTo(-2.2, 1);   // 47,79 contra 48,85 min
     expect(bio.kcal).toBe(SAMSUNG_APP.kcal);
@@ -79,10 +107,50 @@ describe("la sesión testigo del 27/09 (P92c)", () => {
   });
 
   it("la FC media queda a menos de 1 bpm de la de Samsung", () => {
-    const bio = enriquecer(ZONAS_PERFIL);
+    const bio = enriquecer(ZONAS_CORREGIDAS);
     expect(Math.abs(bio.fcMedia! - SAMSUNG_APP.fcMedia)).toBeLessThan(1);
     // Y contra la fila del SDK (sin redondear) es la misma cifra.
     expect(Math.abs(bio.fcMedia! - SESION_SAMSUNG.fcMedia!)).toBeLessThan(0.05);
+  });
+});
+
+describe("la historia no se reescribe (P97, decisión 5)", () => {
+  const extraccion = {
+    sesionesSamsung: [SESION_SAMSUNG],
+    liveData: { [DATAUUID]: CURVA },
+    shapeUpCustomId: "ShapeUp",
+    muestrasFcCrudas: [],
+  };
+  const conFcMax = (fc: number) => ({ fcMaxTeorica: fc, zonasFC: zonasDesdeFcMax(fc) }) as PerfilMiembro;
+
+  it("cambiar la FC máxima cambia las zonas solo de las sesiones que vienen", () => {
+    // La sesión se enriqueció con 169.
+    const antes = calcularEnriquecimiento([HISTORIAL], extraccion, conFcMax(169)).updates[0].biometria;
+    // Después la FC máxima pasó a 180, y un algoritmo nuevo vuelve a enriquecer
+    // todo (se simula con una versión vieja): la sesión conserva sus zonas.
+    const pasada = {
+      ...HISTORIAL,
+      biometria: { ...antes, versionEnriquecimiento: VERSION_ENRIQUECIMIENTO - 1 },
+    } as typeof HISTORIAL;
+    const rehecha = calcularEnriquecimiento([pasada], extraccion, conFcMax(180)).updates[0].biometria;
+    expect(rehecha.zonasUsadas).toEqual(zonasDesdeFcMax(169));
+    expect(rehecha.fcMaxUsada).toBe(169);
+    expect(rehecha.minutosPorZona).toEqual(antes.minutosPorZona);
+    expect(rehecha.zonaPrincipal).toBe(antes.zonaPrincipal);
+
+    // Una sesión nueva, sin biometría, sí toma las zonas de 180.
+    const nueva = calcularEnriquecimiento([HISTORIAL], extraccion, conFcMax(180)).updates[0].biometria;
+    expect(nueva.zonasUsadas).toEqual(zonasDesdeFcMax(180));
+    expect(nueva.minutosPorZona).not.toEqual(antes.minutosPorZona);
+  });
+
+  it("una sesión anterior a P97 (sin zonasUsadas) se rehace con las zonas del perfil: la corrección del 152", () => {
+    const vieja = enriquecer(ZONAS_PERFIL);
+    const { zonasUsadas: _z, fcMaxUsada: _f, ...sinMarca } = vieja;
+    const pasada = { ...HISTORIAL, biometria: { ...sinMarca, versionEnriquecimiento: 7 } } as typeof HISTORIAL;
+    const rehecha = calcularEnriquecimiento([pasada], extraccion, conFcMax(169)).updates[0].biometria;
+    expect(rehecha.zonasUsadas).toEqual(ZONAS_CORREGIDAS);
+    expect(rehecha.versionEnriquecimiento).toBe(8);
   });
 });
 

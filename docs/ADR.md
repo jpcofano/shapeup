@@ -274,6 +274,14 @@ dos redacciones: primero la de `CLAUDE.md` y debajo la de `MAPEO` §5.
   verificado leyendo el documento. El fallback sigue existiendo para los
   miembros que no las tengan.
   01/10: descartada — ver ESTADO §5 (no es lo que usa Samsung)
+  **Cerrado en P97 (01/10/2026): el "220 − edad" queda descartado.** Motivo:
+  Samsung calcula su FC máxima con un modelo propio (edad, altura, peso y
+  mediciones del reloj) que no sigue los picos —ya hubo sesiones con 170 y sigue
+  en 169—, y el SDK no expone ni ese valor ni las zonas: solo la fecha de
+  nacimiento, y sin fecha de cambio. La FC máxima pasa a ser un valor declarado,
+  con su origen, y las zonas salen de ella con la convención de Samsung (ADR #045).
+  El respaldo de `derivarZona` sin `zonasFC` ya no usa las bandas sin redondear:
+  usa la misma función que todo lo demás, `zonasDesdeFcMax`.
 
 ## ADR #026
 
@@ -1075,3 +1083,55 @@ Sin claves, sin servidor, sin costo: la persona es el transporte, a propósito.
 - La curva no se persiste (ADR #016): para el paquete se vuelve a leer del crudo del puente
   (`leerCurvaDeSesion`, un documento por tramo) y se descarta.
 - El análisis global es P94: `semanasAnalisisGlobal` (8 por defecto) ya vive en `/config/import`.
+
+## ADR #045 — Las zonas como las cuenta Samsung; la FC máxima es un valor declarado (P97, 2026-10-01)
+
+92c encontró el piso de Z5 en 152 y no en 153: el seed redondeaba `169 × 0,9 = 152,1` y usaba ese
+número como techo de Z4 y como piso de Z5. Las zonas guardadas se pisaban, y el editor no dejaba
+guardar ningún perfil. Con los rangos de Samsung, el método ya coincidía a menos de un minuto: fallaba
+el redondeo.
+
+- **La convención de Samsung**, deducida de sus números con 169:
+  - techo de Z1 a Z4 = `floor(pct × fcMax)`, con 60 / 70 / 80 / 90 %;
+  - piso de la zona siguiente = techo anterior + 1;
+  - piso de Z1 = `floor(50 % × fcMax)`; techo de Z5 = `fcMax`.
+
+  Con 169: **84-101 · 102-118 · 119-135 · 136-152 · 153-169**.
+- **Una sola función**, `zonasDesdeFcMax` (`lib/zonas.ts`). La usan el seed, el botón de
+  Configuración, la revisión y el respaldo de `pisosDe`. No hay otra copia del cálculo.
+- **Con enteros**: `Math.floor(pct × fcMax / 100)`. En punto flotante `0.7 × 170` da
+  `118.99999999999999` y el `floor` lo baja a 118. Hay un test con 170.
+- **El editor exige zonas contiguas**: sin pisarse, sin hueco, y sin que falte una entre dos que están.
+  Si las zonas no son las de `zonasDesdeFcMax(fcMax)`, avisa sin bloquear: «Las zonas no corresponden
+  a esta FC máxima». El botón «Calcular desde la FC máxima» sigue siendo explícito.
+- **La FC máxima vigente es un valor declarado, con su origen** (`fcMaxOrigen`): `samsung`,
+  `estimacion-shapeup`, `medida` o `edad-provisoria`. Este último es el 220 − edad del seed, y
+  queda pendiente de confirmar en la primera revisión. `fcMaxDesdeMs` dice desde cuándo rige. Las
+  zonas cambian **solo** cuando cambia el valor.
+- **Samsung no se lee desde el puente**: el SDK no expone su FC máxima ni sus zonas. Se anota a mano
+  en la revisión.
+- **ShapeUp estima, pero no aplica solo** (`lib/fcMaxima.ts`):
+  - mira el segundo pico más alto de la curva suavizada en las últimas 12 semanas, solo de sesiones
+    con `coberturaFina >= 80 %` y sin `fcDudosa`;
+  - la curva es una media móvil hacia atrás de 5 s, con al menos 4 muestras (`lib/curvaSuavizada.ts`);
+    su pico se guarda al enriquecer, en `biometria.fcPicoSuavizado`;
+  - la estimación **solo sube**: nunca da menos que una estimación ya registrada.
+  - **sube como mucho 10 latidos por revisión.** `fcDudosa` incluye la regla del pico de P79
+    (pico crudo > FC máxima vigente + 10), así que un pico real más alto queda afuera igual que uno
+    falso. Se decidió dejarlo así (02/10). Lo que distinguiría un pico real de uno falso es la
+    **cadencia como testigo** (backlog). La tarjeta de revisión muestra aparte las sesiones
+    excluidas, con fecha, nombre, pico suavizado y motivo: «pico > vigente + 10», saltos o cobertura.
+- **Revisión trimestral**: a los 3 meses del último cambio o de la última revisión, o antes si la
+  estimación supera el vigente (y no es una que ya se vio). La revisión muestra tres columnas: la
+  estimación con su evidencia, el vigente y el valor de Samsung. La persona elige: estimación,
+  Samsung o dejar como está. Cada revisión queda en `revisionesFcMax`: qué se vio, qué se eligió y
+  cuándo. Home avisa; nunca cambia nada.
+- **La historia no se reescribe**: cada sesión guarda `zonasUsadas` y `fcMaxUsada`. Si se vuelve a
+  enriquecer, se usan esas y no las del perfil de hoy (`perfilDeLaSesion`). **La única excepción es
+  esta corrección**: el 152 era un error de redondeo, no un cambio de FC máxima. Por eso
+  `VERSION_ENRIQUECIMIENTO` sube a 8, y las sesiones anteriores, que no tienen `zonasUsadas`, se
+  rehacen con las zonas corregidas.
+- **La sesión testigo del 27/09**, con las zonas corregidas, da las cinco zonas a menos de medio
+  minuto de Samsung (Z5: 3,6 contra 4,08 min; con el 152 daba 5,2).
+- **El orden importa**: `npm run corregir:zonas -- --aplicar` va **antes** de deployar la versión 8.
+  Si la sincronización rehace las sesiones con las zonas viejas, quedan guardadas con esas.

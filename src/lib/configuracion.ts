@@ -9,29 +9,13 @@
 import {
   ZONAS_FC, type Programa, type VisibilidadMiembro, type ZonaFC,
 } from "../types/models";
-import { BANDAS_PCT_FC_MAX } from "./matchBiometrico";
 
 export type ZonasFC = Partial<Record<ZonaFC, { min: number; max: number }>>;
 
 // ── Zonas de frecuencia cardíaca ─────────────────────────────────────────────
 
-/**
- * Las cinco zonas desde la FC máxima, con las mismas bandas estándar que usa
- * `derivarZona` cuando no hay zonas a medida (Z1 50–60 % … Z5 90–100 %).
- * Contiguas y sin pisarse: cada zona arranca un latido después de la anterior.
- */
-export function zonasDesdeFcMax(fcMax: number): ZonasFC {
-  const out: ZonasFC = {};
-  let previoMax: number | null = null;
-  for (const z of ZONAS_FC) {
-    const banda = BANDAS_PCT_FC_MAX[z];
-    const min = previoMax == null ? Math.round(banda.min * fcMax) : previoMax + 1;
-    const max = z === "Z5" ? Math.round(fcMax) : Math.round(banda.max * fcMax);
-    out[z] = { min, max };
-    previoMax = max;
-  }
-  return out;
-}
+// De la FC máxima a las zonas: `zonasDesdeFcMax`, en lib/zonas (P97). Acá no
+// hay otra copia del cálculo.
 
 /** FC máxima aceptable: fuera de esto casi seguro es un error de tipeo. */
 export const FC_MAX_RANGO = { min: 120, max: 230 } as const;
@@ -39,14 +23,16 @@ export const FC_MAX_RANGO = { min: 120, max: 230 } as const;
 /**
  * El problema de las zonas, en castellano, o `null` si están bien. No exige
  * que estén las cinco —un perfil puede tener solo algunas—, pero las que están
- * tienen que tener sentido y estar en orden.
+ * tienen que tener sentido, estar en orden y ser **contiguas** (P97): cada una
+ * arranca un latido después de que termina la anterior, sin pisarse ni dejar
+ * hueco, y no falta ninguna entre dos que están.
  */
 export function validarZonas(zonas: ZonasFC, fcMax: number | null): string | null {
   if (fcMax != null && (fcMax < FC_MAX_RANGO.min || fcMax > FC_MAX_RANGO.max)) {
     return `La FC máxima tiene que estar entre ${FC_MAX_RANGO.min} y ${FC_MAX_RANGO.max}.`;
   }
-  let previa: { zona: ZonaFC; max: number } | null = null;
-  for (const z of ZONAS_FC) {
+  let previa: { zona: ZonaFC; max: number; i: number } | null = null;
+  for (const [i, z] of ZONAS_FC.entries()) {
     const r = zonas[z];
     if (!r) continue;
     if (!Number.isFinite(r.min) || !Number.isFinite(r.max) || r.min <= 0) {
@@ -56,8 +42,14 @@ export function validarZonas(zonas: ZonasFC, fcMax: number | null): string | nul
     if (previa && r.min <= previa.max) {
       return `${z} arranca en ${r.min}, y ${previa.zona} termina en ${previa.max}: se pisan.`;
     }
+    if (previa && i > previa.i + 1) {
+      return `Falta ${ZONAS_FC[previa.i + 1]} entre ${previa.zona} y ${z}.`;
+    }
+    if (previa && r.min !== previa.max + 1) {
+      return `${previa.zona} termina en ${previa.max} y ${z} arranca en ${r.min}: queda un hueco. ${z} tiene que arrancar en ${previa.max + 1}.`;
+    }
     if (fcMax != null && r.max > fcMax) return `${z} pasa la FC máxima (${fcMax}).`;
-    previa = { zona: z, max: r.max };
+    previa = { zona: z, max: r.max, i };
   }
   return null;
 }

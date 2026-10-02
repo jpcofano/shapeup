@@ -2,11 +2,13 @@ import { Fragment, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { deleteField } from "firebase/firestore";
 import {
-  EQUIPOS, LUGARES, OBJETIVOS, ZONAS_FC,
-  type Equipo, type Lugar, type MiembroId, type Objetivo, type PerfilMiembro, type ZonaFC,
+  EQUIPOS, LUGARES, OBJETIVOS, ORIGENES_FC_MAX, ZONAS_FC,
+  type Equipo, type Lugar, type MiembroId, type Objetivo, type OrigenFcMax, type PerfilMiembro, type ZonaFC,
 } from "../../types/models";
 import { migrarEquipoPorLugar } from "../../lib/perfil";
-import { validarZonas, zonasDesdeFcMax, type ZonasFC } from "../../lib/configuracion";
+import { validarZonas, type ZonasFC } from "../../lib/configuracion";
+import { zonasCorresponden, zonasDesdeFcMax } from "../../lib/zonas";
+import { ETIQUETA_ORIGEN } from "../../lib/fcMaxima";
 import { actualizarPerfil, type PatchPerfil } from "../../data/perfiles";
 
 interface Props {
@@ -31,6 +33,8 @@ interface Borrador {
   metaSemanalDias: number | null;
   /** FC máxima; `null` = sin configurar (P86: antes era de solo lectura). */
   fcMaxTeorica: number | null;
+  /** De dónde sale la FC máxima (P97). `null` = sin declarar. */
+  fcMaxOrigen: OrigenFcMax | null;
   zonasFC: ZonasFC;
 }
 
@@ -45,6 +49,7 @@ function borradorDe(perfil: PerfilMiembro | undefined): Borrador {
     objetivos:      migrado.objetivos ?? [],
     metaSemanalDias: migrado.metaSemanalDias ?? null,
     fcMaxTeorica: migrado.fcMaxTeorica ?? null,
+    fcMaxOrigen: migrado.fcMaxOrigen ?? null,
     zonasFC: migrado.zonasFC ?? {},
   };
 }
@@ -101,6 +106,11 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
     // la meta siga al plan si el plan cambia.
     const meta = borrador.metaSemanalDias;
     const guardarMeta = meta != null && meta > 0 && meta !== metaDelPlan;
+    // P97: si cambia el valor o el origen de la FC máxima, se registra desde cuándo
+    // rige. Es el punto de partida de los tres meses de la revisión.
+    const cambioFcMax = borrador.fcMaxTeorica !== original.fcMaxTeorica
+      || borrador.fcMaxOrigen !== original.fcMaxOrigen;
+    const desdeMs = cambioFcMax && borrador.fcMaxTeorica != null ? Date.now() : null;
 
     const patch: PatchPerfil = {
       lugarHabitual:  borrador.lugarHabitual,
@@ -108,6 +118,8 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
       objetivos:      borrador.objetivos,
       // Sin FC máx ni zonas, los campos se sacan: vacío es "sin configurar".
       fcMaxTeorica:   borrador.fcMaxTeorica ?? deleteField(),
+      fcMaxOrigen:    borrador.fcMaxOrigen ?? deleteField(),
+      ...(desdeMs != null ? { fcMaxDesdeMs: desdeMs } : {}),
       zonasFC:        Object.keys(borrador.zonasFC).length > 0 ? borrador.zonasFC : deleteField(),
       ...(guardarMeta
         ? { metaSemanalDias: meta }
@@ -119,13 +131,15 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
     setGuardando(false);
     if (!r.ok) { setError(r.error); return; }   // los cambios quedan en el borrador
     const {
-      equipoDisponible: _obsoleto, metaSemanalDias: _vieja, fcMaxTeorica: _fc, zonasFC: _z, ...resto
+      equipoDisponible: _obsoleto, metaSemanalDias: _vieja, fcMaxTeorica: _fc, fcMaxOrigen: _o, zonasFC: _z, ...resto
     } = perfil ?? {};
-    const { metaSemanalDias: _borrador, fcMaxTeorica, zonasFC, ...restoBorrador } = borrador;
+    const { metaSemanalDias: _borrador, fcMaxTeorica, fcMaxOrigen, zonasFC, ...restoBorrador } = borrador;
     onGuardado({
       ...resto, ...restoBorrador,
       ...(guardarMeta ? { metaSemanalDias: meta } : {}),
       ...(fcMaxTeorica != null ? { fcMaxTeorica } : {}),
+      ...(fcMaxOrigen != null ? { fcMaxOrigen } : {}),
+      ...(desdeMs != null ? { fcMaxDesdeMs: desdeMs } : {}),
       ...(Object.keys(zonasFC).length > 0 ? { zonasFC } : {}),
     });
   }
@@ -261,8 +275,8 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
         <div>
           <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Zonas de frecuencia cardíaca</p>
           <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)" }}>
-            Deciden la zona de cada sesión. Sin zonas a medida se usan bandas estándar
-            de la FC máxima.
+            Deciden la zona de cada sesión. Sin zonas a medida se calculan de la FC
+            máxima, como las cuenta Samsung.
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -289,8 +303,24 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
               b.fcMaxTeorica == null ? b : { ...b, zonasFC: zonasDesdeFcMax(b.fcMaxTeorica) }
             ))}
           >
-            Calcular zonas estándar
+            Calcular desde la FC máxima
           </button>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <label style={{ fontSize: 12, color: "var(--muted)" }} htmlFor="fc-max-origen">De dónde sale</label>
+          <select
+            id="fc-max-origen"
+            className="form-input"
+            style={{ maxWidth: 220 }}
+            value={borrador.fcMaxOrigen ?? ""}
+            onChange={(e) => {
+              const v = e.target.value as OrigenFcMax | "";
+              setBorrador((b) => ({ ...b, fcMaxOrigen: v === "" ? null : v }));
+            }}
+          >
+            <option value="">Sin declarar</option>
+            {ORIGENES_FC_MAX.map((o) => <option key={o} value={o}>{ETIQUETA_ORIGEN[o]}</option>)}
+          </select>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr", gap: "6px 8px", alignItems: "center", maxWidth: 260 }}>
           {ZONAS_FC.map((z) => {
@@ -313,6 +343,12 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
           })}
         </div>
         {errorZonas && <p style={{ margin: 0, fontSize: 11, color: "var(--warning)" }}>{errorZonas}</p>}
+        {/* P97: avisa, no bloquea. Las zonas a medida se pueden guardar igual. */}
+        {!errorZonas && !zonasCorresponden(borrador.zonasFC, borrador.fcMaxTeorica) && (
+          <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
+            Las zonas no corresponden a esta FC máxima.
+          </p>
+        )}
         <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
           Cambiarlas afecta a las sesiones que se enriquezcan de acá en adelante; las ya
           enriquecidas conservan su zona.

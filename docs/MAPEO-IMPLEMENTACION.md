@@ -128,6 +128,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P92c | La sesión testigo (`d2ce189`) | ✅ | 2026-09-30 |
 | P93 | Análisis asistido, el de una sesión (`600aa37`) | ✅ | 2026-10-01 |
 | P100 | Orden de la documentación (sin commitear al cerrar la Parte 4) | ✅ | 2026-10-01 |
+| P97 | Las zonas como las cuenta Samsung; la FC máxima declarada, la estimación y la revisión (ADR #045) | ✅ | 2026-10-02 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -144,6 +145,31 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-02] P97 — Las zonas como las cuenta Samsung (ADR #045)
+
+- **Una sola función de FC máxima a zonas**, `zonasDesdeFcMax` (`lib/zonas.ts`), con la convención de
+  Samsung y aritmética entera (`0.7 × 170` en flotante daba 118). La usan el seed, el botón, la
+  revisión y el respaldo de `pisosDe`. Se fueron `BANDAS_PCT_FC_MAX` y la copia de `configuracion.ts`.
+- **La FC máxima es un valor declarado**: `fcMaxOrigen` (`samsung` · `estimacion-shapeup` · `medida` ·
+  `edad-provisoria`) y `fcMaxDesdeMs`. El editor exige zonas contiguas, y avisa sin bloquear si no
+  son las de la FC máxima.
+- **Estimación y revisión** (`lib/fcMaxima.ts`, `lib/curvaSuavizada.ts`, `RevisionFcMax.tsx`): segundo
+  pico de la media móvil de 5 s en 12 semanas, sin `fcDudosa` ni cobertura baja, solo sube. La
+  tarjeta de Perfil tiene tres columnas y la lista de excluidas con su motivo. Home avisa.
+- **La historia no se reescribe**: cada biometría guarda `zonasUsadas`, `fcMaxUsada` y
+  `fcPicoSuavizado`, y al rehacerse usa sus zonas (`perfilDeLaSesion`). `VERSION_ENRIQUECIMIENTO` = 8,
+  la excepción del 152. El paquete de análisis manda las zonas de la sesión.
+- **Testigo del 27/09** con las zonas corregidas: las cinco a menos de medio minuto de Samsung (Z5
+  3,6 contra 4,08; con el 152 daba 5,2).
+- **Herramientas**: `scripts/corregir-zonas-perfiles.ts` (`npm run corregir:zonas`, lógica en
+  `lib/correccionZonas.ts`), y `seed-perfiles.ts` migrado a `corrida.ts`. En seco: los cuatro
+  perfiles cambian; Juan con origen `samsung`, los demás `edad-provisoria`.
+- **Estimación de Juan al 01/10: 173** (segundo pico, 14/09). Tres sesiones excluidas por la regla
+  del pico de P79 (crudo > vigente + 10): por eso la estimación sube como mucho 10 latidos por
+  revisión. Se deja así; la cadencia como testigo queda en el backlog.
+- **Reglas**: `config/perfiles` y `/historial` no validan campos; no hubo cambios de reglas.
+- **Falta (Juan)**: `npm run corregir:zonas -- --aplicar` **antes** del deploy del hosting.
 
 ### [2026-10-01] P100 — Orden de la documentación
 

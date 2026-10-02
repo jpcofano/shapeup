@@ -5,11 +5,13 @@ import { auth } from "../firebase";
 import { useAuth } from "../auth/useAuth";
 import { getPerfiles } from "../data/perfiles";
 import { getProgramaActivo } from "../data/programas";
+import { getHistorialEnLaApp } from "../data/historial";
 import { MemberAvatar } from "../components/MemberAvatar";
 import { useTheme, type ThemeName, type Modo } from "../contexts/ThemeProvider";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
-import { MIEMBRO_IDS, type MiembroId, type PerfilMiembro } from "../types/models";
+import { MIEMBRO_IDS, type Historial, type MiembroId, type PerfilMiembro } from "../types/models";
 import { EditorPerfil } from "../components/perfil/EditorPerfil";
+import { RevisionFcMax } from "../components/perfil/RevisionFcMax";
 import { ConfigVisibilidad } from "../components/perfil/ConfigVisibilidad";
 import { ConfigJuegos } from "../components/perfil/ConfigJuegos";
 import { ConfigImport } from "../components/perfil/ConfigImport";
@@ -50,6 +52,8 @@ export function Perfil() {
   const objetivos = perfil?.objetivos ?? [];
   /** Días de entrenamiento del plan activo, o `null` si no hay plan (P77a). */
   const [metaDelPlan, setMetaDelPlan] = useState<number | null>(null);
+  /** Sesiones propias, para la estimación de la FC máxima (P97). `null` = cargando. */
+  const [historial, setHistorial] = useState<Historial[] | null>(null);
 
   useEffect(() => {
     if (!memberId) return;
@@ -61,6 +65,10 @@ export function Perfil() {
     // `getProgramaActivo` cachea en memoria: si ya pasaste por Home, no lee nada.
     getProgramaActivo(memberId as MiembroId).then((r) => {
       if (r.ok) setMetaDelPlan(metaSemanal(r.value));
+    });
+    // La estimación de la FC máxima sale de la biometría ya guardada (P97).
+    getHistorialEnLaApp(memberId as MiembroId).then((r) => {
+      setHistorial(r.ok ? r.value : []);
     });
   }, [memberId]);
 
@@ -109,9 +117,22 @@ export function Perfil() {
          Solo el perfil propio se edita; los de los demás son de solo lectura.  */}
       {memberId && perfil !== null && (
         <EditorPerfil
+          // La revisión de la FC máxima puede cambiar el valor y las zonas: el
+          // editor se rearma con el perfil nuevo en vez de quedarse con el borrador viejo.
+          key={JSON.stringify([perfil?.fcMaxTeorica, perfil?.fcMaxOrigen, perfil?.zonasFC])}
           metaDelPlan={metaDelPlan}
           miembro={memberId as MiembroId}
           perfil={perfil}
+          onGuardado={setPerfil}
+        />
+      )}
+
+      {/* ── FC máxima: la revisión trimestral (P97) ───────────────────────── */}
+      {memberId && perfil !== null && (
+        <RevisionFcMax
+          miembro={memberId as MiembroId}
+          perfil={perfil}
+          historial={historial}
           onGuardado={setPerfil}
         />
       )}

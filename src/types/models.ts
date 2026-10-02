@@ -641,6 +641,22 @@ export interface BiometriaSesion {
   minutosBajoZonas?: number;
   /** Sin dato: huecos de la curva y bordes sin muestras. "No sabemos". */
   minutosSinDato?: number;
+
+  // ── P97: las zonas con que se calculó, y el pico para la estimación ──────
+  /**
+   * Las zonas con que se calcularon la zona principal y los minutos por zona.
+   * **La historia no se reescribe** (P97): si la sesión se vuelve a enriquecer,
+   * se usan estas y no las del perfil de ese día. Ausente = anterior a P97.
+   */
+  zonasUsadas?: Partial<Record<ZonaFC, { min: number; max: number }>>;
+  /** La FC máxima del perfil cuando se calculó (la usa `esFcDudosa`). */
+  fcMaxUsada?: number;
+  /**
+   * El pico de la curva suavizada de la ventana (P97): media móvil de
+   * `VENTANA_SUAVIZADO_MS`. Es lo que usa la estimación de la FC máxima: un
+   * pico del sensor de dos o tres muestras no lo mueve.
+   */
+  fcPicoSuavizado?: number;
 }
 
 /** Quién registró la actividad: vos al arrancarla, o el reloj solo (P75b). */
@@ -977,7 +993,18 @@ export interface PerfilMiembro {
   objetivos?: Objetivo[];
   lugarHabitual?: Lugar;
   zonasFC?: Partial<Record<ZonaFC, { min: number; max: number }>>;
+  /**
+   * La FC máxima vigente (P97). Es un valor **declarado**, con su origen: las
+   * zonas cambian solo cuando cambia este valor. El nombre es histórico; ya no
+   * es "teórica".
+   */
   fcMaxTeorica?: number;
+  /** De dónde sale `fcMaxTeorica` (P97). Ausente = sin declarar. */
+  fcMaxOrigen?: OrigenFcMax;
+  /** Desde cuándo rige el valor vigente, epoch ms (P97). */
+  fcMaxDesdeMs?: number;
+  /** Las revisiones de la FC máxima, de la más vieja a la más nueva (P97). */
+  revisionesFcMax?: RevisionFcMax[];
   /**
    * Meta de días por semana, si el miembro apunta a algo distinto de lo que
    * dice el plan (P77a). Ausente = manda el plan. **No se escribe un valor
@@ -987,6 +1014,33 @@ export interface PerfilMiembro {
   metaSemanalDias?: number;
 }
 export type PerfilesConfig = Partial<Record<MiembroId, PerfilMiembro>>;
+
+/**
+ * De dónde sale la FC máxima vigente (P97, ADR #045).
+ * - `samsung`: la que muestra Samsung Health; se anota a mano, el SDK no la expone.
+ * - `estimacion-shapeup`: la estimación de ShapeUp, aplicada en una revisión.
+ * - `medida`: un test de campo o un valor medido que la persona declara.
+ * - `edad-provisoria`: 220 − edad, del seed. Pendiente de confirmar en la primera revisión.
+ */
+export const ORIGENES_FC_MAX = ["samsung", "estimacion-shapeup", "medida", "edad-provisoria"] as const;
+export type OrigenFcMax = typeof ORIGENES_FC_MAX[number];
+
+/** Una revisión de la FC máxima: qué se vio, qué se eligió y cuándo (P97). */
+export interface RevisionFcMax {
+  fechaMs: number;
+  /** El valor vigente al momento de revisar, y su origen. */
+  vigente: number;
+  origenVigente: OrigenFcMax | null;
+  /** La estimación de ShapeUp ese día; `null` si no había datos. */
+  estimacion: number | null;
+  /** Las sesiones y los picos que sostenían la estimación. */
+  evidencia: { idHist: string; fecha: string; pico: number }[];
+  /** El valor que mostraba Samsung, si la persona lo anotó. */
+  samsung: number | null;
+  eleccion: "estimacion" | "samsung" | "mantener";
+  /** El valor que quedó vigente después de elegir. */
+  aplicado: number;
+}
 
 // VISIBILIDAD: qué programas/rutinas ve cada miembro. El owner ve todo.
 // /config/visibilidad. (analog de la visibilidad de recetas en la app de comidas).

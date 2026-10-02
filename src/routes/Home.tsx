@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Zap, Flame, Check, Moon, AlertTriangle, Lightbulb, Info } from "lucide-react";
 import type { Programa, Historial, MedicionCorporal, MetricaSalud, RegistroSueno, Recomendacion } from "../types/models";
-import type { MiembroId } from "../types/models";
+import type { MiembroId, PerfilMiembro } from "../types/models";
 import { getProgramaActivo } from "../data/programas";
 import { getPerfiles } from "../data/perfiles";
 import { getHistorialEnLaApp, getDiasActivos, conciliarPendientes } from "../data/historial";
@@ -14,6 +14,7 @@ import { useGeneracionDatosSalud } from "../hooks/useSincronizacionAutomatica";
 import { getMediciones, getMetricasSalud, getRegistrosSueno } from "../data/salud";
 import { calcularResumenSalud, type SenalSalud } from "../lib/resumenSalud";
 import { calcularRecomendacion, seleccionarEstadoDiario, type EstadoDiario } from "../lib/recomendaciones";
+import { estimarFcMax, tocaRevision, TEXTO_MOTIVO, type MotivoRevision } from "../lib/fcMaxima";
 import { useTheme } from "../contexts/ThemeProvider";
 import { useAuth } from "../auth/useAuth";
 import { MemberAvatar } from "../components/MemberAvatar";
@@ -117,6 +118,24 @@ function EstadoDiarioLinea({ estado, onClick }: { estado: EstadoDiario; onClick:
     >
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
       {estado.texto}
+    </button>
+  );
+}
+
+/** El aviso de la revisión de la FC máxima (P97). Lleva a Perfil; no cambia nada. */
+function AvisoFcMax({ motivo, onClick }: { motivo: MotivoRevision | null; onClick: () => void }) {
+  if (!motivo) return null;
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "flex", alignItems: "center", gap: 6, background: "none", border: "none",
+        padding: "2px 0", cursor: "pointer", font: "inherit", fontSize: 12, color: "var(--muted)",
+        textAlign: "left",
+      }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", flexShrink: 0 }} />
+      {TEXTO_MOTIVO[motivo]} Revisala en Perfil.
     </button>
   );
 }
@@ -255,6 +274,8 @@ export function Home() {
   const [historial,  setHistorial]  = useState<Historial[]>([]);
   /** Override de la meta declarado en el perfil (P77a). `null` = manda el plan. */
   const [metaPerfil, setMetaPerfil] = useState<number | null>(null);
+  /** El perfil propio, para el aviso de la revisión de la FC máxima (P97). */
+  const [perfilPropio, setPerfilPropio] = useState<PerfilMiembro | undefined>(undefined);
   const [numSemana,  setNumSemana]  = useState<number | null>(null);
   const [lastMed,    setLastMed]    = useState<MedicionCorporal | null>(null);
   const [prevMed,    setPrevMed]    = useState<MedicionCorporal | null>(null);
@@ -300,6 +321,7 @@ export function Home() {
       // El override de la meta vive en el perfil, que ya se estaba leyendo y
       // además cachea en memoria: esto no agrega una lectura (P77a).
       setMetaPerfil(perfil?.metaSemanalDias ?? null);
+      setPerfilPropio(perfil);
     });
 
     // Verificar descarte del día (localStorage)
@@ -441,6 +463,12 @@ export function Home() {
 
   const recVisible = !recDescartada && recomendacion !== null ? recomendacion : null;
   const estadoDiario = seleccionarEstadoDiario(senalesSalud, recVisible !== null);
+  // P97: el aviso de revisar la FC máxima. Sale del historial y el perfil que
+  // Home ya tiene: cero lecturas nuevas. Solo avisa; nunca cambia nada.
+  const motivoFcMax = perfilPropio
+    ? tocaRevision(perfilPropio, estimarFcMax(historial, Date.now(), perfilPropio.revisionesFcMax, perfilPropio.fcMaxTeorica), Date.now())
+    : null;
+  const irARevision = () => navigate("/perfil#revision-fc");
   const semanaCompleta = proxima === null && sesObj > 0;
 
   const subtitulo = semanaCompleta
@@ -550,6 +578,7 @@ export function Home() {
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
         <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />
+        <AvisoFcMax motivo={motivoFcMax} onClick={irARevision} />
         <HomeReduxContent direccion={direccion} data={data} onAvatarClick={() => navigate("/perfil")} />
       </div>
     );
@@ -576,6 +605,7 @@ export function Home() {
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
         <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />
+        <AvisoFcMax motivo={motivoFcMax} onClick={irARevision} />
 
         {/* Hero Stadium */}
         <div className="stadium-hero">
@@ -694,6 +724,7 @@ export function Home() {
           <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
         )}
         <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />
+        <AvisoFcMax motivo={motivoFcMax} onClick={irARevision} />
 
         {programa && (
           <div className="card" style={{ padding: "14px 16px" }}>
@@ -801,6 +832,7 @@ export function Home() {
         <RecCard rec={recVisible} onDescartar={descartar} onVerRutina={() => navegarAccion(recVisible)} />
       )}
       {!loading && <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />}
+      {!loading && <AvisoFcMax motivo={motivoFcMax} onClick={irARevision} />}
 
       {/* ── Hero Aurora ─────────────────────────────────────────────────── */}
       {!loading && (

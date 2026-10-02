@@ -504,7 +504,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | Prompt | Contenido | Depende de |
 |---|---|---|
 | P100 | Orden de la documentación ✅ | — |
-| P97 | Zonas como las cuenta Samsung: la convención de redondeo, la FC máxima declarada con su origen y las zonas guardadas en cada sesión. Las marcas usan zonas, y no se mide sobre datos que se están por corregir. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), «Marcas y análisis en dos capas» | P92c, P93 |
+| P97 | ✅ (02/10) Zonas como las cuenta Samsung: la convención de redondeo, la FC máxima declarada con su origen y las zonas guardadas en cada sesión. Las marcas usan zonas, y no se mide sobre datos que se están por corregir. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), «Marcas y análisis en dos capas» | P92c, P93 |
 | P98 | Rutinas de VR y progresión: rutinas por tiempo, dos modos y una regla que calcula el sistema. La progresión se muestra en la rutina, no como marca de la sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P93 |
 | P99 | Marcas de la app y análisis de sesión en dos capas, en cuatro partes: diagnóstico, marcas de la app, esquema 3 y prompt 4, pantalla. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
@@ -516,6 +516,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - **P94** — análisis global sobre un rango de semanas. Code avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango).
 - **P95** — sincronización incremental y duplicados (18 MB por sincronización, 12 registros duplicados, `updateTime` disponible).
 - Del inventario del SDK, aprobado como idea: la **cadencia** como testigo de la FC de muñeca en VR y boxeo, `logWithHeartRate` para la cobertura, `skeletal_muscle_mass`.
+  (02/10: la cadencia es también lo que distinguiría un pico real de uno falso en la estimación de la FC máxima; hoy la regla del pico de `fcDudosa` la limita a +10 por revisión. ADR #045.)
 - Umbrales aeróbico y anaeróbico de Samsung: no salen por el SDK. Si algún día interesan, van como dato que Juan copia a mano, igual que la FC máxima.
 - Backlog viejo: P76 (convertir 9 `shapeup-sin-sesion`), enlazar externas, PRs y logros, panel familiar, PWA completa, registro de eventos de sesión para diagnosticar casos como el 25/09.
 - Cerrar el historial de git al terminar el proyecto (mails de menores, ADR #015): pasar a privado o purgar.

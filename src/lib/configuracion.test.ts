@@ -1,20 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  zonasDesdeFcMax, validarZonas, validarDuracionMinima,
+  validarZonas, validarDuracionMinima,
   alternarPrograma, alternarRutina, visibilidadCambio,
 } from "./configuracion";
+import { zonasDesdeFcMax } from "./zonas";
 import type { Programa } from "../types/models";
-
-describe("zonasDesdeFcMax", () => {
-  it("con 169 da las bandas estándar, contiguas y sin pisarse", () => {
-    const z = zonasDesdeFcMax(169);
-    expect(z.Z1).toEqual({ min: 85, max: 101 });
-    expect(z.Z5!.max).toBe(169);
-    expect(validarZonas(z, 169)).toBeNull();
-    expect(z.Z2!.min).toBe(z.Z1!.max + 1);
-    expect(z.Z5!.min).toBe(z.Z4!.max + 1);
-  });
-});
 
 describe("validarZonas", () => {
   it("acepta zonas parciales en orden", () => {
@@ -26,6 +16,26 @@ describe("validarZonas", () => {
   });
   it("rechaza zonas que se pisan", () => {
     expect(validarZonas({ Z1: { min: 90, max: 110 }, Z2: { min: 105, max: 125 } }, null)).toMatch(/se pisan/);
+  });
+  it("rechaza zonas que se pisan por un latido: las del seed viejo (P97)", () => {
+    const delSeed = {
+      Z1: { min: 85, max: 101 }, Z2: { min: 101, max: 118 }, Z3: { min: 118, max: 135 },
+      Z4: { min: 135, max: 152 }, Z5: { min: 152, max: 169 },
+    };
+    expect(validarZonas(delSeed, 169)).toBe("Z2 arranca en 101, y Z1 termina en 101: se pisan.");
+  });
+  it("rechaza un hueco entre dos zonas (P97)", () => {
+    expect(validarZonas({ Z1: { min: 84, max: 101 }, Z2: { min: 103, max: 118 } }, 169))
+      .toBe("Z1 termina en 101 y Z2 arranca en 103: queda un hueco. Z2 tiene que arrancar en 102.");
+  });
+  it("rechaza que falte una zona entre dos que están (P97)", () => {
+    expect(validarZonas({ Z2: { min: 102, max: 118 }, Z4: { min: 136, max: 152 } }, 169))
+      .toBe("Falta Z3 entre Z2 y Z4.");
+  });
+  it("acepta las zonas de la función única para cualquier FC máxima (P97)", () => {
+    for (const fc of [120, 150, 169, 170, 185, 199, 203, 204, 230]) {
+      expect(validarZonas(zonasDesdeFcMax(fc), fc), String(fc)).toBeNull();
+    }
   });
   it("rechaza una zona que pasa la FC máxima", () => {
     expect(validarZonas({ Z5: { min: 150, max: 190 } }, 180)).toMatch(/FC máxima/);

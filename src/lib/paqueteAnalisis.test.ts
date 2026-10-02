@@ -153,6 +153,15 @@ describe("armarPaqueteSesion", () => {
 
 // ── Enmienda de P93 ──────────────────────────────────────────────────────────
 
+describe("las zonas del paquete (P97)", () => {
+  it("son las que la sesión usó, no las del perfil de hoy", () => {
+    const hoy = { ...PERFIL, fcMaxTeorica: 180, zonasFC: { Z5: { min: 162, max: 180 } } } as PerfilMiembro;
+    const p = armarPaqueteSesion({ sesion: CONBIO, contexto: { ...contexto(), perfil: hoy }, curva: CURVA, prompt: PROMPT });
+    expect(p.datos.quienEntrena.zonasFC).toEqual(CONBIO.biometria!.zonasUsadas);
+    expect(p.datos.quienEntrena.fcMaxTeorica).toBe(169);
+  });
+});
+
 describe("de dónde salió la ventana (enmienda P93)", () => {
   const MIN = 60_000;
   /** Una sesión vieja, sin ventana propia, con series que abarcan `tramoMin`. */

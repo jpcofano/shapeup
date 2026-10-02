@@ -21,8 +21,9 @@ import type {
 } from "../types/models";
 import type { LiveDataPoint } from "../import/samsungLiveData";
 import { stripUndef } from "../import/samsungHealth";
-import { pisosDe, zonaPorPiso } from "./zonas";
+import { pisosDe, zonaPorPiso, zonasEfectivas } from "./zonas";
 import { minutosPorZona } from "./minutosPorZona";
+import { picoSuavizado } from "./curvaSuavizada";
 
 /** Representación mínima de una fila exercise de Samsung necesaria para el match. */
 export interface SesionSamsung {
@@ -251,19 +252,14 @@ export function topeInicioSiguiente(finVentanaAppMs: number, finDatosDisponibles
   return Math.min(finVentanaAppMs + TOPE_RECUPERACION_ULTIMA_SERIE_MS, finDatosDisponiblesMs);
 }
 
-/** Las bandas viven en lib/zonas (P92); se re-exportan acá por los que ya las importaban. */
-export { BANDAS_PCT_FC_MAX } from "./zonas";
-
 /**
  * Deriva la zona de FC de un valor numérico usando el perfil del miembro.
- * Prioridad: 1) `zonasFC` a medida si están configuradas; 2) bandas estándar
- * de `fcMaxTeorica` (hotfix P58, auditoría 2026-07-13: `config/perfiles` está
- * vacío para el owner — zonaPrincipal salía siempre "—" aunque el perfil se
- * cargara bien). Sin ninguna de las dos, `undefined` (degradación elegante).
+ * Prioridad: 1) `zonasFC` a medida si están configuradas; 2) las zonas de
+ * `fcMaxTeorica` con la convención de Samsung (`zonasDesdeFcMax`, P97; el
+ * respaldo viene del hotfix P58, cuando `config/perfiles` estaba vacío para el
+ * owner y zonaPrincipal salía siempre "—"). Sin ninguna de las dos, `undefined`.
  *
- * NOTA: `PerfilMiembro` no tiene campo de edad/fecha de nacimiento — el
- * fallback "220−edad" que pedía el prompt no es calculable sin ese dato.
- * Si se agrega a futuro, se suma acá como tercer nivel.
+ * El "220 − edad" como tercer nivel quedó descartado (P97, ADR #025).
  */
 export function derivarZona(
   fcMedia: number,
@@ -275,6 +271,39 @@ export function derivarZona(
   const pisos = pisosDe(perfil);
   if (!pisos) return undefined;
   return zonaPorPiso(fcMedia, pisos) ?? undefined;
+}
+
+/**
+ * Con qué zonas y qué FC máxima se calculó una biometría (P97). Se guarda en
+ * cada sesión para que la historia no se reescriba: un cambio de FC máxima
+ * afecta solo a las sesiones que vienen.
+ */
+export function marcaDeZonas(
+  perfil?: PerfilMiembro,
+): Pick<BiometriaSesion, "zonasUsadas" | "fcMaxUsada"> {
+  const zonas = zonasEfectivas(perfil);
+  return {
+    ...(zonas ? { zonasUsadas: zonas } : {}),
+    ...(perfil?.fcMaxTeorica != null ? { fcMaxUsada: perfil.fcMaxTeorica } : {}),
+  };
+}
+
+/**
+ * El perfil con que se vuelve a enriquecer una sesión (P97): si la sesión ya
+ * guardó sus zonas, mandan esas, no las del perfil de hoy. Las sesiones
+ * anteriores a P97 no las tienen y toman las del perfil: esa es la corrección
+ * del 152, la única vez que la historia se recalcula con zonas nuevas.
+ */
+export function perfilDeLaSesion(
+  perfil: PerfilMiembro | undefined,
+  biometria: Pick<BiometriaSesion, "zonasUsadas" | "fcMaxUsada"> | undefined,
+): PerfilMiembro | undefined {
+  if (!biometria?.zonasUsadas) return perfil;
+  return {
+    ...(perfil ?? {}),
+    zonasFC: biometria.zonasUsadas,
+    ...(biometria.fcMaxUsada != null ? { fcMaxTeorica: biometria.fcMaxUsada } : {}),
+  };
 }
 
 /** Umbral de "olvido de corte" (P57): Samsung siguió grabando más de esto tras el fin de la app. */
@@ -326,6 +355,7 @@ export function construirBiometriaSesion(
     // Health se guarda igual, siempre.
     ventanaAdoptada: "app",
     samsung:         samsungTalCual([{ sesion: sesionSamsung }]),
+    ...marcaDeZonas(perfil),
   });
 }
 
@@ -358,8 +388,11 @@ export function construirBiometriaSesion(
  *       minutos por zona (sesión y ejercicio) y la regla única de zonas
  *   7 — P92c: recorteAntesMin / recorteDespuesMin, para que el aviso de recorte
  *       nombre el extremo que de verdad se recortó
+ *   8 — P97: zonas como las cuenta Samsung (el piso de Z5 en 153, no 152), y
+ *       cada sesión guarda las zonas con que se calculó (zonasUsadas) y el
+ *       pico de la curva suavizada (fcPicoSuavizado)
  */
-export const VERSION_ENRIQUECIMIENTO = 7;
+export const VERSION_ENRIQUECIMIENTO = 8;
 
 // ── Calidad de la FC por serie (P79, §9.3) ─────────────────────────────────
 
@@ -773,6 +806,9 @@ export function construirBiometriaDeTramos(
       minutosBajoZonas: zonas.minutosBajoZonas,
       minutosSinDato: zonas.minutosSinDato,
     } : {}),
+    // P97: con qué zonas se calculó, y el pico suavizado para la estimación.
+    ...marcaDeZonas(perfil),
+    fcPicoSuavizado: curvaVentana.length > 0 ? picoSuavizado(curvaVentana) ?? undefined : undefined,
   });
 }
 
@@ -848,5 +884,6 @@ export function construirBiometriaRango(
     matchPor:      "rango",
     granularidad:  "sesion",
     versionEnriquecimiento: VERSION_ENRIQUECIMIENTO,
+    ...marcaDeZonas(perfil),
   });
 }

@@ -26,7 +26,7 @@ import { seEnriquece } from "./tipoHistorial";
 import {
   elegirSesionSamsung, construirBiometriaDeTramos, construirBiometriaRango,
   elegirTramosAdicionales, curvaDeTramos, enriquecerSerie, topeInicioSiguiente,
-  VERSION_ENRIQUECIMIENTO,
+  VERSION_ENRIQUECIMIENTO, perfilDeLaSesion,
   type TramoSamsung,
 } from "./matchBiometrico";
 
@@ -217,6 +217,10 @@ export function calcularEnriquecimiento(
     const ventana = ventanaDeHistorial(h);
     if (!ventana) { resultado.sinMatch++; resultado.sinSolape++; continue; }
 
+    // P97: la historia no se reescribe. Si la sesión ya guardó sus zonas, se
+    // recalcula con esas y no con las del perfil de hoy.
+    const perfilH = perfilDeLaSesion(perfil, h.biometria);
+
     // Pool sin datauuid ya usados
     const candidatas = extraccion.sesionesSamsung.filter((s) => !datauuidsUsados.has(s.datauuid));
     const match = elegirSesionSamsung(ventana, candidatas, extraccion.shapeUpCustomId);
@@ -231,14 +235,14 @@ export function calcularEnriquecimiento(
 
     if (!match) {
       // Nivel "rango" (P57): último recurso con muestras crudas de FC en la ventana.
-      const biometriaRango = construirBiometriaRango(ventana, muestrasFcCrudas, perfil);
+      const biometriaRango = construirBiometriaRango(ventana, muestrasFcCrudas, perfilH);
       if (biometriaRango) {
         resultado.matcheadas++;
         resultado.porRango++;
         const finDatosMs = muestrasFcCrudas.length > 0
           ? muestrasFcCrudas[muestrasFcCrudas.length - 1].ms
           : ventana.finMs;
-        const bloquesEnriquecidos = enriquecerBloquesConCurva(h, muestrasFcCrudas, ventana.finMs, finDatosMs, perfil);
+        const bloquesEnriquecidos = enriquecerBloquesConCurva(h, muestrasFcCrudas, ventana.finMs, finDatosMs, perfilH);
         const huboEnriquecimientoPorSerie = bloquesEnriquecidos.some(
           (b) => b.series.some((s) => s.fcPico !== undefined),
         );
@@ -281,8 +285,8 @@ export function calcularEnriquecimiento(
     else resultado.porVentana++;
 
     const biometria = ventana.sintetica
-      ? construirBiometriaDeTramos([tramos[0]], match.matchPor, ventana, [], perfil, match.sesion.datauuid)
-      : construirBiometriaDeTramos(tramos, match.matchPor, ventana, muestrasFcCrudas, perfil, match.sesion.datauuid);
+      ? construirBiometriaDeTramos([tramos[0]], match.matchPor, ventana, [], perfilH, match.sesion.datauuid)
+      : construirBiometriaDeTramos(tramos, match.matchPor, ventana, muestrasFcCrudas, perfilH, match.sesion.datauuid);
     // El principal es el elegido por Δinicio, aunque otro tramo arranque antes.
     biometria.datauuidSamsung = match.sesion.datauuid;
 
@@ -290,7 +294,7 @@ export function calcularEnriquecimiento(
     if (curva.length > 0) {
       biometria.granularidad = "serie";
       const finDatos = Math.max(...tramos.map((t) => t.sesion.endMs));
-      const bloquesEnriquecidos = enriquecerBloquesConCurva(h, curva, ventana.finMs, finDatos, perfil);
+      const bloquesEnriquecidos = enriquecerBloquesConCurva(h, curva, ventana.finMs, finDatos, perfilH);
       if (eraFina) resultado.reEnriquecidas++;
       resultado.updates.push({ idHist: h.idHist, biometria, bloques: bloquesEnriquecidos });
     } else if (eraFina) {

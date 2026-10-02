@@ -12,23 +12,44 @@
 //  versiones de lo mismo se desincronizan solas.
 //
 //  De dónde salen los pisos: las `zonasFC` a medida si el perfil las tiene; si
-//  no, las bandas estándar de `fcMaxTeorica`. Sin ninguna, no hay zonas.
+//  no, las de `fcMaxTeorica` con la convención de Samsung. Sin ninguna, no hay
+//  zonas.
+//
+//  **De la FC máxima a las zonas hay una sola función** (P97, ADR #045):
+//  `zonasDesdeFcMax`. La usan el seed, el botón de Configuración, la revisión
+//  de la FC máxima y el respaldo de `pisosDe`. No hay otra copia del cálculo.
 //
 //  Puro (ADR #009).
 // ════════════════════════════════════════════════════════════════════════════
 import type { PerfilMiembro, ZonaFC } from "../types/models";
 
+export type RangosZonas = Record<ZonaFC, { min: number; max: number }>;
+
+/** Piso de Z1, en % de la FC máxima (P97). */
+export const PCT_PISO_Z1 = 50;
+/** Techo de Z1 a Z4, en % de la FC máxima. El de Z5 es la FC máxima. */
+export const PCT_TECHO: Record<Exclude<ZonaFC, "Z5">, number> = { Z1: 60, Z2: 70, Z3: 80, Z4: 90 };
+
 /**
- * Bandas estándar de %FCmáx (fallback cuando no hay `zonasFC` a medida):
- * Z1 50-60 %, Z2 60-70 %, Z3 70-80 %, Z4 80-90 %, Z5 90-100 %.
+ * Las cinco zonas desde la FC máxima, como las cuenta Samsung (P97, ADR #045),
+ * deducido de sus números con 169 → 84-101 · 102-118 · 119-135 · 136-152 · 153-169:
+ *   - techo de Z1 a Z4 = `floor(pct × fcMax)`, con 60 / 70 / 80 / 90 %;
+ *   - piso de la zona siguiente = techo anterior + 1;
+ *   - piso de Z1 = `floor(50 % × fcMax)`; techo de Z5 = `fcMax`.
+ *
+ * **Con enteros, a propósito**: en punto flotante `0.7 × 170` da
+ * `118.99999999999999` y el `floor` lo baja a 118. `70 × 170 / 100` es exacto.
  */
-export const BANDAS_PCT_FC_MAX: Record<ZonaFC, { min: number; max: number }> = {
-  Z1: { min: 0.50, max: 0.60 },
-  Z2: { min: 0.60, max: 0.70 },
-  Z3: { min: 0.70, max: 0.80 },
-  Z4: { min: 0.80, max: 0.90 },
-  Z5: { min: 0.90, max: 1.00 },
-};
+export function zonasDesdeFcMax(fcMax: number): RangosZonas {
+  const f = Math.round(fcMax);
+  const techo = (pct: number) => Math.floor((pct * f) / 100);
+  const z1 = { min: techo(PCT_PISO_Z1), max: techo(PCT_TECHO.Z1) };
+  const z2 = { min: z1.max + 1, max: techo(PCT_TECHO.Z2) };
+  const z3 = { min: z2.max + 1, max: techo(PCT_TECHO.Z3) };
+  const z4 = { min: z3.max + 1, max: techo(PCT_TECHO.Z4) };
+  const z5 = { min: z4.max + 1, max: f };
+  return { Z1: z1, Z2: z2, Z3: z3, Z4: z4, Z5: z5 };
+}
 
 const DE_ARRIBA_A_ABAJO: ZonaFC[] = ["Z5", "Z4", "Z3", "Z2", "Z1"];
 
@@ -36,24 +57,49 @@ const DE_ARRIBA_A_ABAJO: ZonaFC[] = ["Z5", "Z4", "Z3", "Z2", "Z1"];
 export type Pisos = { zona: ZonaFC; min: number }[];
 
 /**
- * Los pisos del perfil, o `null` si no hay con qué armar zonas. Las zonas a
- * medida mandan; las bandas de `fcMaxTeorica` son el respaldo cuando no hay
- * ninguna zona a medida.
+ * ¿Las zonas son las de esta FC máxima? (P97) Para el aviso del editor, que no
+ * bloquea: las zonas a medida se pueden guardar igual. Sin zonas, no hay nada
+ * que no corresponda.
  */
+export function zonasCorresponden(
+  zonas: Partial<RangosZonas> | undefined, fcMax: number | null | undefined,
+): boolean {
+  if (fcMax == null || !zonas || Object.keys(zonas).length === 0) return true;
+  const esperadas = zonasDesdeFcMax(fcMax);
+  return (["Z1", "Z2", "Z3", "Z4", "Z5"] as const).every((z) =>
+    zonas[z]?.min === esperadas[z].min && zonas[z]?.max === esperadas[z].max);
+}
+
+/**
+ * Las zonas con que se calcula, o `null` si no hay con qué armarlas. Las zonas
+ * a medida mandan; si no hay ninguna, salen de `fcMaxTeorica` con
+ * `zonasDesdeFcMax`. Es lo que cada sesión guarda como `zonasUsadas` (P97).
+ */
+export function zonasEfectivas(
+  perfil?: Pick<PerfilMiembro, "zonasFC" | "fcMaxTeorica"> | null,
+): Partial<RangosZonas> | null {
+  const aMedida = perfil?.zonasFC;
+  if (aMedida && DE_ARRIBA_A_ABAJO.some((z) => aMedida[z])) {
+    const out: Partial<RangosZonas> = {};
+    for (const z of [...DE_ARRIBA_A_ABAJO].reverse()) {
+      const r = aMedida[z];
+      if (r) out[z] = { min: r.min, max: r.max };
+    }
+    return out;
+  }
+  const fcMax = perfil?.fcMaxTeorica;
+  return fcMax ? zonasDesdeFcMax(fcMax) : null;
+}
+
+/** Los pisos del perfil, de Z5 a Z1, o `null` si no hay con qué armar zonas. */
 export function pisosDe(
   perfil?: Pick<PerfilMiembro, "zonasFC" | "fcMaxTeorica"> | null,
 ): Pisos | null {
-  const aMedida = perfil?.zonasFC;
-  if (aMedida && DE_ARRIBA_A_ABAJO.some((z) => aMedida[z])) {
-    return DE_ARRIBA_A_ABAJO
-      .filter((z) => aMedida[z] != null)
-      .map((z) => ({ zona: z, min: aMedida[z]!.min }));
-  }
-  const fcMax = perfil?.fcMaxTeorica;
-  if (fcMax) {
-    return DE_ARRIBA_A_ABAJO.map((z) => ({ zona: z, min: BANDAS_PCT_FC_MAX[z].min * fcMax }));
-  }
-  return null;
+  const zonas = zonasEfectivas(perfil);
+  if (!zonas) return null;
+  return DE_ARRIBA_A_ABAJO
+    .filter((z) => zonas[z] != null)
+    .map((z) => ({ zona: z, min: zonas[z]!.min }));
 }
 
 /**
