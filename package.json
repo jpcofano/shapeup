@@ -31,6 +31,7 @@
     "rematch:salud": "npx tsx scripts/rematch-salud.ts",
     "corregir:mecanica": "npx tsx scripts/corregir-mecanica.ts",
     "corregir:ventanas": "npx tsx scripts/corregir-ventanas-vr.ts",
+    "corregir:zonas": "npx tsx scripts/corregir-zonas-perfiles.ts",
     "serie:adherencia": "npx tsx scripts/serie-adherencia.ts",
     "dry-run:puente": "npx tsx scripts/dry-run-puente.ts",
     "functions:build": "npm --prefix functions run build",

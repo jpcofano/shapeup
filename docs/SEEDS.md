@@ -53,7 +53,7 @@ npm run seed:salud-rutinas -- --dry-run
 
 ```bash
 npm run seed:config
-npm run seed:perfiles
+npm run seed:perfiles      -- --aplicar   # P97: simula por defecto
 npm run import:fedb
 npm run seed:ejercicios    -- --aplicar   # P87: simula por defecto
 npm run seed:vr            -- --aplicar   # P87: simula por defecto
@@ -67,7 +67,7 @@ npm run seed:salud-rutinas -- --aplicar   # P87: simula por defecto
 ```
 
 ## Notas
-- **P87:** `seed:ejercicios`, `seed:vr` y `seed:salud-rutinas` corren con `scripts/lib/corrida.ts`:
+- **P87:** `seed:ejercicios`, `seed:vr`, `seed:salud-rutinas` y `seed:perfiles` (migrado en P97) corren con `scripts/lib/corrida.ts`:
   **simulan por defecto** (su `--dry-run` ya no hace falta), escriben con `--aplicar`, y con
   `--force` escriben antes un respaldo de lo que pisan. Terminan con
   `escritas · fallidas · omitidas` (o `se escribirían` en simulación). Los demás seeds siguen

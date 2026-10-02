@@ -2,51 +2,42 @@
 //  scripts/seed-perfiles.ts — Escribe /config/perfiles (PerfilesConfig de models.ts).
 //
 //  Por cada miembro: color, equipo POR LUGAR (P72), objetivos, lugar habitual, FC
-//  máxima teórica y zonas de FC. Las zonas se calculan con FCmáx ≈ 220 − edad
-//  (estimación poblacional; para precisión, un test de campo o el dato del reloj).
+//  máxima con su origen y zonas de FC.
+//
+//  FC máxima (P97, ADR #045): un valor declarado, con su origen. La de juanpablo
+//  es 169, la que muestra Samsung. Las demás son 220 − edad, con origen
+//  `edad-provisoria`: quedan pendientes de confirmar en la primera revisión.
+//  Las zonas salen de `zonasDesdeFcMax` (lib/zonas), la única función de FC
+//  máxima a zonas, con la convención de Samsung.
 //
 //  Siembra `equipoPorLugar`, no el `equipoDisponible` plano y obsoleto: así un
 //  reseed no deshace la migración a equipo por lugar (P72; el script que la
 //  aplicó, migrar-equipo-por-lugar.ts, se borró en P87 — ver docs/SEEDS.md).
 //
-//  Zonas (% de FCmáx): Z1 50–60 · Z2 60–70 · Z3 70–80 · Z4 80–90 · Z5 90–100.
-//
-//  Uso: npx tsx scripts/seed-perfiles.ts   ·   Flags: --dry-run | --force
-//  (Sin --force no pisa si /config/perfiles ya existe.)
+//  Uso: npm run seed:perfiles [-- --aplicar [--force]]
+//  Simula por defecto (P87, migrado en P97); --aplicar escribe si
+//  /config/perfiles no existe; con --force lo pisa, con respaldo antes.
 // ════════════════════════════════════════════════════════════════════════════
 
-// corrida: exento — pendiente (P87, se migra cuando se toque): informa cada escritura después de confirmarla, así que lo que hizo se reconstruye leyendo la salida.
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { zonasDesdeFcMax } from "../src/lib/zonas";
+import type { OrigenFcMax } from "../src/types/models";
+import { correr } from "./lib/corrida";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-const dryRun = process.argv.includes("--dry-run");
 const force  = process.argv.includes("--force");
 const serviceAccount = JSON.parse(readFileSync(resolve(__dir, "service-account.json"), "utf8"));
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
-// Calcula FCmáx y las 5 zonas a partir de la edad.
-function zonasDeEdad(edad: number) {
-  const fcMax = 220 - edad;
-  const p = (pct: number) => Math.round(fcMax * pct);
-  return {
-    fcMaxTeorica: fcMax,
-    zonasFC: {
-      Z1: { min: p(0.50), max: p(0.60) },
-      Z2: { min: p(0.60), max: p(0.70) },
-      Z3: { min: p(0.70), max: p(0.80) },
-      Z4: { min: p(0.80), max: p(0.90) },
-      Z5: { min: p(0.90), max: p(1.0) },
-    },
-  };
-}
-
 type MiembroPerfil = {
   edad: number; color: string; lugar: string; objetivos: string[]; equipo: string[];
+  /** FC máxima declarada. Sin esto, 220 − edad con origen `edad-provisoria`. */
+  fcMax?: { valor: number; origen: OrigenFcMax };
 };
 
 // Colores: placeholders distintos por miembro (Claude Design los puede afinar).
@@ -54,6 +45,7 @@ const MIEMBROS: Record<string, MiembroPerfil> = {
   juanpablo: {
     edad: 51, color: "#60a5fa", lugar: "Casa", objetivos: ["Recomposición"],
     equipo: ["Mancuernas", "Banda elástica", "Barra de dominadas", "Kettlebell", "Banco", "Peso corporal", "VR"],
+    fcMax: { valor: 169, origen: "samsung" },
   },
   maria: {
     edad: 50, color: "#f472b6", lugar: "Casa", objetivos: ["Recomposición", "Pérdida de grasa"],
@@ -69,8 +61,8 @@ const MIEMBROS: Record<string, MiembroPerfil> = {
   },
 };
 
-function perfilDoc(m: MiembroPerfil) {
-  const { fcMaxTeorica, zonasFC } = zonasDeEdad(m.edad);
+function perfilDoc(m: MiembroPerfil, ahoraMs: number) {
+  const fcMax = m.fcMax ?? { valor: 220 - m.edad, origen: "edad-provisoria" as const };
   return {
     color: m.color,
     // El equipo de cada uno está en su lugar habitual; los otros lugares quedan
@@ -78,32 +70,37 @@ function perfilDoc(m: MiembroPerfil) {
     equipoPorLugar: { [m.lugar]: m.equipo },
     objetivos: m.objetivos,
     lugarHabitual: m.lugar,
-    fcMaxTeorica,
-    zonasFC,
+    fcMaxTeorica: fcMax.valor,
+    fcMaxOrigen: fcMax.origen,
+    fcMaxDesdeMs: ahoraMs,
+    zonasFC: zonasDesdeFcMax(fcMax.valor),
   };
 }
 
-async function run() {
-  console.log(`\nSeed PERFILES — modo: ${dryRun ? "DRY RUN" : force ? "FORCE" : "SAFE"}\n`);
+correr("seed-perfiles", async (c) => {
   const ref = db.collection("config").doc("perfiles");
-
-  if (!force && !dryRun) {
-    const snap = await ref.get();
-    if (snap.exists) { console.log("  SKIP  config/perfiles ya existe (usá --force para pisarlo).\n"); process.exit(0); }
+  const snap = await ref.get();
+  if (snap.exists && !force) {
+    c.omitir("config/perfiles", "ya existe; usá --force para pisarlo");
+    return;
   }
 
+  const ahoraMs = Date.now();
   const perfiles: Record<string, unknown> = {};
   for (const [id, m] of Object.entries(MIEMBROS)) {
-    const doc = perfilDoc(m);
+    const doc = perfilDoc(m, ahoraMs);
     perfiles[id] = doc;
     const z = doc.zonasFC;
-    console.log(`  ${id} (edad ${m.edad}): FCmáx ${doc.fcMaxTeorica} · Z2 ${z.Z2.min}-${z.Z2.max} · Z3 ${z.Z3.min}-${z.Z3.max} · Z4 ${z.Z4.min}-${z.Z4.max}`);
+    console.log(`  ${id}: FC máx ${doc.fcMaxTeorica} (${doc.fcMaxOrigen}) · `
+      + `Z1 ${z.Z1.min}-${z.Z1.max} · Z2 ${z.Z2.min}-${z.Z2.max} · Z3 ${z.Z3.min}-${z.Z3.max} · `
+      + `Z4 ${z.Z4.min}-${z.Z4.max} · Z5 ${z.Z5.min}-${z.Z5.max}`);
   }
 
-  if (dryRun) { console.log("\n[dry] no se escribió nada.\n"); process.exit(0); }
-
-  await ref.set({ ...perfiles, ultimaActualizacion: FieldValue.serverTimestamp() }, { merge: false });
-  console.log("\n✅ config/perfiles escrito.\n");
-  process.exit(0);
-}
-run().catch((e) => { console.error(e); process.exit(1); });
+  if (snap.exists) {
+    if (!c.abrirRespaldo({ "config/perfiles": snap.data() })) return;
+  } else {
+    c.sinRespaldo("config/perfiles no existe: no hay nada que pisar");
+  }
+  await c.escribir("config/perfiles",
+    () => ref.set({ ...perfiles, ultimaActualizacion: FieldValue.serverTimestamp() }, { merge: false }));
+});
