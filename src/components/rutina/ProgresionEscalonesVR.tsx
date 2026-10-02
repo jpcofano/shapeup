@@ -3,7 +3,7 @@ import type { ConfigProgresion, Ejercicio, Historial, MiembroId, PerfilMiembro, 
 import { getPerfiles, actualizarPerfil } from "../../data/perfiles";
 import { getConfigProgresion } from "../../data/configProgresion";
 import {
-  aplicarSubida, escalonDeHoy, etiquetaDificultad, evaluarReglaVR, modosDe,
+  aplicarSubida, escalonDeHoy, etiquetaDificultad, evaluarReglaVR, evaluarSeriesVR, modosDe,
   CONFIG_PROGRESION_DEFAULT, type EstadoReglaVR, type MotivoReglaVR, type MotivoExclusionVR,
 } from "../../lib/escalonesVR";
 import { textoEscalon } from "../entrenar/InicioEscalonVR";
@@ -54,6 +54,10 @@ const conSigno = (n: number) => `${n > 0 ? "+" : ""}${n.toLocaleString("es-AR")}
  * la referencia, la diferencia contra el umbral y si contó como completada—
  * (enmienda del 01/10). «Subir de escalón» registra la subida en el perfil; la
  * rutina no se toca (ADR #039).
+ *
+ * Una serie por dificultad declarada (enmienda del 02/10): solo la de la
+ * dificultad prevista por el escalón propone; las demás se muestran igual,
+ * marcadas como informativas y sin botón.
  */
 export function ProgresionEscalonesVR({ rutina, historial, miembro, catalogo }: Props) {
   const [perfil, setPerfil] = useState<PerfilMiembro | undefined>(undefined);
@@ -85,49 +89,74 @@ export function ProgresionEscalonesVR({ rutina, historial, miembro, catalogo }: 
     <div className="card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <p className="section-title" style={{ margin: 0 }}>Progresión</p>
       {modosDe(rutina).flatMap((modo) => juegos.map((juego) => {
-        const res = evaluarReglaVR({ historial, rutina, modo, idEjercicio: juego, perfil, config });
+        const series = evaluarSeriesVR({ historial, rutina, modo, idEjercicio: juego, perfil, config });
         const hoy = escalonDeHoy(rutina, modo, perfil);
-        if (!res || !hoy) return null;
-        const n = res.numeros;
+        if (series.length === 0 || !hoy) return null;
         const ej = catalogo.get(juego);
         return (
-          <div key={`${modo}-${juego}`} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>
-              {NOMBRE_MODO[modo]}{juegos.length > 1 ? ` · ${ej?.nombre ?? juego}` : ""}
-              {hoy.tope > 1 ? ` · escalón ${hoy.numero} de ${hoy.tope}` : ""}
-            </p>
-            <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
-              {textoEscalon(hoy.escalon)} · {etiquetaDificultad(hoy.escalon.dificultad, ej?.dificultadesVR)}
-            </p>
-            <p style={{ margin: 0, fontSize: 13 }}>
-              <strong>{ESTADO[res.estado]}</strong> — {MOTIVO[res.motivo]}
-            </p>
-            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--muted)" }}>
-              <li>FC media de esta sesión: {n.fcUltima != null ? `${n.fcUltima.toLocaleString("es-AR")} bpm` : "—"}</li>
-              {vr.regla === "subir" ? (
-                <>
-                  <li>Referencia (promedio de las dos primeras del escalón): {n.fcReferencia != null ? `${n.fcReferencia.toLocaleString("es-AR")} bpm` : "—"}</li>
-                  <li>Diferencia: {n.diferencia != null ? `${conSigno(n.diferencia)} bpm` : "—"} · umbral ±{n.umbral}</li>
-                </>
-              ) : (
-                <li>Techo de Z3: {n.techoZ3 != null ? `${n.techoZ3} bpm` : "—"}</li>
-              )}
-              <li>Contó como completada: {n.ultimaCompletada == null ? "—" : n.ultimaCompletada ? "sí" : "no"}</li>
-              <li>Sesiones: {n.sesiones.length} · semanas distintas: {n.semanas}</li>
-              {n.excluidas.length > 0 && (
-                <li>Fuera del cálculo: {n.excluidas.map((x) => `${ddmm(x.fecha)} (${EXCLUSION[x.motivo]})`).join(", ")}</li>
-              )}
-            </ul>
-            {res.estado === "subir" && (
-              <button className="btn-primary" style={{ alignSelf: "flex-start" }} disabled={guardando || !perfil}
-                onClick={() => void subir(res)}>
-                {guardando ? "Guardando…" : `Subir al escalón ${res.escalon + 1}`}
-              </button>
-            )}
+          <div key={`${modo}-${juego}`} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>
+                {NOMBRE_MODO[modo]}{juegos.length > 1 ? ` · ${ej?.nombre ?? juego}` : ""}
+                {hoy.tope > 1 ? ` · escalón ${hoy.numero} de ${hoy.tope}` : ""}
+              </p>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+                {textoEscalon(hoy.escalon)} · {etiquetaDificultad(hoy.escalon.dificultad, ej?.dificultadesVR)}
+              </p>
+            </div>
+            {series.map((res) => (
+              <Serie key={String(res.dificultad)} res={res} regla={vr.regla} dificultades={ej?.dificultadesVR}
+                guardando={guardando} puedeSubir={!!perfil} onSubir={() => void subir(res)} />
+            ))}
           </div>
         );
       }))}
       {error && <p style={{ margin: 0, fontSize: 12, color: "var(--danger)" }}>{error}</p>}
+    </div>
+  );
+}
+
+/** Una serie: las sesiones de una dificultad declarada, con su estado y sus números. */
+function Serie({ res, regla, dificultades, guardando, puedeSubir, onSubir }: {
+  res: NonNullable<ReturnType<typeof evaluarReglaVR>>;
+  regla: "subir" | "bajar-si-pasa-techo" | "ninguna";
+  dificultades?: { id: string; etiqueta: string }[];
+  guardando: boolean;
+  puedeSubir: boolean;
+  onSubir: () => void;
+}) {
+  const n = res.numeros;
+  const nombre = res.dificultad == null ? "Sin dificultad declarada" : etiquetaDificultad(res.dificultad, dificultades);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingLeft: 8, borderLeft: "2px solid var(--border)" }}>
+      <p style={{ margin: 0, fontSize: 12, fontWeight: 600 }}>
+        {nombre} · {res.esPropuesta ? "la prevista" : "informativa"}
+      </p>
+      <p style={{ margin: 0, fontSize: 13 }}>
+        <strong>{ESTADO[res.estado]}</strong> — {MOTIVO[res.motivo]}
+      </p>
+      <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--muted)" }}>
+        <li>FC media de esta sesión: {n.fcUltima != null ? `${n.fcUltima.toLocaleString("es-AR")} bpm` : "—"}</li>
+        {regla === "subir" ? (
+          <>
+            <li>Referencia (promedio de las dos primeras de esta serie): {n.fcReferencia != null ? `${n.fcReferencia.toLocaleString("es-AR")} bpm` : "—"}</li>
+            <li>Diferencia: {n.diferencia != null ? `${conSigno(n.diferencia)} bpm` : "—"} · umbral ±{n.umbral}</li>
+          </>
+        ) : (
+          <li>Techo de Z3: {n.techoZ3 != null ? `${n.techoZ3} bpm` : "—"}</li>
+        )}
+        <li>Contó como completada: {n.ultimaCompletada == null ? "—" : n.ultimaCompletada ? "sí" : "no"}</li>
+        <li>Sesiones: {n.sesiones.length} · semanas distintas: {n.semanas}</li>
+        {n.excluidas.length > 0 && (
+          <li>Fuera del cálculo: {n.excluidas.map((x) => `${ddmm(x.fecha)} (${EXCLUSION[x.motivo]})`).join(", ")}</li>
+        )}
+      </ul>
+      {res.estado === "subir" && res.esPropuesta && (
+        <button className="btn-primary" style={{ alignSelf: "flex-start" }} disabled={guardando || !puedeSubir}
+          onClick={onSubir}>
+          {guardando ? "Guardando…" : `Subir al escalón ${res.escalon + 1}`}
+        </button>
+      )}
     </div>
   );
 }

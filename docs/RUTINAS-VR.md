@@ -5,6 +5,24 @@ cómo quedó implementado lo que el ADR no detalla (P98, 02/10/2026). El código
 `src/lib/escalonesVR.ts` (la regla), `src/lib/catalogoVR.ts` (las rutinas y el programa) y las
 pantallas `InicioEscalonVR`, `CierreEscalonVR` y `ProgresionEscalonesVR`.
 
+## Series por dificultad declarada (enmienda del 02/10 al ADR #046)
+
+La regla no compara sesiones jugadas en dificultades distintas. Dentro de una rutina, un escalón, un
+modo y un juego, cada **dificultad declarada al cerrar** es una serie:
+
+| | La serie de la dificultad prevista | Las otras («Mixto» incluida) |
+|---|---|---|
+| Referencia y última sesión | Dentro de la serie | Dentro de la serie |
+| 3 sesiones, 2 semanas, «dos seguidas» | Dentro de la serie | Dentro de la serie |
+| Estado y números | Se calculan y se muestran | Se calculan y se muestran |
+| ¿Es una propuesta? | **Sí**: puede proponer subir (o bajar, en Ritmo suave) | **No**: informativa, sin botón |
+| ¿Se excluye alguna sesión por la dificultad? | No | No |
+
+La serie prevista aparece siempre, aunque todavía no tenga sesiones. Después vienen las demás
+dificultades, «Mixto» y, al final, las sesiones sin dificultad declarada. Cómo tratar estas últimas
+está pendiente de decisión; mientras tanto forman su propia serie informativa. El código está en
+`evaluarSeriesVR` (`src/lib/escalonesVR.ts`).
+
 ## Los motivos de «mantener»
 
 El estado «mantener» se muestra con el motivo a la vista (`MotivoReglaVR`). Son cinco:

@@ -5,7 +5,11 @@
 //  de a un escalón. **La rutina nunca se muta** (ADR #039): el escalón actual de
 //  cada miembro se deriva de sus subidas aceptadas (`perfiles.{miembro}.subidasVR`).
 //
-//  La regla se evalúa por rutina, **por modo y por juego**, y nunca mezcla:
+//  La regla se evalúa por rutina, **por modo, por juego y por dificultad
+//  declarada** (enmienda del 02/10), y nunca mezcla. Cada dificultad es una
+//  serie; **solo la de la dificultad prevista por el escalón propone**. Las
+//  demás —«Mixto» incluida— se calculan y se muestran igual, pero su resultado
+//  no es una propuesta. Ninguna sesión se excluye por la dificultad.
 //  - **Subir** si hay al menos 3 sesiones en el escalón, en al menos 2 semanas,
 //    todas completadas, y la FC media de la última está por lo menos 5 latidos
 //    por debajo del promedio de las dos primeras del escalón.
@@ -233,6 +237,15 @@ export interface ResultadoReglaVR {
   /** El escalón evaluado (en Ritmo suave, el único). */
   escalon: number;
   tope: number;
+  /** La dificultad de la serie: un id, `"mixto"` o `null` (sin declarar). */
+  dificultad: string | null;
+  /** La dificultad que prevé el escalón. */
+  prevista: string;
+  /**
+   * Solo la serie de la dificultad prevista propone (enmienda del 02/10). Las
+   * demás muestran su estado, pero no es una propuesta: no hay botón de subir.
+   */
+  esPropuesta: boolean;
   /** Solo datos medidos: lo que muestra la pantalla de la rutina (enmienda del 01/10). */
   numeros: {
     fcUltima: number | null;
@@ -255,6 +268,11 @@ export interface EntradaReglaVR {
   modo: ModoEscaleraVR;
   /** El juego: la regla nunca mezcla juegos. */
   idEjercicio: string;
+  /**
+   * La serie: la dificultad declarada (un id, `"mixto"` o `null`). Ausente =
+   * la prevista por el escalón.
+   */
+  dificultad?: string | null;
   perfil?: Pick<PerfilMiembro, "subidasVR" | "zonasFC" | "fcMaxTeorica">;
   config?: ConfigProgresion;
 }
@@ -269,12 +287,13 @@ export function evaluarReglaVR(e: EntradaReglaVR): ResultadoReglaVR | null {
   if (!escalera || escalera.length === 0) return null;
   const config = e.config ?? CONFIG_PROGRESION_DEFAULT;
   const escalon = vr.regla === "subir" ? escalonActual(e.perfil, e.rutina, e.modo) : 1;
+  const prevista = escalera[escalon - 1].dificultad;
+  const dificultad = e.dificultad === undefined ? prevista : e.dificultad;
 
-  // Solo esta rutina, este modo, este juego y este escalón (Ritmo suave tiene uno solo).
-  const delEscalon = e.historial
-    .filter((h) => h.idRutina === e.rutina.idRutina && h.vr != null
-      && h.vr.modo === e.modo && h.vr.idEjercicio === e.idEjercicio
-      && (vr.regla !== "subir" || h.vr.escalon === escalon))
+  // Solo esta rutina, este modo, este juego, este escalón (Ritmo suave tiene uno
+  // solo) y esta dificultad declarada: cada dificultad es su propia serie.
+  const delEscalon = sesionesDeLaClave(e, escalon)
+    .filter((h) => (h.vr!.dificultad ?? null) === dificultad)
     .sort((a, b) => (a.inicioMs ?? 0) - (b.inicioMs ?? 0) || a.fechaRealizada.localeCompare(b.fechaRealizada));
 
   const excluidas: ResultadoReglaVR["numeros"]["excluidas"] = [];
@@ -295,6 +314,7 @@ export function evaluarReglaVR(e: EntradaReglaVR): ResultadoReglaVR | null {
   const ultima = sesiones.length > 0 ? sesiones[sesiones.length - 1] : null;
   const base = {
     modo: e.modo, idEjercicio: e.idEjercicio, escalon, tope: escalera.length,
+    dificultad, prevista, esPropuesta: dificultad === prevista,
   };
   const numeros = (ref: number | null, techo: number | null = null): ResultadoReglaVR["numeros"] => ({
     fcUltima: ultima ? redondear1(ultima.fcMedia) : null,
@@ -337,6 +357,35 @@ export function evaluarReglaVR(e: EntradaReglaVR): ResultadoReglaVR | null {
   return res("mantener", "fc-sin-bajar", ref);
 }
 
+/** Las sesiones de esta rutina, modo, juego y escalón, de cualquier dificultad. */
+function sesionesDeLaClave(e: EntradaReglaVR, escalon: number): SesionRegla[] {
+  const vr = e.rutina.vr!;
+  return e.historial.filter((h) => h.idRutina === e.rutina.idRutina && h.vr != null
+    && h.vr.modo === e.modo && h.vr.idEjercicio === e.idEjercicio
+    && (vr.regla !== "subir" || h.vr.escalon === escalon));
+}
+
+/**
+ * Todas las series de una rutina, un modo y un juego: una por dificultad
+ * declarada (enmienda del 02/10). La prevista va siempre primera, aunque no
+ * tenga sesiones; después las demás dificultades, «Mixto» y las sin declarar.
+ */
+export function evaluarSeriesVR(e: Omit<EntradaReglaVR, "dificultad">): ResultadoReglaVR[] {
+  const vr = e.rutina.vr;
+  if (!vr || vr.regla === "ninguna") return [];
+  const escalera = vr.escaleras[e.modo];
+  if (!escalera || escalera.length === 0) return [];
+  const escalon = vr.regla === "subir" ? escalonActual(e.perfil, e.rutina, e.modo) : 1;
+  const prevista = escalera[escalon - 1].dificultad;
+  const declaradas = new Set(sesionesDeLaClave(e, escalon).map((h) => h.vr!.dificultad ?? null));
+  declaradas.delete(prevista);
+  const orden = (d: string | null) => (d === null ? 2 : d === DIFICULTAD_MIXTA ? 1 : 0);
+  const otras = [...declaradas].sort((a, b) => orden(a) - orden(b) || String(a).localeCompare(String(b)));
+  return [prevista, ...otras]
+    .map((dificultad) => evaluarReglaVR({ ...e, dificultad }))
+    .filter((r): r is ResultadoReglaVR => r != null);
+}
+
 /**
  * La subida que se registra al aceptar la propuesta (P98). Devuelve la lista de
  * subidas nueva, para escribir en el perfil, o un error. Solo con `subir`.
@@ -348,6 +397,7 @@ export function aplicarSubida(
   hoyMs: number,
 ): { ok: true; subidasVR: SubidaVR[] } | { ok: false; error: string } {
   if (resultado.estado !== "subir") return { ok: false, error: "La regla no propone subir." };
+  if (!resultado.esPropuesta) return { ok: false, error: "Solo propone la serie de la dificultad prevista." };
   if (resultado.escalon >= resultado.tope) return { ok: false, error: "Ya estás en el último escalón." };
   const n = resultado.numeros;
   const subida: SubidaVR = {

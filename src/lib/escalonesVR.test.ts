@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  aplicarSubida, contoCompletada, escalonActual, escalonDeHoy, evaluarReglaVR, minutosPrescriptos,
+  aplicarSubida, contoCompletada, escalonActual, escalonDeHoy, evaluarReglaVR, evaluarSeriesVR, minutosPrescriptos,
   modosDe, motivoExclusionVR, normalizarConfigProgresion, sinArchivadas, validarConfigProgresion,
   CONFIG_PROGRESION_DEFAULT,
 } from "./escalonesVR";
@@ -18,6 +18,8 @@ function sesion(o: {
   rutina?: Rutina; modo?: ModoEscaleraVR; escalon?: number; juego?: string; fc: number;
   semana: string; minutos?: number; completo?: boolean | null; bio?: Partial<NonNullable<Historial["biometria"]>>;
   dificultadPercibida?: Historial["dificultadPercibida"];
+  /** La dificultad declarada al cerrar. Ausente = la prevista por el escalón. */
+  dificultad?: string | null;
 }): Historial {
   const r = o.rutina ?? COMBAT;
   const modo = o.modo ?? "bloques";
@@ -33,7 +35,8 @@ function sesion(o: {
     biometria: { fuente: "samsung-health-csv", matchPor: "custom-id", granularidad: "serie", fcMedia: o.fc, coberturaFina: 0.98, ...o.bio },
     vr: {
       modo, escalon, idEjercicio: o.juego ?? r.vr!.idEjercicio, prescripto,
-      completoDeclarado: o.completo === undefined ? true : o.completo, dificultad: prescripto.dificultad,
+      completoDeclarado: o.completo === undefined ? true : o.completo,
+      dificultad: o.dificultad === undefined ? prescripto.dificultad : o.dificultad,
     },
     ...(o.dificultadPercibida ? { dificultadPercibida: o.dificultadPercibida } : {}),
   } as unknown as Historial;
@@ -213,5 +216,70 @@ describe("configuración y archivo (P98)", () => {
   });
   it("sinArchivadas saca las archivadas de las listas", () => {
     expect(sinArchivadas([{ archivada: true }, {}, { archivada: false }])).toHaveLength(2);
+  });
+});
+
+describe("series por dificultad declarada (enmienda del 02/10)", () => {
+  const series = (hs: Historial[], o: { rutina?: Rutina; modo?: ModoEscaleraVR; juego?: string } = {}) => {
+    const r = o.rutina ?? COMBAT;
+    return evaluarSeriesVR({ historial: hs, rutina: r, modo: o.modo ?? "bloques", idEjercicio: o.juego ?? r.vr!.idEjercicio });
+  };
+
+  it("dos dificultades en el mismo escalón son dos series, y no se mezclan", () => {
+    // Combat largo E1 prevé Intermedio.
+    const hs = [
+      sesion({ fc: 140, semana: S1 }), sesion({ fc: 150, semana: S1, dificultad: "avanzado" }),
+      sesion({ fc: 138, semana: S1 }), sesion({ fc: 152, semana: S1, dificultad: "avanzado" }),
+      sesion({ fc: 133, semana: S2 }), sesion({ fc: 160, semana: S2, dificultad: "avanzado" }),
+    ];
+    const [prevista, avanzado, ...resto] = series(hs);
+    expect(resto).toEqual([]);
+    expect([prevista.dificultad, prevista.esPropuesta, prevista.estado]).toEqual(["intermedio", true, "subir"]);
+    expect(prevista.numeros).toMatchObject({ fcReferencia: 139, fcUltima: 133, diferencia: -6 });
+    expect([avanzado.dificultad, avanzado.esPropuesta, avanzado.estado, avanzado.motivo]).toEqual(["avanzado", false, "mantener", "fc-subio"]);
+    expect(avanzado.numeros).toMatchObject({ fcReferencia: 151, fcUltima: 160 });
+  });
+  it("solo la serie de la dificultad prevista propone subir; las otras se calculan igual", () => {
+    const hs = [140, 138, 133].map((fc, i) => sesion({ fc, semana: i < 2 ? S1 : S2, dificultad: "avanzado" }));
+    const [prevista, avanzado] = series(hs);
+    expect([prevista.dificultad, prevista.estado, prevista.numeros.sesiones.length]).toEqual(["intermedio", "sin-datos", 0]);
+    expect([avanzado.estado, avanzado.esPropuesta]).toEqual(["subir", false]);
+    expect(aplicarSubida(undefined, COMBAT, avanzado, 1)).toEqual({ ok: false, error: "Solo propone la serie de la dificultad prevista." });
+  });
+  it("«Mixto» es su propia serie y nunca propone; las sin declarar van al final", () => {
+    const hs = [
+      ...[140, 138, 133].map((fc, i) => sesion({ fc, semana: i < 2 ? S1 : S2, dificultad: "mixto" })),
+      sesion({ fc: 145, semana: S2, dificultad: null }),
+    ];
+    const s = series(hs);
+    expect(s.map((x) => [x.dificultad, x.esPropuesta])).toEqual([["intermedio", true], ["mixto", false], [null, false]]);
+    expect(s[1].estado).toBe("subir");
+  });
+  it("ninguna sesión se excluye por la dificultad", () => {
+    const hs = [sesion({ fc: 140, semana: S1, dificultad: "principiante" }), sesion({ fc: 140, semana: S1, dificultad: "mixto" })];
+    for (const x of series(hs)) expect(x.numeros.excluidas).toEqual([]);
+    expect(series(hs).reduce((n, x) => n + x.numeros.sesiones.length, 0)).toBe(2);
+  });
+  it("las «dos seguidas», las 3 sesiones y las 2 semanas se cuentan dentro de la serie", () => {
+    // Las incompletas son de Avanzado: no frenan a Intermedio.
+    const hs = [
+      sesion({ fc: 140, semana: S1 }), sesion({ fc: 150, semana: S1, dificultad: "avanzado", completo: false }),
+      sesion({ fc: 138, semana: S1 }), sesion({ fc: 150, semana: S2, dificultad: "avanzado", completo: false }),
+      sesion({ fc: 133, semana: S2 }),
+    ];
+    const [prevista, avanzado] = series(hs);
+    expect(prevista.estado).toBe("subir");
+    expect([avanzado.estado, avanzado.motivo]).toEqual(["mantener", "no-completo-dos-seguidas"]);
+  });
+  it("evaluarReglaVR sin dificultad evalúa la prevista", () => {
+    const hs = [140, 138, 133].map((fc, i) => sesion({ fc, semana: i < 2 ? S1 : S2, dificultad: "avanzado" }));
+    expect(evaluarReglaVR({ historial: hs, rutina: COMBAT, modo: "bloques", idEjercicio: EJ_BODYCOMBAT })!.dificultad).toBe("intermedio");
+  });
+  it("Ritmo suave: el «bajar» de otra dificultad es informativo", () => {
+    const z = { zonasUsadas: { Z3: { min: 119, max: 135 } } };
+    const hs = [137, 138].map((fc, i) => sesion({ rutina: RITMO, modo: "corrido", fc, semana: i ? S2 : S1, bio: z, dificultad: "+1" }));
+    const [base, mas1] = series(hs, { rutina: RITMO, modo: "corrido" });
+    expect([base.dificultad, base.estado]).toEqual(["base", "sin-datos"]);
+    expect([mas1.estado, mas1.esPropuesta]).toEqual(["bajar-dificultad", false]);
   });
 });

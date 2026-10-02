@@ -300,6 +300,8 @@ El "2 de 6" del 30/09 sale del programa activo PRG-0004, que es de 6 días; la m
 
 El paquete de análisis manda la rutina tal como está (E1 del modo por defecto, aclarado como tal) y no el escalón ni el modo jugados. P99 tiene que sumarlos (reporte de P98, punto 10).
 
+Junto con el escalón y el modo jugados, el paquete tiene que llevar la dificultad declarada al cerrar (`vr.dificultad`: un nivel, «Mixto» o sin declarar). Desde el 02/10 la regla de progresión separa las series por dificultad.
+
 ### 5 · Análisis general (P94)
 
 - Mira **todas las sesiones de un rango de semanas**. La serie semanal de **carga** es su base para comparar.

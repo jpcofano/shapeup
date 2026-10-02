@@ -1195,3 +1195,9 @@ había ninguna regla que dijera cuándo avanzar.
 - **Dificultades**: Bodycombat tiene las suyas; los demás juegos, por ahora, relativas («Por
   defecto», «+1», «+2»), en `Ejercicio.dificultadesVR`. La sesión guarda el id, así que se pueden
   renombrar después sin tocar el historial.
+
+**Enmendado el 02/10/2026: la dificultad declarada entra en la clave de comparación.** Decisión de Juan sobre el diagnóstico del 02/10, punto 2.
+- La regla compara por rutina, escalón, modo, juego **y dificultad declarada** (`vr.dificultad`). Cada dificultad es una **serie**: la referencia (el promedio de las dos primeras) y la última sesión se toman dentro de la serie, y ahí se cuentan las 3 sesiones, las 2 semanas y las «dos seguidas».
+- **Solo la serie de la dificultad prevista por el escalón puede proponer**, sea subir o, en Ritmo suave, bajar. Las demás, «Mixto» incluida, se calculan y se muestran igual, pero su resultado no es una propuesta. La pantalla de la rutina muestra cada serie con su dificultad.
+- **Ninguna sesión se excluye por la dificultad.**
+- **Sin dificultad declarada** (`vr.dificultad: null`): pendiente de decisión. Hoy no hay ninguna en `/historial`; mientras tanto forman su propia serie, informativa.
