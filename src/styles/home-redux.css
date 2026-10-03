@@ -5,7 +5,13 @@
 
    Alcance local: estos tokens viven en un wrapper <div class="dir-a|dir-c v21"
    data-mode="…" data-accent="…"> que envuelve SOLO el contenido de Home cuando
-   el layout elegido es pulse/premium. No tocan :root. Por cascada, las clases
+   el layout elegido es pulse/premium (y en la barra de navegación).
+   ⚠ <html> TAMBIÉN tiene data-mode: lo pone ThemeProvider desde P65. Por eso
+   ningún selector de este archivo puede ser un [data-mode=…] suelto: tiene que
+   ir con [data-accent] (que <html> no tiene) o pegado a .dir-a/.dir-c. Un
+   [data-mode="dark"] suelto pisaba --accent en <html> con un var(--acc-d)
+   inexistente y dejaba sin acento a toda la app en modo oscuro (diagnóstico
+   del 02/10/2026). Lo fija src/styles/home-redux.test.ts. Por cascada, las clases
    genéricas del proyecto (.card, .btn-primary, .btn-secondary, .t-label) heredan
    estos valores automáticamente — por eso dir-c alias --card/--card2 a
    --surface/--surface2 (el handoff usa nombres distintos para B v2).
@@ -24,7 +30,7 @@
    crudo var(--accent). --accent-subtle/-border/-muted son valores terminales
    (fondos teñidos, bordes teñidos, iconos secundarios); --accent-strong es el
    nivel de hover/pressed. */
-[data-mode="dark"] {
+[data-accent][data-mode="dark"] {
   --accent:        var(--acc-d);
   --on-accent:     #0b0f14;
   --accent-dim:    color-mix(in srgb, var(--acc-d) 14%, transparent);
@@ -34,7 +40,7 @@
   --accent-solid:  var(--acc-d);
   --accent-strong: color-mix(in srgb, var(--acc-d) 88%, white);
 }
-[data-mode="light"] {
+[data-accent][data-mode="light"] {
   --accent:        var(--acc-l);
   --on-accent:     #ffffff;
   --accent-dim:    color-mix(in srgb, var(--acc-l) 10%, transparent);
