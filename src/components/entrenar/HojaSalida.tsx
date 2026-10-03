@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { textoMinutosDescartados } from "../../lib/entrenarState";
 
 interface Props {
   /** Series registradas en toda la sesión. */
@@ -12,19 +13,27 @@ interface Props {
   onDescartar: () => void;
   onSeguir:    () => void;
   onReiniciar: () => void;
+  /**
+   * Minutos jugados en VR por escalones (P99). Con más de 0, salir sin guardar
+   * pide confirmación aunque no haya series, y la cuenta es en minutos.
+   */
+  minutosJugados?: number;
+  /** `false`: no se ofrece «Guardar y salir» (VR por escalones guarda desde su cierre, P99). */
+  puedeGuardar?:   boolean;
 }
 
 /**
  * Hoja que abre la X del header (P68): guardar como parcial, salir sin guardar
- * (con segundo paso si hay series), seguir entrenando o reiniciar.
+ * (con segundo paso si hay series o minutos jugados), seguir entrenando o reiniciar.
  */
 export function HojaSalida({
   series, contexto, guardando, error, onGuardar, onDescartar, onSeguir, onReiniciar,
+  minutosJugados = 0, puedeGuardar = true,
 }: Props) {
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
 
   function salirSinGuardar() {
-    if (series > 0) setConfirmandoDescarte(true);
+    if (series > 0 || minutosJugados > 0) setConfirmandoDescarte(true);
     else onDescartar();
   }
 
@@ -43,16 +52,20 @@ export function HojaSalida({
           {!confirmandoDescarte ? (
             <>
               <p id="hoja-salida-titulo" className="confirmar-titulo">¿Salir de la sesión?</p>
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={series === 0 || guardando}
-                onClick={onGuardar}
-              >
-                {guardando ? "Guardando…" : "Guardar y salir"}
-              </button>
-              {series === 0 && (
-                <p className="hoja-salida-nota">Todavía no hay series para guardar</p>
+              {puedeGuardar && (
+                <>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    disabled={series === 0 || guardando}
+                    onClick={onGuardar}
+                  >
+                    {guardando ? "Guardando…" : "Guardar y salir"}
+                  </button>
+                  {series === 0 && (
+                    <p className="hoja-salida-nota">Todavía no hay series para guardar</p>
+                  )}
+                </>
               )}
               <button type="button" className="btn-secondary" disabled={guardando} onClick={salirSinGuardar}>
                 Salir sin guardar
@@ -69,7 +82,9 @@ export function HojaSalida({
             <>
               <p id="hoja-salida-titulo" className="confirmar-titulo">¿Salir sin guardar?</p>
               <p className="confirmar-texto">
-                {series === 1 ? "Se descarta 1 serie." : `Se descartan ${series} series.`}
+                {minutosJugados > 0
+                  ? textoMinutosDescartados(minutosJugados)
+                  : series === 1 ? "Se descarta 1 serie." : `Se descartan ${series} series.`}
               </p>
               <div className="confirmar-acciones">
                 <button type="button" className="btn-secondary" onClick={() => setConfirmandoDescarte(false)}>

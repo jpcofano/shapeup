@@ -635,6 +635,9 @@ export function EntrenarSesionLibre() {
     return (
       <div className="workout-screen">
         <div className="workout-header">
+          <button className="btn-icon-sm" onClick={() => abrirSalida()} disabled={saving} title="Salir">
+            <X size={18} />
+          </button>
           <p className="workout-title">Sesión libre</p>
           <SinConexion />
         </div>

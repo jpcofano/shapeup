@@ -12,7 +12,7 @@ import {
   rutinaCompleta, rutinaTerminada, seriesHechasTotales, valorPrefillSerie,
   finParcialMs, sesionVieja, mensajeSesionVieja,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
-  vrEscalonCerrado, indiceBloqueVR,
+  vrEscalonCerrado, indiceBloqueVR, minutosJugadosVR,
 } from "../lib/entrenarState";
 import { InicioEscalonVR } from "../components/entrenar/InicioEscalonVR";
 import { CierreEscalonVR } from "../components/entrenar/CierreEscalonVR";
@@ -138,7 +138,9 @@ export function EntrenarSesion() {
     session.reiniciar();
     session.asegurarInicioSesion();
   }
-  const reinicio = useConfirmarReinicio(seriesHechasTotales(state), reiniciarYSellar);
+  /** VR por escalones: lo jugado desde «Empezar», que se pierde al salir o reiniciar (P99). */
+  const minutosVR = minutosJugadosVR(state, rutina, Date.now());
+  const reinicio = useConfirmarReinicio(seriesHechasTotales(state), reiniciarYSellar, minutosVR);
 
   function abrirSalida(contexto?: string) {
     setErrorSalida(null);
@@ -380,6 +382,18 @@ export function EntrenarSesion() {
       onDescartar={salirSinGuardar}
       onSeguir={() => setSalida(null)}
       onReiniciar={() => { setSalida(null); reinicio.pedir(); }}
+      // VR por escalones guarda solo desde su cierre, con la dificultad (P99).
+      minutosJugados={minutosVR}
+      puedeGuardar={!rutina?.vr}
+    />
+  );
+
+  const confirmarReinicio = reinicio.abierto && (
+    <ConfirmarReinicio
+      series={seriesHechasTotales(state)}
+      minutosJugados={minutosVR}
+      onConfirmar={reinicio.confirmar}
+      onCancelar={reinicio.cancelar}
     />
   );
 
@@ -507,7 +521,7 @@ export function EntrenarSesion() {
     const serie = state.registro[indiceBloqueVR(rutina)]?.[0];
     const desde = state.vrInicioMs ?? state.inicioMs;
     const hasta = serie?.finMs ?? Date.now();
-    const minutos = desde != null ? (hasta - desde) / 60_000 : 0;
+    const minutos = minutosVR;
     const guardarEscalon = async (d: { completoDeclarado: boolean | null; dificultad: string | null }) => {
       if (!rutinaId || !memberId) return;
       setSaving(true);
@@ -536,6 +550,9 @@ export function EntrenarSesion() {
     return (
       <div className="workout-screen">
         <div className="workout-header">
+          <button className="btn-icon-sm" onClick={() => abrirSalida()} disabled={saving} title="Salir">
+            <X size={18} />
+          </button>
           <p className="workout-title">{rutina.nombre}</p>
           <SinConexion />
         </div>
@@ -549,7 +566,9 @@ export function EntrenarSesion() {
             onGuardar={(d) => void guardarEscalon(d)}
           />
         </div>
+        {hojaSalida}
         {avisoPendiente}
+        {confirmarReinicio}
       </div>
     );
   }
@@ -559,6 +578,9 @@ export function EntrenarSesion() {
     return (
       <div className="workout-screen">
         <div className="workout-header">
+          <button className="btn-icon-sm" onClick={() => abrirSalida()} disabled={saving} title="Salir">
+            <X size={18} />
+          </button>
           <p className="workout-title">{rutina.nombre}</p>
           <SinConexion />
         </div>
@@ -607,13 +629,7 @@ export function EntrenarSesion() {
 
         {hojaSalida}
         {avisoPendiente}
-        {reinicio.abierto && (
-          <ConfirmarReinicio
-            series={seriesHechasTotales(state)}
-            onConfirmar={reinicio.confirmar}
-            onCancelar={reinicio.cancelar}
-          />
-        )}
+        {confirmarReinicio}
       </div>
     );
   }
@@ -769,6 +785,7 @@ export function EntrenarSesion() {
         </div>
         {hojaSalida}
         {avisoPendiente}
+        {confirmarReinicio}
       </div>
     );
   }
@@ -968,13 +985,7 @@ export function EntrenarSesion() {
       )}
       {hojaSalida}
       {avisoPendiente}
-      {reinicio.abierto && (
-        <ConfirmarReinicio
-          series={seriesHechasTotales(state)}
-          onConfirmar={reinicio.confirmar}
-          onCancelar={reinicio.cancelar}
-        />
-      )}
+      {confirmarReinicio}
     </div>
   );
 }

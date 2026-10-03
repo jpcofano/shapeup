@@ -523,6 +523,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - Revisar docs/reportes/pendientes-anteriores-a-P100.md y decidir qué pasa al backlog (correlaciones en Salud, backup CSV, aplicar corregir-mecanica, backlog de junio).
 - Sacar «VR» de `LUGARES`: el visor es equipo, no lugar (P98). Las rutinas nuevas ya van en Casa con `equipoNecesario: ["VR"]`; quedan las viejas, el filtro de Biblioteca y el selector de lugar.
 - Retirar `lib/progresionVR.ts` (P79/P80) y `TarjetaProgresionVR` cuando las rutinas de VR viejas ya no se usen (P98, ADR #046).
+- **SesionJuego: ✕ sin descartar, sin hoja de salida ni cierre** (03/10). La ✕ solo navega a /entrenar: el reloj sigue en el teléfono y vuelve al entrar; «Terminar» guarda directo. Para la auditoría de diseño.
 
 
 ---

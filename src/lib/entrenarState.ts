@@ -770,6 +770,26 @@ export function mensajeSesionVieja(inicioMs: number): string {
 }
 
 /**
+ * Minutos jugados en una sesión de VR por escalones (P99): desde «Empezar»
+ * hasta «Terminar», o hasta `now` si el reloj sigue corriendo. Es lo que se
+ * pierde al salir sin guardar o reiniciar. 0 si no es VR por escalones o
+ * todavía no se empezó.
+ */
+export function minutosJugadosVR(state: EntrenarState, rutina: Rutina | null, now: number): number {
+  if (!rutina?.vr || !state.vrEscalon) return 0;
+  const desde = state.vrInicioMs ?? state.inicioMs;
+  if (desde == null) return 0;
+  const hasta = state.registro[indiceBloqueVR(rutina)]?.[0]?.finMs ?? now;
+  return Math.max(0, (hasta - desde) / 60_000);
+}
+
+/** «Se descartan N min jugados.»: redondeado, nunca «0 min» (P99). */
+export function textoMinutosDescartados(minutos: number): string {
+  const n = Math.max(1, Math.round(minutos));
+  return n === 1 ? "Se descarta 1 min jugado." : `Se descartan ${n} min jugados.`;
+}
+
+/**
  * Saca bloques de la sesión y corre los índices del resto (sesión libre cuyo
  * ejercicio ya no está en el catálogo). Sin esto, el progreso guardado por
  * índice quedaría asignado al ejercicio equivocado. `totalRestante` es la

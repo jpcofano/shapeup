@@ -61,7 +61,17 @@ Si se elige PowerBeats al empezar, la sesión guarda PowerBeats como el ejercici
 `Historial.vr.idEjercicio`. **No se registra como una sustitución de P73**: es un juego elegible de la
 rutina, no un cambio en el momento. La regla lo evalúa por separado de Beat the Beats.
 
-## Salir a mitad de sesión
+## Salir a mitad de sesión (03/10)
 
-Si se sale con la hoja de salida antes de «Terminar», la sesión se guarda **sin escalón**
-(`Historial.vr` ausente), y la regla no la cuenta.
+Una sesión de VR por escalones **se guarda solo desde el cierre**, con la dificultad. La ✕ y el
+«atrás» abren la hoja de salida en las tres pantallas (arranque, reloj y cierre), pero sin «Guardar
+y salir»: quedan «Salir sin guardar», «Seguir entrenando» y «Reiniciar sesión».
+
+- **Salir sin guardar** descarta la sesión en Firestore (`descartarSesion`) y en el teléfono. Con
+  tiempo jugado pide confirmación y lo dice en minutos («Se descartan 40 min jugados.»): en el reloj
+  no hay ninguna serie hasta «Terminar», así que contar series no alcanzaba.
+- **Reiniciar sesión** vuelve al arranque (elegir modo y juego), con la misma confirmación por
+  minutos. Conserva la `SesionProgramada`, como en el resto de las rutinas.
+
+Los minutos salen de `minutosJugadosVR` (`lib/entrenarState.ts`): de «Empezar» a «Terminar», o
+hasta ahora si el reloj sigue. Las rutinas que no son de VR por escalones no cambiaron.

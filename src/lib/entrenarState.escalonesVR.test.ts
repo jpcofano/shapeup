@@ -3,7 +3,7 @@
 import { describe, it, expect } from "vitest";
 import {
   INITIAL_ENTRENAR_STATE, sellarEscalonVR, cerrarPorTiempo, vrEscalonCerrado, indiceBloqueVR,
-  construirBloquesRegistro,
+  construirBloquesRegistro, minutosJugadosVR, textoMinutosDescartados,
 } from "./entrenarState";
 import { RUTINAS_VR, RUT_RITMO_SUAVE, RUT_COMBAT_LARGO, EJ_POWERBEATS } from "./catalogoVR";
 import type { Rutina } from "../types/models";
@@ -39,5 +39,24 @@ describe("VR por escalones en la sesión (P98)", () => {
     const esc = { ...ESC, idEjercicio: COMBAT.vr!.idEjercicio, nombreEjercicio: "x", modo: "bloques" as const, prescripto: COMBAT.vr!.escaleras.bloques![0] };
     const s = cerrarPorTiempo(sellarEscalonVR(INITIAL_ENTRENAR_STATE, esc, 0), COMBAT, 60_000);
     expect(construirBloquesRegistro(s, COMBAT)[0].nombreEjercicio).toBe(COMBAT.bloques[0].nombreEjercicio);
+  });
+});
+
+describe("Minutos jugados en VR por escalones (P99)", () => {
+  it("cuentan de «Empezar» a «Terminar», o hasta ahora si el reloj sigue", () => {
+    const s = sellarEscalonVR({ ...INITIAL_ENTRENAR_STATE, inicioMs: 0 }, ESC, 60_000);
+    expect(minutosJugadosVR(s, RITMO, 26 * 60_000)).toBe(25);
+    const c = cerrarPorTiempo(s, RITMO, 31 * 60_000);
+    expect(minutosJugadosVR(c, RITMO, 99 * 60_000)).toBe(30);
+  });
+  it("0 si no se empezó o la rutina no es de escalones", () => {
+    expect(minutosJugadosVR({ ...INITIAL_ENTRENAR_STATE, inicioMs: 0 }, RITMO, 60_000)).toBe(0);
+    const s = sellarEscalonVR(INITIAL_ENTRENAR_STATE, ESC, 0);
+    expect(minutosJugadosVR(s, { ...RITMO, vr: undefined }, 60_000)).toBe(0);
+    expect(minutosJugadosVR(s, null, 60_000)).toBe(0);
+  });
+  it("el texto redondea y nunca dice 0 min", () => {
+    expect(textoMinutosDescartados(0.2)).toBe("Se descarta 1 min jugado.");
+    expect(textoMinutosDescartados(39.6)).toBe("Se descartan 40 min jugados.");
   });
 });
