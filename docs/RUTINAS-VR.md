@@ -19,9 +19,13 @@ modo y un juego, cada **dificultad declarada al cerrar** es una serie:
 | ¿Se excluye alguna sesión por la dificultad? | No | No |
 
 La serie prevista aparece siempre, aunque todavía no tenga sesiones. Después vienen las demás
-dificultades, «Mixto» y, al final, las sesiones sin dificultad declarada. Cómo tratar estas últimas
-está pendiente de decisión; mientras tanto forman su propia serie informativa. El código está en
+dificultades, «Mixto» y, al final, las sesiones sin dificultad declarada. El código está en
 `evaluarSeriesVR` (`src/lib/escalonesVR.ts`).
+
+**Sin dificultad declarada** (decisión del 02/10): el cierre (`CierreEscalonVR`) no deja guardar sin
+elegir la dificultad; «Guardar» queda deshabilitado hasta entonces. Si alguna sesión llega igual sin
+ella, como respaldo, forma su propia serie informativa, que nunca propone. Contestar si se completó
+sigue siendo opcional: sin respuesta, la sesión no cuenta como completada.
 
 ## Los motivos de «mantener»
 

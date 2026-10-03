@@ -16,8 +16,13 @@ interface Props {
 /**
  * El cierre de una sesión de VR por escalones (P98). Se confirma si se completó
  * lo prescripto y en qué dificultad se jugó (puede ser mixta). La app lo
- * contrasta con la ventana: completar exige las dos cosas. Sin contestar, la
- * sesión se guarda igual y no cuenta como completada.
+ * contrasta con la ventana: completar exige las dos cosas. Sin contestar si se
+ * completó, la sesión se guarda igual y no cuenta como completada.
+ *
+ * **La dificultad es obligatoria** (decisión del 02/10): «Guardar» queda
+ * deshabilitado hasta elegirla, porque la regla separa las series por
+ * dificultad. Si alguna sesión llega igual sin ella, la regla la pone en su
+ * propia serie informativa.
  */
 export function CierreEscalonVR({ prescripto, minutosJugados, dificultades, guardando, error, onGuardar }: Props) {
   const [completo, setCompleto] = useState<boolean | null>(null);
@@ -51,10 +56,13 @@ export function CierreEscalonVR({ prescripto, minutosJugados, dificultades, guar
           </button>
         ))}
       </div>
-      <button className="btn-primary" disabled={guardando}
-        onClick={() => onGuardar({ completoDeclarado: completo, dificultad })}>
+      <button className="btn-primary" disabled={guardando || dificultad == null}
+        onClick={() => { if (dificultad != null) onGuardar({ completoDeclarado: completo, dificultad }); }}>
         {guardando ? "Guardando…" : "Guardar"}
       </button>
+      {dificultad == null && (
+        <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Elegí la dificultad para guardar.</p>
+      )}
       {error && <p style={{ margin: 0, fontSize: 13, color: "var(--danger)" }}>{error}</p>}
     </div>
   );
