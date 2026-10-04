@@ -147,6 +147,34 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
 
+### [2026-10-03] Ajustes posteriores a P98
+
+Cuatro arreglos que salieron de verificar P98 en el teléfono. No son un prompt numerado.
+
+- **`12a9ca3` — La dificultad declarada separa las series** (enmienda del #046). La regla mezclaba
+  sesiones jugadas en dificultades distintas. Ahora compara por rutina, escalón, modo, juego **y
+  dificultad declarada**: la referencia, la última sesión, las 3 sesiones, las 2 semanas y «dos
+  seguidas» se cuentan dentro de cada serie. Solo la serie de la dificultad prevista propone; las
+  demás, «Mixto» incluida, son informativas. Ninguna sesión se excluye por la dificultad.
+  `evaluarSeriesVR` en `lib/escalonesVR.ts`; `ProgresionEscalonesVR` muestra cada serie con su
+  dificultad y el botón de subir solo en la prevista. Insumo de P99: el paquete lleva la dificultad.
+- **`b947bb9` — El botón principal invisible en modo oscuro.** `home-redux.css` tenía
+  `[data-mode="dark"]` y `[data-mode="light"]` sueltos. Desde P65 `<html>` también tiene
+  `data-mode`, así que en oscuro pisaban `--accent` con un `var(--acc-d)` que en `<html>` no existe:
+  la app se quedaba sin acento y `.btn-primary` salía transparente. Los bloques pasan a
+  `[data-accent][data-mode=…]`; `home-redux.test.ts` falla si vuelve un selector suelto.
+- **`22bcd4d` — El cierre de VR no deja guardar sin la dificultad.** Con las series por dificultad de
+  `12a9ca3`, quedaba pendiente qué hacer con una sesión sin dificultad (decisión del 02/10). «Guardar» queda deshabilitado hasta
+  elegirla, con una línea que lo dice; si alguna llega igual sin ella, forma su propia serie
+  informativa. Contestar si se completó sigue siendo opcional.
+- **`043bf7d` — La ✕ en VR por escalones.** En el reloj no hay series hasta «Terminar», así que
+  «Salir sin guardar» descartaba 40 minutos sin preguntar; el cierre no tenía ✕, y el «atrás» abría
+  una hoja que no se dibujaba; «Reiniciar» no hacía nada. `HojaSalida` recibe `minutosJugados`
+  (confirma en minutos) y `puedeGuardar` (en VR por escalones se guarda solo desde el cierre).
+  El reinicio también confirma por minutos y vuelve al arranque. Los minutos salen de
+  `minutosJugadosVR` (`lib/entrenarState.ts`). La ✕ se sumó también a los fines genéricos.
+  `SesionJuego` quedó en el backlog.
+
 ### [2026-10-02] P98 — Las rutinas de VR por escalones (ADR #046)
 
 - **Modelo**: `Rutina.vr` (una escalera por modo, zonas objetivo, regla, alternativas de juego,

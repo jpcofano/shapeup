@@ -1,6 +1,6 @@
-# ShapeUp — traspaso de sesión · 02/10/2026
+# ShapeUp — traspaso de sesión · 03/10/2026
 
-Para el próximo chat. Reemplaza al traspaso del 30/09. Desde P100, este documento **es** `docs/ESTADO-DEL-PROYECTO.md`: Code lo copia ahí tal cual y reemplaza al anterior.
+Para el próximo chat. Reemplaza al traspaso del 02/10 (y al del 30/09). Desde P100, este documento **es** `docs/ESTADO-DEL-PROYECTO.md`: Code lo copia ahí tal cual y reemplaza al anterior.
 
 ---
 
@@ -9,13 +9,14 @@ Para el próximo chat. Reemplaza al traspaso del 30/09. Desde P100, este documen
 El repo de la app es público: `https://github.com/jpcofano/shapeup`. Antes de responder, clonalo y leé, en este orden:
 
 1. `CLAUDE.md`: las reglas de trabajo, el índice de ADRs y la sección **«Documentación»**, que dice dónde va cada cosa.
-2. `docs/ESTADO-DEL-PROYECTO.md`: tendría que ser este documento (con el cierre de P98 del 02/10). Si es más viejo, la copia todavía no se commiteó.
+2. `docs/ESTADO-DEL-PROYECTO.md`: tendría que ser este documento (03/10). Si es más viejo, la copia todavía no se commiteó.
 3. `docs/ANALISIS-ASISTIDO.md`: el plan de marcas y análisis (P99 y P94), con sus insumos de las pruebas del 30/09 y el 02/10. **Es la base de P99.**
-4. `docs/ADR.md`: los ADRs completos. Los nuevos son el #045 (zonas y FC máxima) y el #046 (rutinas de VR y progresión).
-5. `docs/ROADMAP-producto.md` §11: el orden de lo que viene.
-6. `docs/prompts/97-…`, `98-…` y `100-…`: muestran el formato de los prompts que funcionan.
+4. `docs/RUTINAS-VR.md`: cómo funciona la regla de progresión de VR (series por dificultad, motivos de «mantener», salida a mitad). Remite al ADR #046.
+5. `docs/ADR.md`: los ADRs completos. Los nuevos son el #045 (zonas y FC máxima) y el #046 (rutinas de VR y progresión, con su enmienda de la dificultad).
+6. `docs/ROADMAP-producto.md` §11: el orden de lo que viene.
+7. `docs/prompts/97-…`, `98-…` y `100-…`: muestran el formato de los prompts que funcionan.
 
-Para ver lo último commiteado, corré `git log --oneline -15`. Al cierre del 02/10, `HEAD` era `6a5a98a` (más el commit de esta copia).
+Para ver lo último commiteado, corré `git log --oneline -15`. Al cierre del 03/10, `HEAD` era `043bf7d` (más el commit de esta copia).
 
 ---
 
@@ -49,9 +50,9 @@ La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` →
 
 ---
 
-## 3 · Estado al cierre (02/10)
+## 3 · Estado al cierre (03/10)
 
-**Commits de la app, del 30/09 al 02/10:**
+**Commits de la app, del 30/09 al 03/10:**
 
 | Commit | Qué |
 |---|---|
@@ -64,6 +65,11 @@ La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` →
 | `6a90eaf` | Los insumos de las pruebas del 30/09 y el 02/10 para P99 |
 | `ba9e41f` | **P98** (app): las rutinas de VR por escalones, con dos modos y la regla de progresión, y su documentación |
 | `6a5a98a` | **P98** (herramientas): el seed `seed:rutinas-vr`, `package.json` y `SEEDS.md` |
+| `b7be4d8` | Cierre de P98: este ESTADO, el insumo de P99 y `docs/RUTINAS-VR.md` (nuevo) |
+| `12a9ca3` | Ajuste a P98: la dificultad declarada separa las series de la regla (enmienda del #046) |
+| `b947bb9` | Arreglo: el botón principal invisible en modo oscuro (`home-redux.css` pisaba `--accent` en `<html>` desde P65) |
+| `22bcd4d` | Ajuste a P98: el cierre de VR no deja guardar sin elegir la dificultad |
+| `043bf7d` | Arreglo: la salida de las pantallas de VR (✕ en el cierre, confirmación por minutos jugados, «Reiniciar» que funciona, sin «Guardar y salir» en VR) |
 
 **P98: cerrado.** Seed aplicado, hosting deployado (antes del commit: ver §8) y commiteado. `tsc` limpio y 1564 tests; falla solo la suite de reglas, que necesita el emulador.
 - **Reglas: sin cambios y sin deploy.**
@@ -74,7 +80,7 @@ La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` →
 - `corregir:zonas`: las zonas de los cuatro perfiles con la convención de Samsung, y el origen de la FC máxima;
 - `seed:rutinas-vr`.
 
-**Deployado:** el hosting con P93, P97 y P98. Las sesiones se rehicieron a la biometría v8.
+**Deployado:** el hosting con P93, P97 y P98. Las sesiones se rehicieron a la biometría v8. **Los cuatro ajustes del 02 y 03/10 (`12a9ca3` a `043bf7d`) estaban sin deployar al cierre**: ver §6.
 
 **Lo que muestra la app ahora:**
 - **Revisión de la FC máxima de Juan:** la estimación de ShapeUp da **173** y la vigente es **169** (origen `samsung`). **La decisión es de Juan.** Quedarse en 169 mantiene las zonas iguales a las de la pantalla de Samsung; con 173 suben unos 3 latidos. Hay tres sesiones excluidas de la estimación (12/09, 18/09 y 29/09), con picos suavizados de 174, 179 y 183, por la regla «pico > vigente + 10».
@@ -82,6 +88,7 @@ La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` →
 - **Programa activo de Juan: el PRG-0013, de 5 días:** Combat largo, Ritmo suave, Creed, Ritmo suave, Combat largo. El PRG-0012 de María no se tocó.
   - Qué programa usa cada miembro lo dice `config/programaActivo`, no el estado del programa. El PRG-0013 queda en estado «Plantilla» **a propósito**: si estuviera en «Activo», la app se lo daría por defecto a los miembros sin programa elegido.
   - El PRG-0004 (6 días) lleva la etiqueta «Pausado», que la app no lee.
+- **Sesión de prueba sin descartar:** `SES-20261002205619-jjmxi6` (RUT-0026, Combat largo), «En curso» en `/sesiones`, 0 min. No llegó a `/historial`. Se descarta en el teléfono con ✕ → «Salir sin guardar» después del deploy de `043bf7d`; si no, la borra Home en la PC (sesiones abiertas de más de 24 h que ese dispositivo no tiene en local). Dejarla «En curso» no afecta ninguna pantalla.
 
 ---
 
@@ -96,6 +103,8 @@ La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` →
   - el modo se elige al empezar;
   - la confirmación de Juan entra en la regla como condición «y»: puede frenar una subida, nunca causarla.
 - **«2 de 6» en el análisis del 30/09:** salía del PRG-0004, que es de 6 días. Lo resuelve el PRG-0013.
+- **Verificar P98 en el teléfono encontró dos errores que los tests no veían:** el botón principal invisible en oscuro (venía de P65, afectaba a toda la app) y el cierre de VR sin salida. Los dos se arreglaron el 02 y 03/10. Mirar la app real en los dos modos es parte de verificar.
+- **Code paró bien dos veces** en vez de reinterpretar: la dificultad (que la regla ignoraba) y la hoja de salida (reusarla tal cual se salteaba la dificultad obligatoria).
 - **Análisis de prueba** (chat «PowerBeatsVR sesión análisis», 27/09 y 30/09): la v3 todavía compara contra lo prescripto y comenta las calorías. Pide datos que la app tiene (FC de reposo, sueño y edad) y duda de la FC aunque la app no la marcó como dudosa. Todo eso está en los insumos de P99.
 
 ---
@@ -133,7 +142,9 @@ Las de antes siguen en pie: ADR #042 a #044, P79, la FC máxima en la opción C,
 
 **Rutinas de VR (P98, ADR #046).**
 - Las cuatro rutinas viejas están archivadas; la 0014 sigue.
-- La regla compara la última sesión contra el promedio de las dos primeras del escalón, con el mismo modo y el mismo juego.
+- La regla compara la última sesión contra el promedio de las dos primeras del escalón, con el mismo modo, el mismo juego y **la misma dificultad declarada** (enmienda del 02/10). Cada dificultad es una serie propia; ninguna sesión se excluye por la dificultad.
+- **Solo propone la serie de la dificultad prevista por el escalón.** Las otras, «Mixto» incluida, se calculan y se muestran como informativas, sin botón. En Ritmo suave, igual: solo la serie «Por defecto» propone bajar.
+- **El cierre no deja guardar sin elegir la dificultad.** Si alguna sesión llega sin ella, queda en su propia serie informativa.
 - En Ritmo suave, la regla se evalúa por juego.
 - Las dificultades son relativas («por defecto», «+1», «+2»), salvo Bodycombat, hasta que Juan pase los nombres reales.
 - Los números de la regla están en `/config/progresion`: el umbral de 5 bpm, que es provisorio, 3 sesiones, 2 semanas y 90 %.
@@ -145,7 +156,7 @@ Las de antes siguen en pie: ADR #042 a #044, P79, la FC máxima en la opción C,
   - «mantener» tiene cinco motivos a la vista, incluidos: la FC bajó menos que el umbral, una sesión no completada suelta y el último escalón;
   - el modo que se ofrece primero es el de la rutina (bloques en Combat y Creed, corrido en Ritmo suave), no el de la última sesión como en P80; Combat corto tiene un solo modo y no pregunta;
   - en Ritmo suave, PowerBeats se guarda como el ejercicio de la sesión, no como reemplazo;
-  - salir a mitad con la hoja de salida guarda la sesión sin escalón, y la regla no la cuenta;
+  - en VR por escalones no hay «Guardar y salir»: se guarda solo con «Terminar» → cierre → dificultad. «Salir sin guardar» y «Reiniciar» piden confirmación si hay minutos jugados (desde el 03/10; antes, salir a mitad guardaba sin escalón);
   - «completa» usa el mismo criterio que la regla: la confirmación de Juan y el 90 %.
 
 **Numeración:** P94 y P95 están reservados y P99 es el próximo. El ajuste de diseño será **P101**.
@@ -154,14 +165,18 @@ Las de antes siguen en pie: ADR #042 a #044, P79, la FC máxima en la opción C,
 
 ## 6 · Próximos pasos, en orden
 
-**1. P98: cerrado el 02/10** (ver §3).
+**1. Pushear y deployar los ajustes.** Al cierre, `043bf7d` estaba commiteado pero **no pusheado**: primero `git push`, después confirmar `origin/main` = `HEAD`, después deploy del hosting (las reglas no cambiaron). En el teléfono, cerrar la app del todo y volver a abrirla antes de entrar a Combat largo.
 
 **2. Verificar P98 en la app:**
 - la semana de Home muestra 5 días;
 - la Biblioteca no muestra las rutinas viejas;
 - el umbral se puede editar en la tarjeta de «Familia y datos» (solo la ve el owner);
-- al empezar, la app pregunta el modo;
-- al cerrar, pide confirmar si completó y en qué nivel.
+- al empezar, la app pregunta el modo; **ya verificado el 02/10**;
+- al cerrar, pide confirmar si completó y en qué nivel; **ya verificado el 02/10**;
+- en oscuro, los botones principales se ven (tema Ion y alguno más);
+- «Guardar» del cierre queda deshabilitado hasta elegir la dificultad;
+- la ✕ entra bien en el header del cierre y de los dos fines genéricos;
+- con la sesión de prueba: ✕ → «Salir sin guardar» → confirma por minutos → desaparece.
 
 **3. Decidir la revisión de la FC máxima** (173 o 169), desde la tarjeta de Perfil.
 
@@ -179,7 +194,7 @@ Las de antes siguen en pie: ADR #042 a #044, P79, la FC máxima en la opción C,
 
 **5. Usar la app.** La regla de P98 empieza a proponer después de 3 sesiones en 2 semanas en el mismo escalón y modo. **Juan anota los nombres de las dificultades** de Creed, Beat the Beats y PowerBeats.
 
-**6. P101: ajuste de diseño,** después de P99. Se documenta en el sistema de diseño de la raíz (`README.md`, `SKILL.md`, `ui_kits/` y `preview/`).
+**6. Auditoría con Design y P101.** Juan quiere hacer una sesión con Design que audite toda la app. Falta decidir cuándo: antes de P99, después, o entre las Partes 3 y 4 de P99 (las primeras no tocan pantalla; la 4 es la pantalla de marcas). El brief lleva lo ya anotado: la etiqueta de la tarjeta de la FC máxima (§7), `SesionJuego` (§7) y las capturas del 02/10. Lo que salga va a P101, que se documenta en el sistema de diseño de la raíz (`README.md`, `SKILL.md`, `ui_kits/` y `preview/`).
 
 **7. P94: análisis general y focos.**
 
@@ -195,7 +210,9 @@ El vigente está en el roadmap. Lo agregado en estos días:
 - retirar `progresionVR.ts` cuando no quede ninguna rutina vieja activa;
 - guardar la prescripción en las sesiones de fuerza;
 - P95 (sincronización incremental y duplicados);
-- el build tardó 48 minutos una vez. Si se repite, sospechar de OneDrive.
+- el build tardó 48 minutos una vez. Si se repite, sospechar de OneDrive;
+- **la tarjeta de revisión de la FC máxima** muestra el pico **suavizado** (174, 179, 183) con el motivo «pico > vigente + 10», pero la regla usa el pico **crudo**: con 179 sobre 169 + 10 no cierra a la vista. La exclusión está bien; la etiqueta tiene que mostrar el pico crudo que la disparó;
+- `SesionJuego`: la ✕ no descarta, no tiene hoja de salida ni cierre (ya está en el roadmap).
 
 ---
 
@@ -203,7 +220,8 @@ El vigente está en el roadmap. Lo agregado en estos días:
 
 Las de antes siguen valiendo: no restar dos relojes distintos; anclar en el extremo confiable; no medir sobre datos que están por corregirse; verificar contra una fuente externa antes de construir encima; `npm run algo -- --flag`; un `-m` por párrafo en cmd.exe; WorkManager y Doze. Las nuevas:
 
-- **Commitear antes de deployar,** así lo publicado siempre corresponde a un commit. (P98 se deployó antes: no repetir.)
+- **Commitear y pushear antes de deployar,** así lo publicado siempre corresponde a un commit que está en GitHub. (P98 se deployó antes del commit, y `043bf7d` quedó sin push: no repetir.) «Commiteado» en un reporte de Code no implica pusheado: se mira `origin/main`.
+- **Cuando Code dice «falta el commit de X», verificar que X esté hecho.** El 02/10 el arreglo del botón no estaba aplicado, no solo sin commitear.
 - **Un script que cambia los datos base va antes del deploy** que los usa. P97: si se deployaba antes, la v8 rehacía las sesiones con el 152 y se las guardaba.
 - **Un chat nuevo por cada análisis de sesión.** El bloque `armado` lo escribe la app; el chat solo lo copia.
 - **Revisar las reglas cuando aparece un documento o colección nueva** en Firestore. La suite de reglas necesita el emulador.
