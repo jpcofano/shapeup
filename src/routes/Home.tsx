@@ -24,6 +24,7 @@ import { VistaSemanal } from "../components/VistaSemanal";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
 import { lunesDeSemana, ymdLocal } from "../lib/semana";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
+import { HojaCambiar } from "../components/entrenar/HojaCambiar";
 import { getHomeLayout, type HomeLayout } from "../lib/homeLayout";
 import { calcularWeekChips } from "../lib/weekChips";
 import type { DiaActivo } from "../lib/racha";
@@ -291,6 +292,8 @@ export function Home() {
   const [diasActivos, setDiasActivos] = useState<DiaActivo[]>([]);
 
   const semanaRef = useRef(lunesDeSemana());
+  /** La hoja «Cambiar» lo que toca hoy (P102). */
+  const [cambiando, setCambiando] = useState(false);
 
   // Sesiones guardadas en el teléfono que faltan subir (P69).
   const pendientes = usePendientes();
@@ -389,7 +392,7 @@ export function Home() {
           setPrograma(prog);
           setProxima(proximaSesion(prog, estaShapeUp));
           const hoyNum = jsDayToNum(new Date().getDay());
-          const sesHoy = sesionDeHoy(prog, hoyNum, estaShapeUp);
+          const sesHoy = sesionDeHoy(prog, hoyNum, estaShapeUp, ymdLocal());
           setHoy(sesHoy);
         } else {
           setProxima(null);
@@ -497,6 +500,19 @@ export function Home() {
 
   const canStart = hoy?.tipo === "rutina" ? !hoy.yaHecha : !!proxima?.dia.idRutina;
 
+  // ── Cambiar lo que toca hoy (P102, ADR #030) ──────────────────────────────
+  // «Cambiar» va junto a «Empezar»: la prevista es la rutina que se iba a empezar.
+  const abrirCambiar = () => setCambiando(true);
+  const hojaCambiar = cambiando && sesionRutinaId && sesionNombre ? (
+    <HojaCambiar
+      prevista={{ idRutina: sesionRutinaId, nombre: sesionNombre }}
+      programa={programa}
+      onCerrar={() => setCambiando(false)}
+    />
+  ) : null;
+  /** «Ya entrenaste hoy» con un cambio: qué se hizo en su lugar, en una línea. */
+  const lineaEnSuLugar = hoy?.tipo === "rutina" && hoy.enSuLugar ? `En su lugar: ${hoy.enSuLugar}` : null;
+
   // ── Pulse / Premium layouts (P53 — home-redux) ───────────────────────────
   if (!loading && (layout === "pulse" || layout === "premium")) {
     const direccion = layout === "pulse" ? "pulse" as const : "premium" as const;
@@ -528,7 +544,7 @@ export function Home() {
       ? "Recuperá. La recuperación también es parte del entrenamiento."
       : !sesionNombre
       ? "Elegí un programa en Biblioteca."
-      : undefined;
+      : lineaEnSuLugar ?? undefined;
     const heroButtons: HomeReduxButton[] = semanaCompleta
       ? [{ label: "Elegir otra rutina", variant: "secondary", onClick: () => navigate("/entrenar") }]
       : diaSinRutina
@@ -536,7 +552,10 @@ export function Home() {
       : hoy?.tipo === "descanso"
       ? [{ label: "Entrenar igual", variant: "secondary", onClick: () => navigate("/entrenar") }]
       : sesionNombre
-      ? (canStart ? [{ label: "Empezar", variant: "primary", icon: Zap, onClick: () => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`) }] : [])
+      ? (canStart ? [
+          { label: "Empezar", variant: "primary", icon: Zap, onClick: () => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`) },
+          { label: "Cambiar", variant: "secondary", onClick: abrirCambiar },
+        ] : [])
       : [{ label: "Ver programas", variant: "secondary", onClick: () => navigate("/biblioteca") }];
 
     const data: HomeReduxData = {
@@ -580,6 +599,7 @@ export function Home() {
         <EstadoDiarioLinea estado={estadoDiario} onClick={() => navigate("/salud")} />
         <AvisoFcMax motivo={motivoFcMax} onClick={irARevision} />
         <HomeReduxContent direccion={direccion} data={data} onAvatarClick={() => navigate("/perfil")} />
+        {hojaCambiar}
       </div>
     );
   }
@@ -645,17 +665,25 @@ export function Home() {
           ) : sesionNombre ? (
             <div style={{ position: "relative", width: "100%" }}>
               <p className="t-label" style={{ margin: "0 0 8px" }}>
-                {hoy?.tipo === "rutina" ? "Hoy toca" : "Próxima sesión"}
+                {hoy?.tipo === "rutina" ? (hoy.yaHecha ? "Ya entrenaste hoy" : "Hoy toca") : "Próxima sesión"}
               </p>
               <h1 className="stadium-title">{sesionNombre}</h1>
+              {lineaEnSuLugar && (
+                <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--muted)" }}>{lineaEnSuLugar}</p>
+              )}
               {canStart && (
-                <button
-                  className="btn-primary"
-                  style={{ width: "100%", marginTop: 16 }}
-                  onClick={() => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`)}
-                >
-                  <Zap size={18} /> Empezar ahora
-                </button>
+                <>
+                  <button
+                    className="btn-primary"
+                    style={{ width: "100%", marginTop: 16 }}
+                    onClick={() => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`)}
+                  >
+                    <Zap size={18} /> Empezar ahora
+                  </button>
+                  <button className="btn-secondary" style={{ width: "100%", marginTop: 8 }} onClick={abrirCambiar}>
+                    Cambiar
+                  </button>
+                </>
               )}
             </div>
           ) : (
@@ -694,6 +722,7 @@ export function Home() {
             <WeekStrip semanaInicio={semanaRef.current} marcados={diasEntrenamiento(programa)} />
           </div>
         )}
+        {hojaCambiar}
       </div>
     );
   }
@@ -778,18 +807,27 @@ export function Home() {
               </div>
             ) : sesionNombre ? (
               <>
-                <p className="t-label" style={{ margin: "0 0 4px" }}>Hoy toca</p>
+                <p className="t-label" style={{ margin: "0 0 4px" }}>
+                  {hoy?.tipo === "rutina" && hoy.yaHecha ? "Ya entrenaste hoy" : "Hoy toca"}
+                </p>
                 <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em" }}>{sesionNombre}</p>
+                {lineaEnSuLugar && (
+                  <p style={{ margin: "-4px 0 10px", fontSize: 13, color: "var(--muted)" }}>{lineaEnSuLugar}</p>
+                )}
                 {canStart && (
-                  <button className="btn-primary" style={{ width: "100%" }}
-                    onClick={() => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`)}>
-                    <Zap size={18} /> Empezar
-                  </button>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button className="btn-primary" style={{ flex: 1 }}
+                      onClick={() => sesionRutinaId && navigate(`/entrenar/${sesionRutinaId}`)}>
+                      <Zap size={18} /> Empezar
+                    </button>
+                    <button className="btn-secondary" onClick={abrirCambiar}>Cambiar</button>
+                  </div>
                 )}
               </>
             ) : null}
           </div>
         )}
+        {hojaCambiar}
       </div>
     );
   }
@@ -900,13 +938,21 @@ export function Home() {
                 <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em" }}>
                   {hoy.etiqueta.replace(/^[^—–]*[—–]\s*/, "")}
                 </p>
+                {lineaEnSuLugar && (
+                  <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--muted)" }}>{lineaEnSuLugar}</p>
+                )}
                 {!hoy.yaHecha && (
-                  <button
-                    className="btn-primary"
-                    onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${hoy.idRutina}`); }}
-                  >
-                    <Zap size={18} /> Empezar
-                  </button>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    <button
+                      className="btn-primary"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${hoy.idRutina}`); }}
+                    >
+                      <Zap size={18} /> Empezar
+                    </button>
+                    <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); abrirCambiar(); }}>
+                      Cambiar
+                    </button>
+                  </div>
                 )}
               </>
             ) : proxima ? (
@@ -924,13 +970,20 @@ export function Home() {
                     Planificado: {proxima.dia.diaSemana}
                   </p>
                 )}
-                <button
-                  className="btn-primary"
-                  onClick={(e) => { e.stopPropagation(); proxima.dia.idRutina && navigate(`/entrenar/${proxima.dia.idRutina}`); }}
-                  disabled={!proxima.dia.idRutina}
-                >
-                  <Zap size={18} /> Empezar
-                </button>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                  <button
+                    className="btn-primary"
+                    onClick={(e) => { e.stopPropagation(); proxima.dia.idRutina && navigate(`/entrenar/${proxima.dia.idRutina}`); }}
+                    disabled={!proxima.dia.idRutina}
+                  >
+                    <Zap size={18} /> Empezar
+                  </button>
+                  {proxima.dia.idRutina && (
+                    <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); abrirCambiar(); }}>
+                      Cambiar
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <div style={{ textAlign: "center" }}>
@@ -1008,6 +1061,7 @@ export function Home() {
           />
         </div>
       )}
+      {hojaCambiar}
     </div>
   );
 }

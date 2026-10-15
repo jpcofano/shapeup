@@ -27,6 +27,9 @@ import {
   sellarLugar as _sellarLugar,
   cambiarLugar as _cambiarLugar,
   construirBloquesRegistro,
+  fijarCambio as _fijarCambio,
+  estadoNuevo,
+  type CambioDelDia,
   type EntrenarState,
 } from "../lib/entrenarState";
 
@@ -150,6 +153,17 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
     /** Empieza la sesión de nuevo: todo en cero, conserva `idSesion` (P68). */
     reiniciar() {
       dispatch(estadoReiniciado);
+    },
+    /**
+     * Empieza de cero con otra `SesionProgramada` (P102): para la sesión vieja
+     * que se descarta. El cambio que se pasa es el de hoy.
+     */
+    empezarDeNuevo(idSesion: string, cambio: CambioDelDia | null) {
+      dispatch((s) => estadoNuevo(s, idSesion, cambio));
+    },
+    /** Fija lo que tocaba hoy (P102); `null` lo saca. Una prevista igual a la sesión no se guarda. */
+    fijarCambio(cambio: CambioDelDia | null, idRutinaSesion?: string | null) {
+      dispatch((s) => _fijarCambio(s, cambio, idRutinaSesion));
     },
 
     /**

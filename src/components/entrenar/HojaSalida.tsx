@@ -20,6 +20,16 @@ interface Props {
   minutosJugados?: number;
   /** `false`: no se ofrece «Guardar y salir» (VR por escalones guarda desde su cierre, P99). */
   puedeGuardar?:   boolean;
+  /**
+   * Sesión vieja de VR por escalones que quedó en el cierre (P102): se ofrece
+   * guardarla como la de ese día, descartarla y empezar de nuevo, o salir. No
+   * se ofrece «Seguir entrenando» (dejaba en un cierre de hace días), ni
+   * reiniciar, y tocar afuera no cierra la hoja.
+   */
+  cierreViejo?: {
+    onGuardarDeEseDia:   () => void;
+    onDescartarYEmpezar: () => void;
+  };
 }
 
 /**
@@ -28,7 +38,7 @@ interface Props {
  */
 export function HojaSalida({
   series, contexto, guardando, error, onGuardar, onDescartar, onSeguir, onReiniciar,
-  minutosJugados = 0, puedeGuardar = true,
+  minutosJugados = 0, puedeGuardar = true, cierreViejo,
 }: Props) {
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
 
@@ -38,7 +48,7 @@ export function HojaSalida({
   }
 
   return (
-    <div className="modal-backdrop" onClick={() => { if (!guardando) onSeguir(); }}>
+    <div className="modal-backdrop" onClick={() => { if (!guardando && !cierreViejo) onSeguir(); }}>
       <div
         className="modal-sheet"
         role="dialog"
@@ -49,7 +59,21 @@ export function HojaSalida({
         <div className="hoja-salida">
           {contexto && <p className="hoja-salida-contexto">{contexto}</p>}
 
-          {!confirmandoDescarte ? (
+          {!confirmandoDescarte && cierreViejo ? (
+            <>
+              <p id="hoja-salida-titulo" className="confirmar-titulo">¿Qué hacemos con esta sesión?</p>
+              <button type="button" className="btn-primary" disabled={guardando} onClick={cierreViejo.onGuardarDeEseDia}>
+                Guardar la de ese día
+              </button>
+              <button type="button" className="btn-secondary" disabled={guardando} onClick={cierreViejo.onDescartarYEmpezar}>
+                Descartar y empezar de nuevo
+              </button>
+              <button type="button" className="btn-secondary" disabled={guardando} onClick={salirSinGuardar}>
+                Salir sin guardar
+              </button>
+              {error && <p className="inline-error" style={{ margin: 0 }}>{error}</p>}
+            </>
+          ) : !confirmandoDescarte ? (
             <>
               <p id="hoja-salida-titulo" className="confirmar-titulo">¿Salir de la sesión?</p>
               {puedeGuardar && (

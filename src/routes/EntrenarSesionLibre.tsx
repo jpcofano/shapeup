@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams, useBlocker } from "react-router-dom";
+import { useNavigate, useParams, useBlocker, useLocation } from "react-router-dom";
 import { X, AlignJustify, Zap, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import type {
   Ejercicio, Historial, SerieRegistro, PrescripcionFuerza, Lugar, MiembroId, PerfilMiembro,
@@ -17,8 +17,10 @@ import {
   buildBloqueLibre, buildVirtualRutina,
   finParcialMs, sesionVieja, mensajeSesionVieja, quitarBloques,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
+  camposCambio,
   type EntrenarState,
 } from "../lib/entrenarState";
+import { cambioDeNavegacion } from "../lib/cambioDia";
 import {
   cargarConfigLibre, guardarConfigLibre, borrarConfigLibre,
   mismosEjercicios, restaurarConfig,
@@ -132,6 +134,25 @@ export function EntrenarSesionLibre() {
   const session    = useEntrenarState(SESSION_KEY, virtualRutina);
   const state      = session.state;
 
+  // Lo que tocaba hoy, si se llegó desde «Cambiar» (P102). Se fija una vez al
+  // montar; reiniciar lo conserva, así llega a la sesión que se arranque.
+  // - Sin empezar: el de hoy, o ninguno. Un cambio que quedó guardado de una
+  //   visita anterior no se hereda.
+  // - En curso y de hoy: conserva el suyo; si no tenía, toma el de hoy.
+  // - Vieja: lo resuelve `reiniciarYSellar` si se reinicia; si se guarda, va
+  //   con el suyo.
+  const location = useLocation();
+  const [cambioNav] = useState(() => cambioDeNavegacion(location.state));
+  /** La sesión cargada al montar era vieja: reiniciarla toma el cambio de hoy. */
+  const reiniciaVieja = useRef(false);
+  useEffect(() => {
+    const vieja = sesionVieja(state, Date.now());
+    reiniciaVieja.current = vieja;
+    if (state.inicioMs == null) session.fijarCambio(cambioNav, null);
+    else if (!vieja && cambioNav && !state.cambio) session.fijarCambio(cambioNav, null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Historial del miembro para los deltas del resumen (P70). `null` si no cargó.
   const [historialMiembro, setHistorialMiembro] = useState<Historial[] | null>(null);
   useEffect(() => {
@@ -171,6 +192,10 @@ export function EntrenarSesionLibre() {
   function reiniciarYSellar() {
     session.reiniciar();
     session.asegurarInicioSesion();
+    if (reiniciaVieja.current) {
+      reiniciaVieja.current = false;
+      session.fijarCambio(cambioNav, null);
+    }
   }
 
   // Reiniciar (hoja de salida y pantalla de fin): confirma si hay series registradas.
@@ -346,6 +371,7 @@ export function EntrenarSesionLibre() {
       duracionMin: cierre.duracionMin,
       ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
       completitud: rutinaCompleta(state, virtualRutina) ? "completa" : "parcial",
+      ...camposCambio(state),
     });
     setGuardandoSalida(false);
     if (!result.ok) { setErrorSalida(result.error); return; }
@@ -673,6 +699,7 @@ export function EntrenarSesionLibre() {
               duracionMin: cierre.duracionMin,
               ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
               completitud: completa ? "completa" : "parcial",
+              ...camposCambio(state),
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
             cerrarSesionLocal();

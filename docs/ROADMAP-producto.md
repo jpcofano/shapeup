@@ -382,6 +382,9 @@ volumen, cambiar de programa — y vos decidís.
 
 ## Bloque 11 — Cambiar el día
 
+**Construido en parte (P102, 15/10):** 11.1 y 11.2. Quedan en el backlog 11.3 (cobertura) y 11.4
+(aviso de esquive).
+
 El caso: hoy tocaba tren inferior y hacés VR, o tren superior, o lo que sea. El sistema
 lo registra en vez de pelearse con vos.
 
@@ -392,6 +395,15 @@ Elegís otra rutina del plan, una VR, o una sesión libre. Entrenás normal.
 **El plan avanza igual.** La rutina que tocaba no queda trabada adelante: se hace en la
 próxima vuelta de la cola. Si la evitás sistemáticamente, eso aparece en los datos en vez
 de bloquearte la app.
+
+**Cómo quedó (P102).** Botón «Cambiar» junto a «Empezar», en Home (todos los layouts) y en Entrenar.
+La hoja ofrece, en este orden: VR a medida; otras rutinas del programa; otras de VR (Combat corto
+incluida); sesión libre; «Ver todas» (Biblioteca: la prevista viaja por la URL, `?enLugarDe=…&motivo=…`,
+hasta la rutina y la sesión, con una franja «Cambiando …» y una ✕ que cancela el cambio). Motivo opcional en
+chips: poco tiempo, cansado, dolor, otra cosa. La prevista viaja por el `state` de la navegación y se
+fija en `EntrenarState.cambio`. «Ya entrenaste hoy» se calcula sobre el día, no la semana, y una
+sesión con `rutinaPrevista` cubre el día de la prevista (`proximaSesion`). Detalle en
+[RUTINAS-VR.md](RUTINAS-VR.md) y en el ADR #030.
 
 ### 11.2 Qué queda registrado
 La rutina prevista, la realizada y un motivo opcional. **Los tres**: sin lo previsto,
@@ -506,6 +518,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P100 | Orden de la documentación ✅ | — |
 | P97 | ✅ (02/10) Zonas como las cuenta Samsung: la convención de redondeo, la FC máxima declarada con su origen y las zonas guardadas en cada sesión. Las marcas usan zonas, y no se mide sobre datos que se están por corregir. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), «Marcas y análisis en dos capas» | P92c, P93 |
 | P98 | ✅ (02/10) Rutinas de VR y progresión: rutinas por tiempo, dos modos y una regla que calcula el sistema. La progresión se muestra en la rutina, no como marca de la sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P93 |
+| P102 | ✅ (15/10) Cambiar lo que toca hoy (bloque 11, ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre. Ver [RUTINAS-VR.md](RUTINAS-VR.md) | P98 |
 | P99 | Marcas de la app y análisis de sesión en dos capas, en cuatro partes: diagnóstico, marcas de la app, esquema 3 y prompt 4, pantalla. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
@@ -523,6 +536,9 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - Revisar docs/reportes/pendientes-anteriores-a-P100.md y decidir qué pasa al backlog (correlaciones en Salud, backup CSV, aplicar corregir-mecanica, backlog de junio).
 - Sacar «VR» de `LUGARES`: el visor es equipo, no lugar (P98). Las rutinas nuevas ya van en Casa con `equipoNecesario: ["VR"]`; quedan las viejas, el filtro de Biblioteca y el selector de lugar.
 - Retirar `lib/progresionVR.ts` (P79/P80) y `TarjetaProgresionVR` cuando las rutinas de VR viejas ya no se usen (P98, ADR #046).
+- **Series informativas por configuración** de la rutina a medida (RUT-0030): agrupar las sesiones con el mismo juego, bloques, minutos y descanso. La sesión ya guarda lo necesario (P102).
+- **Aviso por esquive repetido** (bloque 11.4): a la tercera vez que se cambia la misma rutina. P102 guarda `rutinaPrevista` pero no avisa.
+- **Cobertura del plan** (bloque 11.3): la métrica separada de la adherencia. P102 guarda los datos, no la calcula.
 - **SesionJuego: ✕ sin descartar, sin hoja de salida ni cierre** (03/10). La ✕ solo navega a /entrenar: el reloj sigue en el teléfono y vuelve al entrar; «Terminar» guarda directo. Para la auditoría de diseño.
 
 

@@ -10,7 +10,8 @@ import { getHistorialEnLaApp } from "../data/historial";
 import { useAuth } from "../auth/useAuth";
 import { proximaSesion, type ProximaSesionResult } from "../lib/proximaSesion";
 import { sesionDeHoy, jsDayToNum, type SesionDeHoyResult } from "../lib/sesionDeHoy";
-import { lunesDeSemana } from "../lib/semana";
+import { lunesDeSemana, ymdLocal } from "../lib/semana";
+import { HojaCambiar } from "../components/entrenar/HojaCambiar";
 
 /** Chooser de 3 puertas: próxima sesión · elegir rutina · libre (próximamente). */
 export function Entrenar() {
@@ -23,6 +24,8 @@ export function Entrenar() {
   const [programa, setPrograma] = useState<Programa | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState<string | null>(null);
+  /** «Cambiar» lo que toca hoy (P102): la rutina que se iba a empezar. */
+  const [cambiar,  setCambiar]  = useState<{ idRutina: string; nombre: string } | null>(null);
 
   useEffect(() => {
     if (!memberId) return;
@@ -45,7 +48,7 @@ export function Entrenar() {
           : [];
         setProxima(proximaSesion(prog, estaSemana));
         const hoyNum = jsDayToNum(new Date().getDay());
-        setHoy(sesionDeHoy(prog, hoyNum, estaSemana));
+        setHoy(sesionDeHoy(prog, hoyNum, estaSemana, ymdLocal()));
       } else {
         setProxima(null);
         setHoy(null);
@@ -99,6 +102,9 @@ export function Entrenar() {
                   <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
                     {hoy.yaHecha ? "Ya entrenaste hoy ✓" : "Programado para hoy"}
                   </p>
+                  {hoy.enSuLugar && (
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>En su lugar: {hoy.enSuLugar}</p>
+                  )}
                 </div>
                 <span style={{
                   width: 38, height: 38, borderRadius: "50%",
@@ -109,13 +115,24 @@ export function Entrenar() {
                 </span>
               </div>
               {!hoy.yaHecha && (
-                <button
-                  className="btn-primary"
-                  style={{ marginTop: 12 }}
-                  onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${hoy.idRutina}`); }}
-                >
-                  Empezar
-                </button>
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                  <button
+                    className="btn-primary"
+                    style={{ flex: 1 }}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${hoy.idRutina}`); }}
+                  >
+                    Empezar
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCambiar({ idRutina: hoy.idRutina, nombre: hoy.etiqueta.replace(/^[^—–]*[—–]\s*/, "") });
+                    }}
+                  >
+                    Cambiar
+                  </button>
+                </div>
               )}
             </div>
           ) : proxima !== null && proxima !== undefined ? (
@@ -144,13 +161,24 @@ export function Entrenar() {
                 </span>
               </div>
               {proxima.dia.idRutina && (
-                <button
-                  className="btn-primary"
-                  style={{ marginTop: 12 }}
-                  onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${proxima.dia.idRutina}`); }}
-                >
-                  Empezar
-                </button>
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                  <button
+                    className="btn-primary"
+                    style={{ flex: 1 }}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/entrenar/${proxima.dia.idRutina}`); }}
+                  >
+                    Empezar
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCambiar({ idRutina: proxima.dia.idRutina!, nombre: proxima.dia.etiqueta.replace(/^[^—–]*[—–]\s*/, "") });
+                    }}
+                  >
+                    Cambiar
+                  </button>
+                </div>
               )}
             </div>
           ) : (
@@ -253,6 +281,8 @@ export function Entrenar() {
           </div>
         </section>
       )}
+
+      {cambiar && <HojaCambiar prevista={cambiar} programa={programa} onCerrar={() => setCambiar(null)} />}
     </div>
   );
 }

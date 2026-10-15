@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Ejercicio, EscalonVR, ModoEscaleraVR, PerfilMiembro, Rutina } from "../../types/models";
 import { escalonDeHoy, etiquetaDificultad, minutosPrescriptos, modosDe } from "../../lib/escalonesVR";
+import { finPrevistoMs, horaLocal } from "../../lib/guiaBloquesVR";
 
 export interface EscalonElegido {
   modo: ModoEscaleraVR;
@@ -26,6 +27,23 @@ export function textoEscalon(e: EscalonVR): string {
   if (e.bloques === 1 && e.descansoSeg === 0) return `${e.minutosBloque} min de corrido`;
   const d = `${Math.floor(e.descansoSeg / 60)}:${String(e.descansoSeg % 60).padStart(2, "0")}`;
   return e.bloques === 1 ? `1 × ${e.minutosBloque} min` : `${e.bloques} × ${e.minutosBloque} min, ${d} de descanso`;
+}
+
+/**
+ * «Si empezás ahora, terminás a las 17:02» (P102). Se actualiza cada minuto:
+ * mira el reloj cada 15 s, y la hora mostrada cambia cuando cambia el minuto.
+ */
+export function FinSiEmpezas({ prescripto }: { prescripto: EscalonVR }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <p style={{ margin: 0, fontSize: 14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+      Si empezás ahora, terminás a las {horaLocal(finPrevistoMs(prescripto, now))}
+    </p>
+  );
 }
 
 /**
@@ -80,6 +98,7 @@ export function InicioEscalonVR({ rutina, perfil, seguida, catalogo, onEmpezar }
           Encadená los entrenamientos del juego que hagan falta; no hay que marcar nada.
         </p>
       </div>
+      <FinSiEmpezas prescripto={hoy.escalon} />
       <button
         className="btn-primary"
         onClick={() => onEmpezar({

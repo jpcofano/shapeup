@@ -18,10 +18,10 @@ const ANTES: EstadoActualVR = {
 describe("planificarSeedVR (P98)", () => {
   const plan = planificarSeedVR(ANTES);
 
-  it("dificultades, 4 rutinas, 4 archivos, el programa, la pausa y la activación", () => {
+  it("dificultades, 5 rutinas (con la a medida de P102), 4 archivos, el programa, la pausa y la activación", () => {
     const tipos = plan.pasos.map((p) => p.tipo);
     expect(tipos.filter((t) => t === "dificultades")).toHaveLength(4);
-    expect(tipos.filter((t) => t === "crear-rutina")).toHaveLength(4);
+    expect(tipos.filter((t) => t === "crear-rutina")).toHaveLength(5);
     expect(plan.pasos.filter((p) => p.tipo === "archivar-rutina").map((p) => "idRutina" in p && p.idRutina)).toEqual(RUTINAS_A_ARCHIVAR);
     expect(plan.pasos).toContainEqual({ tipo: "pausar-programa", idPrograma: "PRG-0004", estadoAntes: "Plantilla" });
     expect(plan.pasos).toContainEqual({ tipo: "activar-programa", miembro: "juanpablo", idPrograma: PRG_VR_5_DIAS, antes: "PRG-0004" });

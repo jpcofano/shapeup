@@ -167,3 +167,41 @@ describe("proximaSesion · día sin idRutina (P77a)", () => {
     expect(res2!.dia.idRutina).toBeUndefined();
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P102 — una sesión hecha en lugar de otra cubre el día de la prevista
+// ════════════════════════════════════════════════════════════════════════════
+describe("proximaSesion · cobertura por la prevista (P102)", () => {
+  // Lunes Combat largo, miércoles Creed, viernes Combat largo.
+  const PROG_VR = mkPrograma([
+    { orden: 1, tipo: "rutina", idRutina: "RUT-0026" },
+    { orden: 2, tipo: "rutina", idRutina: "RUT-0027" },
+    { orden: 3, tipo: "rutina", idRutina: "RUT-0026" },
+  ]);
+  const conPrevista = (idRutina: string | undefined, prevista: string): Historial => ({
+    ...mkHistorial([idRutina ?? "X"])[0], idRutina, rutinaPrevista: prevista,
+    ...(idRutina ? {} : { tipo: "libre" as const }),
+  });
+
+  it("cambiar el miércoles Creed por Combat no consume el Combat largo del viernes", () => {
+    const hist = [...mkHistorial(["RUT-0026"]), conPrevista("RUT-0026", "RUT-0027")];
+    const r = proximaSesion(PROG_VR, hist);
+    expect(r?.indice).toBe(3);
+    expect(r?.dia.idRutina).toBe("RUT-0026");
+  });
+
+  it("una libre con prevista cubre el día de la prevista", () => {
+    const hist = [...mkHistorial(["RUT-0026"]), conPrevista(undefined, "RUT-0027")];
+    expect(proximaSesion(PROG_VR, hist)?.indice).toBe(3);
+  });
+
+  it("sin la prevista, la misma sesión cubriría el viernes y el miércoles quedaría pendiente", () => {
+    const hist = mkHistorial(["RUT-0026", "RUT-0026"]);
+    expect(proximaSesion(PROG_VR, hist)?.indice).toBe(2);
+  });
+
+  it("con las tres cubiertas, la semana queda completa", () => {
+    const hist = [...mkHistorial(["RUT-0026", "RUT-0026"]), conPrevista("RUT-0030", "RUT-0027")];
+    expect(proximaSesion(PROG_VR, hist)).toBeNull();
+  });
+});

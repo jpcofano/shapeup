@@ -15,10 +15,10 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { pedirSincronizacion } from "./pedidoPuente";
-import { guardarMarcas } from "../lib/sincronizacionAutomatica";
+import { guardarMarcas, leerMarcas } from "../lib/sincronizacionAutomatica";
 import type {
   Historial, BloqueRegistro, BiometriaSesion, MiembroId, ZonaMolestia, SesionCardio, AnalisisGuardado,
-  SesionEscalonVR,
+  SesionEscalonVR, MotivoCambio,
 } from "../types/models";
 import { ok, err, firebaseErrorMessage } from "../lib/result";
 import type { Result } from "../lib/result";
@@ -82,6 +82,16 @@ export interface FinalizarSesionOpts {
   };
   /** Las rutinas de VR por escalones (P98): modo, escalón, juego y lo confirmado al cerrar. */
   vr?: SesionEscalonVR;
+  /** La rutina que tocaba, si se hizo otra cosa en su lugar (P102). Solo se escribe si viene. */
+  rutinaPrevista?: string;
+  /** Por qué se cambió (P102). Solo se escribe con `rutinaPrevista`. */
+  motivoCambio?: MotivoCambio;
+  /**
+   * El día de la sesión, si no es hoy (P102): la sesión vieja de VR que se
+   * guarda «la de ese día». `fechaRealizada` y `semanaInicio` salen de acá.
+   * Ausente = hoy, como siempre.
+   */
+  fechaMs?: number;
 }
 
 /**
@@ -110,9 +120,9 @@ export async function finalizarSesion(
     rutinaId, tipo, nombreLibre, nombreJuego, ventana: ventanaExplicita,
     miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
     completitud, comoMeSenti, queMejorar, molestias,
-    dificultadPercibida, progresionVR, vr,
+    dificultadPercibida, progresionVR, vr, rutinaPrevista, motivoCambio, fechaMs,
   } = opts;
-  const fecha   = ymdLocal();
+  const fecha   = ymdLocal(fechaMs != null ? new Date(fechaMs) : undefined);
   const semana  = lunesDeSemana(fecha);
   const idHist  = `H-${fecha.replace(/-/g, "")}-${Date.now()}`;
   // Si no se pasa idSesion, generamos uno "huérfano" (legado, sin doc en /sesiones).
@@ -161,6 +171,9 @@ export async function finalizarSesion(
     ...(dificultadPercibida ? { dificultadPercibida } : {}),
     ...(progresionVR ? { progresionVR } : {}),
     ...(vr ? { vr } : {}),
+    // P102: solo si hubo cambio. Sin cambio no se escribe nada nuevo.
+    ...(rutinaPrevista ? { rutinaPrevista } : {}),
+    ...(rutinaPrevista && motivoCambio ? { motivoCambio } : {}),
   };
   const sesion: PayloadSesion | null = idSesion
     ? { miembro, estado: "Registrada", rpeSesion: rpe }
@@ -210,7 +223,10 @@ export function pedirCorridaTrasGuardar(finMs: number): void {
     if (!uid) return;
     let almacen: Storage | null = null;
     try { almacen = window.localStorage; } catch { /* sesión privada */ }
-    guardarMarcas(almacen, uid, { ultimaSesionFinMs: finMs });
+    // La más nueva gana: guardar una sesión vieja «la de ese día» (P102) no
+    // atrasa la marca.
+    const previa = leerMarcas(almacen, uid).ultimaSesionFinMs;
+    guardarMarcas(almacen, uid, { ultimaSesionFinMs: Math.max(finMs, previa ?? 0) });
     void pedirSincronizacion(uid, "fin-sesion").catch(() => undefined);
   } catch {
     /* nunca rompe el guardado */

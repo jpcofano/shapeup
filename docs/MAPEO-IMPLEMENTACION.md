@@ -130,6 +130,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P100 | Orden de la documentación (sin commitear al cerrar la Parte 4) | ✅ | 2026-10-01 |
 | P97 | Las zonas como las cuenta Samsung; la FC máxima declarada, la estimación y la revisión (ADR #045) | ✅ | 2026-10-02 |
 | P98 | Las rutinas de VR por escalones: dos modos, la regla de progresión y el programa de 5 días (ADR #046) | ✅ | 2026-10-02 |
+| P102 | Cambiar lo que toca hoy (ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre (enmienda del #046) | ✅ | 2026-10-15 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -146,6 +147,33 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-15] P102 — Cambiar lo que toca hoy, VR a medida y la guía de bloques (ADR #030, enmienda del #046)
+
+- **Guía de bloques** (`lib/guiaBloquesVR.ts`, `SesionPorTiempo`): bajo el reloj total, bloque o
+  descanso en curso con su hora de fin, «Fin previsto» y, pasado el fin, «Cumplido a las … · +m:ss».
+  De corrido, solo reloj y fin previsto. Sale del tiempo desde «Empezar» y de la prescripción
+  sellada: no corta ni pide toques (#040 y #046 siguen). Arranque: «Si empezás ahora, terminás a las
+  …». Tres pitidos (`audioAlert.ts`) solo para los cambios con la pantalla montada; con el sonido
+  suspendido al reabrir, «Tocá la pantalla para activar el sonido» hasta el primer toque.
+- **VR a medida** (`RUT-0030`, `lib/vrAMedida.ts`, `InicioAMedidaVR`): juego entre los cuatro de P98,
+  1–4 bloques, 15–40 min, descanso 0–3 min. Campo nuevo `RutinaVR.aMedida`. `regla: "ninguna"`; con
+  1 bloque, `descansoSeg: 0` y modo `corrido`. Mismo cierre. Fuera del PRG-0013. Espera el
+  historial hasta 3 s («Cargando tu última configuración…») sin pisar lo tocado.
+- **Cambiar** (`lib/cambioDia.ts`, `HojaCambiar`): botón en Home (todos los layouts) y en Entrenar;
+  prevista en `EntrenarState.cambio`; `Historial.rutinaPrevista` y `motivoCambio` solo si hubo
+  cambio; línea en `HistorialDetalle`. «Ver todas» lleva la prevista por la URL a Biblioteca, la
+  rutina y la sesión (`cambioDeBusqueda`, `FranjaCambio` con ✕ para cancelar). Sin cambios de
+  reglas (`/historial` no valida campos).
+  Fuera: el aviso de esquive (11.4) y la cobertura (11.3), al backlog.
+- **«Ya entrenaste hoy» por día** (`sesionDeHoy` recibe `hoyYmd`): antes miraba la semana y Combat
+  largo lunes y viernes no dejaba empezar el viernes. `proximaSesion`: la prevista cubre su día.
+- **Sesión vieja de VR en el cierre** (`cierreViejoVR`, `HojaSalida`): menos de 1 min, se reinicia
+  sola; 1 min o más, hoja con «Guardar la de ese día» (`fechaMs` nuevo en `finalizarSesion`),
+  «Descartar y empezar de nuevo» y «Salir sin guardar».
+- **Seed**: `seed:rutinas-vr` crea `RUT-0030` (en seco y con `-- --aplicar`, antes del deploy).
+- **Docs**: `RUTINAS-VR.md`, enmienda del #046 y nota en el #030 en `ADR.md`, bloque 11 y backlog
+  del roadmap.
 
 ### [2026-10-03] Ajustes posteriores a P98
 

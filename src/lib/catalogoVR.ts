@@ -8,7 +8,8 @@
 //    dificultades del juego: Bodycombat las suyas, los demás relativas.
 //  - **Rutinas**: Combat largo, Creed, Ritmo suave y Combat corto, con sus dos
 //    escaleras y en el escalón 1 (el escalón de cada miembro se deriva de sus
-//    subidas; la rutina no lo guarda).
+//    subidas; la rutina no lo guarda). Y desde P102 la rutina a medida, sin
+//    escalera: los tiempos se eligen al empezar.
 //  - **Archivo**: las cuatro rutinas de VR anteriores. No se borran: hay sesiones
 //    y programas que las referencian.
 //  - **Programa**: 5 días, la semana de referencia, activo para juanpablo. El
@@ -39,6 +40,7 @@ export const RUT_COMBAT_LARGO = "RUT-0026";
 export const RUT_CREED = "RUT-0027";
 export const RUT_RITMO_SUAVE = "RUT-0028";
 export const RUT_COMBAT_CORTO = "RUT-0029";
+export const RUT_A_MEDIDA = "RUT-0030";
 export const PRG_VR_5_DIAS = "PRG-0013";
 
 /** Las rutinas de VR que se archivan (P98). La RUT-0014 no. */
@@ -117,6 +119,30 @@ const DEFS: DefRutina[] = [
       modoPorDefecto: "bloques", regla: "ninguna",
       escaleras: { bloques: [bl(1, 20, 0, "intermedio")] },
       sigueA: { idRutina: RUT_COMBAT_LARGO, modo: "bloques" },
+    },
+  },
+  {
+    // P102: los tiempos los elige la persona al empezar, con cualquiera de los
+    // cuatro juegos. Sin escalera (`ninguna`): con tiempos libres, comparar
+    // escalones no tiene sentido. El escalón único es solo el respaldo del
+    // valor inicial; `sigueA` da el de Les Mills (el escalón actual de Combat
+    // largo por bloques). No va en el PRG-0013.
+    idRutina: RUT_A_MEDIDA,
+    nombre: "VR — A medida",
+    descripcion: "Elegís el juego, los bloques, los minutos y el descanso al empezar. Arranca con lo último que usaste con ese juego.",
+    nivel: "Intermedio", nombreEjercicio: "Les Mills Bodycombat (VR)", juego: "Les Mills Bodycombat",
+    vr: {
+      idEjercicio: EJ_BODYCOMBAT, alternativas: [EJ_CREED, EJ_BEAT_THE_BEATS, EJ_POWERBEATS],
+      zonasObjetivo: ["Z3", "Z4"],
+      modoPorDefecto: "bloques", regla: "ninguna",
+      escaleras: { bloques: [bl(2, 20, 120, "intermedio")] },
+      sigueA: { idRutina: RUT_COMBAT_LARGO, modo: "bloques" },
+      // El piso de 12 min de P98 queda cubierto: el mínimo es 15.
+      aMedida: {
+        bloques: { min: 1, max: 4, paso: 1 },
+        minutosBloque: { min: 15, max: 40, paso: 5 },
+        descansoSeg: { min: 0, max: 180, paso: 30 },
+      },
     },
   },
 ];

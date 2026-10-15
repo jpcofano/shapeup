@@ -18,7 +18,7 @@
 
 import type {
   Rutina, BloqueEjercicio, BloqueRegistro, Prescripcion, SerieRegistro, Modalidad, Ejercicio,
-  MotivoSalto, Lugar, MotivoSustitucion, ZonaMolestia, SesionEscalonVR,
+  MotivoSalto, Lugar, MotivoSustitucion, ZonaMolestia, SesionEscalonVR, MotivoCambio,
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
 import { e1rmKg } from "./resumenSesion";
@@ -109,6 +109,18 @@ export interface EntrenarState {
     aceptada: boolean;
     fuente: "fc" | "descanso" | "manual";
   } | null;
+  /**
+   * Lo que tocaba hoy, si esta sesión se eligió en su lugar desde «Cambiar»
+   * (P102, ADR #030). Vive acá para que sobreviva a cerrar la app; al guardar
+   * va a `Historial.rutinaPrevista` y `motivoCambio`. `null` = no hubo cambio.
+   */
+  cambio: CambioDelDia | null;
+}
+
+/** La rutina que tocaba y por qué se cambió, si se dijo (P102). */
+export interface CambioDelDia {
+  rutinaPrevista: string;
+  motivo: MotivoCambio | null;
 }
 
 /** Un ejercicio cambiado por otro en el momento (P73). */
@@ -140,6 +152,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   vrInicioMs: null,
   vrEscalon: null,
   progresionVR: null,
+  cambio: null,
 };
 
 /**
@@ -176,6 +189,28 @@ export function sellarEscalonVR(
 ): EntrenarState {
   if (state.vrEscalon) return state;
   return { ...state, vrEscalon: escalon, vrInicioMs: now };
+}
+
+/**
+ * Fija lo que tocaba hoy (P102). `null` lo saca. Una prevista igual a la rutina
+ * de la sesión no es un cambio: no se guarda.
+ */
+export function fijarCambio(
+  state: EntrenarState,
+  cambio: CambioDelDia | null,
+  idRutinaSesion?: string | null,
+): EntrenarState {
+  const c = cambio && cambio.rutinaPrevista && cambio.rutinaPrevista !== idRutinaSesion ? cambio : null;
+  return { ...state, cambio: c };
+}
+
+/** Los campos del cambio para `finalizarSesion`: nada si no hubo cambio (P102). */
+export function camposCambio(state: Pick<EntrenarState, "cambio">): { rutinaPrevista?: string; motivoCambio?: MotivoCambio } {
+  if (!state.cambio) return {};
+  return {
+    rutinaPrevista: state.cambio.rutinaPrevista,
+    ...(state.cambio.motivo ? { motivoCambio: state.cambio.motivo } : {}),
+  };
 }
 
 /** El índice del bloque de VR: el de la rutina por escalones (P98) o el de intervalos (P79). */
@@ -691,7 +726,22 @@ export function estadoReiniciado(state: EntrenarState): EntrenarState {
     lugar: state.lugar,
     prescripcionVR: state.prescripcionVR,
     progresionVR: state.progresionVR,
+    // Lo que tocaba hoy sigue tocando: reiniciar no deshace el cambio (P102).
+    cambio: state.cambio,
   };
+}
+
+/**
+ * Descartar una sesión vieja y empezar de nuevo (P102): todo en cero con una
+ * `SesionProgramada` nueva. Conserva el lugar; el cambio es el de hoy, no el
+ * de la sesión vieja.
+ */
+export function estadoNuevo(
+  state: EntrenarState,
+  idSesion: string,
+  cambio: CambioDelDia | null,
+): EntrenarState {
+  return { ...INITIAL_ENTRENAR_STATE, idSesion, lugar: state.lugar, cambio };
 }
 
 // ─── Lugar de la sesión (P72) ────────────────────────────────────────────────
@@ -781,6 +831,25 @@ export function minutosJugadosVR(state: EntrenarState, rutina: Rutina | null, no
   if (desde == null) return 0;
   const hasta = state.registro[indiceBloqueVR(rutina)]?.[0]?.finMs ?? now;
   return Math.max(0, (hasta - desde) / 60_000);
+}
+
+/**
+ * Una sesión de VR por escalones que quedó en el cierre (se tocó «Terminar»
+ * pero no «Guardar»), y qué hacer al montarla si es vieja (P102):
+ * - `"reiniciar"`: menos de 1 minuto jugado, se reinicia sola;
+ * - `"hoja"`: la hoja de salida, sin «Seguir entrenando»;
+ * - `null`: no es una sesión de VR por escalones en el cierre.
+ *
+ * No necesita la rutina: en una sesión de escalones la única serie es la de
+ * «Terminar» (`cerrarPorTiempo`), así que con `vrEscalon` y alguna serie ya
+ * está en el cierre. Se decide al montar, antes de que la rutina cargue.
+ */
+export function cierreViejoVR(state: EntrenarState): "reiniciar" | "hoja" | null {
+  if (!state.vrEscalon || seriesHechasTotales(state) === 0) return null;
+  const desde = state.vrInicioMs ?? state.inicioMs;
+  const hasta = finParcialMs(state);
+  const min = desde != null && hasta != null ? (hasta - desde) / 60_000 : 0;
+  return min < 1 ? "reiniciar" : "hoja";
 }
 
 /** «Se descartan N min jugados.»: redondeado, nunca «0 min» (P99). */

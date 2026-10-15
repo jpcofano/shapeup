@@ -11,6 +11,9 @@ import { useAuth } from "../auth/useAuth";
 import { Catalogo } from "./Catalogo";
 import { VistaSemanal } from "../components/VistaSemanal";
 import { TabBar } from "../components/TabBar";
+import { FranjaCambio } from "../components/entrenar/FranjaCambio";
+import { busquedaCambio, cambioDeBusqueda, paramsCambio } from "../lib/cambioDia";
+import type { CambioDelDia } from "../lib/entrenarState";
 
 function filtrar(
   rutinas: Rutina[],
@@ -104,7 +107,7 @@ function ProgramasList() {
 
 // ── Tab Rutinas ───────────────────────────────────────────────────────────────
 
-function RutinasList() {
+function RutinasList({ cambio }: { cambio: CambioDelDia | null }) {
   const navigate    = useNavigate();
   const { memberId } = useAuth();
   const isOwner     = memberId === "juanpablo";
@@ -146,7 +149,8 @@ function RutinasList() {
 
       <div className="card-list">
         {visibles.map((r) => (
-          <div key={r.idRutina} className="rutina-card" onClick={() => navigate(`/biblioteca/${r.idRutina}`)}>
+          // P102: el cambio en curso sigue viajando hasta la sesión.
+          <div key={r.idRutina} className="rutina-card" onClick={() => navigate(`/biblioteca/${r.idRutina}${busquedaCambio(cambio)}`)}>
             <p className="rutina-card-title">{r.nombre}</p>
             <div className="rutina-card-meta">
               <span className="badge badge-accent">{r.foco}</span>
@@ -179,9 +183,16 @@ export function Biblioteca() {
   const [params, setParams] = useSearchParams();
   const raw = params.get("tab");
   const tab: LibTab = raw === "ejercicios" ? "ejercicios" : raw === "rutinas" ? "rutinas" : "programas";
+  /** «Ver todas» desde «Cambiar» (P102): la rutina que tocaba viaja por la URL. */
+  const cambio = cambioDeBusqueda(params);
 
   function switchTab(t: LibTab) {
-    setParams(t === "programas" ? {} : { tab: t });
+    setParams({ ...(t === "programas" ? {} : { tab: t }), ...paramsCambio(cambio) });
+  }
+
+  /** La ✕ de la franja: cancela el cambio. */
+  function cancelarCambio() {
+    setParams(tab === "programas" ? {} : { tab });
   }
 
   const TABS: { key: LibTab; label: string }[] = [
@@ -196,10 +207,12 @@ export function Biblioteca() {
         <h1 className="page-title">Biblioteca</h1>
       </div>
 
+      {cambio && <FranjaCambio cambio={cambio} onCancelar={cancelarCambio} />}
+
       <TabBar tabs={TABS} active={tab} onChange={switchTab} />
 
       {tab === "programas"  && <ProgramasList />}
-      {tab === "rutinas"    && <RutinasList />}
+      {tab === "rutinas"    && <RutinasList cambio={cambio} />}
       {tab === "ejercicios" && <Catalogo embedded />}
     </div>
   );

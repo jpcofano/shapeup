@@ -405,6 +405,14 @@ dos redacciones: primero la de `CLAUDE.md` y debajo la de `MAPEO` §5.
   propuesta de descarga (ADR #029) mira la cobertura antes de hablar: mucho
   cambio con 75% cumplido sugiere revisar el plan, no descargar.
   Plan: docs/ROADMAP-producto.md, bloque 11. Prompt de origen: P66c.
+
+  Nota (P102, 2026-10-15): construido en parte. Está el cambio: botón «Cambiar» en Home
+  y en Entrenar, `Historial.rutinaPrevista` y `motivoCambio` (solo si hubo cambio), y la
+  prevista cubre su propio día en `proximaSesion`. Todos los caminos llevan la prevista,
+  también «Ver todas»: viaja por la URL (`?enLugarDe=…&motivo=…`) a Biblioteca, a la
+  rutina y a la sesión, con una franja «Cambiando …» y una ✕ que cancela el cambio. Sigue sin deuda ni pendientes. Quedan
+  FUERA y en el backlog: el aviso a la tercera repetición (bloque 11.4) y la métrica de
+  cobertura del plan (11.3). Diseño en docs/RUTINAS-VR.md y docs/ROADMAP-producto.md.
 ```
 
 ## ADR #031
@@ -1201,3 +1209,9 @@ había ninguna regla que dijera cuándo avanzar.
 - **Solo la serie de la dificultad prevista por el escalón puede proponer**, sea subir o, en Ritmo suave, bajar. Las demás, «Mixto» incluida, se calculan y se muestran igual, pero su resultado no es una propuesta. La pantalla de la rutina muestra cada serie con su dificultad.
 - **Ninguna sesión se excluye por la dificultad.**
 - **Sin dificultad declarada** (`vr.dificultad: null`), decidido el 02/10. El cierre **no deja guardar** sin elegir la dificultad. Si alguna sesión llega igual sin ella, como respaldo, forma su propia serie informativa, que nunca propone. Al decidirlo no había ninguna en `/historial`.
+
+**Enmendado el 15/10/2026 (P102): la rutina a medida y la guía de bloques.**
+- **`RUT-0030` «VR — A medida»** es una rutina con `regla: "ninguna"`, como Combat corto: con tiempos libres, comparar escalones no tiene sentido y no propone nada. Lleva un campo nuevo, `RutinaVR.aMedida`, con los rangos (bloques 1 a 4, minutos 15 a 40 de a 5, descanso 0 a 3 min de a 30 s). Su escalera es de un solo escalón y sirve de valor inicial y de respaldo. La sesión sella en `vr.prescripto` lo que se configuró, así que la rutina sigue sin mutarse (ADR #039).
+- **Con un bloque se sella `descansoSeg: 0` y modo `corrido`**; si no, `bloques`.
+- **La sesión guarda juego, configuración, dificultad y si completó**, para poder agrupar después, como series informativas, las que tienen la misma configuración. Eso queda en el backlog.
+- **La guía de bloques es informativa.** El reloj muestra bloque, descanso y horas de fin con solo el tiempo desde «Empezar» y la prescripción sellada. No corta, no pide toques y no marca nada: «No se marca nada durante la sesión» sigue valiendo, y también el #040 (completitud por tiempo). Los pitidos de cambio son avisos, no registro.

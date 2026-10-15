@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { FranjaCambio } from "../components/entrenar/FranjaCambio";
+import { busquedaCambio, cambioDeBusqueda } from "../lib/cambioDia";
 import { ArrowLeft, Edit2, Zap, TrendingUp } from "lucide-react";
 import type { Rutina, Ejercicio, Historial } from "../types/models";
 import { getRutina } from "../data/rutinas";
@@ -17,6 +19,9 @@ import type { MiembroId } from "../types/models";
 export function RutinaDetalle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  /** «Ver todas» desde «Cambiar» (P102): la rutina que tocaba sigue viajando por la URL. */
+  const location = useLocation();
+  const cambio = cambioDeBusqueda(location.search);
   const { memberId } = useAuth();
   const [rutina,   setRutina]   = useState<Rutina | null>(null);
   const [catalogo, setCatalogo] = useState<Map<string, Ejercicio>>(new Map());
@@ -128,6 +133,13 @@ export function RutinaDetalle() {
         </div>
       )}
 
+      {/* P102: la rutina a medida no tiene escalera */}
+      {rutina.vr?.aMedida && (
+        <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
+          Sin escalera: elegís los tiempos al empezar.
+        </p>
+      )}
+
       {/* P98: la progresión de una rutina de VR por escalones, con los datos que usó la regla */}
       {rutina.vr && memberId && (
         <ProgresionEscalonesVR
@@ -223,10 +235,15 @@ export function RutinaDetalle() {
         </div>
       )}
 
+      {/* P102: el cambio que viaja desde «Ver todas»; la ✕ lo cancela */}
+      {cambio && (
+        <FranjaCambio cambio={cambio} onCancelar={() => navigate(`/biblioteca/${rutina.idRutina}`, { replace: true })} />
+      )}
+
       {/* Empezar sesión */}
       <button
         className="btn-primary"
-        onClick={() => navigate(`/entrenar/${rutina.idRutina}`)}
+        onClick={() => navigate(`/entrenar/${rutina.idRutina}${busquedaCambio(cambio)}`)}
       >
         <Zap size={18} /> Empezar sesión
       </button>

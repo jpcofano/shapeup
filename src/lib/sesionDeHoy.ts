@@ -6,7 +6,14 @@ export type DiaSemanaNum = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export type SesionDeHoyResult =
   | { tipo: "descanso" }
-  | { tipo: "rutina"; idRutina: string; etiqueta: string; yaHecha: boolean }
+  | {
+      tipo: "rutina"; idRutina: string; etiqueta: string; yaHecha: boolean;
+      /**
+       * Lo que se hizo hoy en lugar de la rutina del día (P102), para decirlo
+       * en una línea. Ausente si se hizo la del día o no se hizo nada.
+       */
+      enSuLugar?: string;
+    }
   | { tipo: "sin-programa" }
   | { tipo: "dia-libre" }
   /**
@@ -31,12 +38,19 @@ const DIA_SEMANA_MAP: Record<string, DiaSemanaNum> = {
  * - "dia-libre": el programa tiene días por semana pero hoy no tiene ninguno.
  * - "sin-programa": el programa no tiene días con `diaSemana` → no se puede resolver por día.
  *
+ * `yaHecha` mira **el día, no la semana** (P102): hay una sesión de ShapeUp con
+ * `fechaRealizada === hoyYmd` que hizo la rutina del día, o que se hizo en su
+ * lugar (`rutinaPrevista`). Antes miraba toda la semana, y con la misma rutina
+ * dos veces (Combat largo lunes y viernes) el viernes ya figuraba hecha.
+ *
  * Función pura, sin Firestore.
  */
 export function sesionDeHoy(
   programa: Programa,
   diaSemanaHoy: DiaSemanaNum,
   historialSemana: Historial[],
+  /** La fecha local de hoy, `YYYY-MM-DD` (`ymdLocal()`): el mismo criterio que `fechaRealizada`. */
+  hoyYmd: string,
 ): SesionDeHoyResult {
   const conDia = programa.dias.filter((d) => d.diaSemana != null);
   if (conDia.length === 0) return { tipo: "sin-programa" };
@@ -50,9 +64,15 @@ export function sesionDeHoy(
 
   const rid = hoy.idRutina;
   // Solo ShapeUp: "ya la hiciste" es haber hecho la rutina del plan en la app (P74).
-  const yaHecha = soloShapeUp(historialSemana).some((h) => h.idRutina === rid);
+  const deHoy = soloShapeUp(historialSemana).filter((h) => h.fechaRealizada === hoyYmd);
+  const laDelDia = deHoy.some((h) => h.idRutina === rid);
+  const enLugar = deHoy.find((h) => h.rutinaPrevista === rid && h.idRutina !== rid);
+  const yaHecha = laDelDia || enLugar != null;
 
-  return { tipo: "rutina", idRutina: rid, etiqueta: hoy.etiqueta, yaHecha };
+  return {
+    tipo: "rutina", idRutina: rid, etiqueta: hoy.etiqueta, yaHecha,
+    ...(!laDelDia && enLugar ? { enSuLugar: enLugar.nombreRutina } : {}),
+  };
 }
 
 /** Convierte `new Date().getDay()` (0=dom, 1=lun…) a `DiaSemanaNum` (0=lun…). */

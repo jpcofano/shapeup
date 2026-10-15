@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useParams, useNavigate, useBlocker } from "react-router-dom";
+import { useParams, useNavigate, useBlocker, useLocation } from "react-router-dom";
 import { X, AlignJustify, Zap } from "lucide-react";
 import type { Rutina, Ejercicio, SerieRegistro, Historial, Lugar, MiembroId, PerfilMiembro, ConfigProgresion } from "../types/models";
 import { getRutina } from "../data/rutinas";
@@ -12,9 +12,12 @@ import {
   rutinaCompleta, rutinaTerminada, seriesHechasTotales, valorPrefillSerie,
   finParcialMs, sesionVieja, mensajeSesionVieja,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
-  vrEscalonCerrado, indiceBloqueVR, minutosJugadosVR,
+  vrEscalonCerrado, indiceBloqueVR, minutosJugadosVR, cierreViejoVR, camposCambio,
 } from "../lib/entrenarState";
 import { InicioEscalonVR } from "../components/entrenar/InicioEscalonVR";
+import { InicioAMedidaVR } from "../components/entrenar/InicioAMedidaVR";
+import { esAMedida } from "../lib/vrAMedida";
+import { cambioDeUbicacion } from "../lib/cambioDia";
 import { CierreEscalonVR } from "../components/entrenar/CierreEscalonVR";
 import { getConfigProgresion } from "../data/configProgresion";
 import { CONFIG_PROGRESION_DEFAULT, minutosPrescriptos } from "../lib/escalonesVR";
@@ -59,6 +62,13 @@ import { lunesDeSemana, ymdLocal } from "../lib/semana";
 export function EntrenarSesion() {
   const { rutinaId } = useParams<{ rutinaId: string }>();
   const navigate      = useNavigate();
+  /**
+   * Lo que tocaba hoy, si se llegó desde «Cambiar» (P102): por el `state` de la
+   * navegación (la hoja) o por la URL («Ver todas» → Biblioteca → la rutina).
+   * Se lee una vez, al montar: después vive en el estado de la sesión.
+   */
+  const location      = useLocation();
+  const [cambioNav]   = useState(() => cambioDeUbicacion(location));
 
   const { memberId } = useAuth();
   /**
@@ -84,6 +94,8 @@ export function EntrenarSesion() {
 
   // Hoja de salida (P68)
   const [salida,          setSalida]          = useState<{ contexto?: string } | null>(null);
+  /** La hoja es la de una sesión vieja de VR que quedó en el cierre (P102). */
+  const [cierreViejo,     setCierreViejo]     = useState(false);
   const [guardandoSalida, setGuardandoSalida] = useState(false);
   const [errorSalida,     setErrorSalida]     = useState<string | null>(null);
   /** true antes de navegar desde la hoja o la pantalla de fin: el bloqueo del "atrás" no aplica. */
@@ -137,7 +149,15 @@ export function EntrenarSesion() {
   function reiniciarYSellar() {
     session.reiniciar();
     session.asegurarInicioSesion();
+    // Reiniciar una sesión vieja empieza la de hoy: el cambio es el de hoy, no
+    // el de ese día (P102). Una sesión de hoy conserva el suyo.
+    if (reiniciaVieja.current) {
+      reiniciaVieja.current = false;
+      session.fijarCambio(cambioNav, rutinaId);
+    }
   }
+  /** La sesión cargada al montar era vieja: reiniciarla toma el cambio de hoy (P102). */
+  const reiniciaVieja = useRef(false);
   /** VR por escalones: lo jugado desde «Empezar», que se pierde al salir o reiniciar (P99). */
   const minutosVR = minutosJugadosVR(state, rutina, Date.now());
   const reinicio = useConfirmarReinicio(seriesHechasTotales(state), reiniciarYSellar, minutosVR);
@@ -145,6 +165,42 @@ export function EntrenarSesion() {
   function abrirSalida(contexto?: string) {
     setErrorSalida(null);
     setSalida({ contexto });
+  }
+
+  /**
+   * Crea la `SesionProgramada` (Programada → En curso) para que
+   * `finalizarSesion` la cierre. No espera al servidor: sin señal queda en la
+   * cola local (P69).
+   */
+  function crearSesionNueva(r: Rutina): string | null {
+    if (!memberId || !rutinaId) return null;
+    const hoy     = new Date();
+    const lunes   = lunesDeSemana(hoy);
+    const domingo = new Date(hoy); domingo.setDate(hoy.getDate() + (7 - (hoy.getDay() || 7)));
+    const semanaFin = ymdLocal(domingo);
+    const ses = crearSesion({
+      miembro: memberId, rutinaId, nombreRutina: r.nombre,
+      tipoSeleccion: "rutina", semanaInicio: lunes, semanaFin,
+    });
+    iniciarSesion(ses.idSesion); // Programada → En curso
+    return ses.idSesion;
+  }
+
+  /**
+   * Sesión vieja de VR en el cierre → «Descartar y empezar de nuevo» (P102):
+   * se descarta en Firestore y en el teléfono, y se vuelve al arranque con una
+   * sesión nueva. El cambio es el de hoy, si se llegó desde «Cambiar».
+   */
+  function descartarYEmpezar() {
+    if (!rutinaBase) return;
+    const idViejo = state.idSesion;
+    if (idViejo) void descartarSesion(idViejo);
+    const idNuevo = crearSesionNueva(rutinaBase);
+    if (!idNuevo) return;
+    session.empezarDeNuevo(idNuevo, cambioNav);
+    session.asegurarInicioSesion();
+    setCierreViejo(false);
+    setSalida(null);
   }
 
   /** Salir sin guardar: borra el estado local y la SesionProgramada, sin esperar. */
@@ -175,6 +231,7 @@ export function EntrenarSesion() {
       ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
       idSesion:    state.idSesion ?? undefined,
       completitud: rutinaCompleta(state, rutina) ? "completa" : "parcial",
+      ...camposCambio(state),
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
     salirTrasGuardar(result.value.pendiente);
@@ -196,20 +253,35 @@ export function EntrenarSesion() {
   }
 
   // Al montar, una vez, con el estado recién cargado:
+  //  - sesión vieja de VR por escalones en el cierre (P102): con 1 min o más,
+  //    la hoja sin «Seguir entrenando»; con menos, se reinicia sola;
   //  - sesión vieja con series → hoja de salida (P68);
   //  - sesión vieja sin series → se reinicia sola (P68);
   //  - sin series y en modo guiado (o recién reiniciada) → vista del día (P68b).
+  // Lo que tocaba hoy (P102) se fija acá: en una sesión que se reinicia es el
+  // de hoy; en una en curso, se conserva el que ya tenía.
   const evaluoMontaje = useRef(false);
   useEffect(() => {
     if (evaluoMontaje.current) return;
     evaluoMontaje.current = true;
     const series = seriesHechasTotales(state);
     const vieja  = sesionVieja(state, Date.now());
-    if (vieja && series > 0 && state.inicioMs != null) {
+    const cierreVR = vieja ? cierreViejoVR(state) : null;
+    reiniciaVieja.current = vieja;
+    if (cierreVR === "hoja" && state.inicioMs != null) {
+      setCierreViejo(true);
       abrirSalida(mensajeSesionVieja(state.inicioMs));
       return;
     }
-    if (vieja) reiniciarYSellar();
+    if (vieja && series > 0 && cierreVR !== "reiniciar" && state.inicioMs != null) {
+      abrirSalida(mensajeSesionVieja(state.inicioMs));
+      return;
+    }
+    if (vieja) {
+      reiniciarYSellar();   // toma el cambio de hoy (reiniciaVieja)
+    } else if (cambioNav && !state.cambio) {
+      session.fijarCambio(cambioNav, rutinaId);
+    }
     if (series === 0 && (vieja || state.modoVista === "guiada")) setVistaDiaAbierta(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -287,18 +359,9 @@ export function EntrenarSesion() {
       setRutinaBase(rutina);
 
       // Crear sesión real (Programada → En curso) para que finalizarSesion la cierre.
-      // No espera al servidor: sin señal queda en la cola local (P69).
       if (!idSesionGuardada) {
-        const hoy     = new Date();
-        const lunes   = lunesDeSemana(hoy);
-        const domingo = new Date(hoy); domingo.setDate(hoy.getDate() + (7 - (hoy.getDay() || 7)));
-        const semanaFin = ymdLocal(domingo);
-        const ses = crearSesion({
-          miembro: memberId, rutinaId, nombreRutina: rutina.nombre,
-          tipoSeleccion: "rutina", semanaInicio: lunes, semanaFin,
-        });
-        session.asignarIdSesion(ses.idSesion);
-        iniciarSesion(ses.idSesion); // Programada → En curso
+        const id = crearSesionNueva(rutina);
+        if (id) session.asignarIdSesion(id);
       }
 
       // La pantalla no espera a los ejercicios (media, instrucciones, paso de
@@ -385,6 +448,11 @@ export function EntrenarSesion() {
       // VR por escalones guarda solo desde su cierre, con la dificultad (P99).
       minutosJugados={minutosVR}
       puedeGuardar={!rutina?.vr}
+      cierreViejo={cierreViejo ? {
+        // Queda en el cierre, para elegir la dificultad; se guarda en ese día.
+        onGuardarDeEseDia: () => { setCierreViejo(false); setSalida(null); },
+        onDescartarYEmpezar: descartarYEmpezar,
+      } : undefined}
     />
   );
 
@@ -543,6 +611,10 @@ export function EntrenarSesion() {
           modo: esc.modo, escalon: esc.escalon, idEjercicio: esc.idEjercicio, prescripto: esc.prescripto,
           completoDeclarado: d.completoDeclarado, dificultad: d.dificultad,
         },
+        ...camposCambio(state),
+        // El día de la sesión es el día en que se jugó: una sesión vieja que se
+        // guarda «la de ese día» no cae hoy (P102).
+        ...(desde != null ? { fechaMs: desde } : {}),
       });
       if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
       salirTrasGuardar(result.value.pendiente);
@@ -618,6 +690,7 @@ export function EntrenarSesion() {
               completitud: completa ? "completa" : "parcial",
               // El lazo de evaluación de P79: qué sugirió la app y qué se hizo.
               ...(state.progresionVR ? { progresionVR: state.progresionVR } : {}),
+              ...camposCambio(state),
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
             // limpiar (dentro de salirTrasGuardar), no reiniciar: reiniciar
@@ -685,6 +758,7 @@ export function EntrenarSesion() {
       idSesion:    state.idSesion ?? undefined,
       completitud: objetivoMinHoy > 0 && minutos >= objetivoMinHoy * FRACCION_TIEMPO_COMPLETO
         ? "completa" : "parcial",
+      ...camposCambio(state),
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
     salirTrasGuardar(result.value.pendiente);
@@ -766,13 +840,24 @@ export function EntrenarSesion() {
         </div>
         <div className="workout-content">
           {!state.vrEscalon ? (
-            <InicioEscalonVR
-              rutina={rutina}
-              perfil={perfilMiembro}
-              seguida={rutinaSeguida}
-              catalogo={catalogo}
-              onEmpezar={(e) => session.sellarEscalonVR(e)}
-            />
+            esAMedida(rutina) ? (
+              <InicioAMedidaVR
+                rutina={rutina}
+                perfil={perfilMiembro}
+                seguida={rutinaSeguida}
+                catalogo={catalogo}
+                historial={historialMiembro}
+                onEmpezar={(e) => session.sellarEscalonVR(e)}
+              />
+            ) : (
+              <InicioEscalonVR
+                rutina={rutina}
+                perfil={perfilMiembro}
+                seguida={rutinaSeguida}
+                catalogo={catalogo}
+                onEmpezar={(e) => session.sellarEscalonVR(e)}
+              />
+            )
           ) : (
             <SesionPorTiempo
               inicioMs={state.vrInicioMs ?? state.inicioMs}
@@ -780,6 +865,7 @@ export function EntrenarSesion() {
               juego={state.vrEscalon.nombreEjercicio}
               onTerminar={() => { session.cerrarPorTiempo(Date.now()); }}
               guardando={false}
+              prescripto={state.vrEscalon.prescripto}
             />
           )}
         </div>

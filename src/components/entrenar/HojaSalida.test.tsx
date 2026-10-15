@@ -45,3 +45,27 @@ describe("HojaSalida", () => {
     expect(onDescartar).toHaveBeenCalledOnce();
   });
 });
+
+describe("HojaSalida · sesión vieja de VR en el cierre (P102)", () => {
+  it("ofrece guardar la de ese día, descartar y empezar, o salir; sin seguir ni reiniciar; tocar afuera no cierra", () => {
+    const onSeguir = vi.fn();
+    const onGuardarDeEseDia = vi.fn();
+    const onDescartarYEmpezar = vi.fn();
+    const div = document.createElement("div");
+    root = createRoot(div);
+    act(() => root!.render(createElement(HojaSalida, {
+      series: 1, minutosJugados: 40, puedeGuardar: false, guardando: false, error: null,
+      contexto: "Esta sesión quedó abierta desde el viernes 02/10 a las 20:56.",
+      onGuardar: vi.fn(), onDescartar: vi.fn(), onSeguir, onReiniciar: vi.fn(),
+      cierreViejo: { onGuardarDeEseDia, onDescartarYEmpezar },
+    })));
+    const textos = [...div.querySelectorAll("button")].map((b) => b.textContent);
+    expect(textos).toEqual(["Guardar la de ese día", "Descartar y empezar de nuevo", "Salir sin guardar"]);
+    act(() => (div.querySelector(".modal-backdrop") as HTMLElement).click());
+    expect(onSeguir).not.toHaveBeenCalled();
+    act(() => [...div.querySelectorAll("button")][0].click());
+    expect(onGuardarDeEseDia).toHaveBeenCalledOnce();
+    act(() => [...div.querySelectorAll("button")][2].click());
+    expect(div.textContent).toContain("Se descartan 40 min jugados.");
+  });
+});

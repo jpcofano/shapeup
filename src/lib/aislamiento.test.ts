@@ -178,11 +178,11 @@ describe("aislamiento · plan de la semana", () => {
   ]);
 
   it("sesionDeHoy no cambia con externas", () => {
-    expect(sesionDeHoy(prog, 0, HISTORIAL_MIXTO)).toEqual(sesionDeHoy(prog, 0, SOLO_SHAPEUP));
+    expect(sesionDeHoy(prog, 0, HISTORIAL_MIXTO, "2026-09-07")).toEqual(sesionDeHoy(prog, 0, SOLO_SHAPEUP, "2026-09-07"));
   });
 
   it("una externa no marca como hecha la rutina del día", () => {
-    const r = sesionDeHoy(prog, 2, EXTERNAS);   // miércoles (0=lunes), solo caminatas
+    const r = sesionDeHoy(prog, 2, EXTERNAS, "2026-09-09");   // miércoles (0=lunes), solo caminatas
     expect(r).toEqual({ tipo: "rutina", idRutina: "RUT-0002", etiqueta: "Día 2", yaHecha: false });
   });
 
@@ -335,7 +335,7 @@ describe("robustez ante entradas externas", () => {
       sesionesDelEjercicio(ID_EJERCICIO, EXTERNAS);
       serieCostoRutina(ID_RUTINA, EXTERNAS);
       compararConPrevias(rutinaLunes, EXTERNAS);
-      sesionDeHoy(prog, 0, EXTERNAS);
+      sesionDeHoy(prog, 0, EXTERNAS, "2026-09-07");
       proximaSesion(prog, EXTERNAS);
       clasificarImport([], EXTERNAS, [], {
         duracionMinimaMin: DURACION_MIN_ACTIVIDAD_MIN,
@@ -675,7 +675,7 @@ describe("aislamiento · el análisis asistido no mueve ninguna métrica (P93, A
       serieCosto: serieCostoRutina(ID_RUTINA, hs),
       tonelaje: hs.map((h) => tonelajeKg(h)),
       series: hs.map((h) => totalSeriesHechas(h)),
-      hoy: sesionDeHoy(prog, 0, hs),
+      hoy: sesionDeHoy(prog, 0, hs, "2026-09-07"),
       proxima: proximaSesion(prog, hs),
     };
   }

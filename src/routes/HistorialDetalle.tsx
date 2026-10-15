@@ -19,6 +19,8 @@ import { textoVentanaAdoptada } from "../lib/minutosPorZona";
 import { seEnriquece } from "../lib/tipoHistorial";
 import { ymdLocal } from "../lib/semana";
 import { AnalisisSesion } from "../components/historial/AnalisisSesion";
+import { getRutina } from "../data/rutinas";
+import { lineaCambio } from "../lib/cambioDia";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
@@ -98,6 +100,14 @@ export function HistorialDetalle() {
     });
   }, [h, user?.uid]);
 
+  // P102: el nombre de la rutina que tocaba, si esta sesión se hizo en su
+  // lugar. Una lectura, solo en ese caso.
+  const [nombrePrevista, setNombrePrevista] = useState<string | null>(null);
+  useEffect(() => {
+    if (!h?.rutinaPrevista) return;
+    void getRutina(h.rutinaPrevista).then((r) => { if (r.ok) setNombrePrevista(r.value.nombre); });
+  }, [h?.rutinaPrevista]);
+
   useEffect(() => {
     if (!id) return;
     getHistorialEntry(id).then(async (r) => {
@@ -158,6 +168,11 @@ export function HistorialDetalle() {
         <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
           {formatFecha(h.fechaRealizada)}
         </p>
+        {lineaCambio(h, nombrePrevista) && (
+          <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--muted)" }}>
+            {lineaCambio(h, nombrePrevista)}
+          </p>
+        )}
       </div>
 
       {/* Stats */}

@@ -21,6 +21,7 @@ export interface ProximaSesionResult {
  *   día que no apunta a ninguna rutina, la semana quedaba trabada ahí para
  *   siempre. Hoy no se dispara —los días de VR del plan sembrado tienen
  *   `idRutina` real— pero el modelo admite `tipo: "vr"` sin ella.
+ * - Una sesión con `rutinaPrevista` cubre el día de la prevista (P102).
  * - Devuelve `null` si todos los días activos tienen sesión ("semana completa").
  * - Función pura, sin Firestore.
  */
@@ -39,8 +40,12 @@ export function proximaSesion(
   // Solo ShapeUp: cubrir un día del plan es haberlo entrenado en la app (P74).
   const propias = soloShapeUp(historialSemana);
   const realizadas = new Map<string, number>();
+  // Una sesión hecha en lugar de otra cubre el día de **la prevista**, no el de
+  // la realizada (P102): cambiar el miércoles Creed por Combat no consume el
+  // Combat largo del viernes. Vale también para una libre con prevista.
   for (const h of propias) {
-    if (h.idRutina) realizadas.set(h.idRutina, (realizadas.get(h.idRutina) ?? 0) + 1);
+    const cubre = h.rutinaPrevista ?? h.idRutina;
+    if (cubre) realizadas.set(cubre, (realizadas.get(cubre) ?? 0) + 1);
   }
 
   // Primera pasada: qué días CON rutina quedan cubiertos. Hace falta saberlo

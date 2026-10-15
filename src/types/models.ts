@@ -333,9 +333,32 @@ export interface RutinaVR {
    * - `ninguna`: Combat corto, el comodín.
    */
   regla: "subir" | "bajar-si-pasa-techo" | "ninguna";
-  /** Combat corto sigue la dificultad del escalón actual de Combat largo por bloques. */
+  /**
+   * Combat corto sigue la dificultad del escalón actual de Combat largo por
+   * bloques. La rutina a medida (P102) lo usa para su respaldo con Les Mills.
+   */
   sigueA?: { idRutina: string; modo: ModoEscaleraVR };
+  /**
+   * La rutina a medida (P102, enmienda del ADR #046): los tiempos se eligen al
+   * empezar, dentro de estos rangos. Su escalera tiene un solo escalón, que es
+   * el valor inicial de respaldo; la regla es `ninguna`.
+   */
+  aMedida?: {
+    bloques: RangoVR;
+    minutosBloque: RangoVR;
+    descansoSeg: RangoVR;
+  };
 }
+
+/** Un rango con paso, para los controles de − / + de la rutina a medida (P102). */
+export interface RangoVR {
+  min: number;
+  max: number;
+  paso: number;
+}
+
+/** Por qué se cambió lo que tocaba hoy (P102, ADR #030). Opcional. */
+export type MotivoCambio = "poco-tiempo" | "cansado" | "dolor" | "otra-cosa";
 
 /** Con qué se jugó una sesión de VR por escalones, y qué confirmó la persona al cerrarla (P98). */
 export interface SesionEscalonVR {
@@ -865,6 +888,15 @@ export interface Historial {
    * métrica de racha, adherencia ni tonelaje lo mira.
    */
   vr?: SesionEscalonVR;
+  /**
+   * La rutina que tocaba, cuando se hizo otra cosa en su lugar (P102, ADR
+   * #030). La realizada es `idRutina`, o `tipo: "libre"`. La prevista cubre su
+   * día en la semana (`proximaSesion`) y no queda trabada: el plan avanza.
+   * Ausente = no hubo cambio.
+   */
+  rutinaPrevista?: string;
+  /** Por qué se cambió, si se dijo. Solo con `rutinaPrevista`. */
+  motivoCambio?: MotivoCambio;
 
   comoMeSenti?: string;
   queMejorar?: string;
