@@ -29,7 +29,7 @@ apuntan a ejercicios que todavía no existen). Corré siempre `--dry-run` primer
 | 10 | `seed:maria` | `EJ-8033/8034` + `RUT-0021/0022` + `PRG-0012` | `seed:plan`, `seed:vr`, `seed:futbol-juvenil` | 13 |
 | 11 | `seed:visibilidad` | `config/visibilidad` | `seed:maria` (ref `PRG-0012`) | 14 |
 | 12 | `seed:salud-rutinas` | `RUT-0023..0025` (Cardio Z2, HIIT corto, Descarga activa) | `seed:plan`, `seed:planes-extra` (reutiliza EJ-8023..8027) | 50 |
-| 13 | `seed:rutinas-vr` | dificultades de `EJ-9003/9004/9009/9010` + `RUT-0026..0029` (VR por escalones) + `PRG-0013`; archiva `RUT-0004/0005/0007/0008`, pausa `PRG-0004` y activa `PRG-0013` para juanpablo | `seed:vr`, `seed:plan` | 98 |
+| 13 | `seed:rutinas-vr` | dificultades de `EJ-9003/9004/9009/9010` + `RUT-0026..0029` (VR por escalones) + `RUT-0030` (VR a medida, P102) + `PRG-0013`; archiva `RUT-0004/0005/0007/0008`, pausa `PRG-0004` y activa `PRG-0013` para juanpablo | `seed:vr`, `seed:plan` | 98, 102 |
 
 ## Pasada de prueba (no escribe nada)
 
