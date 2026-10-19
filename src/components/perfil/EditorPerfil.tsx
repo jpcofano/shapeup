@@ -6,7 +6,7 @@ import {
   type Equipo, type Lugar, type MiembroId, type Objetivo, type OrigenFcMax, type PerfilMiembro, type ZonaFC,
 } from "../../types/models";
 import { migrarEquipoPorLugar } from "../../lib/perfil";
-import { validarZonas, type ZonasFC } from "../../lib/configuracion";
+import { validarAnioNacimiento, validarZonas, type ZonasFC } from "../../lib/configuracion";
 import { zonasCorresponden, zonasDesdeFcMax } from "../../lib/zonas";
 import { ETIQUETA_ORIGEN } from "../../lib/fcMaxima";
 import { actualizarPerfil, type PatchPerfil } from "../../data/perfiles";
@@ -36,6 +36,8 @@ interface Borrador {
   /** De dónde sale la FC máxima (P97). `null` = sin declarar. */
   fcMaxOrigen: OrigenFcMax | null;
   zonasFC: ZonasFC;
+  /** Año de nacimiento (P99). `null` = sin declarar. Solo para la edad del análisis. */
+  anioNacimiento: number | null;
 }
 
 function borradorDe(perfil: PerfilMiembro | undefined): Borrador {
@@ -51,6 +53,7 @@ function borradorDe(perfil: PerfilMiembro | undefined): Borrador {
     fcMaxTeorica: migrado.fcMaxTeorica ?? null,
     fcMaxOrigen: migrado.fcMaxOrigen ?? null,
     zonasFC: migrado.zonasFC ?? {},
+    anioNacimiento: migrado.anioNacimiento ?? null,
   };
 }
 
@@ -84,6 +87,7 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
   }
 
   const errorZonas = validarZonas(borrador.zonasFC, borrador.fcMaxTeorica);
+  const errorAnio = validarAnioNacimiento(borrador.anioNacimiento, new Date().getFullYear());
 
   function cambiarZona(z: ZonaFC, campo: "min" | "max", texto: string) {
     const n = texto.trim() === "" ? NaN : Math.round(Number(texto));
@@ -100,6 +104,7 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
 
   async function guardar() {
     if (errorZonas) { setError(errorZonas); return; }
+    if (errorAnio) { setError(errorAnio); return; }
     setGuardando(true);
     setError(null);
     // Un override igual al del plan NO se escribe (P77a): se borra, para que
@@ -121,6 +126,7 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
       fcMaxOrigen:    borrador.fcMaxOrigen ?? deleteField(),
       ...(desdeMs != null ? { fcMaxDesdeMs: desdeMs } : {}),
       zonasFC:        Object.keys(borrador.zonasFC).length > 0 ? borrador.zonasFC : deleteField(),
+      anioNacimiento: borrador.anioNacimiento ?? deleteField(),
       ...(guardarMeta
         ? { metaSemanalDias: meta }
         : perfil?.metaSemanalDias !== undefined ? { metaSemanalDias: deleteField() } : {}),
@@ -131,11 +137,13 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
     setGuardando(false);
     if (!r.ok) { setError(r.error); return; }   // los cambios quedan en el borrador
     const {
-      equipoDisponible: _obsoleto, metaSemanalDias: _vieja, fcMaxTeorica: _fc, fcMaxOrigen: _o, zonasFC: _z, ...resto
+      equipoDisponible: _obsoleto, metaSemanalDias: _vieja, fcMaxTeorica: _fc, fcMaxOrigen: _o, zonasFC: _z,
+      anioNacimiento: _a, ...resto
     } = perfil ?? {};
-    const { metaSemanalDias: _borrador, fcMaxTeorica, fcMaxOrigen, zonasFC, ...restoBorrador } = borrador;
+    const { metaSemanalDias: _borrador, fcMaxTeorica, fcMaxOrigen, zonasFC, anioNacimiento, ...restoBorrador } = borrador;
     onGuardado({
       ...resto, ...restoBorrador,
+      ...(anioNacimiento != null ? { anioNacimiento } : {}),
       ...(guardarMeta ? { metaSemanalDias: meta } : {}),
       ...(fcMaxTeorica != null ? { fcMaxTeorica } : {}),
       ...(fcMaxOrigen != null ? { fcMaxOrigen } : {}),
@@ -193,6 +201,29 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
           </p>
         </div>
       )}
+
+      {/* ── Año de nacimiento (P99) ──────────────────────────────────────── */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label style={{ margin: 0, fontSize: 13, fontWeight: 600 }} htmlFor="anio-nacimiento">Año de nacimiento</label>
+        <input
+          id="anio-nacimiento"
+          type="number"
+          inputMode="numeric"
+          className="form-input"
+          style={{ maxWidth: 120 }}
+          placeholder="Opcional"
+          value={borrador.anioNacimiento ?? ""}
+          onChange={(e) => {
+            const v = e.target.value.trim();
+            const n = v === "" ? null : Number(v);
+            setBorrador((b) => ({ ...b, anioNacimiento: n != null && Number.isFinite(n) ? Math.round(n) : null }));
+          }}
+        />
+        {errorAnio && <p style={{ margin: 0, fontSize: 11, color: "var(--warning)" }}>{errorAnio}</p>}
+        <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>
+          Solo para la edad del análisis de sesión. No cambia la FC máxima ni las zonas.
+        </p>
+      </div>
 
       {/* ── Equipo por lugar ─────────────────────────────────────────────── */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

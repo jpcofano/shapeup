@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from "vitest";
 import {
-  metaSemanal, seriesDeAdherencia, rachaActual, rachaRecord, tasaCumplimiento,
+  metaSemanal, planSemanaDe, seriesDeAdherencia, rachaActual, rachaRecord, tasaCumplimiento,
   type SemanaAdherencia,
 } from "./adherencia";
 import type { DiaActivo } from "./racha";
@@ -373,5 +373,18 @@ describe("seriesDeAdherencia · rango de movimiento", () => {
     // Y lo único que cambia es el movimiento.
     expect(sin.every((s) => s.diasMovimiento === null)).toBe(true);
     expect(con.some((s) => (s.diasMovimiento ?? 0) > 0)).toBe(true);
+  });
+});
+
+describe("planSemanaDe (P99)", () => {
+  it("la meta y el programa; sin meta, null", () => {
+    const prog = { idPrograma: "PRG-0013", dias: [
+      { orden: 1, tipo: "rutina", opcional: false }, { orden: 2, tipo: "rutina", opcional: false },
+      { orden: 3, tipo: "descanso", opcional: false },
+    ] } as unknown as Programa;
+    expect(planSemanaDe(prog)).toEqual({ metaDias: 2, idPrograma: "PRG-0013" });
+    expect(planSemanaDe(prog, { metaSemanalDias: 1 })).toEqual({ metaDias: 1, idPrograma: "PRG-0013" });
+    expect(planSemanaDe(null)).toBeNull();
+    expect(planSemanaDe(null, { metaSemanalDias: 3 })).toEqual({ metaDias: 3, idPrograma: null });
   });
 });

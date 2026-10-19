@@ -24,6 +24,7 @@ import { CONFIG_PROGRESION_DEFAULT, minutosPrescriptos } from "../lib/escalonesV
 import { estimarDuracionMin, cierreDeSesion } from "../lib/metricas";
 import { sugerirProgresion } from "../lib/progresion";
 import { useEntrenarState } from "../hooks/useEntrenarState";
+import { usePlanSemana } from "../hooks/usePlanSemana";
 import { useConfirmarReinicio } from "../hooks/useConfirmarReinicio";
 import { useWakeLock } from "../hooks/useWakeLock";
 import { unlockAudio } from "../lib/audioAlert";
@@ -71,6 +72,8 @@ export function EntrenarSesion() {
   const [cambioNav]   = useState(() => cambioDeUbicacion(location));
 
   const { memberId } = useAuth();
+  /** La meta y el programa de hoy, para guardarlos en la sesión (P99). */
+  const planSemana = usePlanSemana(memberId);
   /**
    * La rutina tal cual está en `/rutinas`. La sesión NO corre sobre ésta: corre
    * sobre `rutina`, que es ésta con los parámetros de VR que vienen de la
@@ -232,6 +235,7 @@ export function EntrenarSesion() {
       idSesion:    state.idSesion ?? undefined,
       completitud: rutinaCompleta(state, rutina) ? "completa" : "parcial",
       ...camposCambio(state),
+      ...(planSemana ? { planSemana } : {}),
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
     salirTrasGuardar(result.value.pendiente);
@@ -612,6 +616,7 @@ export function EntrenarSesion() {
           completoDeclarado: d.completoDeclarado, dificultad: d.dificultad,
         },
         ...camposCambio(state),
+        ...(planSemana ? { planSemana } : {}),
         // El día de la sesión es el día en que se jugó: una sesión vieja que se
         // guarda «la de ese día» no cae hoy (P102).
         ...(desde != null ? { fechaMs: desde } : {}),
@@ -691,6 +696,7 @@ export function EntrenarSesion() {
               // El lazo de evaluación de P79: qué sugirió la app y qué se hizo.
               ...(state.progresionVR ? { progresionVR: state.progresionVR } : {}),
               ...camposCambio(state),
+              ...(planSemana ? { planSemana } : {}),
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
             // limpiar (dentro de salirTrasGuardar), no reiniciar: reiniciar
@@ -759,6 +765,7 @@ export function EntrenarSesion() {
       completitud: objetivoMinHoy > 0 && minutos >= objetivoMinHoy * FRACCION_TIEMPO_COMPLETO
         ? "completa" : "parcial",
       ...camposCambio(state),
+      ...(planSemana ? { planSemana } : {}),
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
     salirTrasGuardar(result.value.pendiente);

@@ -22,13 +22,14 @@ export type SesionParaVentana = Pick<Historial, "inicioMs" | "finMs" | "biometri
  * prompt cambia, se crea el archivo nuevo y sube esto**: dentro de tres meses
  * tiene que poderse saber con qué se generó cada análisis.
  */
-export const VERSION_PROMPT_SESION = 3;
+export const VERSION_PROMPT_SESION = 4;
 
 /**
  * Versión del esquema del JSON que vuelve. Sube si cambia la forma. La 2
- * (prompt v3) suma `datosFaltantes` y achica los topes.
+ * (prompt v3) suma `datosFaltantes` y achica los topes. La 3 (prompt v4, P99)
+ * suma el veredicto, los dos destacados y las marcas del análisis.
  */
-export const VERSION_ESQUEMA_ANALISIS = 2;
+export const VERSION_ESQUEMA_ANALISIS = 3;
 
 /** Tope del paquete que se copia al chat, en bytes UTF-8. */
 export const TOPE_PAQUETE_BYTES = 60 * 1024;
@@ -65,7 +66,11 @@ export function ventanaDelAnalisis(h: SesionParaVentana): { inicioMs: number; fi
   if (inicio == null || fin == null || fin <= inicio) return null;
   const s = h.biometria?.samsung;
   if (h.biometria?.ventanaAdoptada === "samsung" && s) {
-    return { inicioMs: Math.min(inicio, s.inicioMs), finMs: Math.max(fin, s.finMs) };
+    // Con varios tramos, la unión de todos (P99): la misma que usó la biometría.
+    return {
+      inicioMs: Math.min(inicio, s.unionInicioMs ?? s.inicioMs),
+      finMs: Math.max(fin, s.unionFinMs ?? s.finMs),
+    };
   }
   return { inicioMs: inicio, finMs: fin };
 }

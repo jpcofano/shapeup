@@ -150,7 +150,7 @@ describe("la historia no se reescribe (P97, decisión 5)", () => {
     const pasada = { ...HISTORIAL, biometria: { ...sinMarca, versionEnriquecimiento: 7 } } as typeof HISTORIAL;
     const rehecha = calcularEnriquecimiento([pasada], extraccion, conFcMax(169)).updates[0].biometria;
     expect(rehecha.zonasUsadas).toEqual(ZONAS_CORREGIDAS);
-    expect(rehecha.versionEnriquecimiento).toBe(8);
+    expect(rehecha.versionEnriquecimiento).toBe(VERSION_ENRIQUECIMIENTO);
   });
 });
 

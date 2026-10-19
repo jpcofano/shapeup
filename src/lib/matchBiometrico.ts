@@ -391,8 +391,10 @@ export function construirBiometriaSesion(
  *   8 — P97: zonas como las cuenta Samsung (el piso de Z5 en 153, no 152), y
  *       cada sesión guarda las zonas con que se calculó (zonasUsadas) y el
  *       pico de la curva suavizada (fcPicoSuavizado)
+ *   9 — P99: la curva resumida a 30 s (biometria.curva, enmienda del ADR #016)
+ *       y las marcas que salen de ella (biometria.marcas)
  */
-export const VERSION_ENRIQUECIMIENTO = 8;
+export const VERSION_ENRIQUECIMIENTO = 9;
 
 // ── Calidad de la FC por serie (P79, §9.3) ─────────────────────────────────
 
@@ -630,6 +632,12 @@ export function samsungTalCual(tramos: TramoSamsung[], principalUuid?: string): 
     fcMax: p.fcMax,
     fcMin: p.fcMin,
     datauuids: tramos.map((t) => t.sesion.datauuid),
+    // P99: la unión de los tramos, para que la ventana adoptada sea la misma
+    // en la biometría, las marcas y el paquete.
+    ...(tramos.length > 1 ? {
+      unionInicioMs: Math.min(...tramos.map((t) => t.sesion.startMs)),
+      unionFinMs: Math.max(...tramos.map((t) => t.sesion.endMs)),
+    } : {}),
   });
 }
 

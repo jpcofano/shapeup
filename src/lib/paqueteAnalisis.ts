@@ -8,8 +8,11 @@
 //
 //  Reglas que el paquete cumple, porque un análisis que no las conoce saca
 //  conclusiones sobre ruido:
-//    - lo que dice qué tan confiable es el dato (fcDudosa, coberturas, motivo,
-//      kcalEstimada) va SIEMPRE, en null si no aplica;
+//    - lo que dice qué tan confiable es el dato (fcDudosa, coberturas, motivo)
+//      va SIEMPRE, en null si no aplica;
+//    - P99: van las marcas de la app (lo medido, con sus ids fijos: el análisis
+//      las comenta y apunta a ellas); NO van las calorías (decisión 7 del §2);
+//      la semana cuenta contra la meta guardada ese día, o va null;
 //    - si se adoptó la ventana del reloj, van las dos duraciones, nombradas;
 //    - la curva va a 30 s, promedio de cada balde; un balde vacío se omite y
 //      NO se interpola: un hueco se ve como hueco;
@@ -19,11 +22,16 @@
 //  Puro (ADR #009): no lee Firebase ni toca React.
 // ════════════════════════════════════════════════════════════════════════════
 import type {
-  ArmadoAnalisis, BloqueEjercicio, BloqueRegistro, Historial, PerfilMiembro, Prescripcion, Rutina,
+  ArmadoAnalisis, BloqueEjercicio, BloqueRegistro, CurvaGuardada, Historial, MarcaSesion, PerfilMiembro,
+  Prescripcion, Rutina,
 } from "../types/models";
 import type { LiveDataPoint } from "../import/samsungLiveData";
 import { armadoDe, discrepanciaDuracion, origenVentana, PASO_CURVA_MS, PASO_CURVA_RECORTADA_MS, TOPE_PAQUETE_BYTES, VERSION_ESQUEMA_ANALISIS } from "./analisis";
 import { soloShapeUp } from "./tipoHistorial";
+import { marcasDeSesion, textoMarca } from "./marcasSesion";
+import { edadConAnio } from "./configuracion";
+import { motivoCambioLabel } from "./cambioDia";
+import { DIFICULTAD_MIXTA } from "./escalonesVR";
 
 // ── La curva ─────────────────────────────────────────────────────────────────
 
@@ -64,8 +72,8 @@ export interface ContextoPaquete {
   /** La rutina de la sesión, para la prescripción de cada bloque. */
   rutina?: Pick<Rutina, "nombre" | "nivel" | "objetivo" | "bloques"> | null;
   perfil?: PerfilMiembro | null;
-  /** La meta semanal vigente, o null si no hay plan ni override. */
-  metaSemanalDias?: number | null;
+  /** El nombre de la rutina que tocaba, si la sesión se hizo en su lugar (P102). */
+  nombreRutinaPrevista?: string | null;
   nocheAnterior?: { horasTotal: number; horaAcostarse?: string; horaLevantarse?: string } | null;
   fcReposoDia?: number | null;
 }
@@ -73,7 +81,10 @@ export interface ContextoPaquete {
 export interface EntradaPaquete {
   sesion: Historial;
   contexto: ContextoPaquete;
-  /** La curva fina de la sesión, si se pudo leer. Nunca se persiste (ADR #016). */
+  /**
+   * La curva fina de la sesión, si se pudo leer del crudo. Solo hace falta si
+   * la sesión no tiene `biometria.curva` (P99): la guardada manda.
+   */
   curva?: LiveDataPoint[] | null;
   /** El texto de `docs/analisis/prompt-sesion-v{N}.md`, tal cual. */
   prompt: string;
@@ -105,6 +116,8 @@ export interface PaqueteSesion {
   sesion: Record<string, unknown>;
   ejercicios: Record<string, unknown>[];
   curva: { pasoSeg: number; origen: string; columnas: ["seg", "fc"]; puntos: PuntoCurva[] } | null;
+  /** Las marcas de la app (P99): lo medido, con su id, sus números, su texto y su tramo. */
+  marcas: (MarcaSesion & { texto: string })[];
   contexto: Record<string, unknown> | null;
 }
 
@@ -142,12 +155,20 @@ function bloqueDeRutina(b: BloqueRegistro, rutina: ContextoPaquete["rutina"]): B
     ?? bloques.find((x) => x.idEjercicio === id);
 }
 
-function ejercicio(b: BloqueRegistro, rutina: ContextoPaquete["rutina"], origenMs: number | null): Record<string, unknown> {
+function ejercicio(
+  b: BloqueRegistro, rutina: ContextoPaquete["rutina"], origenMs: number | null, vr: Historial["vr"],
+): Record<string, unknown> {
   const seg = (ms: number | undefined) => (ms == null || origenMs == null ? undefined : Math.round((ms - origenMs) / 1000));
-  // La prescripción: la que se usó ese día si la sesión la guardó (hoy solo VR,
-  // `prescripcionUsada`); si no, la rutina como está HOY, declarada como tal.
-  const presc = b.prescripcionUsada ? undefined : bloqueDeRutina(b, rutina);
-  const prescripcion = b.prescripcionUsada
+  // La prescripción: la que se usó ese día si la sesión la guardó (VR de P79,
+  // `prescripcionUsada`; VR por escalones y a medida, `vr.prescripto`, P99); si
+  // no, la rutina como está HOY, declarada como tal.
+  const delEscalon = vr && b.idEjercicio === vr.idEjercicio
+    ? { bloques: vr.prescripto.bloques, minutosBloque: vr.prescripto.minutosBloque, descansoSeg: vr.prescripto.descansoSeg, modo: vr.modo }
+    : null;
+  const presc = b.prescripcionUsada || delEscalon ? undefined : bloqueDeRutina(b, rutina);
+  const prescripcion = delEscalon
+    ? { prescripcion: delEscalon, prescripcionOrigen: "sesion" as const }
+    : b.prescripcionUsada
     ? { prescripcion: { ...b.prescripcionUsada }, prescripcionOrigen: "sesion" as const }
     : presc
       ? {
@@ -198,7 +219,7 @@ function medidoPorElReloj(h: Historial): Record<string, unknown> | null {
     fcMax: b.fcMax ?? null,
     fcMin: b.fcMin ?? null,
     zonaPrincipal: b.zonaPrincipal ?? null,
-    kcal: b.kcal ?? null,
+    // Sin kcal (P99, decisión 7 del §2): no son una medida relevante.
     duracionMedidaMin: b.duracionMedidaMin ?? null,
     minutosPorZona: b.minutosPorZona ?? null,
     minutosBajoZonas: b.minutosBajoZonas ?? null,
@@ -209,7 +230,6 @@ function medidoPorElReloj(h: Historial): Record<string, unknown> | null {
       coberturaFina: r2(b.coberturaFina),
       coberturaTotal: r2(b.coberturaTotal),
       motivoCobertura: b.motivoCobertura ?? null,
-      kcalEstimada: b.kcalEstimada ?? false,
     },
     comoSeCruzo: {
       matchPor: b.matchPor,
@@ -226,7 +246,7 @@ function medidoPorElReloj(h: Historial): Record<string, unknown> | null {
     loQueDiceSamsung: s ? limpio({
       duracionVentanaMin: s.duracionVentanaMin,
       duracionDeclaradaMin: s.duracionDeclaradaMin,
-      kcal: s.kcal, fcMedia: r1(s.fcMedia) ?? undefined, fcMax: s.fcMax, fcMin: s.fcMin,
+      fcMedia: r1(s.fcMedia) ?? undefined, fcMax: s.fcMax, fcMin: s.fcMin,
     }) : null,
   };
 }
@@ -264,11 +284,12 @@ function contextoDe(h: Historial, c: ContextoPaquete): Record<string, unknown> {
 
   return {
     mismoEjercicio,
-    semana: {
+    // P99: contra la meta guardada al cerrar. Sin ella, null: no se completa con la de hoy.
+    semana: h.planSemana ? {
       lunes: h.semanaInicio,
-      metaDias: c.metaSemanalDias ?? null,
+      metaDias: h.planSemana.metaDias,
       diasEntrenadosHastaEsteDia: dias.size,
-    },
+    } : null,
     dia: {
       suenoNocheAnteriorH: r1(c.nocheAnterior?.horasTotal),
       acostarse: c.nocheAnterior?.horaAcostarse ?? null,
@@ -289,7 +310,6 @@ function avisosDe(h: Historial, curva: PaqueteSesion["curva"]): string[] {
   if (h.biometria?.coberturaFina != null && h.biometria.coberturaFina < 0.8) {
     avisos.push(`El reloj midió solo el ${Math.round(h.biometria.coberturaFina * 100)} % de la sesión.`);
   }
-  if (h.biometria?.kcalEstimada) avisos.push("Las kcal son un prorrateo por tiempo (kcalEstimada), no la cifra entera del reloj.");
   if (h.completitud === "parcial") avisos.push("La sesión se guardó como parcial: no se completó lo planificado.");
   return avisos;
 }
@@ -299,6 +319,43 @@ const fmtMin = (n: number) => n.toLocaleString("es-AR", { maximumFractionDigits:
 /** La nota de la enmienda de P93: los dos números, y que los datos no cierran. */
 function notaDiscrepancia(d: { duracionRegistradaMin: number; tramoSeriesMin: number }): string {
   return `Los datos no cierran: la duración registrada es ${fmtMin(d.duracionRegistradaMin)} min, pero las series abarcan ${fmtMin(d.tramoSeriesMin)} min. La ventana salió de las series porque la sesión no tiene inicio y cierre propios: no se pueden sacar conclusiones de duración ni de densidad.`;
+}
+
+/** La curva guardada (P99) como pares, alineada a `origenMs` (la ventana del análisis). */
+function puntosGuardados(c: CurvaGuardada, origenMs: number): PuntoCurva[] {
+  const corrimiento = Math.round((c.origenMs - origenMs) / 1000);
+  return c.seg.map((s, i): PuntoCurva => [s + corrimiento, c.fc[i]]).filter(([, fc]) => Number.isFinite(fc));
+}
+
+/** Baldes más grandes sobre puntos ya submuestreados: el promedio de los que caen en cada uno. */
+function reagrupar(puntos: PuntoCurva[], pasoSeg: number): PuntoCurva[] {
+  const baldes = new Map<number, { suma: number; n: number }>();
+  for (const [s, fc] of puntos) {
+    const i = Math.floor(s / pasoSeg);
+    const b = baldes.get(i) ?? { suma: 0, n: 0 };
+    b.suma += fc;
+    b.n += 1;
+    baldes.set(i, b);
+  }
+  return [...baldes.entries()].sort((a, b) => a[0] - b[0])
+    .map(([i, b]): PuntoCurva => [i * pasoSeg, Math.round(b.suma / b.n)]);
+}
+
+/** El bloque `vr` de una rutina de VR por escalones o a medida (P99). */
+function vrDe(h: Historial): Record<string, unknown> | undefined {
+  const vr = h.vr;
+  if (!vr) return undefined;
+  const juego = h.bloques.find((b) => b.idEjercicio === vr.idEjercicio)?.nombreEjercicio ?? vr.idEjercicio;
+  return {
+    modo: vr.modo,
+    escalon: vr.escalon,
+    juego,
+    prescripto: {
+      bloques: vr.prescripto.bloques, minutosBloque: vr.prescripto.minutosBloque,
+      descansoSeg: vr.prescripto.descansoSeg, dificultadPrevista: vr.prescripto.dificultad,
+    },
+    dificultad: vr.dificultad == null ? "sin declarar" : vr.dificultad === DIFICULTAD_MIXTA ? "mixto" : vr.dificultad,
+  };
 }
 
 /** Serializa legible, con los puntos de la curva en una sola línea cada uno. */
@@ -327,7 +384,14 @@ export function armarPaqueteSesion(e: EntradaPaquete): PaqueteArmado {
   const origen = ventana
     ? "segundos desde el inicio de la ventana"
     : "segundos desde la primera muestra del reloj (la sesión no tiene ventana propia: las series no se pueden alinear)";
+  // P99: la curva guardada al enriquecer manda; el crudo es el respaldo de las
+  // sesiones que todavía no la tienen.
+  const guardada = h.biometria?.curva && ventana ? puntosGuardados(h.biometria.curva, ventana.inicioMs) : null;
   const curvaA = (pasoMs: number): PaqueteSesion["curva"] => {
+    if (guardada) {
+      const puntos = pasoMs === PASO_CURVA_MS ? guardada : reagrupar(guardada, pasoMs / 1000);
+      return puntos.length > 0 ? { pasoSeg: pasoMs / 1000, origen, columnas: ["seg", "fc"], puntos } : null;
+    }
     if (!curvaOrdenada || !marco) return null;
     const puntos = submuestrear(curvaOrdenada, pasoMs, marco.inicioMs, marco.finMs);
     return puntos.length > 0 ? { pasoSeg: pasoMs / 1000, origen, columnas: ["seg", "fc"], puntos } : null;
@@ -342,7 +406,8 @@ export function armarPaqueteSesion(e: EntradaPaquete): PaqueteArmado {
     },
     quienEntrena: {
       miembro: h.miembro,
-      edad: null,
+      // P99: con el año declarado, a la fecha de la sesión. Sin año, null.
+      edad: edadConAnio(p?.anioNacimiento, h.fechaRealizada),
       objetivos: p?.objetivos ?? [],
       nivelDeLaRutina: e.contexto.rutina?.nivel ?? null,
       objetivoDeLaRutina: e.contexto.rutina?.objetivo ?? null,
@@ -373,11 +438,17 @@ export function armarPaqueteSesion(e: EntradaPaquete): PaqueteArmado {
         notas: h.notas || undefined,
         dificultadPercibida: h.dificultadPercibida,
         progresionVR: h.progresionVR,
+        vr: vrDe(h),
+        // P102: como contexto. El análisis no juzga el cambio.
+        enLugarDe: h.rutinaPrevista
+          ? { rutina: e.contexto.nombreRutinaPrevista ?? h.rutinaPrevista, motivo: motivoCambioLabel(h.motivoCambio) }
+          : undefined,
       }),
       medidoPorElReloj: medidoPorElReloj(h),
     },
-    ejercicios: h.bloques.map((b) => ejercicio(b, e.contexto.rutina, ventana?.inicioMs ?? null)),
+    ejercicios: h.bloques.map((b) => ejercicio(b, e.contexto.rutina, ventana?.inicioMs ?? null, h.vr)),
     curva: curvaA(PASO_CURVA_MS),
+    marcas: marcasDeSesion(h, { historial: e.contexto.historial }).map((m) => ({ ...m, texto: textoMarca(m) })),
     contexto: contextoDe(h, e.contexto),
   };
   datos.paquete.avisos = [

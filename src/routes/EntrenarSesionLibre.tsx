@@ -27,6 +27,7 @@ import {
   type EjDefaults, type Restauracion,
 } from "../lib/sesionLibre";
 import { useEntrenarState } from "../hooks/useEntrenarState";
+import { usePlanSemana } from "../hooks/usePlanSemana";
 import { useConfirmarReinicio } from "../hooks/useConfirmarReinicio";
 import { ExercisePicker } from "../components/rutina/ExercisePicker";
 import { RegistroSerie } from "../components/entrenar/RegistroSerie";
@@ -75,6 +76,8 @@ function avisoQuitados(n: number): string {
 export function EntrenarSesionLibre() {
   const navigate         = useNavigate();
   const { memberId }     = useAuth();
+  /** La meta y el programa de hoy, para guardarlos en la sesión (P99). */
+  const planSemana       = usePlanSemana(memberId);
   const { idEjercicio: idEjercicioAtajo } = useParams<{ idEjercicio?: string }>();
 
   // ── Fase 1 — selector ─────────────────────────────────────────────────────
@@ -372,6 +375,7 @@ export function EntrenarSesionLibre() {
       ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
       completitud: rutinaCompleta(state, virtualRutina) ? "completa" : "parcial",
       ...camposCambio(state),
+      ...(planSemana ? { planSemana } : {}),
     });
     setGuardandoSalida(false);
     if (!result.ok) { setErrorSalida(result.error); return; }
@@ -700,6 +704,7 @@ export function EntrenarSesionLibre() {
               ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
               completitud: completa ? "completa" : "parcial",
               ...camposCambio(state),
+              ...(planSemana ? { planSemana } : {}),
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
             cerrarSesionLocal();

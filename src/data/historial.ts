@@ -92,6 +92,8 @@ export interface FinalizarSesionOpts {
    * Ausente = hoy, como siempre.
    */
   fechaMs?: number;
+  /** La meta y el programa vigentes al cerrar (P99). Solo se escribe si viene. */
+  planSemana?: { metaDias: number; idPrograma: string | null };
 }
 
 /**
@@ -120,7 +122,7 @@ export async function finalizarSesion(
     rutinaId, tipo, nombreLibre, nombreJuego, ventana: ventanaExplicita,
     miembro, bloques, rpe, duracionMin, notas, idSesion, programaId,
     completitud, comoMeSenti, queMejorar, molestias,
-    dificultadPercibida, progresionVR, vr, rutinaPrevista, motivoCambio, fechaMs,
+    dificultadPercibida, progresionVR, vr, rutinaPrevista, motivoCambio, fechaMs, planSemana,
   } = opts;
   const fecha   = ymdLocal(fechaMs != null ? new Date(fechaMs) : undefined);
   const semana  = lunesDeSemana(fecha);
@@ -174,6 +176,8 @@ export async function finalizarSesion(
     // P102: solo si hubo cambio. Sin cambio no se escribe nada nuevo.
     ...(rutinaPrevista ? { rutinaPrevista } : {}),
     ...(rutinaPrevista && motivoCambio ? { motivoCambio } : {}),
+    // P99: la meta de ese día, para que la marca `semana` no cambie con el plan.
+    ...(planSemana ? { planSemana } : {}),
   };
   const sesion: PayloadSesion | null = idSesion
     ? { miembro, estado: "Registrada", rpeSesion: rpe }

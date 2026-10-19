@@ -89,3 +89,12 @@ describe("finalizarSesion con cambio (P102)", () => {
     expect(escritos.at(-1)).toMatchObject({ fechaRealizada: "2026-10-02", semanaInicio: "2026-09-28" });
   });
 });
+
+describe("finalizarSesion con el plan de la semana (P99)", () => {
+  it("guarda la meta y el programa vigentes ese día, solo si vienen", async () => {
+    await finalizarSesion({ ...BASE, rutinaId: "RUT-0026", planSemana: { metaDias: 5, idPrograma: "PRG-0013" } });
+    expect(escritos.at(-1)).toMatchObject({ planSemana: { metaDias: 5, idPrograma: "PRG-0013" } });
+    await finalizarSesion({ ...BASE, rutinaId: "RUT-0026" });
+    expect("planSemana" in escritos.at(-1)!).toBe(false);
+  });
+});

@@ -3,12 +3,10 @@ import type { Historial, MiembroId } from "../../types/models";
 import { useAuth } from "../../auth/useAuth";
 import { getPerfiles } from "../../data/perfiles";
 import { getRutina } from "../../data/rutinas";
-import { getProgramaActivo } from "../../data/programas";
 import { leerCurvaDeSesion } from "../../data/ingestaSdk";
 import { guardarAnalisis, borrarAnalisis } from "../../data/historial";
-import { metaSemanal } from "../../lib/adherencia";
 import { armarPaqueteSesion, type PaqueteArmado } from "../../lib/paqueteAnalisis";
-import { validarAnalisisSesion } from "../../lib/validarAnalisis";
+import { validarAnalisisSesion, contextoValidacion } from "../../lib/validarAnalisis";
 import { analisisParaGuardar } from "../../lib/analisis";
 import { PROMPT_SESION } from "./promptSesion";
 
@@ -20,8 +18,10 @@ const fecha = (ms: number) => new Date(ms).toLocaleDateString("es-AR", { day: "2
 
 interface Props {
   h: Historial;
-  /** El historial del miembro, si ya se cargó (para el contexto). */
+  /** El historial del miembro, si ya se cargó (para el contexto, el récord y la semana). */
   historial: Historial[] | null;
+  /** Por qué no se pudo leer el historial, si falló. */
+  errorHistorial?: string | null;
   nocheAnterior: { horasTotal: number; horaAcostarse?: string; horaLevantarse?: string } | null;
   fcReposoDia: number | null;
   /** Después de guardar o borrar, la sesión con el campo nuevo. */
@@ -33,7 +33,7 @@ interface Props {
  * persona lo pega en un chat y trae el JSON de vuelta. **Todo lo que se muestra
  * acá es interpretación**, y tiene que verse distinto de un número medido.
  */
-export function AnalisisSesion({ h, historial, nocheAnterior, fcReposoDia, onCambio }: Props) {
+export function AnalisisSesion({ h, historial, errorHistorial, nocheAnterior, fcReposoDia, onCambio }: Props) {
   const { user, memberId } = useAuth();
   const [preparando, setPreparando] = useState(false);
   const [paquete, setPaquete] = useState<PaqueteArmado | null>(null);
@@ -44,19 +44,29 @@ export function AnalisisSesion({ h, historial, nocheAnterior, fcReposoDia, onCam
   const [aviso, setAviso] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
+  /**
+   * Las marcas del paquete y las del validador salen del historial (el récord y
+   * la semana): sin él, las dos darían otra cosa. Preparar y guardar lo esperan.
+   */
+  const sinHistorial = historial == null
+    ? (errorHistorial ? `No se pudo leer el historial (${errorHistorial}). Volvé a abrir la sesión.` : "Todavía se está cargando el historial; probá en un momento.")
+    : null;
+
   async function preparar() {
+    if (sinHistorial) { setError(sinHistorial); return; }
     setPreparando(true); setError(null); setAviso(null); setCopiado(null);
     const miembro = h.miembro as MiembroId;
-    const [perf, rut, prog] = await Promise.all([
+    const [perf, rut, prevista] = await Promise.all([
       getPerfiles(),
       h.idRutina ? getRutina(h.idRutina) : Promise.resolve(null),
-      getProgramaActivo(miembro),
+      // P102: el nombre de la rutina que tocaba, como contexto.
+      h.rutinaPrevista ? getRutina(h.rutinaPrevista) : Promise.resolve(null),
     ]);
     const perfil = perf.ok ? perf.value[miembro] ?? null : null;
-    // La curva no se guarda (ADR #016): se vuelve a sacar del crudo del puente,
-    // solo si la sesión es de quien la está mirando (es su puente).
+    // P99: la curva guardada al enriquecer manda. Sin ella, se vuelve a sacar del
+    // crudo del puente, solo si la sesión es de quien la está mirando (es su puente).
     const uuids = h.biometria?.tramosSamsung ?? (h.biometria?.datauuidSamsung ? [h.biometria.datauuidSamsung] : []);
-    const curvaRes = user?.uid && memberId === miembro && uuids.length > 0
+    const curvaRes = !h.biometria?.curva && user?.uid && memberId === miembro && uuids.length > 0
       ? await leerCurvaDeSesion(user.uid, miembro, uuids)
       : null;
     const armado = armarPaqueteSesion({
@@ -67,7 +77,7 @@ export function AnalisisSesion({ h, historial, nocheAnterior, fcReposoDia, onCam
         historial: historial ?? [],
         rutina: rut?.ok ? rut.value : null,
         perfil,
-        metaSemanalDias: metaSemanal(prog.ok ? prog.value : null, perfil),
+        nombreRutinaPrevista: prevista?.ok ? prevista.value.nombre : null,
         nocheAnterior,
         fcReposoDia,
       },
@@ -99,8 +109,10 @@ export function AnalisisSesion({ h, historial, nocheAnterior, fcReposoDia, onCam
 
   async function guardar() {
     setError(null); setAviso(null);
-    // Se valida ANTES de guardar nada: si no valida, no se guarda.
-    const v = validarAnalisisSesion(texto, h.idHist);
+    if (historial == null) { setError(sinHistorial); return; }
+    // Se valida ANTES de guardar nada: si no valida, no se guarda. Contra las
+    // marcas recalculadas de esta sesión (los ids son fijos, P99).
+    const v = validarAnalisisSesion(texto, h.idHist, contextoValidacion(h, historial));
     if (!v.ok) { setError(v.error); return; }
     if (h.analisis && !window.confirm(
       `Ya hay un análisis cargado el ${fecha(h.analisis.cargadoMs)}. Si guardás este, reemplaza al anterior. ¿Seguir?`,

@@ -4,9 +4,10 @@
 import promptV1 from "../../../docs/analisis/prompt-sesion-v1.md?raw";
 import promptV2 from "../../../docs/analisis/prompt-sesion-v2.md?raw";
 import promptV3 from "../../../docs/analisis/prompt-sesion-v3.md?raw";
+import promptV4 from "../../../docs/analisis/prompt-sesion-v4.md?raw";
 import { VERSION_PROMPT_SESION } from "../../lib/analisis";
 
-const PROMPTS: Record<number, string> = { 1: promptV1, 2: promptV2, 3: promptV3 };
+const PROMPTS: Record<number, string> = { 1: promptV1, 2: promptV2, 3: promptV3, 4: promptV4 };
 
 export const PROMPT_SESION: string = PROMPTS[VERSION_PROMPT_SESION] ?? (() => {
   throw new Error(`Falta docs/analisis/prompt-sesion-v${VERSION_PROMPT_SESION}.md`);

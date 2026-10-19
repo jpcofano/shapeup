@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   validarZonas, validarDuracionMinima,
-  alternarPrograma, alternarRutina, visibilidadCambio,
+  alternarPrograma, alternarRutina, visibilidadCambio, validarAnioNacimiento, edadConAnio,
 } from "./configuracion";
 import { zonasDesdeFcMax } from "./zonas";
 import type { Programa } from "../types/models";
@@ -87,5 +87,22 @@ describe("visibilidad", () => {
     const v = { programas: [], rutinas: ["RUT-0002"] };
     alternarPrograma(v, PRG);
     expect(v).toEqual({ programas: [], rutinas: ["RUT-0002"] });
+  });
+});
+
+describe("año de nacimiento (P99)", () => {
+  it("vacío está bien; fuera de rango o con decimales, no", () => {
+    expect(validarAnioNacimiento(null, 2026)).toBeNull();
+    expect(validarAnioNacimiento(1975, 2026)).toBeNull();
+    expect(validarAnioNacimiento(2026, 2026)).toBeNull();
+    expect(validarAnioNacimiento(2027, 2026)).toMatch(/entre 1920 y 2026/);
+    expect(validarAnioNacimiento(1919, 2026)).toMatch(/entre/);
+    expect(validarAnioNacimiento(1975.5, 2026)).toMatch(/entero/);
+  });
+  it("la edad sale del año de la sesión, no de hoy", () => {
+    expect(edadConAnio(1975, "2026-09-27")).toBe(51);
+    expect(edadConAnio(1975, "2020-01-01")).toBe(45);
+    expect(edadConAnio(undefined, "2026-09-27")).toBeNull();
+    expect(edadConAnio(2030, "2026-09-27")).toBeNull();
   });
 });

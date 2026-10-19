@@ -752,6 +752,14 @@ export interface BiometriaSesion {
     fcMax?: number;
     fcMin?: number;
     datauuids: string[];
+    /**
+     * Con más de un tramo, el inicio y el fin de la unión de todos (P99). La
+     * ventana adoptada los usa (`ventanaDelAnalisis`): sin esto, con el reloj
+     * cortado y reanudado, las marcas y el paquete medían sobre una ventana
+     * más corta que la de los minutos por zona. Ausentes con un solo tramo.
+     */
+    unionInicioMs?: number;
+    unionFinMs?: number;
   };
   /**
    * Minutos por zona, de la curva (P92). La zona es la más alta cuyo piso se
@@ -779,7 +787,113 @@ export interface BiometriaSesion {
    * pico del sensor de dos o tres muestras no lo mueve.
    */
   fcPicoSuavizado?: number;
+
+  // ── P99: la curva resumida y las marcas que salen de ella ────────────────
+  /**
+   * La curva de la ventana, submuestreada a 30 s con `submuestrear` (la misma
+   * del paquete): promedio de cada balde, sin interpolar los huecos. Se calcula
+   * al enriquecer, con la curva fina en memoria (enmienda del ADR #016: es un
+   * resumen por sesión, como `fcPicoSuavizado`, no la métrica cruda). Ausente
+   * si la sesión no tuvo curva: no se inventa.
+   */
+  curva?: CurvaGuardada;
+  /**
+   * Las marcas que salen de la curva (P99), calculadas al enriquecer con las
+   * zonas de la sesión. Las versiona `versionEnriquecimiento` (ADR #038). Las
+   * marcas que salen de lo guardado o del historial no viven acá: se calculan
+   * al mostrar (`lib/marcasSesion`).
+   */
+  marcas?: MarcaSesion[];
 }
+
+/**
+ * La curva resumida de una sesión (P99). Dos listas paralelas y no pares
+ * `[seg, fc]`: Firestore no guarda listas dentro de listas.
+ */
+export interface CurvaGuardada {
+  /** El inicio de la ventana, epoch ms: el segundo 0 de `seg`. */
+  origenMs: number;
+  pasoSeg: number;
+  /** Segundo de inicio de cada balde, desde `origenMs`. */
+  seg: number[];
+  /** FC media de cada balde, entera. */
+  fc: number[];
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MARCAS DE LA SESIÓN (P99, docs/ANALISIS-ASISTIDO.md §3)
+//
+//  Lo medido, en números: nunca una interpretación (ADR #044). Los ids son
+//  fijos: un análisis guardado apunta a ellos con `refMarca`. Los tiempos van
+//  en segundos enteros desde el inicio de la ventana del análisis
+//  (`ventanaDelAnalisis`), la misma escala que la curva del paquete.
+// ════════════════════════════════════════════════════════════════════════════
+export const IDS_MARCA = [
+  // Nivel 1 — badges, en este orden.
+  "calidad", "record", "picoSobreVigente", "carga", "zonaAlta", "volumen", "semana",
+  // Nivel 2 — secundarias, en este orden.
+  "tramoSostenido", "tramoBajo", "mitades", "recuperacionSeries", "picosZ5", "entradaEnCalor", "pico",
+] as const;
+export type IdMarca = (typeof IDS_MARCA)[number];
+
+/** Un tramo o un momento (inicioS === finS) sobre la curva. */
+export interface TramoMarca { inicioS: number; finS: number }
+
+/** Una bajada de la curva: desde un pico, cuánto cayó a los 60 y a los 120 s. */
+export interface BajadaCurva {
+  picoS: number;
+  pico: number;
+  /** `null` si a esa distancia ya no hay curva (fin de la ventana o hueco). */
+  caida60: number | null;
+  caida120: number | null;
+}
+
+interface MarcaBase<I extends IdMarca, N extends 1 | 2> {
+  id: I;
+  nivel: N;
+  /** Ausente si la marca no se dibuja sobre la curva. */
+  tramo?: TramoMarca;
+}
+
+export type MarcaSesion =
+  /** Cobertura baja o FC dudosa. Solo si hay un problema. */
+  | MarcaBase<"calidad", 1> & { coberturaFina: number | null; fcDudosa: boolean }
+  /**
+   * El récord a la fecha: contra las sesiones anteriores, nunca contra las que
+   * vinieron después. VR y cardio por actividad (el juego); fuerza por ejercicio.
+   */
+  | MarcaBase<"record", 1> & {
+      metrica: "carga" | "zonaAltaMin" | "duracionMin" | "cargaKg";
+      valor: number;
+      anterior: number;
+      /** El juego o el ejercicio, por nombre. */
+      actividad: string;
+    }
+  /** El pico suavizado pasó la FC máxima con que se calculó la sesión. */
+  | MarcaBase<"picoSobreVigente", 1> & { suavizado: number; crudo: number; fcMaxVigente: number }
+  /** Σ (minutos en Zi × i). */
+  | MarcaBase<"carga", 1> & { valor: number }
+  /** Minutos en Z4 + Z5 y su porcentaje del tiempo con dato. */
+  | MarcaBase<"zonaAlta", 1> & { minutos: number; pct: number }
+  /** Kilos × repeticiones registrados (fuerza). */
+  | MarcaBase<"volumen", 1> & { kg: number }
+  /** Días entrenados de la semana hasta este día, contra la meta guardada ese día. */
+  | MarcaBase<"semana", 1> & { dias: number; meta: number; diasFuerza: number }
+  | MarcaBase<"tramoSostenido", 2> & { duracionSeg: number }
+  | MarcaBase<"tramoBajo", 2> & { duracionSeg: number }
+  /** FC media de cada mitad, sin la entrada en calor. */
+  | MarcaBase<"mitades", 2> & { primera: number; segunda: number; diferencia: number; corteS: number }
+  /** Todas las bajadas que cuentan; sobre la curva va solo la mayor. Y las pausas entre series. */
+  | MarcaBase<"recuperacionSeries", 2> & {
+      bajadas: BajadaCurva[];
+      mayor: { picoS: number; caida: number; enSeg: 60 | 120 } | null;
+      pausas: { orden: number; serie: number; bpm: number }[];
+    }
+  | MarcaBase<"picosZ5", 2> & { entradas: number; masLargaSeg: number }
+  /** Hasta la primera llegada a Z4. Si nunca llegó, no hay marca. */
+  | MarcaBase<"entradaEnCalor", 2> & { segundos: number }
+  /** El pico, cuando no pasa la FC máxima: los dos, suavizado y crudo. */
+  | MarcaBase<"pico", 2> & { suavizado: number; crudo: number };
 
 /** Quién registró la actividad: vos al arrancarla, o el reloj solo (P75b). */
 export type OrigenExterna = "declarada" | "autodetectada";
@@ -897,6 +1011,13 @@ export interface Historial {
   rutinaPrevista?: string;
   /** Por qué se cambió, si se dijo. Solo con `rutinaPrevista`. */
   motivoCambio?: MotivoCambio;
+  /**
+   * La meta de la semana y el programa vigentes el día que se cerró la sesión
+   * (P99). La marca `semana` y el paquete cuentan contra esto, no contra el
+   * plan de hoy. Ausente (sesiones anteriores a P99, o el plan no había
+   * cargado al guardar): la marca no aparece y el paquete manda null.
+   */
+  planSemana?: { metaDias: number; idPrograma: string | null };
 
   comoMeSenti?: string;
   queMejorar?: string;
@@ -932,6 +1053,18 @@ export interface HallazgoAnalisis {
 export interface SugerenciaAnalisis { accion: string; porque: string; cuando?: string }
 export interface BanderaAnalisis { tipo: TipoBanderaAnalisis; detalle: string }
 
+/**
+ * Una marca del análisis (esquema 3, P99): un comentario corto anclado a una
+ * marca de la app (`refMarca`) **o** a un tramo de la curva, nunca a los dos.
+ * No lleva números propios: la cifra es la de la marca o la del tramo (ADR #044).
+ */
+export interface MarcaAnalisis {
+  refMarca?: IdMarca;
+  tramo?: TramoMarca;
+  tono: "positivo" | "atencion";
+  texto: string;
+}
+
 /** El contenido del análisis, tal como lo acepta el validador. */
 export interface ContenidoAnalisis {
   version: number;
@@ -950,6 +1083,12 @@ export interface ContenidoAnalisis {
    * análisis del esquema 1.
    */
   datosFaltantes?: string[];
+  /** Esquema 3 (P99): una oración, cómo salió la sesión. Ausente en los anteriores. */
+  veredicto?: string;
+  /** Esquema 3: exactamente dos, de 1 o 2 oraciones cada uno. */
+  destacados?: string[];
+  /** Esquema 3: hasta `TOPES_ANALISIS.marcasAnalisis`. */
+  marcasAnalisis?: MarcaAnalisis[];
 }
 
 /**
@@ -1155,6 +1294,12 @@ export interface PerfilMiembro {
    * meta siga al plan si el plan cambia.
    */
   metaSemanalDias?: number;
+  /**
+   * Año de nacimiento, opcional (P99). Solo para la edad del paquete de
+   * análisis: **no cambia ninguna FC máxima** (el «220 − edad» quedó
+   * descartado, ADR #025). El año y no la fecha: alcanza, y es menos dato.
+   */
+  anioNacimiento?: number;
 }
 export type PerfilesConfig = Partial<Record<MiembroId, PerfilMiembro>>;
 

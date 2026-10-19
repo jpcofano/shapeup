@@ -66,6 +66,31 @@ export function validarDuracionMinima(min: number): string | null {
   return null;
 }
 
+// ── Año de nacimiento (P99) ──────────────────────────────────────────────────
+
+/** El año más viejo que se acepta. El más nuevo es el año en curso. */
+export const ANIO_NACIMIENTO_MIN = 1920;
+
+/**
+ * El problema del año de nacimiento, o `null` si está bien (P99). Es opcional:
+ * vacío no es un error. Solo sirve para la edad del paquete de análisis.
+ */
+export function validarAnioNacimiento(anio: number | null, anioActual: number): string | null {
+  if (anio == null) return null;
+  if (!Number.isInteger(anio)) return "El año tiene que ser un número entero, por ejemplo 1975.";
+  if (anio < ANIO_NACIMIENTO_MIN || anio > anioActual) {
+    return `El año tiene que estar entre ${ANIO_NACIMIENTO_MIN} y ${anioActual}.`;
+  }
+  return null;
+}
+
+/** La edad a una fecha (YYYY-MM-DD), solo con el año: puede tener un año de más. `null` sin año. */
+export function edadConAnio(anioNacimiento: number | undefined | null, fecha: string): number | null {
+  if (anioNacimiento == null) return null;
+  const anio = Number(fecha.slice(0, 4));
+  return Number.isInteger(anio) && anio >= anioNacimiento ? anio - anioNacimiento : null;
+}
+
 /** Rango aceptable del análisis global, en semanas (P93). */
 export const SEMANAS_ANALISIS_RANGO = { min: 1, max: 52 } as const;
 

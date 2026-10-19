@@ -10,9 +10,30 @@ describe("el prompt de análisis de sesión", () => {
     for (let v = 1; v <= VERSION_PROMPT_SESION; v++) expect(existsSync(ruta(v))).toBe(true);
   });
 
-  it("el v3 está vigente", () => {
-    expect(VERSION_PROMPT_SESION).toBe(3);
+  it("el v4 está vigente (P99), y el v3 queda tal cual: los análisis viejos dicen con cuál se hicieron", () => {
+    expect(VERSION_PROMPT_SESION).toBe(4);
+    expect(readFileSync(ruta(4), "utf8")).toMatch(/prompt v4/);
     expect(readFileSync(ruta(3), "utf8")).toMatch(/prompt v3/);
+  });
+
+  it("v4 trae las reglas de P99", () => {
+    const p = readFileSync(ruta(4), "utf8");
+    expect(p).toMatch(/Cada sesión se analiza en\s+un chat nuevo/);
+    expect(p).toMatch(/Qué analizás: solo lo realizado/);
+    expect(p).toMatch(/No evalúes el cumplimiento/);
+    expect(p).toMatch(/Si `fcDudosa` es falso, no especules con artefactos/);
+    expect(p).toMatch(/Podés recomendar fuerza/);
+    expect(p).toMatch(/No hables de progresión/);
+    expect(p).toMatch(/No escribas números propios en `marcasAnalisis`/);
+    expect(p).toMatch(/Las calorías no vienen/);
+    // De dónde sale cada dato, también el sueño y la FC de reposo (P99).
+    expect(p).toMatch(/sueño de la noche anterior/);
+    expect(p).toMatch(/FC de reposo del día/);
+    expect(p).toMatch(/import del archivo de Samsung Health/);
+    expect(p).toMatch(/"version": 3/);
+    expect(p).toMatch(/"veredicto"/);
+    expect(p).toMatch(/"destacados"/);
+    expect(p).toMatch(/"marcasAnalisis"/);
   });
 
   it("v3 trae las reglas nuevas", () => {

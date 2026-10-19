@@ -170,6 +170,19 @@ dos redacciones: primero la de `CLAUDE.md` y debajo la de `MAPEO` §5.
   re-importar el mismo archivo no duplica datos.
   Nota al pie (P66e, 2026-09-15): el proyecto pasó de Spark a Blaze. El nivel
   gratuito de Blaze tiene los mismos topes, así que el motivo de costo sigue en pie.
+  Enmienda (P99, 2026-10-19): la curva de FC de cada sesión se guarda en el
+  Historial, en `biometria.curva` (`CurvaGuardada`): un punto cada 30 s
+  (`pasoSeg`), con `origenMs` y dos listas paralelas, `seg[]` y `fc[]`. Firestore
+  no admite listas dentro de listas, por eso no es un `[[seg, fc], …]`. Se
+  submuestrea con la misma `submuestrear` del paquete y se calcula al enriquecer.
+  Por qué no contradice el espíritu del #016: el #016 protege las métricas de
+  salud DIARIAS (miles de muestras por día, todos los días) de volcarse crudas.
+  La curva es un resumen POR SESIÓN, acotado (unos 100 puntos en 50 minutos), del
+  mismo orden que el pico suavizado (`fcPicoSuavizado`) que ya se guarda. Las
+  muestras crudas de /ingesta-sdk siguen sin copiarse. Las sesiones que ya no
+  tienen crudo quedan sin curva y sin las marcas que salen de ella: no se inventa.
+  `VERSION_ENRIQUECIMIENTO` sube a 9 (ADR #038), así las sesiones con crudo ganan
+  curva y marcas en la próxima sincronización.
 ```
 
 ## ADR #017
@@ -756,6 +769,9 @@ cobertura, tramos ni recorte por más que se reimportara el ZIP.
 
 - `BiometriaSesion.versionEnriquecimiento` y la constante `VERSION_ENRIQUECIMIENTO` en
   `lib/matchBiometrico.ts`. Ausente se lee como **1**; P78 es la **2**; P79 la **3**.
+  P99 la sube a **9** (guarda la curva por sesión y las marcas de la curva; enmienda del #016).
+  Qué trajo cada versión, de la 1 a la 9, está en el comentario de `VERSION_ENRIQUECIMIENTO`
+  (`lib/matchBiometrico.ts`): es la lista que se actualiza con cada cambio.
 - Se omite **solo** si `granularidad === "serie"` **y** la versión está al día.
 - **Nunca se pisa fino con grueso**: si está desactualizada pero esta corrida no trae curva
   para ella, se deja como está y se cuenta en `preservadas`.

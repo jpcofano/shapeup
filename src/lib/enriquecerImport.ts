@@ -16,13 +16,15 @@
 //  Spec del ranking/niveles del match: docs/prompts/57-s-match-robusto.md (P57).
 // ════════════════════════════════════════════════════════════════════════════
 
-import type { Historial, BloqueRegistro, PerfilMiembro } from "../types/models";
+import type { Historial, BloqueRegistro, PerfilMiembro, BiometriaSesion } from "../types/models";
 import type { ZipExtraccion } from "../import/samsungZip";
 import type { SesionApp } from "./matchBiometrico";
 import type { LiveDataPoint } from "../import/samsungLiveData";
 import { stripUndef } from "../import/samsungHealth";
 import { minutosPorZona } from "./minutosPorZona";
 import { seEnriquece } from "./tipoHistorial";
+import { ventanaDelAnalisis } from "./analisis";
+import { curvaGuardadaDe, marcasDeCurva } from "./marcasCurva";
 import {
   elegirSesionSamsung, construirBiometriaDeTramos, construirBiometriaRango,
   elegirTramosAdicionales, curvaDeTramos, enriquecerSerie, topeInicioSiguiente,
@@ -114,6 +116,29 @@ export function ventanaDeHistorial(h: Historial): SesionApp | null {
  * `topeInicioSiguiente` en vez de quedar `undefined` (antes eso dejaba la
  * última serie siempre sin `recuperacionBpm`, por efecto colateral).
  */
+/**
+ * La curva resumida y las marcas que salen de ella (P99), sobre la ventana del
+ * análisis (`ventanaDelAnalisis`, la misma que usa el paquete) y con las zonas
+ * con que se calculó la sesión. Sin ventana, nada: no se inventa.
+ */
+export function curvaYMarcas(
+  h: Pick<Historial, "inicioMs" | "finMs" | "bloques">,
+  biometria: BiometriaSesion,
+  curva: LiveDataPoint[],
+  bloques: Pick<BloqueRegistro, "orden" | "series">[],
+): Pick<BiometriaSesion, "curva" | "marcas"> {
+  const ventana = ventanaDelAnalisis({ inicioMs: h.inicioMs, finMs: h.finMs, bloques: h.bloques, biometria });
+  if (!ventana) return {};
+  const guardada = curvaGuardadaDe(curva, ventana);
+  const marcas = marcasDeCurva({
+    curva, ventana, zonas: biometria.zonasUsadas, fcMaxUsada: biometria.fcMaxUsada, bloques,
+  });
+  return {
+    ...(guardada ? { curva: guardada } : {}),
+    ...(marcas.length > 0 ? { marcas } : {}),
+  };
+}
+
 function enriquecerBloquesConCurva(
   h: Historial,
   curva: LiveDataPoint[],
@@ -295,6 +320,13 @@ export function calcularEnriquecimiento(
       biometria.granularidad = "serie";
       const finDatos = Math.max(...tramos.map((t) => t.sesion.endMs));
       const bloquesEnriquecidos = enriquecerBloquesConCurva(h, curva, ventana.finMs, finDatos, perfilH);
+      // P99: con la curva fina en memoria, la curva resumida y sus marcas, sobre
+      // la misma ventana que lee el análisis y con las zonas de la sesión. Con
+      // las mismas muestras que la biometría (sin deduplicar, como
+      // `fcPicoSuavizado`): si no, el pico de la marca y el de la estimación de
+      // la FC máxima pueden diferir en 1 bpm.
+      const muestras = tramos.flatMap((t) => t.curva ?? []);
+      Object.assign(biometria, curvaYMarcas(h, biometria, muestras, bloquesEnriquecidos));
       if (eraFina) resultado.reEnriquecidas++;
       resultado.updates.push({ idHist: h.idHist, biometria, bloques: bloquesEnriquecidos });
     } else if (eraFina) {

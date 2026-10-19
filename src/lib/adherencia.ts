@@ -100,6 +100,19 @@ export function metaSemanal(
   return dias > 0 ? dias : null;
 }
 
+/**
+ * La meta y el programa vigentes, para guardar en la sesión al cerrar (P99):
+ * la marca `semana` y el paquete cuentan contra esto, no contra el plan de hoy.
+ * `null` si no hay meta: no se guarda nada.
+ */
+export function planSemanaDe(
+  programa: Programa | null | undefined,
+  perfil?: PerfilMiembro | null,
+): { metaDias: number; idPrograma: string | null } | null {
+  const meta = metaSemanal(programa, perfil);
+  return meta == null ? null : { metaDias: meta, idPrograma: programa?.idPrograma ?? null };
+}
+
 /** ¿Este día cuenta como movimiento? Hubo actividad, pero no entrenaste en la app. */
 function esMovimiento(d: DiaActivo): boolean {
   return !d.shapeUp && (d.externaDeclarada || d.autodetectada);

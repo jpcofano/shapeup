@@ -86,6 +86,8 @@ export function HistorialDetalle() {
   const [comparativa,    setComparativa]  = useState<ComparativaCardiaca | null>(null);
   /** El historial del miembro: el costo cardíaco lo usa, y el análisis asistido (P93) como contexto. */
   const [historialMiembro, setHistorialMiembro] = useState<Historial[] | null>(null);
+  /** Si el historial no se pudo leer: el análisis lo necesita para el récord y la semana (P99). */
+  const [errorHistorial, setErrorHistorial] = useState<string | null>(null);
   const { user } = useAuth();
   /** Última subida del puente, solo si hace falta explicar una sesión sin biometría (P88). */
   const [ultimaCorrida,  setUltimaCorrida] = useState<number | null>(null);
@@ -133,6 +135,7 @@ export function HistorialDetalle() {
         const met = fRes.value.find((m) => m.fecha === entry.fechaRealizada);
         if (met) setFcDia(met);
       }
+      if (!histRes.ok) setErrorHistorial(histRes.error);
       if (histRes.ok) {
         setComparativa(compararConPrevias(entry, histRes.value));
         setHistorialMiembro(histRes.value);
@@ -414,6 +417,7 @@ export function HistorialDetalle() {
       <AnalisisSesion
         h={h}
         historial={historialMiembro}
+        errorHistorial={errorHistorial}
         nocheAnterior={nocheAnterior}
         fcReposoDia={fcDia?.valor ?? null}
         onCambio={setH}

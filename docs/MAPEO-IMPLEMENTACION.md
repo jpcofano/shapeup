@@ -131,6 +131,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P97 | Las zonas como las cuenta Samsung; la FC máxima declarada, la estimación y la revisión (ADR #045) | ✅ | 2026-10-02 |
 | P98 | Las rutinas de VR por escalones: dos modos, la regla de progresión y el programa de 5 días (ADR #046) | ✅ | 2026-10-02 |
 | P102 | Cambiar lo que toca hoy (ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre (enmienda del #046) | ✅ | 2026-10-15 |
+| P99 | Marcas de la app y análisis de sesión en dos capas (enmienda del #016) | en curso (Partes 1–3) | 2026-10-19 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -147,6 +148,51 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-19] P99 — Partes 1 a 3: marcas de la app, paquete, esquema 3 y prompt v4 (enmienda del #016)
+
+**En curso.** Hechas las Partes 1 a 3. Faltan la 4 (pantalla) y la 5 (cierre de documentos, ADR de
+dónde viven las marcas, roadmap). Diseño en `docs/ANALISIS-ASISTIDO.md` (§3, §4, §8).
+
+- **Parte 1, diagnóstico** (informe de Code, solo lectura). Juan decidió: la curva se guarda; la edad
+  sale del perfil; la meta de la semana se guarda en la sesión; el pico se mide suavizado; se aprueban
+  las propuestas 10 a 15, el esquema mixto y el descarte de `recuperacionFinal`.
+- **Curva guardada** (enmienda del #016): `biometria.curva` (`CurvaGuardada`: `origenMs`, `pasoSeg` 30,
+  listas paralelas `seg[]` y `fc[]`, porque Firestore no admite listas dentro de listas), con la
+  `submuestrear` del paquete. `VERSION_ENRIQUECIMIENTO` = **9** (#038): las sesiones con crudo en
+  `/ingesta-sdk` ganan curva y marcas en la próxima sincronización; las demás quedan sin ellas.
+- **Edad:** `PerfilMiembro.anioNacimiento` en Perfil → Configuración (`validarAnioNacimiento`,
+  `edadConAnio` en `lib/configuracion.ts`). **Meta de la semana:** `Historial.planSemana`
+  (`metaDias`, `idPrograma`) al cerrar, con `usePlanSemana` y `planSemanaDe` (`lib/adherencia.ts`).
+- **Parte 2, marcas.** Tipos en `types/models.ts` (`IDS_MARCA`, `MarcaSesion`, `TramoMarca`,
+  `BajadaCurva`). De la curva, `lib/marcasCurva.ts`: `entradaEnCalor`, `tramoSostenido`, `tramoBajo`,
+  `mitades`, `recuperacionSeries`, `picosZ5`, `pico` y `picoSobreVigente`; se calculan al enriquecer
+  (`curvaYMarcas` en `lib/enriquecerImport.ts`), se guardan en `biometria.marcas` y usan `zonasUsadas`.
+  Al mostrar, `lib/marcasSesion.ts`: `calidad`, `carga`, `zonaAlta` o `volumen`, `record`, `semana`.
+  Constantes: tolerancia de tramo 10 s, tramo mínimo 60 s, caída mínima 15 bpm, vecindad ±60 s,
+  entrada mínima a Z5 10 s. Tiempos en segundos enteros desde el inicio de la ventana del análisis.
+  Sin `recuperacionFinal` (descartada). Verificadas contra la sesión testigo del 27/09.
+- **Parte 3, paquete** (`lib/paqueteAnalisis.ts`): sin calorías; con `marcas`, `quienEntrena.edad`,
+  `sesion.vr`, `sesion.enLugarDe` y `contexto.semana` (o null). La testigo pesa 17,4 KB con el
+  prompt v4 (tope 60 KB); lo que se guarda en la sesión suma 1,7 KB (curva 0,9, marcas 0,85). **Esquema 3** (`VERSION_ESQUEMA_ANALISIS` = 3) y **prompt v4**
+  (`docs/analisis/prompt-sesion-v4.md`, `VERSION_PROMPT_SESION` = 4; el v3 queda sin tocar): suma
+  `veredicto`, `destacados` (2) y `marcasAnalisis` (hasta 5, con `refMarca` o tramo). **Validador**
+  (`lib/validarAnalisis.ts`): rechaza `refMarca` inexistente, tramo fuera de la ventana, campo sobre
+  su tope y `armado` con versiones distintas a las de la sesión. El esquema 2 ya no se acepta al
+  cargar; los guardados se siguen mostrando.
+- **Sueño y FC de reposo:** el paquete ya los manda, pero solo los escribe el import manual del ZIP
+  (`Salud.tsx:581-582`); la vía D no los trae, así que llegan `null` si no se importó un ZIP de ese día.
+  No se verificó contra Firestore qué días tienen dato.
+- **Revisión independiente** (sin hallazgos graves). Arreglado:
+  - con el reloj cortado y reanudado (dos tramos), la ventana del análisis usaba solo el tramo principal y
+    quedaba más corta que la de los minutos por zona: `biometria.samsung` guarda `unionInicioMs` /
+    `unionFinMs` con más de un tramo, y `ventanaDelAnalisis` los usa;
+  - la marca `pico` y `fcPicoSuavizado` daban 168 y 169 en la testigo (3 muestras con el mismo
+    milisegundo, deduplicadas en un camino y no en el otro): las marcas usan las mismas muestras;
+  - «Preparar» no esperaba el historial (el récord y la semana salían mal) y, si el historial fallaba,
+    «Guardar» quedaba trabado: los dos lo esperan y dicen el error;
+  - el tramo de la mayor bajada se acota al fin de la ventana.
+- **Pendiente:** Parte 4 (pantalla, §6) y Parte 5. No se creó el ADR de dónde viven las marcas.
 
 ### [2026-10-15] P102 — Cambiar lo que toca hoy, VR a medida y la guía de bloques (ADR #030, enmienda del #046)
 

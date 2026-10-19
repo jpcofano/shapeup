@@ -19,7 +19,7 @@ const CONBIO: Historial = (() => {
   return { ...HISTORIAL, biometria: u.biometria, bloques: u.bloques ?? HISTORIAL.bloques };
 })();
 
-const contexto = (historial: Historial[] = []) => ({ historial, perfil: PERFIL, metaSemanalDias: 3 });
+const contexto = (historial: Historial[] = []) => ({ historial, perfil: PERFIL });
 
 describe("submuestrear", () => {
   it("una curva de 50 min a 30 s da 100 puntos, promedio redondeado", () => {
@@ -51,7 +51,7 @@ describe("submuestrear", () => {
 describe("armarPaqueteSesion", () => {
   it("con biometría completa: sesión, ejercicios, curva y contexto, en ese orden", () => {
     const p = armarPaqueteSesion({ sesion: CONBIO, contexto: contexto(), curva: CURVA, prompt: PROMPT });
-    expect(Object.keys(p.datos)).toEqual(["paquete", "quienEntrena", "sesion", "ejercicios", "curva", "contexto"]);
+    expect(Object.keys(p.datos)).toEqual(["paquete", "quienEntrena", "sesion", "ejercicios", "curva", "marcas", "contexto"]);
     expect(p.texto.startsWith(PROMPT)).toBe(true);
     expect(p.recortes).toEqual([]);
     expect(p.bytes).toBeLessThan(TOPE_PAQUETE_BYTES);
@@ -67,7 +67,7 @@ describe("armarPaqueteSesion", () => {
   it("la calidad del dato va siempre, y las dos duraciones cuando se adoptó la del reloj", () => {
     const p = armarPaqueteSesion({ sesion: CONBIO, contexto: contexto(), curva: CURVA, prompt: PROMPT });
     const reloj = p.datos.sesion.medidoPorElReloj as Record<string, Record<string, unknown>>;
-    expect(Object.keys(reloj.calidad).sort()).toEqual(["coberturaFina", "coberturaTotal", "fcDudosa", "kcalEstimada", "motivoCobertura"]);
+    expect(Object.keys(reloj.calidad).sort()).toEqual(["coberturaFina", "coberturaTotal", "fcDudosa", "motivoCobertura"]);
     expect(reloj.comoSeCruzo).toMatchObject({ ventanaAdoptada: "samsung", duracionAppMin: 49, duracionRelojMin: 47.8 });
     expect(typeof reloj.comoSeCruzo.desfaseDuracionPct).toBe("number");
     expect(reloj.minutosPorZona).toEqual(CONBIO.biometria!.minutosPorZona);
@@ -80,7 +80,8 @@ describe("armarPaqueteSesion", () => {
   });
 
   it("con biometría pero sin curva: no hay curva y lo avisa", () => {
-    const p = armarPaqueteSesion({ sesion: CONBIO, contexto: contexto(), curva: null, prompt: PROMPT });
+    const { curva: _c, ...bioSinCurva } = CONBIO.biometria!;
+    const p = armarPaqueteSesion({ sesion: { ...CONBIO, biometria: bioSinCurva }, contexto: contexto(), curva: null, prompt: PROMPT });
     expect(p.datos.curva).toBeNull();
     expect(p.datos.paquete.avisos.join(" ")).toMatch(/no la curva/);
     expect(p.datos.sesion.medidoPorElReloj).not.toBeNull();
@@ -252,5 +253,80 @@ describe("de dónde salió la prescripción (enmienda P93)", () => {
     const [, fuerza] = armar(null as never).datos.ejercicios;
     expect(fuerza).not.toHaveProperty("prescripcion");
     expect(fuerza).not.toHaveProperty("prescripcionOrigen");
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P99 — el paquete con las marcas, sin calorías, con la curva guardada
+// ════════════════════════════════════════════════════════════════════════════
+describe("armarPaqueteSesion · P99", () => {
+  const armar = (sesion: Historial, extra: Partial<Parameters<typeof armarPaqueteSesion>[0]["contexto"]> = {}) =>
+    armarPaqueteSesion({ sesion, contexto: { ...contexto(), ...extra }, curva: null, prompt: PROMPT });
+
+  it("sin calorías en ningún lado", () => {
+    const p = armarPaqueteSesion({ sesion: CONBIO, contexto: contexto(), curva: CURVA, prompt: PROMPT });
+    expect(JSON.stringify(p.datos)).not.toMatch(/kcal/i);
+  });
+
+  it("las marcas de la app viajan con su id, su texto y su tramo", () => {
+    const p = armar(CONBIO);
+    const ids = p.datos.marcas.map((m) => m.id);
+    expect(ids).toEqual(expect.arrayContaining(["carga", "zonaAlta", "tramoSostenido", "mitades", "recuperacionSeries", "picosZ5", "entradaEnCalor", "pico"]));
+    const tramo = p.datos.marcas.find((m) => m.id === "tramoSostenido")!;
+    // Con las zonas del perfil de ese día (Z4 desde 135): ±1 s de la tabla de P99.
+    expect(Math.abs(tramo.tramo!.inicioS - 1806)).toBeLessThanOrEqual(1);
+    expect(Math.abs(tramo.tramo!.finS - 2882)).toBeLessThanOrEqual(1);
+    expect(tramo.texto).toMatch(/^Tramo sostenido/);
+  });
+
+  it("la curva guardada al enriquecer manda: no hace falta el crudo, y es la misma", () => {
+    const guardada = armar(CONBIO).datos.curva!;
+    const deCrudo = armarPaqueteSesion({
+      sesion: { ...CONBIO, biometria: (({ curva: _c, ...b }) => b)(CONBIO.biometria!) },
+      contexto: contexto(), curva: CURVA, prompt: PROMPT,
+    }).datos.curva!;
+    expect(guardada.puntos).toEqual(deCrudo.puntos);
+    expect(guardada.pasoSeg).toBe(30);
+  });
+
+  it("la edad sale del año de nacimiento a la fecha de la sesión; sin año, null", () => {
+    expect(armar(CONBIO, { perfil: { ...PERFIL, anioNacimiento: 1975 } }).datos.quienEntrena.edad).toBe(51);
+    expect(armar(CONBIO).datos.quienEntrena.edad).toBeNull();
+  });
+
+  it("VR por escalones: modo, escalón, juego, lo prescripto sellado y la dificultad declarada", () => {
+    const conVr: Historial = {
+      ...CONBIO,
+      vr: {
+        modo: "bloques", escalon: 2, idEjercicio: CONBIO.bloques[0].idEjercicio,
+        prescripto: { bloques: 2, minutosBloque: 20, descansoSeg: 120, dificultad: "avanzado" },
+        completoDeclarado: true, dificultad: "mixto",
+      },
+    };
+    const p = armar(conVr);
+    expect(p.datos.sesion.vr).toEqual({
+      modo: "bloques", escalon: 2, juego: CONBIO.bloques[0].nombreEjercicio,
+      prescripto: { bloques: 2, minutosBloque: 20, descansoSeg: 120, dificultadPrevista: "avanzado" },
+      dificultad: "mixto",
+    });
+    expect(p.datos.ejercicios[0]).toMatchObject({
+      prescripcion: { bloques: 2, minutosBloque: 20, descansoSeg: 120, modo: "bloques" }, prescripcionOrigen: "sesion",
+    });
+    const sinDeclarar = armar({ ...conVr, vr: { ...conVr.vr!, dificultad: null } });
+    expect((sinDeclarar.datos.sesion.vr as Record<string, unknown>).dificultad).toBe("sin declarar");
+  });
+
+  it("si se hizo en lugar de otra, va como contexto, con el nombre y el motivo", () => {
+    const cambio: Historial = { ...CONBIO, rutinaPrevista: "RUT-0027", motivoCambio: "poco-tiempo" };
+    expect(armar(cambio, { nombreRutinaPrevista: "VR — Creed" }).datos.sesion.enLugarDe)
+      .toEqual({ rutina: "VR — Creed", motivo: "Poco tiempo" });
+    expect(armar(CONBIO).datos.sesion).not.toHaveProperty("enLugarDe");
+  });
+
+  it("la semana cuenta contra la meta guardada ese día; sin ella, null", () => {
+    expect((armar(CONBIO).datos.contexto as Record<string, unknown>).semana).toBeNull();
+    const conPlan: Historial = { ...CONBIO, planSemana: { metaDias: 5, idPrograma: "PRG-0013" } };
+    expect((armar(conPlan).datos.contexto as Record<string, unknown>).semana)
+      .toEqual({ lunes: CONBIO.semanaInicio, metaDias: 5, diasEntrenadosHastaEsteDia: 1 });
   });
 });
