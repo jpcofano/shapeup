@@ -100,6 +100,11 @@ recorta el contexto primero y la curva después, y **avisa qué recortó**.
 }
 ```
 
+_Corregido el 19/10/2026 (P99): este ejemplo es la forma del esquema 1, con `"version": 1`. El
+código hoy exige `"version": 3` (`VERSION_ESQUEMA_ANALISIS`) y suma `veredicto`, `destacados` y
+`marcasAnalisis` (ver «Marcas y análisis en dos capas», §4). El esquema 2 ya no se acepta al
+cargar; los análisis guardados con el 2 se siguen mostrando._
+
 **`evidencia` es obligatorio en cada hallazgo, y es la pieza central del diseño.** Obliga a
 que cada afirmación se apoye en un número que está en el paquete, y le permite a la app
 mostrarlo al lado. Un hallazgo sin evidencia no se guarda.
@@ -175,6 +180,10 @@ Se guarda aparte, no colgando de una sesión.
 _Integrado el 01/10/2026 desde `docs/plan-marcas-y-analisis.md`, que se borró. Las decisiones están
 copiadas tal cual; la pantalla (§6) sigue siendo una propuesta._
 
+**Estado (19/10/2026): P99 en curso.** Hechas las Partes 1 (diagnóstico), 2 (marcas de la app) y 3
+(paquete, esquema 3, prompt v4 y validador). **Pendientes:** la Parte 4 (pantalla, §6) y la 5
+(cierre de documentos, ADR de dónde viven las marcas, roadmap). Lo decidido está en el §8.
+
 Decisiones del chat del 30/09 sobre cómo el análisis deja de ser solo un texto largo y pasa a **marcar la sesión**. Este plan es la base de **P99** (marcas y análisis de sesión) y del diseño de **P94** (análisis general). No es un prompt para Code: los prompts salen de acá.
 
 ### 1 · El objetivo
@@ -238,18 +247,27 @@ Van en una fila discreta, sin color, en este orden:
 
 | # | id | Marca | Qué muestra | Sobre la curva |
 |---|---|---|---|---|
-| 7 | `tramoSostenido` | Tramo sostenido | El tramo continuo más largo sin bajar del piso de Z4 | sí |
-| 8 | `mitades` | Mitades | FC media de la primera mitad contra la segunda, sin contar la entrada en calor. La app mide; si hubo deriva o no, lo interpreta el análisis | — |
-| 9 | `recuperacionSeries` | Recuperación entre series | Cuánto baja la FC en cada pausa. Solo con 2 o más series | sí |
+| 7 | `tramoSostenido` | Tramo sostenido | El tramo continuo más largo sin bajar del piso de Z4. Tolerancia de 10 s; mínimo 60 s | sí |
+| 7b | `tramoBajo` | Tramo bajo (P99) | El tramo continuo más largo por debajo del piso de Z3, **después** de la entrada en calor. Misma tolerancia y mínimo. No aparece si nunca hubo entrada en calor (nunca llegó a Z4) | sí |
+| 8 | `mitades` | Mitades | FC media de la primera mitad contra la segunda, sin contar la entrada en calor (sin entrada en calor, desde el inicio). La app mide; si hubo deriva o no, lo interpreta el análisis | — |
+| 9 | `recuperacionSeries` | Recuperación entre series | Cuánto baja la FC en cada pausa **y en cada bajada de la curva** (caída mínima 15 bpm; en VR corrido hay una sola serie). Se guardan todas las bajadas; sobre la curva va solo la mayor | sí |
 | 10 | `picosZ5` | Picos en Z5 | Cuántas veces entró a Z5 y cuánto duró la más larga | sí |
 | 11 | `entradaEnCalor` | Entrada en calor | Minutos hasta llegar por primera vez a Z4. Si nunca llegó, no aparece | sí |
-| 12 | `recuperacionFinal` | Recuperación al terminar | Cuánto baja la FC en el primer minuto después del fin. **Condicional** | sí |
-| 13 | `pico` | Pico | FC máxima de la sesión, cuando **no** supera la vigente | sí |
+| 12 | ~~`recuperacionFinal`~~ | ~~Recuperación al terminar~~ | **Descartada en P99:** el reloj sigue apenas unos segundos después del fin (6,8 s el 27/09), no alcanza para un minuto. No existe en el código. | — |
+| 13 | `pico` | Pico | FC máxima de la sesión (suavizada, ±2,5 s), cuando **no** supera la FC máxima con que se calcularon las zonas de esa sesión | sí |
+
+_Actualizado el 19/10/2026 (P99). Orden que fija la app: nivel 1 `calidad`, `record`,
+`picoSobreVigente`, `carga`, `zonaAlta` o `volumen`, `semana`; nivel 2 `tramoSostenido`, `tramoBajo`,
+`mitades`, `recuperacionSeries`, `picosZ5`, `entradaEnCalor`, `pico`. Las filas de arriba conservan
+la numeración original._
+
+_`picoSobreVigente` decide con el pico **suavizado** contra `fcMaxUsada` (la de las zonas guardadas) y
+muestra los dos valores, suavizado y crudo._
 
 #### Condicionales: se confirman en el diagnóstico antes de construirlas
 
-- **`recuperacionFinal`** necesita FC después del fin. El 27/09 el reloj siguió apenas 6,8 s. Si no hay datos suficientes, se descarta.
-- **`volumen` y el récord de fuerza** necesitan que las series guarden la carga y las repeticiones.
+- **`recuperacionFinal`** necesita FC después del fin. El 27/09 el reloj siguió apenas 6,8 s. Si no hay datos suficientes, se descarta. **Resuelto en P99: descartada.**
+- **`volumen` y el récord de fuerza** necesitan que las series guarden la carga y las repeticiones. **Resuelto en P99:** `volumen` aparece con tonelaje > 0; el récord de fuerza es por ejercicio, con `esPR`.
 
 ### 4 · Análisis de sesión (P99)
 
@@ -284,6 +302,16 @@ El esquema pasa a la **versión 3** y el prompt a la **versión 4**. El detalle 
 
 El paquete no manda FC de reposo, sueño de la noche anterior ni edad, aunque la app los tiene: el análisis los pide en «Para completar». P99 los suma al paquete cuando existan.
 
+_Corregido el 19/10/2026 (P99, Parte 3): la nota de arriba era inexacta para dos de los tres datos.
+El paquete **sí** manda el sueño y la FC de reposo (`contexto.dia`); llegaban vacíos porque **solo los
+escribe el import manual del ZIP de Samsung Health** (`Salud.tsx:581-582`, colecciones `sueno` y
+`metricas-salud`, tipo `fc-reposo`). El puente automático (vía D) trae solo los ejercicios. Si no se
+importó un ZIP que cubra ese día, `HistorialDetalle` no los encuentra y llegan `null`: por eso los
+análisis del 30/09 y del 02/10 los pidieron. En la sesión testigo (el fixture no tiene sueño) llegan
+`null`. No se verificó contra Firestore qué días tienen dato. La edad no salía de ningún lado: ahora
+sale de `PerfilMiembro.anioNacimiento` (Perfil → Configuración), o null. El prompt v4 los nombra en
+«de dónde sale cada dato» y dice que `null` es que ese día no se importó._
+
 Candidata a marca de la app (nivel 2, sobre la curva): tramo bajo, el tramo más largo por debajo del piso de Z3 después de la entrada en calor. El análisis del 02/10 preguntó qué pasó entre los minutos 8 y 22; con la marca, ese tramo se ve sin preguntar.
 
 recuperacionSeries también tiene que medir las bajadas de la curva, no solo las pausas entre series: en VR corrido hay una sola serie. El análisis del 02/10 lo calculó a mano (caídas de 26 a 29 bpm en 1 o 2 min).
@@ -299,6 +327,11 @@ El 30/09 el análisis dijo «2 de 6 días» y el 27/09 «2 de 5». Verificá en 
 El "2 de 6" del 30/09 sale del programa activo PRG-0004, que es de 6 días; la meta de 5 llega con el programa nuevo de P98.
 
 El paquete de análisis manda la rutina tal como está (E1 del modo por defecto, aclarado como tal) y no el escalón ni el modo jugados. P99 tiene que sumarlos (reporte de P98, punto 10).
+
+_Corregido el 19/10/2026 (P99, Parte 3): esto describía el paquete anterior. Ahora el paquete manda
+`sesion.vr` (modo, escalón, juego, prescripto sellado y dificultad declarada) y la prescripción del
+bloque de VR con origen «sesion»; la rutina «tal como está» ya no es lo que se manda para esas
+sesiones. `sesion.enLugarDe` lleva la rutina prevista y el motivo, como contexto._
 
 Junto con el escalón y el modo jugados, el paquete tiene que llevar la dificultad declarada al cerrar (`vr.dificultad`: un nivel, «Mixto» o sin declarar). Desde el 02/10 la regla de progresión separa las series por dificultad.
 
@@ -339,11 +372,25 @@ Para distinguir el origen de cada marca: las de la app van **sólidas**, y las d
 
 ### 8 · Abierto: lo propone Code en el diagnóstico de P99 y se decide en el chat
 
-- El umbral de cobertura para que aparezca `calidad`.
-- La tolerancia de `tramoSostenido`: si una caída de pocos segundos bajo el piso de Z4 corta el tramo o no.
-- Cómo se define el récord de fuerza: carga máxima o carga × repeticiones.
-- El tope de `marcasAnalisis`.
-- Si la pantalla de §6 queda así.
+**Decidido el 19/10/2026** (respuestas de Juan al diagnóstico de la Parte 1):
+
+- **`calidad`:** aparece con cobertura fina < 0,80 o `fcDudosa`.
+- **Tramos (`tramoSostenido`, `tramoBajo`):** tolerancia de 10 s fuera del umbral; mínimo de 60 s.
+- **Bajadas (`recuperacionSeries`):** caída mínima de 15 bpm, vecindad de pico de ±60 s, media alrededor del pico de ±2,5 s. Se guardan todas; sobre la curva va la mayor.
+- **Récord:** «a la fecha» (solo contra las sesiones anteriores). VR y cardio por juego (Les Mills en Combat largo, corto y a medida juntos), con carga > zona alta > duración; fuerza por ejercicio, con `esPR`. Un empate de fecha sin `inicioMs` no cuenta como sesión anterior.
+- **Tope de `marcasAnalisis`:** 5.
+- **`recuperacionFinal`:** descartada (ver §3).
+- **La curva se guarda** en la sesión (`biometria.curva`, a 30 s); enmienda del ADR #016, `VERSION_ENRIQUECIMIENTO` = 9.
+- **Edad:** `PerfilMiembro.anioNacimiento`, opcional, en Perfil → Configuración. No cambia ninguna FC máxima.
+- **Meta de la semana:** se guarda al cerrar (`Historial.planSemana`: `metaDias`, `idPrograma`). Sin ese dato, no hay marca `semana` y el paquete manda `contexto.semana: null`. No se completa con la meta de hoy.
+- **Pico:** `picoSobreVigente` decide con el pico suavizado. La tarjeta de revisión de la FC máxima con el mismo criterio va en la Parte 4.
+- **Ids de marca fijos:** un análisis esquema 3 guardado se valida contra las marcas recalculadas de la misma sesión.
+- **Dónde viven las marcas — esquema mixto:** las de la curva se calculan al enriquecer y se guardan
+  versionadas en `biometria.marcas` (ADR #038); las demás (`calidad`, `record`, `carga`, `zonaAlta` o
+  `volumen`, `semana`) se calculan al mostrar (como las recomendaciones, ADR #023). Decidido; el ADR
+  que lo fija se escribe en la Parte 5.
+
+**Sigue abierto:** si la pantalla de §6 queda así (Parte 4).
 
 ## Fuera de alcance
 
