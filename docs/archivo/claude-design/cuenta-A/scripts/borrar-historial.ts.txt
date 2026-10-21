@@ -1,0 +1,125 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  scripts/borrar-historial.ts — Vacía el historial de entrenamiento.
+//
+//  NO borra colecciones: borra SOLO los DOCUMENTOS dentro de /historial
+//  (+ su subcolección media) y /sesiones. Las colecciones siguen existiendo
+//  (vacías) y reaparecen al crear un doc nuevo. NO toca /ejercicios, /rutinas,
+//  /programas, /config ni el módulo de salud (/mediciones, /cardio, /sueno,
+//  /metricas-salud).
+//
+//  Uso (guardar como scripts/borrar-historial.ts):
+//    npx tsx scripts/borrar-historial.ts --miembro=juanpablo            (dry-run)
+//    npx tsx scripts/borrar-historial.ts --miembro=juanpablo --force    (borra)
+//    npx tsx scripts/borrar-historial.ts --all --force                  (todos)
+//
+//  Flags:
+//    --miembro=<id>  juanpablo | maria | sofia | federico
+//    --all           todos los miembros (excluyente con --miembro)
+//    --force         ejecuta el borrado (sin él es DRY RUN, no escribe nada)
+// ════════════════════════════════════════════════════════════════════════════
+
+import { initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, type Query } from "firebase-admin/firestore";
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dir = dirname(fileURLToPath(import.meta.url));
+
+const force = process.argv.includes("--force");
+const all   = process.argv.includes("--all");
+const miembroArg = process.argv
+  .find((a) => a.startsWith("--miembro="))
+  ?.split("=")[1];
+
+const MIEMBROS_VALIDOS = ["juanpablo", "maria", "sofia", "federico"];
+
+// ── Validación de args ────────────────────────────────────────────────────────
+if (!all && !miembroArg) {
+  console.error("\n  ✗ Falta target. Usá --miembro=<id> o --all.\n");
+  process.exit(1);
+}
+if (all && miembroArg) {
+  console.error("\n  ✗ --all y --miembro son excluyentes.\n");
+  process.exit(1);
+}
+if (miembroArg && !MIEMBROS_VALIDOS.includes(miembroArg)) {
+  console.error(`\n  ✗ Miembro inválido: "${miembroArg}". Válidos: ${MIEMBROS_VALIDOS.join(", ")}\n`);
+  process.exit(1);
+}
+
+// ── Init Firebase Admin ───────────────────────────────────────────────────────
+const serviceAccount = JSON.parse(
+  readFileSync(resolve(__dir, "service-account.json"), "utf8"),
+);
+initializeApp({ credential: cert(serviceAccount) });
+const db = getFirestore();
+
+const BATCH_SIZE = 400;
+
+/**
+ * Borra todos los DOCUMENTOS que devuelve `q` (no la colección).
+ * Si `subcols` está, borra esas subcolecciones de cada doc antes del doc padre.
+ */
+async function borrarDocs(
+  label: string,
+  q: Query,
+  subcols: string[] = [],
+): Promise<number> {
+  const snap = await q.get();
+  if (snap.empty) {
+    console.log(`  ${label}: 0 docs.`);
+    return 0;
+  }
+
+  if (!force) {
+    // DRY RUN: solo listar
+    console.log(`  ${label}: ${snap.size} docs (DRY RUN, no se borra)`);
+    snap.docs.slice(0, 5).forEach((d) => console.log(`      - ${d.id}`));
+    if (snap.size > 5) console.log(`      … y ${snap.size - 5} más`);
+    return snap.size;
+  }
+
+  let borrados = 0;
+  let batch = db.batch();
+  let enBatch = 0;
+
+  for (const docSnap of snap.docs) {
+    // Borrar subcolecciones primero (Firestore no las borra en cascada)
+    for (const sub of subcols) {
+      const subSnap = await docSnap.ref.collection(sub).get();
+      for (const subDoc of subSnap.docs) {
+        batch.delete(subDoc.ref);
+        if (++enBatch >= BATCH_SIZE) { await batch.commit(); batch = db.batch(); enBatch = 0; }
+      }
+    }
+    batch.delete(docSnap.ref);
+    borrados++;
+    if (++enBatch >= BATCH_SIZE) { await batch.commit(); batch = db.batch(); enBatch = 0; }
+  }
+  if (enBatch > 0) await batch.commit();
+
+  console.log(`  ${label}: ✅ ${borrados} docs borrados (+ subcolecciones media).`);
+  return borrados;
+}
+
+async function run() {
+  const target = all ? "TODOS los miembros" : miembroArg!;
+  console.log(`\nVaciar historial — target: ${target} — modo: ${force ? "FORCE (borra)" : "DRY RUN"}\n`);
+
+  const histCol = db.collection("historial");
+  const sesCol  = db.collection("sesiones");
+
+  const histQ: Query = all ? histCol : histCol.where("miembro", "==", miembroArg);
+  const sesQ:  Query = all ? sesCol  : sesCol.where("miembro", "==", miembroArg);
+
+  const h = await borrarDocs("historial", histQ, ["media"]);
+  const s = await borrarDocs("sesiones", sesQ);
+
+  console.log(`\n  Total: ${h} historial + ${s} sesiones.`);
+  if (!force) console.log(`  → Reejecutá con --force para borrar de verdad.\n`);
+  else console.log(`  ✅ Listo. Las colecciones siguen existiendo (vacías). Ejercicios y salud intactos.\n`);
+  process.exit(0);
+}
+
+run().catch((e) => { console.error(e); process.exit(1); });

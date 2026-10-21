@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShapeUp — Sesión guiada: opciones de media</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:#0a0c10;font-family:var(--font-sans);color:var(--fg);-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 50% 0%,#14161d 0%,#0a0c10 55%);padding:28px 20px 48px}
+  .head{max-width:1180px;margin:0 auto 22px}
+  .head h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .head p{color:var(--muted);font-size:14px;margin:0;max-width:680px;line-height:1.5}
+  .row{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;max-width:1180px;margin:0 auto}
+  .opt{width:340px}
+  .opt-label{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+  .opt-label .n{font-size:13px;font-weight:800;color:var(--accent)}
+  .opt-label .t{font-size:15px;font-weight:700}
+  .opt-label .d{font-size:12px;color:var(--muted)}
+  .phone{position:relative;border-radius:32px;border:1px solid #232733;background:var(--bg);overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);height:680px;display:flex;flex-direction:column}
+  [data-theme]{height:100%;display:flex;flex-direction:column}
+
+  /* header de sesión */
+  .wh{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;flex-shrink:0}
+  .wh .x{width:30px;height:30px;border-radius:8px;background:var(--card-hover);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+  .wh .ti{flex:1}
+  .wh .ti .nm{font-size:13px;font-weight:600;margin:0}
+  .wbar{height:4px;border-radius:999px;background:var(--card-hover);margin-top:6px;overflow:hidden}
+  .wbar > i{display:block;height:100%;width:45%;background:var(--accent);border-radius:999px}
+  .body{flex:1;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:14px}
+
+  /* media */
+  .media{position:relative;width:100%;aspect-ratio:16/11;border-radius:14px;overflow:hidden;background:var(--card-hover);border:1px solid var(--border)}
+  .media img{width:100%;height:100%;object-fit:cover;display:block}
+  .media .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(0,0,0,.35),rgba(0,0,0,.05));cursor:pointer;border:none}
+  .play .pbtn{width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab)}
+  .badge-demo{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:600;padding:3px 7px;border-radius:6px;display:flex;align-items:center;gap:4px}
+  .playing{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.45);color:#fff}
+  .ic{display:inline-flex}.ic svg{display:block}
+  .spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+
+  .nmbig{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:0}
+  .musc{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:13px}
+  .musc strong{color:var(--fg)}
+  .dots{display:flex;gap:7px}.dot{width:11px;height:11px;border-radius:50%;background:var(--border)}.dot.done{background:var(--accent)}.dot.act{background:var(--accent);transform:scale(1.3);box-shadow:0 0 0 3px var(--accent-dim)}
+  .chip{align-self:flex-start;background:var(--accent-dim);color:var(--accent);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+
+  /* segmented (opción C) */
+  .seg{display:flex;gap:4px;background:var(--card-hover);border-radius:10px;padding:3px}
+  .seg button{flex:1;border:none;background:none;color:var(--muted);font:600 12px/1 var(--font-sans);padding:8px 0;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+  .seg button.on{background:var(--accent);color:var(--on-accent)}
+
+  /* body map mini (opción B) */
+  .bmwrap{display:flex;gap:8px;align-items:center}
+  .bmwrap svg{display:block}
+  .footer{flex-shrink:0;padding:12px 16px 16px;border-top:1px solid var(--border)}
+  .steppers{display:flex;gap:10px;margin-bottom:10px}
+  .st{flex:1;display:flex;flex-direction:column;gap:5px;align-items:center}
+  .st .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .st .c{display:flex;align-items:center;gap:8px;width:100%;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:5px}
+  .st .c button{width:34px;height:34px;border:none;border-radius:7px;background:var(--card-hover);color:var(--fg);display:flex;align-items:center;justify-content:center}
+  .st .c span{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+  .go{width:100%;background:var(--accent);color:var(--on-accent);border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Sesión guiada — ¿cómo mostramos el ejercicio?</h1>
+  <p>Hoy se ve una foto estática. Tres formas de integrar <strong>foto + demo en video + músculo trabajado</strong> sin recargar la pantalla de entreno. Tocá el play / las pestañas para probar.</p>
+</div>
+<div class="row" id="row"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+const IMG = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bench_Press/0.jpg";
+
+const header = `<div class="wh"><div class="x ic"><i data-lucide="x"></i></div><div class="ti"><p class="nm">Tren superior — Empuje</p><div class="wbar"><i></i></div></div><div class="x ic"><i data-lucide="align-justify"></i></div></div>`;
+
+const info = `
+  <h2 class="nmbig">Press de banca con mancuernas</h2>
+  <div class="musc"><span class="ic" style="color:var(--accent)"><i data-lucide="target"></i></span><span><strong>Pecho</strong> · Hombros, Tríceps</span></div>
+  <div class="dots"><span class="dot done"></span><span class="dot done"></span><span class="dot act"></span><span class="dot"></span></div>
+  <span class="chip">Serie 3 de 4 · objetivo 10 reps · 22.5 kg</span>`;
+
+const footer = `<div class="footer">
+  <div class="steppers">
+    <div class="st"><span class="l">Reps</span><div class="c"><button class="ic"><i data-lucide="minus"></i></button><span>10</span><button class="ic"><i data-lucide="plus"></i></button></div></div>
+    <div class="st"><span class="l">Carga</span><div class="c"><button class="ic"><i data-lucide="minus"></i></button><span>22.5</span><button class="ic"><i data-lucide="plus"></i></button></div></div>
+  </div>
+  <button class="go">Serie 3 hecha ✓</button>
+</div>`;
+
+const mediaPhoto = (withPlay) => `
+  <div class="media" data-media>
+    <img src="${IMG}" onerror="this.style.display='none'">
+    ${withPlay ? `<button class="play" onclick="playDemo(this)"><span class="pbtn ic"><i data-lucide="play"></i></span></button>
+    <span class="badge-demo ic"><i data-lucide="video"></i> Demo · 0:12</span>` : ''}
+  </div>`;
+
+// body map mini (frente)
+const bodymapMini = (w=70) => `<svg viewBox="0 0 100 220" width="${w}"><g stroke="var(--border)" stroke-width="0.8">
+  <circle cx="50" cy="18" r="11" fill="var(--card-hover)"/><rect x="44" y="28" width="12" height="7" rx="2" fill="var(--card-hover)"/>
+  <ellipse cx="29" cy="44" rx="11" ry="8" fill="color-mix(in srgb,var(--accent) 38%,transparent)"/><ellipse cx="71" cy="44" rx="11" ry="8" fill="color-mix(in srgb,var(--accent) 38%,transparent)"/>
+  <path d="M37 40 H63 Q66 55 50 60 Q34 55 37 40 Z" fill="var(--accent)"/>
+  <rect x="40" y="61" width="20" height="34" rx="5" fill="var(--card-hover)"/>
+  <rect x="20" y="52" width="9" height="26" rx="4" fill="var(--card-hover)"/><rect x="71" y="52" width="9" height="26" rx="4" fill="var(--card-hover)"/>
+  <rect x="40" y="98" width="9" height="48" rx="5" fill="var(--card-hover)"/><rect x="51" y="98" width="9" height="48" rx="5" fill="var(--card-hover)"/></g></svg>`;
+
+function phone(theme, inner){ return `<div class="phone"><div data-theme="${theme}">${header}<div class="body">${inner}</div>${footer}</div></div>`; }
+
+// ── Opción A — foto con play (demo a un toque) ──
+const A = info => `${mediaPhoto(true)}${info}`;
+// ── Opción B — media + músculo lado a lado ──
+const B = info => `
+  <div style="display:flex;gap:10px">
+    <div style="flex:1">${mediaPhoto(true)}</div>
+    <div style="flex:0 0 86px;background:var(--card);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 4px">
+      ${bodymapMini(58)}<span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">músculo</span>
+    </div>
+  </div>${info}`;
+// ── Opción C — pestañas Foto / Video / Músculo ──
+const C = info => `
+  <div class="seg" data-seg>
+    <button class="on" data-tab="foto"><span class="ic"><i data-lucide="image"></i></span>Foto</button>
+    <button data-tab="video"><span class="ic"><i data-lucide="play"></i></span>Demo</button>
+    <button data-tab="musc"><span class="ic"><i data-lucide="target"></i></span>Músculo</button>
+  </div>
+  <div data-pane="foto"><div class="media"><img src="${IMG}" onerror="this.style.display='none'"></div></div>
+  <div data-pane="video" style="display:none"><div class="media"><button class="play" onclick="playDemo(this)"><span class="pbtn ic"><i data-lucide="play"></i></span></button></div></div>
+  <div data-pane="musc" style="display:none"><div class="media" style="aspect-ratio:16/11;display:flex;align-items:center;justify-content:center;gap:18px;background:var(--card)">
+    <div style="text-align:center">${bodymapMini(64)}<div style="font-size:9px;color:var(--muted);margin-top:2px">FRENTE</div></div>
+    <div style="text-align:left;font-size:12px"><div style="color:var(--accent);font-weight:700;margin-bottom:4px">● Pecho</div><div style="color:var(--muted)">○ Hombros</div><div style="color:var(--muted)">○ Tríceps</div></div>
+  </div></div>
+  ${info}`;
+
+const opts = [
+  ["A","Foto con play","la foto, tocás y arranca la demo", "ion", A],
+  ["B","Media + músculo","demo y silueta a la vez", "ion", B],
+  ["C","Pestañas","Foto / Demo / Músculo", "ion", C],
+];
+document.getElementById('row').innerHTML = opts.map(([n,t,d,th,fn])=>`
+  <div class="opt"><div class="opt-label"><span class="n">${n}</span><span class="t">${t}</span><span class="d">· ${d}</span></div>${phone(th, fn(info))}</div>
+`).join('');
+
+window.playDemo = (btn) => {
+  const media = btn.closest('.media');
+  media.innerHTML = `<div class="playing"><span class="ic spin"><i data-lucide="loader"></i></span><span style="font-size:11px">Reproduciendo demo…</span></div>`;
+  lucide.createIcons();
+};
+// segmented
+document.addEventListener('click', e => {
+  const b = e.target.closest('.seg button'); if(!b) return;
+  const seg = b.closest('.seg'); const phone = b.closest('[data-theme]');
+  seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+  const tab = b.dataset.tab;
+  phone.querySelectorAll('[data-pane]').forEach(p=>p.style.display = p.dataset.pane===tab?'block':'none');
+});
+lucide.createIcons({attrs:{'stroke-width':1.9}});
+</script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="design_doc_mode" content="canvas">
+<title>ShapeUp — Rediseño Home · Pulso y Sereno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&family=Instrument+Sans:wght@400..700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="home-redux.css">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<div class="frame" id="intro" style="left:40px;top:40px;">
+<p class="frame-label">Contexto y racional<span class="sub">leé esto primero</span></p>
+<div class="doc-card" style="width:900px;">
+<h2>Rediseño Home — dos direcciones · A «Pulso» y B «Sereno»</h2>
+<p><b>Supuestos:</b> mantengo la estructura de contenido del brief (saludo + "Día 3 de 4", anillo 2/4, tarjeta del día de descanso, 3 métricas, módulo semanal L–D, nav de 6). Iconos Lucide y voseo del sistema actual. Datos de ejemplo del UI kit.</p>
+<ul>
+  <li><b>Theming como tokens duales:</b> cada acento define un par <code>--acc-d</code> (modo oscuro) / <code>--acc-l</code> (variante ajustada AA para modo claro). El modo elige cuál se vuelve <code>--accent</code>; nada más cambia. 5 acentos propuestos abajo, todos ≥ 4.5:1 en ambos modos.</li>
+  <li><b>Jerarquía resuelta sin depender del acento:</b> en A el peso lo pone la tipografía (Archivo 800–900 itálica) y la tarjeta hero con lavado de acento; en B lo pone el contraste serif/sans y el aire. Las métricas bajan un nivel (A: tiles chicas · B: sin caja, hairlines).</li>
+  <li><b>Sistema, no pantalla:</b> cada dirección define tarjeta base, métrica, botón primario/secundario y chip de día (ver spec cards a la derecha, con demos en vivo — probá hover/press).</li>
+</ul>
+</div>
+</div><div class="frame" id="a1" style="left:40px;top:400px;">
+<p class="frame-label">A1 · Pulso<span class="sub">dark · ion</span></p>
+<div class="phone dir-a" data-mode="dark" data-accent="ion" data-screen-label="Pulso dark ion">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="a-top">
+    <div>
+      <h1 class="a-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="a-dia"><i data-lucide="zap"></i> Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="a-avatar">JP</div>
+  </div>
+  <div class="a-ring"><svg width="176" height="176" viewBox="0 0 176 176"><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(7 88 88)"></circle><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(97 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(187 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(277 88 88)"></circle></svg><div class="a-ring-c"><div class="a-ring-num">2<small>/4</small></div><div class="a-ring-lab">sesiones</div></div></div>
+  <section class="a-hero">
+    <svg class="a-hero-mark" viewBox="0 0 120 120" fill="none"><g stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"><path d="M30 60 L60 33 L90 60"></path><path d="M30 87 L60 60 L90 87"></path></g></svg>
+    <div class="a-hero-tag"><i data-lucide="moon"></i> Hoy · miércoles</div>
+    <h2 class="a-hero-title">Día de descanso</h2>
+    <p class="a-hero-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="a-btn2"><i data-lucide="zap"></i> Entrenar igual</button>
+  </section>
+  <div class="a-metrics">
+    <div class="a-metric"><span class="l">Volumen</span><span class="v">3.960</span><span class="a-delta">kg semana</span></div>
+    <div class="a-metric"><span class="l">Peso</span><span class="v">84.6</span><span class="a-delta down">−0.4 kg</span></div>
+    <div class="a-metric"><span class="l">Racha</span><span class="v"><i data-lucide="flame"></i>3</span><span class="a-delta">semanas</span></div>
+  </div>
+  <section class="a-mob">
+    <div class="a-mob-h"><span class="a-mob-t">Movilidad y recuperación</span><span class="a-mob-n">2/7</span></div>
+    <div class="a-days"><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>L</span></div><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>M</span></div><div class="a-day today"><span class="c"><i data-lucide="activity"></i></span><span>X</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>J</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>V</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>S</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="a-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="a2" style="left:470px;top:400px;">
+<p class="frame-label">A2 · Pulso<span class="sub">dark · blaze</span></p>
+<div class="phone dir-a" data-mode="dark" data-accent="blaze" data-screen-label="Pulso dark blaze">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="a-top">
+    <div>
+      <h1 class="a-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="a-dia"><i data-lucide="zap"></i> Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="a-avatar">JP</div>
+  </div>
+  <div class="a-ring"><svg width="176" height="176" viewBox="0 0 176 176"><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(7 88 88)"></circle><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(97 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(187 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(277 88 88)"></circle></svg><div class="a-ring-c"><div class="a-ring-num">2<small>/4</small></div><div class="a-ring-lab">sesiones</div></div></div>
+  <section class="a-hero">
+    <svg class="a-hero-mark" viewBox="0 0 120 120" fill="none"><g stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"><path d="M30 60 L60 33 L90 60"></path><path d="M30 87 L60 60 L90 87"></path></g></svg>
+    <div class="a-hero-tag"><i data-lucide="moon"></i> Hoy · miércoles</div>
+    <h2 class="a-hero-title">Día de descanso</h2>
+    <p class="a-hero-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="a-btn2"><i data-lucide="zap"></i> Entrenar igual</button>
+  </section>
+  <div class="a-metrics">
+    <div class="a-metric"><span class="l">Volumen</span><span class="v">3.960</span><span class="a-delta">kg semana</span></div>
+    <div class="a-metric"><span class="l">Peso</span><span class="v">84.6</span><span class="a-delta down">−0.4 kg</span></div>
+    <div class="a-metric"><span class="l">Racha</span><span class="v"><i data-lucide="flame"></i>3</span><span class="a-delta">semanas</span></div>
+  </div>
+  <section class="a-mob">
+    <div class="a-mob-h"><span class="a-mob-t">Movilidad y recuperación</span><span class="a-mob-n">2/7</span></div>
+    <div class="a-days"><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>L</span></div><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>M</span></div><div class="a-day today"><span class="c"><i data-lucide="activity"></i></span><span>X</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>J</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>V</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>S</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="a-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="a3" style="left:900px;top:400px;">
+<p class="frame-label">A3 · Pulso<span class="sub">light · ion</span></p>
+<div class="phone dir-a" data-mode="light" data-accent="ion" data-screen-label="Pulso light ion">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="a-top">
+    <div>
+      <h1 class="a-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="a-dia"><i data-lucide="zap"></i> Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="a-avatar">JP</div>
+  </div>
+  <div class="a-ring"><svg width="176" height="176" viewBox="0 0 176 176"><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(7 88 88)"></circle><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(97 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(187 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(277 88 88)"></circle></svg><div class="a-ring-c"><div class="a-ring-num">2<small>/4</small></div><div class="a-ring-lab">sesiones</div></div></div>
+  <section class="a-hero">
+    <svg class="a-hero-mark" viewBox="0 0 120 120" fill="none"><g stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"><path d="M30 60 L60 33 L90 60"></path><path d="M30 87 L60 60 L90 87"></path></g></svg>
+    <div class="a-hero-tag"><i data-lucide="moon"></i> Hoy · miércoles</div>
+    <h2 class="a-hero-title">Día de descanso</h2>
+    <p class="a-hero-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="a-btn2"><i data-lucide="zap"></i> Entrenar igual</button>
+  </section>
+  <div class="a-metrics">
+    <div class="a-metric"><span class="l">Volumen</span><span class="v">3.960</span><span class="a-delta">kg semana</span></div>
+    <div class="a-metric"><span class="l">Peso</span><span class="v">84.6</span><span class="a-delta down">−0.4 kg</span></div>
+    <div class="a-metric"><span class="l">Racha</span><span class="v"><i data-lucide="flame"></i>3</span><span class="a-delta">semanas</span></div>
+  </div>
+  <section class="a-mob">
+    <div class="a-mob-h"><span class="a-mob-t">Movilidad y recuperación</span><span class="a-mob-n">2/7</span></div>
+    <div class="a-days"><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>L</span></div><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>M</span></div><div class="a-day today"><span class="c"><i data-lucide="activity"></i></span><span>X</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>J</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>V</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>S</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="a-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="a4" style="left:1330px;top:400px;">
+<p class="frame-label">A4 · Pulso<span class="sub">light · blaze</span></p>
+<div class="phone dir-a" data-mode="light" data-accent="blaze" data-screen-label="Pulso light blaze">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="a-top">
+    <div>
+      <h1 class="a-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="a-dia"><i data-lucide="zap"></i> Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="a-avatar">JP</div>
+  </div>
+  <div class="a-ring"><svg width="176" height="176" viewBox="0 0 176 176"><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(7 88 88)"></circle><circle class="seg on" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(97 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(187 88 88)"></circle><circle class="seg" cx="88" cy="88" r="66" stroke-dasharray="87.7 414.7" transform="rotate(277 88 88)"></circle></svg><div class="a-ring-c"><div class="a-ring-num">2<small>/4</small></div><div class="a-ring-lab">sesiones</div></div></div>
+  <section class="a-hero">
+    <svg class="a-hero-mark" viewBox="0 0 120 120" fill="none"><g stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"><path d="M30 60 L60 33 L90 60"></path><path d="M30 87 L60 60 L90 87"></path></g></svg>
+    <div class="a-hero-tag"><i data-lucide="moon"></i> Hoy · miércoles</div>
+    <h2 class="a-hero-title">Día de descanso</h2>
+    <p class="a-hero-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="a-btn2"><i data-lucide="zap"></i> Entrenar igual</button>
+  </section>
+  <div class="a-metrics">
+    <div class="a-metric"><span class="l">Volumen</span><span class="v">3.960</span><span class="a-delta">kg semana</span></div>
+    <div class="a-metric"><span class="l">Peso</span><span class="v">84.6</span><span class="a-delta down">−0.4 kg</span></div>
+    <div class="a-metric"><span class="l">Racha</span><span class="v"><i data-lucide="flame"></i>3</span><span class="a-delta">semanas</span></div>
+  </div>
+  <section class="a-mob">
+    <div class="a-mob-h"><span class="a-mob-t">Movilidad y recuperación</span><span class="a-mob-n">2/7</span></div>
+    <div class="a-days"><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>L</span></div><div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>M</span></div><div class="a-day today"><span class="c"><i data-lucide="activity"></i></span><span>X</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>J</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>V</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>S</span></div><div class="a-day"><span class="c"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="a-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="spec-a" style="left:1770px;top:400px;">
+<p class="frame-label">A · Sistema<span class="sub">componentes y reglas</span></p>
+<div class="doc-card" style="width:470px;">
+<h3>A · «Pulso» — enérgica / deportiva</h3>
+<ul>
+  <li><b>Tipografía:</b> Archivo 800–900 <i>itálica</i> para display y cifras (tabular); regular para cuerpo. Labels 9–10px uppercase, tracking 0.1em.</li>
+  <li><b>Paleta:</b> neutros fríos (azul-gris); el acento solo marca acción y estado.</li>
+  <li><b>Tarjeta base:</b> radio 16–20, borde 1px, hover → borde tiñe a acento. Hero del día: lavado de acento 16%→0 + marca chevron al 10%.</li>
+  <li><b>Anillo:</b> segmentado — 1 segmento = 1 sesión, glow sutil en los hechos. Al completar: el segmento se enciende con glow + scale 1.06 y el chip del día pasa a ✓.</li>
+  <li><b>Iconografía:</b> Lucide stroke 2, estados hechos con tinte de acento.</li>
+  <li><b>Microdetalles:</b> press scale 0.97, barra de 3px sobre el ítem activo del nav, transiciones 150ms.</li>
+</ul>
+<p class="spec-demo-lab">Componentes · dark / Ion</p>
+<div class="spec-demo dir-a" data-mode="dark" data-accent="ion">
+  <button class="a-btn1"><i data-lucide="zap"></i> Empezar sesión</button>
+  <button class="a-btn2">Entrenar igual</button>
+  <div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>L</span></div>
+  <div class="a-day today"><span class="c"><i data-lucide="activity"></i></span><span>X</span></div>
+</div>
+<p class="spec-demo-lab">Componentes · light / Blaze</p>
+<div class="spec-demo dir-a" data-mode="light" data-accent="blaze">
+  <button class="a-btn1"><i data-lucide="zap"></i> Empezar sesión</button>
+  <button class="a-btn2">Entrenar igual</button>
+  <div class="a-day done"><span class="c"><i data-lucide="check"></i></span><span>L</span></div>
+  <div class="a-day today"><span class="c"><i data-lucide="activity"></i></span><span>X</span></div>
+</div>
+</div>
+</div><div class="frame" id="b1" style="left:40px;top:1400px;">
+<p class="frame-label">B1 · Sereno<span class="sub">dark · indigo</span></p>
+<div class="phone dir-b" data-mode="dark" data-accent="indigo" data-screen-label="Sereno dark indigo">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="b-top">
+    <div>
+      <h1 class="b-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="b-dia">Día 3 de 4 — vas bien.</div>
+    </div>
+    <div class="b-avatar">JP</div>
+  </div>
+  <div class="b-ring"><svg width="190" height="190" viewBox="0 0 190 190">
+  <circle class="tr" cx="95" cy="95" r="88"></circle>
+  <g transform="rotate(-90 95 95)"><circle class="pr" cx="95" cy="95" r="88" stroke-dasharray="276.5 553"></circle></g>
+  <circle class="dot" cx="95" cy="183" r="5.5"></circle>
+</svg><div class="b-ring-c"><div class="b-ring-num">2</div><div class="b-ring-sub">de 4 sesiones</div></div></div>
+  <section class="b-card">
+    <p class="b-lab">Hoy · miércoles</p>
+    <h2 class="b-card-title"><i data-lucide="moon"></i>Día de descanso</h2>
+    <p class="b-card-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="b-btn2">Entrenar igual</button>
+  </section>
+  <div class="b-metrics">
+    <div class="b-metric"><span class="v">3.960<small> kg</small></span><span class="l">volumen semanal</span></div>
+    <div class="b-metric"><span class="v">84.6<small> kg</small></span><span class="l">peso · <b class="b-delta">−0.4</b></span></div>
+    <div class="b-metric"><span class="v">3<small> sem</small></span><span class="l">racha</span></div>
+  </div>
+  <section class="b-mob">
+    <p class="b-lab" style="margin:0;">Movilidad y recuperación</p>
+    <div class="b-days"><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>L</span></div><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>M</span></div><div class="b-day today"><span class="d"></span><span>X</span></div><div class="b-day"><span class="d"></span><span>J</span></div><div class="b-day"><span class="d"></span><span>V</span></div><div class="b-day"><span class="d"></span><span>S</span></div><div class="b-day"><span class="d"></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="b-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="b2" style="left:470px;top:1400px;">
+<p class="frame-label">B2 · Sereno<span class="sub">dark · pulse</span></p>
+<div class="phone dir-b" data-mode="dark" data-accent="pulse" data-screen-label="Sereno dark pulse">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="b-top">
+    <div>
+      <h1 class="b-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="b-dia">Día 3 de 4 — vas bien.</div>
+    </div>
+    <div class="b-avatar">JP</div>
+  </div>
+  <div class="b-ring"><svg width="190" height="190" viewBox="0 0 190 190">
+  <circle class="tr" cx="95" cy="95" r="88"></circle>
+  <g transform="rotate(-90 95 95)"><circle class="pr" cx="95" cy="95" r="88" stroke-dasharray="276.5 553"></circle></g>
+  <circle class="dot" cx="95" cy="183" r="5.5"></circle>
+</svg><div class="b-ring-c"><div class="b-ring-num">2</div><div class="b-ring-sub">de 4 sesiones</div></div></div>
+  <section class="b-card">
+    <p class="b-lab">Hoy · miércoles</p>
+    <h2 class="b-card-title"><i data-lucide="moon"></i>Día de descanso</h2>
+    <p class="b-card-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="b-btn2">Entrenar igual</button>
+  </section>
+  <div class="b-metrics">
+    <div class="b-metric"><span class="v">3.960<small> kg</small></span><span class="l">volumen semanal</span></div>
+    <div class="b-metric"><span class="v">84.6<small> kg</small></span><span class="l">peso · <b class="b-delta">−0.4</b></span></div>
+    <div class="b-metric"><span class="v">3<small> sem</small></span><span class="l">racha</span></div>
+  </div>
+  <section class="b-mob">
+    <p class="b-lab" style="margin:0;">Movilidad y recuperación</p>
+    <div class="b-days"><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>L</span></div><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>M</span></div><div class="b-day today"><span class="d"></span><span>X</span></div><div class="b-day"><span class="d"></span><span>J</span></div><div class="b-day"><span class="d"></span><span>V</span></div><div class="b-day"><span class="d"></span><span>S</span></div><div class="b-day"><span class="d"></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="b-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="b3" style="left:900px;top:1400px;">
+<p class="frame-label">B3 · Sereno<span class="sub">light · indigo</span></p>
+<div class="phone dir-b" data-mode="light" data-accent="indigo" data-screen-label="Sereno light indigo">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="b-top">
+    <div>
+      <h1 class="b-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="b-dia">Día 3 de 4 — vas bien.</div>
+    </div>
+    <div class="b-avatar">JP</div>
+  </div>
+  <div class="b-ring"><svg width="190" height="190" viewBox="0 0 190 190">
+  <circle class="tr" cx="95" cy="95" r="88"></circle>
+  <g transform="rotate(-90 95 95)"><circle class="pr" cx="95" cy="95" r="88" stroke-dasharray="276.5 553"></circle></g>
+  <circle class="dot" cx="95" cy="183" r="5.5"></circle>
+</svg><div class="b-ring-c"><div class="b-ring-num">2</div><div class="b-ring-sub">de 4 sesiones</div></div></div>
+  <section class="b-card">
+    <p class="b-lab">Hoy · miércoles</p>
+    <h2 class="b-card-title"><i data-lucide="moon"></i>Día de descanso</h2>
+    <p class="b-card-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="b-btn2">Entrenar igual</button>
+  </section>
+  <div class="b-metrics">
+    <div class="b-metric"><span class="v">3.960<small> kg</small></span><span class="l">volumen semanal</span></div>
+    <div class="b-metric"><span class="v">84.6<small> kg</small></span><span class="l">peso · <b class="b-delta">−0.4</b></span></div>
+    <div class="b-metric"><span class="v">3<small> sem</small></span><span class="l">racha</span></div>
+  </div>
+  <section class="b-mob">
+    <p class="b-lab" style="margin:0;">Movilidad y recuperación</p>
+    <div class="b-days"><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>L</span></div><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>M</span></div><div class="b-day today"><span class="d"></span><span>X</span></div><div class="b-day"><span class="d"></span><span>J</span></div><div class="b-day"><span class="d"></span><span>V</span></div><div class="b-day"><span class="d"></span><span>S</span></div><div class="b-day"><span class="d"></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="b-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="b4" style="left:1330px;top:1400px;">
+<p class="frame-label">B4 · Sereno<span class="sub">light · pulse</span></p>
+<div class="phone dir-b" data-mode="light" data-accent="pulse" data-screen-label="Sereno light pulse">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="b-top">
+    <div>
+      <h1 class="b-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="b-dia">Día 3 de 4 — vas bien.</div>
+    </div>
+    <div class="b-avatar">JP</div>
+  </div>
+  <div class="b-ring"><svg width="190" height="190" viewBox="0 0 190 190">
+  <circle class="tr" cx="95" cy="95" r="88"></circle>
+  <g transform="rotate(-90 95 95)"><circle class="pr" cx="95" cy="95" r="88" stroke-dasharray="276.5 553"></circle></g>
+  <circle class="dot" cx="95" cy="183" r="5.5"></circle>
+</svg><div class="b-ring-c"><div class="b-ring-num">2</div><div class="b-ring-sub">de 4 sesiones</div></div></div>
+  <section class="b-card">
+    <p class="b-lab">Hoy · miércoles</p>
+    <h2 class="b-card-title"><i data-lucide="moon"></i>Día de descanso</h2>
+    <p class="b-card-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="b-btn2">Entrenar igual</button>
+  </section>
+  <div class="b-metrics">
+    <div class="b-metric"><span class="v">3.960<small> kg</small></span><span class="l">volumen semanal</span></div>
+    <div class="b-metric"><span class="v">84.6<small> kg</small></span><span class="l">peso · <b class="b-delta">−0.4</b></span></div>
+    <div class="b-metric"><span class="v">3<small> sem</small></span><span class="l">racha</span></div>
+  </div>
+  <section class="b-mob">
+    <p class="b-lab" style="margin:0;">Movilidad y recuperación</p>
+    <div class="b-days"><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>L</span></div><div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>M</span></div><div class="b-day today"><span class="d"></span><span>X</span></div><div class="b-day"><span class="d"></span><span>J</span></div><div class="b-day"><span class="d"></span><span>V</span></div><div class="b-day"><span class="d"></span><span>S</span></div><div class="b-day"><span class="d"></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="b-nav"><div class="nav-it on"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it"><i data-lucide="user"></i><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="spec-b" style="left:1770px;top:1400px;">
+<p class="frame-label">B · Sistema<span class="sub">componentes y reglas</span></p>
+<div class="doc-card" style="width:470px;">
+<h3>B · «Sereno» — minimalista / premium</h3>
+<ul>
+  <li><b>Tipografía:</b> Instrument Serif itálica para saludo, títulos y la cifra del anillo; Instrument Sans para todo lo demás. Labels small-caps tracking 0.15em.</li>
+  <li><b>Paleta:</b> neutros cálidos (grafito / papel); un solo acento, usado con moderación.</li>
+  <li><b>Tarjeta base:</b> radio 22, hairline 1px; en claro suma sombra suave difusa. Métricas sin caja, separadas por hairlines.</li>
+  <li><b>Anillo:</b> trazo fino 5px con punto de progreso. Al completar: el punto recorre el arco y hace un pulso suave.</li>
+  <li><b>Iconografía:</b> Lucide stroke 1.6, tamaño contenido; días como círculos de estado (lleno ✓ / halo hoy / hairline pendiente).</li>
+  <li><b>Microdetalles:</b> botones pill, punto de 4px bajo el nav activo, hover por color (no por fondo), transiciones 150ms.</li>
+</ul>
+<p class="spec-demo-lab">Componentes · dark / Indigo</p>
+<div class="spec-demo dir-b" data-mode="dark" data-accent="indigo">
+  <button class="b-btn1">Empezar sesión</button>
+  <button class="b-btn2">Entrenar igual</button>
+  <div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>L</span></div>
+  <div class="b-day today"><span class="d"></span><span>X</span></div>
+</div>
+<p class="spec-demo-lab">Componentes · light / Pulse</p>
+<div class="spec-demo dir-b" data-mode="light" data-accent="pulse">
+  <button class="b-btn1">Empezar sesión</button>
+  <button class="b-btn2">Entrenar igual</button>
+  <div class="b-day done"><span class="d"><i data-lucide="check"></i></span><span>L</span></div>
+  <div class="b-day today"><span class="d"></span><span>X</span></div>
+</div>
+</div>
+</div><div class="frame" id="paleta" style="left:40px;top:2400px;">
+<p class="frame-label">Theming<span class="sub">acentos + contraste AA</span></p>
+<div class="doc-card" style="width:900px;">
+<h2>Acentos · tokens duales (5 propuestos)</h2>
+<p>Un acento = un par de valores. El modo decide cuál se aplica; los componentes solo conocen <code>--accent</code>, <code>--accent-dim</code> y <code>--on-accent</code>. Contrastes estimados para texto e iconos de acento sobre los fondos base de cada modo.</p>
+<div class="pal-row">
+  <span class="pal-name">Ion</span>
+  <span class="pal-chip pal-dark"><span class="sw" style="background:#22d3ee;"></span>#22d3ee<span class="ratio">≈ 10.9:1 sobre #0a0c10 · AA ✓</span></span>
+  <span class="pal-chip pal-light"><span class="sw" style="background:#0e7490;"></span>#0e7490<span class="ratio">≈ 5.3:1 sobre blanco · AA ✓</span></span>
+</div><div class="pal-row">
+  <span class="pal-name">Volt</span>
+  <span class="pal-chip pal-dark"><span class="sw" style="background:#4ade80;"></span>#4ade80<span class="ratio">≈ 10.6:1 sobre #0a0c10 · AA ✓</span></span>
+  <span class="pal-chip pal-light"><span class="sw" style="background:#15803d;"></span>#15803d<span class="ratio">≈ 5.0:1 sobre blanco · AA ✓</span></span>
+</div><div class="pal-row">
+  <span class="pal-name">Blaze</span>
+  <span class="pal-chip pal-dark"><span class="sw" style="background:#ff7a45;"></span>#ff7a45<span class="ratio">≈ 7.0:1 sobre #0a0c10 · AA ✓</span></span>
+  <span class="pal-chip pal-light"><span class="sw" style="background:#c2410c;"></span>#c2410c<span class="ratio">≈ 4.9:1 sobre blanco · AA ✓</span></span>
+</div><div class="pal-row">
+  <span class="pal-name">Indigo</span>
+  <span class="pal-chip pal-dark"><span class="sw" style="background:#8b90ff;"></span>#8b90ff<span class="ratio">≈ 6.3:1 sobre #0a0c10 · AA ✓</span></span>
+  <span class="pal-chip pal-light"><span class="sw" style="background:#4f46e5;"></span>#4f46e5<span class="ratio">≈ 6.0:1 sobre blanco · AA ✓</span></span>
+</div><div class="pal-row">
+  <span class="pal-name">Pulse</span>
+  <span class="pal-chip pal-dark"><span class="sw" style="background:#ff4d79;"></span>#ff4d79<span class="ratio">≈ 5.9:1 sobre #0a0c10 · AA ✓</span></span>
+  <span class="pal-chip pal-light"><span class="sw" style="background:#be185c;"></span>#be185c<span class="ratio">≈ 6.2:1 sobre blanco · AA ✓</span></span>
+</div>
+<pre>[data-accent="blaze"] { --acc-d: #ff7a45; --acc-l: #c2410c; }
+[data-mode="dark"]  { --accent: var(--acc-d); --on-accent: #0b0f14; --accent-dim: color-mix(in srgb, var(--acc-d) 14%, transparent); }
+[data-mode="light"] { --accent: var(--acc-l); --on-accent: #ffffff; --accent-dim: color-mix(in srgb, var(--acc-l) 10%, transparent); }</pre>
+</div>
+</div>
+<div class="frame" id="c1" style="left:40px;top:3140px;">
+<p class="frame-label">B v2 · 1<span class="sub">dark · volt</span></p>
+<div class="phone dir-c" data-mode="dark" data-accent="volt" data-screen-label="B v2 dark volt">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="c-top">
+    <div>
+      <h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="c-dia">Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="c-avatar">JP</div>
+  </div>
+  <div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200">
+<defs><linearGradient id="cg-1" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" style="stop-color: var(--accent);"></stop>
+<stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop>
+</linearGradient></defs>
+<circle class="tr" cx="100" cy="100" r="82"></circle>
+<g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#cg-1)" stroke-dasharray="257.6 515.2"></circle></g>
+</svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+  <section class="c-card pattern">
+    <p class="c-lab">Hoy · miércoles</p>
+    <h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2>
+    <p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="c-btn2">Entrenar igual</button>
+  </section>
+  <div class="c-metrics">
+    <div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div>
+    <div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos">−0.4 kg</span></div>
+    <div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div>
+  </div>
+  <section class="c-card c-mob">
+    <div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div>
+    <div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="c-nav"><div class="nav-it on"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="c2" style="left:470px;top:3140px;">
+<p class="frame-label">B v2 · 2<span class="sub">dark · indigo</span></p>
+<div class="phone dir-c" data-mode="dark" data-accent="indigo" data-screen-label="B v2 dark indigo">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="c-top">
+    <div>
+      <h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="c-dia">Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="c-avatar">JP</div>
+  </div>
+  <div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200">
+<defs><linearGradient id="cg-2" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" style="stop-color: var(--accent);"></stop>
+<stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop>
+</linearGradient></defs>
+<circle class="tr" cx="100" cy="100" r="82"></circle>
+<g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#cg-2)" stroke-dasharray="257.6 515.2"></circle></g>
+</svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+  <section class="c-card pattern">
+    <p class="c-lab">Hoy · miércoles</p>
+    <h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2>
+    <p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="c-btn2">Entrenar igual</button>
+  </section>
+  <div class="c-metrics">
+    <div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div>
+    <div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos">−0.4 kg</span></div>
+    <div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div>
+  </div>
+  <section class="c-card c-mob">
+    <div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div>
+    <div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="c-nav"><div class="nav-it on"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="c3" style="left:900px;top:3140px;">
+<p class="frame-label">B v2 · 3<span class="sub">light · volt</span></p>
+<div class="phone dir-c" data-mode="light" data-accent="volt" data-screen-label="B v2 light volt">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="c-top">
+    <div>
+      <h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="c-dia">Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="c-avatar">JP</div>
+  </div>
+  <div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200">
+<defs><linearGradient id="cg-3" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" style="stop-color: var(--accent);"></stop>
+<stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop>
+</linearGradient></defs>
+<circle class="tr" cx="100" cy="100" r="82"></circle>
+<g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#cg-3)" stroke-dasharray="257.6 515.2"></circle></g>
+</svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+  <section class="c-card pattern">
+    <p class="c-lab">Hoy · miércoles</p>
+    <h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2>
+    <p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="c-btn2">Entrenar igual</button>
+  </section>
+  <div class="c-metrics">
+    <div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div>
+    <div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos">−0.4 kg</span></div>
+    <div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div>
+  </div>
+  <section class="c-card c-mob">
+    <div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div>
+    <div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="c-nav"><div class="nav-it on"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="c4" style="left:1330px;top:3140px;">
+<p class="frame-label">B v2 · 4<span class="sub">light · indigo</span></p>
+<div class="phone dir-c" data-mode="light" data-accent="indigo" data-screen-label="B v2 light indigo">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="c-top">
+    <div>
+      <h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="c-dia">Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="c-avatar">JP</div>
+  </div>
+  <div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200">
+<defs><linearGradient id="cg-4" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" style="stop-color: var(--accent);"></stop>
+<stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop>
+</linearGradient></defs>
+<circle class="tr" cx="100" cy="100" r="82"></circle>
+<g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#cg-4)" stroke-dasharray="257.6 515.2"></circle></g>
+</svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+  <section class="c-card pattern">
+    <p class="c-lab">Hoy · miércoles</p>
+    <h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2>
+    <p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="c-btn2">Entrenar igual</button>
+  </section>
+  <div class="c-metrics">
+    <div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div>
+    <div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos">−0.4 kg</span></div>
+    <div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div>
+  </div>
+  <section class="c-card c-mob">
+    <div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div>
+    <div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="c-nav"><div class="nav-it on"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav>
+</div>
+</div><div class="frame" id="c-gris" style="left:1760px;top:3140px;">
+<p class="frame-label">B v2 · Gris<span class="sub">jerarquía sin color (dark · volt)</span></p>
+<div style="filter: grayscale(1);"><div class="phone dir-c" data-mode="dark" data-accent="volt" data-screen-label="B v2 dark volt">
+<div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+<div class="screen">
+  <div class="c-top">
+    <div>
+      <h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1>
+      <div class="c-dia">Día 3 de 4 · esta semana</div>
+    </div>
+    <div class="c-avatar">JP</div>
+  </div>
+  <div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200">
+<defs><linearGradient id="cg-9" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" style="stop-color: var(--accent);"></stop>
+<stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop>
+</linearGradient></defs>
+<circle class="tr" cx="100" cy="100" r="82"></circle>
+<g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#cg-9)" stroke-dasharray="257.6 515.2"></circle></g>
+</svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+  <section class="c-card pattern">
+    <p class="c-lab">Hoy · miércoles</p>
+    <h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2>
+    <p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p>
+    <button class="c-btn2">Entrenar igual</button>
+  </section>
+  <div class="c-metrics">
+    <div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div>
+    <div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos">−0.4 kg</span></div>
+    <div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div>
+  </div>
+  <section class="c-card c-mob">
+    <div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div>
+    <div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div>
+  </section>
+</div>
+<nav class="c-nav"><div class="nav-it on"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav>
+</div></div>
+</div><div class="frame" id="spec-c" style="left:2190px;top:3140px;">
+<p class="frame-label">B v2 · Sistema<span class="sub">componentes y reglas</span></p>
+<div class="doc-card" style="width:470px;">
+<h3>B v2 · «Sereno v2» — premium contemporáneo</h3>
+<ul>
+  <li><b>Tipografía:</b> Hanken Grotesk única familia; jerarquía por peso (500→800) y tamaño, sin serif. Cifras tabulares, tracking −0.03em.</li>
+  <li><b>Profundidad:</b> 3 niveles de superficie (<code>--bg</code> / <code>--surface</code> / <code>--surface2</code>) + hairline 1px; en claro, sombra difusa de dos capas. Sin cajas grises planas.</li>
+  <li><b>Anillo héroe:</b> trazo 14px, gradiente dentro del acento, remate redondeado, glow tenue solo en oscuro.</li>
+  <li><b>Métrica como componente:</b> contenedor + label + valor con unidad + delta en pill con color semántico (positivo verde, independiente del acento).</li>
+  <li><b>Botones:</b> CTA con relleno de acento y peso claro; secundario fantasma con borde 1px que sube a <code>--surface2</code> en hover.</li>
+  <li><b>Identidad no-cromática:</b> radio firma con esquina inferior-izq recortada (22/7 en tarjetas, 12/4 en botones y chips), iconos duotono (trazo + relleno <code>--accent-dim</code>), micropatrón chevron al 4% en la tarjeta del día, y el chip de "hoy" marcado con borde de <code>--fg</code> — la jerarquía sobrevive en escala de grises (ver frame Gris).</li>
+</ul>
+<p class="spec-demo-lab">Componentes · dark / Volt</p>
+<div class="spec-demo dir-c" data-mode="dark" data-accent="volt">
+  <button class="c-btn1"><i data-lucide="zap"></i> Empezar sesión</button>
+  <button class="c-btn2">Entrenar igual</button>
+  <div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div>
+  <div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div>
+</div>
+<p class="spec-demo-lab">Componentes · light / Indigo</p>
+<div class="spec-demo dir-c" data-mode="light" data-accent="indigo">
+  <button class="c-btn1"><i data-lucide="zap"></i> Empezar sesión</button>
+  <button class="c-btn2">Entrenar igual</button>
+  <div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div>
+  <div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div>
+</div>
+</div>
+</div>
+<div class="frame" id="v21-1" style="left:40px;top:4160px;">
+<p class="frame-label">B v2.1 · caso crítico<span class="sub">dark · volt + delta positivo</span></p>
+<div class="phone dir-c v21" data-mode="dark" data-accent="volt" data-screen-label="B v2.1 dark volt"><div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="screen"><div class="c-top"><div><h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1><div class="c-dia">Día 3 de 4 · esta semana</div></div><div class="c-avatar">JP</div></div>
+<div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200"><defs><linearGradient id="pg-11" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--accent);"></stop><stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop></linearGradient></defs><circle class="tr" cx="100" cy="100" r="82"></circle><g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#pg-11)" stroke-dasharray="257.6 515.2"></circle></g></svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+<section class="c-card pattern"><p class="c-lab">Hoy · miércoles</p><h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2><p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p><button class="c-btn2">Entrenar igual</button></section>
+<div class="c-metrics"><div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div><div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos"><i data-lucide="trending-down"></i>−0.4 kg</span></div><div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div></div>
+<section class="c-card c-mob"><div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div><div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div></section></div><nav class="c-nav"><div class="nav-it on"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav></div>
+</div><div class="frame" id="v21-2" style="left:470px;top:4160px;">
+<p class="frame-label">B v2.1 · radio firma en claro<span class="sub">light · volt</span></p>
+<div class="phone dir-c v21" data-mode="light" data-accent="volt" data-screen-label="B v2.1 light volt"><div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="screen"><div class="c-top"><div><h1 class="c-hola">Dale, Juan<span class="acc">.</span></h1><div class="c-dia">Día 3 de 4 · esta semana</div></div><div class="c-avatar">JP</div></div>
+<div class="c-ring"><svg width="200" height="200" viewBox="0 0 200 200"><defs><linearGradient id="pg-12" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--accent);"></stop><stop offset="1" style="stop-color: color-mix(in srgb, var(--accent) 55%, #ffffff);"></stop></linearGradient></defs><circle class="tr" cx="100" cy="100" r="82"></circle><g transform="rotate(-90 100 100)"><circle class="pr" cx="100" cy="100" r="82" stroke="url(#pg-12)" stroke-dasharray="257.6 515.2"></circle></g></svg><div class="c-ring-c"><div class="c-ring-num">2<span class="den">/4</span></div><div class="c-ring-sub">sesiones esta semana</div></div></div>
+<section class="c-card pattern"><p class="c-lab">Hoy · miércoles</p><h2 class="c-title"><span class="duo"><i data-lucide="moon"></i></span>Día de descanso</h2><p class="c-msg">Recuperá. La recuperación también es parte del entrenamiento.</p><button class="c-btn2">Entrenar igual</button></section>
+<div class="c-metrics"><div class="c-metric"><span class="l">Volumen</span><span class="v">3.960<small>kg</small></span><span class="c-mdelta mut">semana</span></div><div class="c-metric"><span class="l">Peso</span><span class="v">84.6<small>kg</small></span><span class="c-mdelta pos"><i data-lucide="trending-down"></i>−0.4 kg</span></div><div class="c-metric"><span class="l">Racha</span><span class="v"><span class="duo"><i data-lucide="flame"></i></span>3</span><span class="c-mdelta mut">semanas</span></div></div>
+<section class="c-card c-mob"><div class="c-mob-h"><p class="c-lab" style="margin:0;">Movilidad y recuperación</p><span class="c-mob-n">2/7</span></div><div class="c-days"><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>L</span></div><div class="c-day done"><span class="k"><i data-lucide="check"></i></span><span>M</span></div><div class="c-day today"><span class="k"><i data-lucide="activity"></i></span><span>X</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>J</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>V</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>S</span></div><div class="c-day"><span class="k"><span class="pd"></span></span><span>D</span></div></div></section></div><nav class="c-nav"><div class="nav-it on"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav></div>
+</div><div class="frame" id="v21-doc" style="left:900px;top:4160px;">
+<p class="frame-label">B v2.1 · notas<span class="sub">qué cambió y por qué</span></p>
+<div class="doc-card" style="width:470px;">
+<h3>B v2.1 — ajustes de cierre</h3>
+<ul>
+<li><b>Acento vs. semántico:</b> los deltas usan tokens propios (<code>--pos</code>/<code>--neg</code>) que NO se mueven con el acento, y el color nunca es el único canal: cada delta lleva flecha de tendencia + pill. Caso crítico a la izquierda: Volt activo + delta positivo — se distingue por forma (pill + flecha) aunque comparta familia de verde.</li>
+<li><b>Radio firma en claro:</b> borde reforzado (<code>#d7d7de</code>), sombra difusa más presente y recorte más marcado (24/4) para que la esquina firma se lea sin el contraste del modo oscuro.</li>
+<li><b>Chevron a escala real:</b> tile 30px (antes 26) y opacidad 6%/5% — visible sin vibrar a 6". Verificalo 1:1 en el prototipo.</li>
+</ul>
+</div>
+</div><div class="frame" id="cfg-a" style="left:40px;top:5160px;">
+<p class="frame-label">Config · dirección A<span class="sub">dark · ion — interactivo</span></p>
+<div class="phone dir-a " data-mode="dark" data-accent="ion" data-screen-label="Config A dark ion"><div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="screen"><div class="a-top"><div><h1 class="a-hola" style="font-size:23px;">Configuración</h1><div class="a-dia"><i data-lucide="palette"></i> Apariencia y cuenta</div></div><div class="a-avatar">JP</div></div>
+<section class="a-mob" style="margin-top:2px;"><div class="a-mob-t" style="margin-bottom:11px;">Tema</div><div class="cfg-seg"><button data-set-mode="light" class="">Claro</button><button data-set-mode="dark" class="on">Oscuro</button><button data-set-mode="system" class="">Sistema</button></div>
+<div class="a-mob-t" style="margin:16px 0 10px;">Acento</div><div class="cfg-sws"><button class="cfg-sw sw-ion on" data-set-accent="ion" title="ion"><span class="dot"></span></button><button class="cfg-sw sw-volt" data-set-accent="volt" title="volt"><span class="dot"></span></button><button class="cfg-sw sw-blaze" data-set-accent="blaze" title="blaze"><span class="dot"></span></button><button class="cfg-sw sw-indigo" data-set-accent="indigo" title="indigo"><span class="dot"></span></button><button class="cfg-sw sw-pulse" data-set-accent="pulse" title="pulse"><span class="dot"></span></button></div>
+<div class="cfg-preview"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--track)" stroke-width="6"></circle><g transform="rotate(-90 22 22)"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="53 107"></circle></g></svg><button class="a-btn1" style="padding:9px 13px;">Entrenar</button><span class="plab">Preview</span></div></section>
+<section class="a-mob" style="padding-top:4px;padding-bottom:4px;"><div class="cfg-row"><span>Unidades</span><span class="sub">kg · km <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Notificaciones</span><span class="sub">Activadas <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Datos de salud</span><span class="sub">Conectado <i data-lucide="chevron-right"></i></span></div></section></div><nav class="a-nav"><div class="nav-it"><i data-lucide="house"></i><span>Inicio</span></div><div class="nav-it"><i data-lucide="library"></i><span>Rutinas</span></div><div class="nav-it"><i data-lucide="zap"></i><span>Entrenar</span></div><div class="nav-it"><i data-lucide="history"></i><span>Historial</span></div><div class="nav-it"><i data-lucide="heart"></i><span>Salud</span></div><div class="nav-it on"><i data-lucide="user"></i><span>Perfil</span></div></nav></div>
+</div><div class="frame" id="cfg-c" style="left:470px;top:5160px;">
+<p class="frame-label">Config · dirección B v2<span class="sub">light · indigo — interactivo</span></p>
+<div class="phone dir-c v21" data-mode="light" data-accent="indigo" data-screen-label="Config B v2 light indigo"><div class="statusbar"><span>9:41</span><span class="sb-r"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="screen"><div class="c-top"><div><h1 class="c-hola">Configuración</h1><div class="c-dia">Apariencia y cuenta</div></div><div class="c-avatar">JP</div></div>
+<section class="c-card"><p class="c-lab">Tema</p><div class="cfg-seg"><button data-set-mode="light" class="on">Claro</button><button data-set-mode="dark" class="">Oscuro</button><button data-set-mode="system" class="">Sistema</button></div>
+<p class="c-lab" style="margin:16px 0 10px;">Acento</p><div class="cfg-sws"><button class="cfg-sw sw-ion" data-set-accent="ion" title="ion"><span class="dot"></span></button><button class="cfg-sw sw-volt" data-set-accent="volt" title="volt"><span class="dot"></span></button><button class="cfg-sw sw-blaze" data-set-accent="blaze" title="blaze"><span class="dot"></span></button><button class="cfg-sw sw-indigo on" data-set-accent="indigo" title="indigo"><span class="dot"></span></button><button class="cfg-sw sw-pulse" data-set-accent="pulse" title="pulse"><span class="dot"></span></button></div>
+<div class="cfg-preview"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--track)" stroke-width="6"></circle><g transform="rotate(-90 22 22)"><circle cx="22" cy="22" r="17" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="53 107"></circle></g></svg><button class="c-btn1" style="padding:9px 14px;">Entrenar</button><span class="plab">Preview</span></div></section>
+<section class="c-card" style="margin-top:12px;padding-top:5px;padding-bottom:5px;"><div class="cfg-row"><span>Unidades</span><span class="sub">kg · km <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Notificaciones</span><span class="sub">Activadas <i data-lucide="chevron-right"></i></span></div><div class="cfg-row"><span>Datos de salud</span><span class="sub">Conectado <i data-lucide="chevron-right"></i></span></div></section></div><nav class="c-nav"><div class="nav-it"><span class="ic"><i data-lucide="house"></i></span><span>Inicio</span></div><div class="nav-it"><span class="ic"><i data-lucide="library"></i></span><span>Rutinas</span></div><div class="nav-it"><span class="ic"><i data-lucide="zap"></i></span><span>Entrenar</span></div><div class="nav-it"><span class="ic"><i data-lucide="history"></i></span><span>Historial</span></div><div class="nav-it"><span class="ic"><i data-lucide="heart"></i></span><span>Salud</span></div><div class="nav-it on"><span class="ic"><i data-lucide="user"></i></span><span>Perfil</span></div></nav></div>
+</div><div class="frame" id="cfg-doc" style="left:900px;top:5160px;">
+<p class="frame-label">Config + prototipo<span class="sub">cómo probarlo</span></p>
+<div class="doc-card" style="width:470px;">
+<h3>Configuración · Apariencia</h3>
+<ul>
+<li>Toggle Claro / Oscuro / Sistema + selector de los 5 acentos existentes, con preview en vivo (anillo + CTA).</li>
+<li>Cada dirección usa su propio lenguaje: A con labels uppercase y tiles; B v2 con superficies, radio firma y pills.</li>
+<li><b>Estos frames son interactivos:</b> tocá un acento o el toggle de tema y el teléfono cambia en vivo.</li>
+</ul>
+<p style="margin-top:12px;"><a href="ShapeUp Prototipo.html" style="font-weight:700;">→ Abrir prototipo navegable</a> — Home + Configuración con theming en vivo y switcher A / B v2 (2 direcciones × 2 modos × 5 acentos).</p>
+</div>
+</div>
+<script>
+document.addEventListener('click', function(e){
+  var sw = e.target.closest('[data-set-accent]');
+  if (sw) { var ph = sw.closest('.phone'); if (ph) { ph.setAttribute('data-accent', sw.getAttribute('data-set-accent')); ph.querySelectorAll('[data-set-accent]').forEach(function(b){ b.classList.toggle('on', b===sw); }); } return; }
+  var mg = e.target.closest('[data-set-mode]');
+  if (mg) { var ph = mg.closest('.phone'); var v = mg.getAttribute('data-set-mode'); if (ph && v !== 'system') ph.setAttribute('data-mode', v); if (mg.parentElement) mg.parentElement.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b===mg); }); }
+});
+</script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

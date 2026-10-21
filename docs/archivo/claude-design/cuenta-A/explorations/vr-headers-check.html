@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>VR headers check</title>
+<style>
+  body { margin:0; background:#0d0f14; font-family:system-ui,sans-serif; color:#e8eaed; padding:24px; }
+  h1 { font-size:16px; font-weight:600; margin:0 0 16px; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; max-width:1000px; }
+  .card { background:#161922; border:1px solid #232838; border-radius:12px; overflow:hidden; }
+  .card img { width:100%; height:215px; object-fit:cover; display:block; background:#000; }
+  .meta { padding:10px 12px; }
+  .name { font-size:13px; font-weight:600; }
+  .id { font-size:11px; color:#8b93a7; margin-top:2px; font-family:ui-monospace,monospace; }
+  .err { color:#ff6b6b; font-size:11px; }
+</style>
+</head>
+<body>
+<h1>VR games — Steam header.jpg por app-id (verificación)</h1>
+<div class="grid" id="grid"></div>
+<script>
+const games = [
+  ["EJ-9001 Pistol Whip", "1079800"],
+  ["EJ-9002 Beat Saber", "620980"],
+  ["EJ-9003 Les Mills Bodycombat", "—NO Steam—"],
+  ["EJ-9004 Creed: Rise to Glory", "804490"],
+  ["EJ-9005 Synth Riders", "885000"],
+  ["EJ-9006 OhShape", "1098100"],
+  ["EJ-9007 Racket Fury Table Tennis", "600230"],
+  ["EJ-9008 Kayak VR: Mirage", "1683340"],
+  ["EJ-9009 PowerBeatsVR", "561950"],
+  ["EJ-9010 Beat the Beats", "1182680"],
+];
+const grid = document.getElementById("grid");
+for (const [name, id] of games) {
+  const card = document.createElement("div");
+  card.className = "card";
+  const url = id.startsWith("—") ? "" : `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;
+  card.innerHTML = `
+    ${url ? `<img src="${url}" alt="" onerror="this.nextElementSibling.querySelector('.id').innerHTML='<span class=err>NO CARGA: '+this.src+'</span>'">` : `<div style="height:215px;display:flex;align-items:center;justify-content:center;color:#8b93a7;font-size:12px">sin Steam</div>`}
+    <div class="meta"><div class="name">${name}</div><div class="id">appid ${id}</div></div>`;
+  grid.appendChild(card);
+}
+</script>
+</body>
+</html>

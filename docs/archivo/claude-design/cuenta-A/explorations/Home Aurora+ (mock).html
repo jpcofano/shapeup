@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShapeUp — Home Aurora+ (mock target)</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{height:100%;margin:0}
+  body{background:#07080b;display:flex;align-items:center;justify-content:center;min-height:100vh;
+    padding:24px;box-sizing:border-box;font-family:var(--font-sans);
+    background-image:radial-gradient(circle at 50% 0%,#14161d 0%,#07080b 60%)}
+  .phone{position:relative;width:390px;height:844px;max-height:calc(100vh - 48px);background:var(--bg);
+    border-radius:44px;border:1px solid #232733;box-shadow:0 40px 120px rgba(0,0,0,.6),inset 0 0 0 6px #0a0c10;overflow:hidden}
+  .notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:26px;background:#07080b;border-radius:14px;z-index:10}
+  .status{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px;font-size:13px;font-weight:600;color:var(--fg);z-index:9;pointer-events:none}
+  .screen{position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto}
+  .page{display:flex;flex-direction:column;gap:16px;padding:16px 16px 32px}
+
+  /* topbar */
+  .topbar{display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:9px;color:var(--accent)}
+  .brand svg{display:block}
+  .wm{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--fg)}
+  .wm .up{color:var(--accent)}
+  .av{width:32px;height:32px;border-radius:50%;background:var(--member-juanpablo);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+
+  h1.greet{margin:0;font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  h1.greet .dot{color:var(--accent)}
+  .sub{margin:4px 0 0;font-size:13px;color:var(--muted)}
+
+  /* hero */
+  .hero{display:flex;flex-direction:column;align-items:center;gap:16px;position:relative}
+  .heroglow{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:280px;height:180px;
+    background:radial-gradient(ellipse,var(--accent) 0%,transparent 70%);opacity:.10;filter:blur(24px);pointer-events:none}
+  .ringwrap{position:relative;width:150px;height:150px;flex-shrink:0}
+  .ringglow{position:absolute;inset:-24px;background:radial-gradient(circle,var(--accent) 0%,transparent 70%);opacity:.16;filter:blur(18px);border-radius:50%}
+  .ringwrap svg{transform:rotate(-90deg);display:block}
+  .ring-progress{transition:stroke-dashoffset 700ms cubic-bezier(.4,0,.2,1)}
+  .ringcenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .ringnum{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1;color:var(--fg)}
+
+  .glass-card{width:100%;max-width:360px;border-radius:var(--r-lg);padding:18px;
+    background:color-mix(in srgb,var(--card) 78%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border:1px solid color-mix(in srgb,var(--border) 80%,transparent)}
+  .btn-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--accent);color:var(--on-accent);
+    border:none;border-radius:var(--r-md);padding:14px;font:600 15px/1 var(--font-sans);cursor:pointer}
+  .btn-secondary{display:flex;align-items:center;justify-content:center;width:100%;background:transparent;color:var(--muted);
+    border:1px solid var(--border);border-radius:var(--r-md);padding:12px;font:400 14px/1 var(--font-sans);cursor:pointer}
+
+  /* bento */
+  .bento-row{display:grid;gap:10px}
+  .bento-row-3{grid-template-columns:repeat(3,1fr)}
+  .bento-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;display:flex;flex-direction:column;gap:6px}
+  .bento-value{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+  .bento-delta{font-size:11px;font-weight:600}
+
+  /* weekstrip */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg)}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:14px 16px}
+  .wd{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:10px}
+  .wd.today{background:var(--accent-dim)}
+  .wl{font:500 10px/1 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .wd.today .wl{color:var(--accent)}
+  .wn{font:500 15px/1 var(--font-sans);color:var(--fg)}
+  .wd.today .wn{color:var(--accent);font-weight:700}
+  .wb{height:16px;display:flex;align-items:center;color:var(--accent)}
+  .wb svg{display:block}
+
+  /* theme switcher */
+  .themebar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:7px;
+    background:rgba(10,12,16,.8);backdrop-filter:blur(8px);padding:8px 10px;border-radius:999px;border:1px solid #232733}
+  .sw{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+  .sw.on{border-color:#fff}
+
+  @keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .anim{opacity:1;animation:fadeup .45s ease}
+  .a1{animation-delay:.04s}.a2{animation-delay:.10s}.a3{animation-delay:.16s}.a4{animation-delay:.22s}
+</style>
+</head>
+<body>
+<div class="phone" id="app" data-theme="ion">
+  <div class="notch"></div>
+  <div class="status"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><i data-lucide="signal" style="width:16px"></i><i data-lucide="wifi" style="width:16px"></i><i data-lucide="battery-full" style="width:18px"></i></span></div>
+  <div class="screen">
+    <div class="page">
+      <div class="topbar">
+        <div class="brand">
+          <svg width="24" height="24" viewBox="0 0 120 120" fill="none"><g stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M30 60 L60 33 L90 60"/><path d="M30 87 L60 60 L90 87"/></g></svg>
+          <span class="wm">Shape<span class="up">Up</span></span>
+        </div>
+        <div class="av">JP</div>
+      </div>
+
+      <div style="margin-bottom:-4px">
+        <h1 class="greet">Dale, Juan<span class="dot">.</span></h1>
+        <p class="sub">Día 3 de 4</p>
+      </div>
+
+      <div class="hero">
+        <div class="heroglow"></div>
+        <div class="ringwrap">
+          <div class="ringglow"></div>
+          <svg width="150" height="150">
+            <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:var(--ring-from)"/><stop offset="100%" style="stop-color:var(--ring-to)"/>
+            </linearGradient></defs>
+            <circle cx="75" cy="75" r="56" fill="none" stroke="var(--border)" stroke-width="10"/>
+            <circle id="ring" cx="75" cy="75" r="56" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round"
+              stroke-dasharray="351.86" stroke-dashoffset="351.86" class="ring-progress" style="filter:drop-shadow(0 0 5px var(--accent))"/>
+          </svg>
+          <div class="ringcenter"><span class="ringnum">2/4</span><span class="t-label" style="font-size:10px">sesiones</span></div>
+        </div>
+
+        <div class="glass-card anim a1">
+          <p class="t-label" style="margin:0 0 6px">Próxima sesión · Día 3 de 4</p>
+          <p style="margin:0 0 8px;font-weight:800;font-size:18px;letter-spacing:-.01em">Tren superior — Empuje</p>
+          <p style="margin:0 0 12px;font-size:12px;color:var(--muted)">Planificado: jueves</p>
+          <button class="btn-primary"><i data-lucide="zap" style="width:18px"></i> Empezar</button>
+        </div>
+      </div>
+
+      <div class="bento-row bento-row-3">
+        <div class="bento-tile anim a2"><span class="t-label">Volumen</span><span class="bento-value">8.2k</span><span style="font-size:11px;color:var(--muted)">kg esta sem.</span></div>
+        <div class="bento-tile anim a3"><span class="t-label">Peso</span><span class="bento-value">84.2 kg</span><span class="bento-delta" style="color:var(--accent)">−0.6 kg</span></div>
+        <div class="bento-tile anim a4"><span class="t-label">Racha</span><span class="bento-value" style="display:flex;align-items:center;gap:4px"><i data-lucide="flame" style="width:18px;fill:var(--accent);stroke:none"></i> 3</span><span style="font-size:11px;color:var(--muted)">sems</span></div>
+      </div>
+
+      <div class="card">
+        <div class="week" id="week"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="themebar" id="themebar"></div>
+</div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+  // weekstrip
+  const L=['L','M','M','J','V','S','D'],N=[10,11,12,13,14,15,16],SES=[0,2,4,5],TODAY=3;
+  document.getElementById('week').innerHTML = L.map((l,i)=>{
+    const today=i===TODAY,ses=SES.includes(i);
+    const bic = ses?`<span class="wb" style="opacity:${today?1:.45}"><i data-lucide="biceps-flexed" style="width:15px"></i></span>`:'<span style="height:16px"></span>';
+    return `<div class="wd ${today?'today':''}"><span class="wl">${l}</span><span class="wn">${N[i]}</span>${bic}</div>`;
+  }).join('');
+  // theme switcher
+  const THEMES=[['ion','#22d3ee'],['volt','#4ade80'],['solar','#f5b62b'],['blaze','#ff7a45'],['crimson','#fb3b53'],['pulse','#ff4d79'],['grape','#b15cff'],['indigo','#7c83ff']];
+  const bar=document.getElementById('themebar'),app=document.getElementById('app');
+  bar.innerHTML=THEMES.map(([id,c],i)=>`<span class="sw ${i===0?'on':''}" data-t="${id}" style="background:${c}"></span>`).join('');
+  bar.addEventListener('click',e=>{const s=e.target.closest('.sw');if(!s)return;app.dataset.theme=s.dataset.t;
+    bar.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x===s));});
+  // ring fill animation
+  lucide.createIcons({attrs:{'stroke-width':1.8}});
+  lucide.createIcons({attrs:{'stroke-width':1.6,'fill':'currentColor'},nameAttr:'data-lucide'});
+  setTimeout(()=>{document.getElementById('ring').setAttribute('stroke-dashoffset', 351.86*(1-2/4));},120);
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Auditoría ShapeUp — jun 2026</title>
+<style>
+  :root {
+    --bg: #0a0f12;
+    --card: #101a1f;
+    --card2: #0d1518;
+    --border: #1d2c33;
+    --text: #e8f1f4;
+    --muted: #8aa3ad;
+    --accent: #22d3ee;
+    --on-accent: #062a31;
+    --red: #f87171;
+    --orange: #fbbf24;
+    --yellow: #a3e635;
+    --font: "Sora", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.55; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 28px 96px; }
+  header.doc h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  header.doc p.sub { color: var(--muted); margin: 0; font-size: 14px; }
+  .legend { display: flex; gap: 14px; margin: 18px 0 0; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .dot.r { background: var(--red); } .dot.o { background: var(--orange); } .dot.y { background: var(--yellow); }
+  h2.section { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin: 44px 0 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .finding { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin: 0 0 14px; }
+  .finding .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sev { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; letter-spacing: 0.04em; }
+  .sev.r { background: rgba(248,113,113,.14); color: var(--red); }
+  .sev.o { background: rgba(251,191,36,.14); color: var(--orange); }
+  .sev.y { background: rgba(163,230,53,.12); color: var(--yellow); }
+  .finding h3 { margin: 0; font-size: 16px; flex: 1; min-width: 200px; }
+  .finding .id { font-size: 12px; color: var(--muted); font-weight: 700; }
+  .finding p { margin: 10px 0 0; font-size: 14px; color: #c5d6dc; }
+  .finding p strong { color: var(--text); }
+  .finding .impact { color: var(--muted); font-size: 13px; }
+  .proposal { margin-top: 12px; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; }
+  .proposal b { color: var(--accent); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+  .pick { margin-top: 12px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none; }
+  .pick input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .pick.on { color: var(--accent); font-weight: 600; }
+  .evidence { font-size: 13px; }
+  code { background: var(--card2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 12.5px; color: #9be3f0; font-family: ui-monospace, monospace; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 0; }
+  .shots figure { margin: 0; }
+  .shots img { width: 100%; border-radius: 12px; border: 1px solid var(--border); display: block; }
+  .shots figcaption { font-size: 11.5px; color: var(--muted); margin-top: 6px; text-align: center; }
+  ul.clean { margin: 8px 0 0; padding-left: 18px; font-size: 14px; color: #c5d6dc; }
+  ul.clean li { margin: 4px 0; }
+  .solid { background: var(--card2); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; }
+  .solid h3 { margin: 0 0 6px; font-size: 14px; color: var(--text); }
+  .counterbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(13,21,24,0.95); border-top: 1px solid var(--border); backdrop-filter: blur(8px); padding: 12px 28px; display: flex; align-items: center; gap: 14px; font-size: 14px; }
+  .counterbar .n { color: var(--accent); font-weight: 800; font-size: 18px; }
+  .counterbar .list { color: var(--muted); font-size: 13px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="doc">
+    <h1>Auditoría ShapeUp — UI kit + foundations + datos</h1>
+    <p class="sub">9 jun 2026 · auditoría rápida (top 10) · criterio: impacto en el usuario · contrastada con <code>jpcofano/shapeup@main</code></p>
+    <div class="legend">
+      <span><span class="dot r"></span>Crítico — afecta directo al usuario</span>
+      <span><span class="dot o"></span>Importante — vale la pena pronto</span>
+      <span><span class="dot y"></span>Menor — pulido</span>
+      <span>☑️ Tildá los que quieras incorporar al mapeo</span>
+    </div>
+  </header>
+
+  <h2 class="section">A · Datos y traducciones</h2>
+
+  <div class="finding" data-id="A1" data-screen-label="A1">
+    <div class="head"><span class="id">A1</span><span class="sev r">CRÍTICO</span><h3>Las traducciones ES pierden ~80% del detalle del original</h3></div>
+    <p class="evidence"><strong>Medido:</strong> de las 115 traducciones en <code>traducciones-fedb.es.json</code>, <strong>107 conservan menos del 60%</strong> del contenido EN. Las peores quedan en 14–18% — Concentration Curls: 1.138 caracteres y 5 pasos en EN → 160 caracteres y 3 pasos en ES. Promedio ES: 3,1 pasos.</p>
+    <p class="impact">Se pierden los tips de técnica ("meñique más alto que el pulgar"), la respiración y las advertencias ("evitá balancearte"). Quien entrena con la ficha en español recibe un resumen, no instrucciones. Es exactamente lo que notaste: la forma en inglés es más completa.</p>
+    <div class="proposal"><b>Propuesta · candidato D14</b>Re-traducción "fiel" por lotes: 1 paso EN = 1 paso ES (sin fusionar); los "Tip:" van a <code>puntosClave</code>; los "Caution:" a <code>erroresComunes</code>; se mantienen las señales de respiración. Validador en <code>importar-fedb.ts</code> que marque warning si ratio ES/EN &lt; 0,7.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <div class="finding" data-id="A2" data-screen-label="A2">
+    <div class="head"><span class="id">A2</span><span class="sev r">CRÍTICO</span><h3>758 de 873 ejercicios sin traducir → catálogo bilingüe</h3></div>
+    <p class="evidence"><strong>Medido:</strong> el importador deja los pendientes con nombre e instrucciones en inglés y <code>puntosClave: []</code>, <code>erroresComunes: []</code>. Pendientes: 443 beginner · 264 intermediate · 51 expert; 497 strength · 100 stretching · 56 plyometrics.</p>
+    <p class="impact">En producción el catálogo mezcla "Sentadilla goblet" con "Barbell Glute Bridge", y las fichas pendientes no tienen puntos clave ni errores comunes. Experiencia despareja para la familia.</p>
+    <div class="proposal"><b>Propuesta · decisión + candidato D14b</b>Elegir política: <strong>(a)</strong> importar con <code>--solo-traducidos</code> hasta ampliar cobertura (catálogo chico pero 100% ES), o <strong>(b)</strong> importar todo con badge "EN" visible + filtro "solo en español", y traducir por lotes priorizando los 443 beginner.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <div class="finding" data-id="A3" data-screen-label="A3">
+    <div class="head"><span class="id">A3</span><span class="sev o">IMPORTANTE</span><h3><code>patronAprox()</code> etiqueta mal los patrones de movimiento</h3></div>
+    <p class="evidence">En <code>importar-fedb.ts</code>: todo <code>push</code> → "Empuje horizontal" (un press militar es vertical), todo <code>pull</code> → "Tracción horizontal" (un chin-up es vertical), y el default es "Aislamiento" — que es mecánica, no patrón (una sentadilla sin <code>force</code> quedaría "Aislamiento").</p>
+    <p class="impact">Los filtros por patrón y el mapa muscular (B3) heredan datos incorrectos.</p>
+    <div class="proposal"><b>Propuesta</b>Mapa por keywords del nombre: squat/lunge → dominante de rodilla · deadlift/hip thrust → dominante de cadera · overhead/military → empuje vertical · pulldown/chin/pull-up → tracción vertical · row → tracción horizontal · carry → acarreo. Fallback al heurístico actual. Cambio chico, alto valor.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <div class="finding" data-id="A4" data-screen-label="A4">
+    <div class="head"><span class="id">A4</span><span class="sev y">MENOR</span><h3>Descanso sugerido fijo en 75 s para todo</h3></div>
+    <p class="impact">Un peso muerto y un estiramiento reciben el mismo descanso sugerido.</p>
+    <div class="proposal"><b>Propuesta</b>Por mecánica/categoría: compuesto 90–120 s · aislamiento 60–75 s · movilidad 20–30 s · cardio n/a.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <h2 class="section">B · UI kit — pulido visual</h2>
+
+  <div class="finding" data-id="B5" data-screen-label="B5">
+    <div class="head"><span class="id">B5</span><span class="sev o">IMPORTANTE</span><h3>Home Aurora: doble métrica confusa</h3></div>
+    <p class="evidence">"Día 3 de 4" bajo el saludo, y al lado el anillo dice "2/4 SESIONES": dos formas distintas de contar la misma semana. ¿Día del programa? ¿Sesiones hechas?</p>
+    <div class="proposal"><b>Propuesta</b>Unificar en una sola línea de contexto ("Semana 3 · 2 de 4 sesiones") y que el anillo sea la única métrica grande.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <div class="finding" data-id="B6" data-screen-label="B6">
+    <div class="head"><span class="id">B6</span><span class="sev y">MENOR</span><h3>Historial: chip RPE inconsistente, jerarquía plana</h3></div>
+    <p class="evidence">En sesiones cortas el chip RPE queda inline con la meta; en las demás baja a una segunda línea. Fecha, series y kg pelean al mismo peso visual.</p>
+    <div class="proposal"><b>Propuesta</b>Fila de meta fija (fecha · duración · series · kg) + RPE siempre como chip a la derecha del título; kg en seminegrita como dato principal.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <div class="finding" data-id="B7" data-screen-label="B7">
+    <div class="head"><span class="id">B7</span><span class="sev y">MENOR</span><h3>Salud · Composición: mitad inferior vacía</h3></div>
+    <p class="evidence">Tras los 3 KPIs queda casi media pantalla en blanco; el gráfico de peso es una recta sin puntos ni labels intermedios.</p>
+    <div class="proposal"><b>Propuesta</b>Tendencia 30 días con puntos por pesaje + última medición de cada KPI con fecha ("hace 5 días"); o grilla 2×2 con mini-sparklines.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <div class="finding" data-id="B8" data-screen-label="B8">
+    <div class="head"><span class="id">B8</span><span class="sev y">MENOR</span><h3>Sesión guiada: scroll de instrucciones poco evidente</h3></div>
+    <p class="evidence">El dock inferior (steppers + CTA) tapa el final de "Cómo se hace"; nada indica que hay más contenido debajo.</p>
+    <div class="proposal"><b>Propuesta</b>Scrim/fade en el borde inferior del área scrolleable + padding extra al final.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <h2 class="section">C · Animaciones</h2>
+
+  <div class="finding" data-id="C9" data-screen-label="C9">
+    <div class="head"><span class="id">C9</span><span class="sev o">IMPORTANTE</span><h3>Sin micro-interacciones: todo cambio es un corte seco</h3></div>
+    <p class="evidence">Cambios de pantalla y de tab sin transición; el anillo de progreso no anima al entrar; "Serie 1 hecha ✓" no da feedback.</p>
+    <div class="proposal"><b>Propuesta · candidato D15</b>Set acotado: entrada de cards con stagger (~60 ms, translateY 8px + fade) · anillo con stroke-dashoffset animado + count-up · check de serie con escala + pulso del CTA · indicador de tabs con slide sutil. Todo detrás de <code>prefers-reduced-motion</code>.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <div class="finding" data-id="C10" data-screen-label="C10">
+    <div class="head"><span class="id">C10</span><span class="sev y">MENOR</span><h3>FAB "+" de Rutinas sin acción (kit) — divergencia con repo</h3></div>
+    <p class="evidence">El repo tiene <code>EjercicioForm.tsx</code> y creación; el kit muestra el FAB sin acción.</p>
+    <div class="proposal"><b>Propuesta</b>O se maqueta "Nueva rutina" en el kit, o se quita el FAB hasta mapearlo. Evita vender una acción muerta.</div>
+    <label class="pick"><input type="checkbox" /> Incorporar al mapeo</label>
+  </div>
+
+  <h2 class="section">Pantallas revisadas</h2>
+  <div class="shots">
+    <figure><img src="audit-shots/02-shot.png" alt="Home Aurora" /><figcaption>Home Aurora (B5)</figcaption></figure>
+    <figure><img src="audit-shots/03-shot.png" alt="Programa detalle" /><figcaption>Programa detalle ✓</figcaption></figure>
+    <figure><img src="audit-shots/04-shot.png" alt="Historial" /><figcaption>Historial (B6)</figcaption></figure>
+    <figure><img src="audit-shots/05-shot.png" alt="Salud" /><figcaption>Salud (B7)</figcaption></figure>
+    <figure><img src="audit-shots/01-shot.png" alt="Sesión guiada" /><figcaption>Sesión guiada (B8, C9)</figcaption></figure>
+  </div>
+
+  <h2 class="section">Lo que está sólido — no tocar</h2>
+  <div class="solid">
+    <ul class="clean">
+      <li>Foundations: tokens + 8 temas consistentes en todas las pantallas revisadas.</li>
+      <li>Flujo de programa (vista semanal, activo por miembro) coherente Home ↔ Entrenar ↔ Detalle.</li>
+      <li>Sesión guiada: MediaTabs, steppers y progreso global se entienden bien.</li>
+      <li>Importador: descarga automática, mensajes claros, flag <code>--solo-traducidos</code>.</li>
+    </ul>
+  </div>
+
+  <h2 class="section">Orden sugerido si entran al mapeo</h2>
+  <div class="solid">
+    <p style="margin:0; font-size:14px; color:#c5d6dc;">A1 + A2 (un solo prompt de datos) → A3 (mismo PR del importador) → C9 (micro-interacciones, kit primero) → B5–B8 (pulido en un solo pase) → A4 y C10 (menores). Copia en repo: <code>explorations/AUDITORIA-kit-datos-jun2026.md</code>.</p>
+  </div>
+</div>
+
+<div class="counterbar">
+  <span class="n" id="count">0</span>
+  <span>elegidos para el mapeo</span>
+  <span class="list" id="picked"></span>
+</div>
+
+<script>
+  (function () {
+    var KEY = "su-audit-picks-jun2026";
+    var saved = [];
+    try { saved = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { saved = []; }
+    var boxes = document.querySelectorAll(".finding .pick input");
+    function refresh() {
+      var picked = [];
+      boxes.forEach(function (b) {
+        var f = b.closest(".finding");
+        var lbl = b.closest(".pick");
+        if (b.checked) { picked.push(f.dataset.id); lbl.classList.add("on"); }
+        else { lbl.classList.remove("on"); }
+      });
+      document.getElementById("count").textContent = picked.length;
+      document.getElementById("picked").textContent = picked.join(" · ");
+      try { localStorage.setItem(KEY, JSON.stringify(picked)); } catch (e) {}
+    }
+    boxes.forEach(function (b) {
+      var id = b.closest(".finding").dataset.id;
+      if (saved.indexOf(id) !== -1) { b.checked = true; }
+      b.addEventListener("change", refresh);
+    });
+    refresh();
+  })();
+</script>
+</body>
+</html>

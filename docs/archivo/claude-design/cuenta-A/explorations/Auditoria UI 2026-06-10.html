@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<!-- @dsCard group="UI Kit — Shapeup" name="Auditoría UI 2026-06-10" subtitle="Top 10 hallazgos — pulido visual, animaciones y claridad de datos" viewport="920x1400" -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría ShapeUp — 10 jun 2026</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font: var(--fw-regular) 15px/1.55 var(--font-sans);
+    padding: 0 0 120px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 28px 0; }
+  header.doc { margin-bottom: 36px; }
+  .kicker { font: var(--fw-semibold) var(--fs-xs)/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--accent); margin: 0 0 10px; }
+  h1 { font: var(--fw-heavy) 34px/1.15 var(--font-sans); letter-spacing: -0.02em; margin: 0 0 12px; }
+  .lede { color: var(--muted); font-size: 15px; max-width: 60ch; margin: 0; text-wrap: pretty; }
+
+  /* resumen */
+  .sum { width: 100%; border-collapse: collapse; margin: 28px 0 8px; font-size: 13px; }
+  .sum th { text-align: left; font: var(--fw-semibold) var(--fs-xs)/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .sum td { padding: 9px 10px; border-bottom: 1px solid var(--border-dim); vertical-align: top; }
+  .sum tr { cursor: pointer; }
+  .sum tr:hover td { background: var(--card-hover); }
+  .sum td:first-child { font-weight: 700; white-space: nowrap; }
+
+  .sev { display: inline-flex; align-items: center; gap: 6px; font: var(--fw-semibold) 11px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 9px; border-radius: var(--r-full); white-space: nowrap; }
+  .sev-alta  { background: var(--danger-dim); color: var(--danger); }
+  .sev-media { background: var(--warning-dim); color: var(--warning); }
+  .sev-baja  { background: var(--info-dim); color: var(--info); }
+  .where { display: inline-block; font: var(--fw-medium) 11px/1 var(--font-sans); color: var(--muted); border: 1px solid var(--border); border-radius: var(--r-full); padding: 4px 9px; white-space: nowrap; }
+
+  /* hallazgos */
+  section.h { margin-top: 44px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px 26px 26px; }
+  section.h.sel { border-color: var(--accent); }
+  .h-top { display: flex; align-items: flex-start; gap: 14px; }
+  .h-top h2 { font: var(--fw-bold) 19px/1.3 var(--font-sans); letter-spacing: -0.01em; margin: 0; flex: 1; }
+  .h-id { font: var(--fw-heavy) 13px/1 var(--font-sans); color: var(--accent); background: var(--accent-dim); border-radius: var(--r-sm); padding: 7px 9px; flex-shrink: 0; }
+  .h-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 0; }
+  .h p { margin: 14px 0 0; text-wrap: pretty; }
+  .h p.lbl { font: var(--fw-semibold) var(--fs-xs)/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--muted); margin-top: 20px; }
+  .h ul { margin: 8px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; }
+  .h li { text-wrap: pretty; }
+  code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: 0.86em; background: var(--bg); border: 1px solid var(--border-dim); border-radius: 5px; padding: 1px 5px; }
+  .figs { display: flex; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
+  figure { margin: 0; flex: 1; min-width: 200px; max-width: 250px; }
+  figure img { width: 100%; border-radius: var(--r-md); border: 1px solid var(--border); display: block; }
+  figcaption { font-size: 12px; color: var(--muted); margin-top: 7px; line-height: 1.4; }
+
+  /* selector */
+  .pick { display: flex; align-items: center; gap: 12px; margin-top: 22px; padding: 13px 16px; background: var(--bg); border: 1px dashed var(--border); border-radius: var(--r-md); cursor: pointer; user-select: none; transition: border-color var(--t-base); }
+  .pick:hover { border-color: var(--muted); }
+  .pick input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+  .pick span { font-size: 14px; font-weight: 600; }
+  .pick em { font-style: normal; color: var(--muted); font-weight: 400; font-size: 13px; }
+  section.h.sel .pick { border-style: solid; border-color: var(--accent); background: var(--accent-dim); }
+
+  /* OK section */
+  .okbox { margin-top: 44px; border: 1px solid var(--border-dim); border-radius: var(--r-lg); padding: 22px 26px; }
+  .okbox h2 { font: var(--fw-bold) 16px/1.3 var(--font-sans); margin: 0 0 12px; color: var(--muted); }
+  .okbox ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
+
+  /* sticky summary */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: color-mix(in oklch, var(--card), transparent 6%); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; gap: 16px; z-index: 50; }
+  .bar-in { max-width: 880px; margin: 0 auto; display: flex; align-items: center; gap: 16px; width: 100%; }
+  .bar strong { font-size: 14px; }
+  #picked-list { color: var(--muted); font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar button { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: var(--r-md); padding: 8px 14px; font: var(--fw-semibold) 13px/1 var(--font-sans); cursor: pointer; }
+  .bar button:hover { border-color: var(--muted); color: var(--fg); }
+</style>
+</head>
+<body data-theme="ion">
+<div class="wrap">
+  <header class="doc">
+    <p class="kicker">ShapeUp · Auditoría rápida · 10 jun 2026</p>
+    <h1>Top 10 hallazgos — UI kit + foundations</h1>
+    <p class="lede">Foco: pulido visual, animaciones y claridad de los datos traducidos e insertados. Contrastado contra <code>jpcofano/shapeup@main</code>. Ordenado por impacto en el usuario. Marcá los que querés incorporar al mapeo — abajo queda el resumen de la selección.</p>
+  </header>
+
+  <table class="sum">
+    <thead><tr><th>#</th><th>Hallazgo</th><th>Severidad</th><th>Dónde</th></tr></thead>
+    <tbody>
+      <tr onclick="document.getElementById('h1').scrollIntoView===undefined?null:location.hash='h1'"><td>H1</td><td>Catálogo bilingüe sin señalizar — 758/873 ejercicios (87%) caen a inglés en silencio</td><td><span class="sev sev-alta">Alta</span></td><td><span class="where">repo</span></td></tr>
+      <tr><td>H2</td><td>Home Stadium y Clásico ignoran el programa activo (y el prompt 39 dice «copiá del kit»)</td><td><span class="sev sev-alta">Alta</span></td><td><span class="where">kit → repo</span></td></tr>
+      <tr><td>H3</td><td>Fechas crudas e inconsistentes (ISO, DD/MM/YYYY y <code>fmt()</code> conviven)</td><td><span class="sev sev-media">Media</span></td><td><span class="where">kit + repo</span></td></tr>
+      <tr><td>H4</td><td>Sueño: historial desalineado y copy «acostó 23:40»</td><td><span class="sev sev-media">Media</span></td><td><span class="where">kit</span></td></tr>
+      <tr><td>H5</td><td>Descanso: media pantalla vacía y timer sin el token <code>--fs-timer</code></td><td><span class="sev sev-baja">Pulido</span></td><td><span class="where">kit</span></td></tr>
+      <tr><td>H6</td><td>Historial: el badge RPE salta de posición entre tarjetas</td><td><span class="sev sev-baja">Pulido</span></td><td><span class="where">kit</span></td></tr>
+      <tr><td>H7</td><td>Cardio: barra de zonas sin minutos — proporción sin dato</td><td><span class="sev sev-baja">Pulido</span></td><td><span class="where">kit</span></td></tr>
+      <tr><td>H8</td><td>Cambio de tab/pantalla con corte seco (sin transición)</td><td><span class="sev sev-baja">Anim.</span></td><td><span class="where">kit + repo</span></td></tr>
+      <tr><td>H9</td><td>Momentos clave sin micro-feedback (serie hecha, últimos 5 s, fin de sesión)</td><td><span class="sev sev-baja">Anim.</span></td><td><span class="where">kit + repo</span></td></tr>
+      <tr><td>H10</td><td>Entrada animada (stagger) solo en Aurora</td><td><span class="sev sev-baja">Anim.</span></td><td><span class="where">kit + repo</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- H1 -->
+  <section class="h" id="h1" data-name="H1 Catálogo bilingüe">
+    <div class="h-top"><span class="h-id">H1</span><h2>Catálogo bilingüe sin señalizar — la claridad de los datos traducidos</h2></div>
+    <div class="h-meta"><span class="sev sev-alta">Severidad alta</span><span class="where">repo (producción)</span><span class="where">esfuerzo M</span></div>
+    <p>El diccionario <code>traducciones-fedb.es.json</code> cubre <strong>115 de 873</strong> ejercicios (~13%). El importador marca cada uno con <code>traduccion: "ok" | "pendiente"</code>, pero <code>Catalogo.tsx</code> <strong>no usa ese campo</strong>: los 758 pendientes muestran nombre e instrucciones en inglés mezclados con la UI en castellano, sin aviso, sin filtro y sin orden. Por eso «la forma en inglés se ve más completa»: el fallback es silencioso. Los 115 traducidos son además los únicos con puntos clave, errores comunes, patrón y sinónimos cargados.</p>
+    <p class="lbl">Propuesta (combinables)</p>
+    <ul>
+      <li><strong>a)</strong> Badge «EN» discreto en la tarjeta cuando <code>traduccion === "pendiente"</code>.</li>
+      <li><strong>b)</strong> Orden: traducidos primero, con el mismo filtro aplicado.</li>
+      <li><strong>c)</strong> Toggle «Solo en castellano» en la fila de filtros.</li>
+      <li><strong>d)</strong> Búsqueda que matchee sinónimos ES + nombre EN (el campo <code>sinonimos</code> ya existe).</li>
+      <li><strong>e)</strong> Plan de contenido: completar la traducción por lotes, priorizando los ejercicios usados en rutinas y programas activos.</li>
+    </ul>
+    <p class="lbl">Destino sugerido</p>
+    <p>Prompt nuevo <strong>40 — «Catálogo bilingüe claro»</strong> + fila en MAPEO-ADDENDUM §A.</p>
+    <label class="pick"><input type="checkbox" data-h="H1"><span>Incorporar al mapeo</span><em>— prompt 40 nuevo</em></label>
+  </section>
+
+  <!-- H2 -->
+  <section class="h" id="h2" data-name="H2 Stadium/Clásico vs programa activo">
+    <div class="h-top"><span class="h-id">H2</span><h2>Home Stadium y Clásico ignoran el programa activo</h2></div>
+    <div class="h-meta"><span class="sev sev-alta">Severidad alta</span><span class="where">kit → se propaga al repo vía prompt 39</span><span class="where">esfuerzo S</span></div>
+    <p>En <code>screens-home.jsx</code> solo <strong>Aurora</strong> resuelve el día con <code>sesionDeHoy(progActivo)</code>. Stadium y Clásico leen el mock legacy <code>PROGRAMA</code>: con el programa activo en día de descanso, Aurora y Entrenar dicen «Día de descanso» pero Stadium/Clásico dicen <strong>«HOY TOCA Tren superior — Empuje»</strong>, y la WeekStrip marca los días de otro programa. También sobrevive el subtítulo legacy «Día 3 de 4». El prompt 39 instruye «copiá de <code>screens-home.jsx</code>» → el bug viaja a producción tal cual.</p>
+    <div class="figs">
+      <figure><img src="auditoria-evidencia/03-ev.png" alt="Home Aurora: día de descanso (correcto)"><figcaption>Aurora (correcto): «Día de descanso» según el programa activo.</figcaption></figure>
+      <figure><img src="auditoria-evidencia/02-ev.png" alt="Home Stadium incoherente"><figcaption>Stadium, mismo miembro y mismo día: «Próxima sesión · Tren superior».</figcaption></figure>
+      <figure><img src="auditoria-evidencia/01-ev.png" alt="Home Clásico incoherente"><figcaption>Clásico: «Hoy toca… Empezar sesión» en día de descanso.</figcaption></figure>
+    </div>
+    <p class="lbl">Propuesta</p>
+    <ul>
+      <li>Fix en el kit: los 3 layouts derivan de <code>sesionDeHoy</code> + programa activo; WeekStrip del programa activo; eliminar «Día 3 de 4».</li>
+      <li>Una línea en el prompt 39: «los tres layouts resuelven el día con <code>sesionDeHoy</code> y el programa activo del miembro».</li>
+    </ul>
+    <p class="lbl">Destino sugerido</p>
+    <p>Fix en kit <strong>antes de ejecutar 39</strong> + línea en <code>39-d13</code>. Es el más urgente por timing.</p>
+    <label class="pick"><input type="checkbox" data-h="H2"><span>Incorporar al mapeo</span><em>— fix kit + línea en 39</em></label>
+  </section>
+
+  <!-- H3 -->
+  <section class="h" id="h3" data-name="H3 Fechas inconsistentes">
+    <div class="h-top"><span class="h-id">H3</span><h2>Fechas crudas e inconsistentes</h2></div>
+    <div class="h-meta"><span class="sev sev-media">Severidad media</span><span class="where">kit + repo</span><span class="where">esfuerzo S</span></div>
+    <p>Conviven tres formatos a la vista: ISO crudo <code>2026-06-02</code> (Sueño, Cardio, tabla de mediciones), <code>03/06/2026</code> (Historial) y un <code>fmt()</code> propio en records. Para una app familiar, «2026-06-02» no es lenguaje humano — es exactamente la falta de claridad de datos insertados que querías cazar.</p>
+    <p class="lbl">Propuesta</p>
+    <ul><li>Un único helper <code>fmtFecha()</code> → <strong>«mié 4 jun»</strong> (año solo si ≠ actual), aplicado en todas las pantallas del kit y mismo criterio en <code>lib/</code> del repo.</li></ul>
+    <label class="pick"><input type="checkbox" data-h="H3"><span>Incorporar al mapeo</span><em>— kit + línea en 39</em></label>
+  </section>
+
+  <!-- H4 -->
+  <section class="h" id="h4" data-name="H4 Sueño desalineado">
+    <div class="h-top"><span class="h-id">H4</span><h2>Sueño: historial desalineado + copy</h2></div>
+    <div class="h-meta"><span class="sev sev-media">Severidad media</span><span class="where">kit</span><span class="where">esfuerzo S</span></div>
+    <p>Cada fila es un <code>space-between</code> con un solo span a la derecha: «7.2 h · acostó 23:40» envuelve en dos líneas desparejas y ninguna columna queda alineada. Además «acostó» suena raro en voseo.</p>
+    <div class="figs">
+      <figure><img src="auditoria-evidencia/04-ev.png" alt="Tab Sueño con filas desalineadas"><figcaption>El valor envuelve a mitad de texto; filas ragged.</figcaption></figure>
+    </div>
+    <p class="lbl">Propuesta</p>
+    <ul><li>Grid de 3 columnas: fecha · horas (<code>tabular-nums</code>, alineadas) · «se acostó 23:40». Una línea por registro.</li></ul>
+    <label class="pick"><input type="checkbox" data-h="H4"><span>Incorporar al mapeo</span><em>— kit, entra en 39 (Salud)</em></label>
+  </section>
+
+  <!-- H5 -->
+  <section class="h" id="h5" data-name="H5 Descanso composición">
+    <div class="h-top"><span class="h-id">H5</span><h2>Descanso: composición vertical y jerarquía del timer</h2></div>
+    <div class="h-meta"><span class="sev sev-baja">Pulido</span><span class="where">kit</span><span class="where">esfuerzo S</span></div>
+    <p>La tarjeta queda pegada arriba con ~55% de la pantalla vacía; el número usa 34px cuando el token de identidad <code>--fs-timer: 52px</code> (clase <code>.t-num</code>) existe exactamente para el cronómetro; el chip «Próximo: … · Serie 2» envuelve sin intención.</p>
+    <div class="figs">
+      <figure><img src="auditoria-evidencia/06-ev.png" alt="Pantalla de descanso con mucho vacío"><figcaption>El momento más mirado de la sesión, en un tercio de la pantalla.</figcaption></figure>
+    </div>
+    <p class="lbl">Propuesta</p>
+    <ul><li>Centrar el bloque verticalmente, timer en <code>t-num</code> (52px), «Próximo» como label + valor en dos líneas intencionales. El estado urgente &lt;5 s ya está ✓.</li></ul>
+    <label class="pick"><input type="checkbox" data-h="H5"><span>Incorporar al mapeo</span><em>— kit + línea en 38 (D12)</em></label>
+  </section>
+
+  <!-- H6 -->
+  <section class="h" id="h6" data-name="H6 RPE salta">
+    <div class="h-top"><span class="h-id">H6</span><h2>Historial: el badge RPE salta de posición</h2></div>
+    <div class="h-meta"><span class="sev sev-baja">Pulido</span><span class="where">kit</span><span class="where">esfuerzo XS</span></div>
+    <p>El RPE aparece debajo de la meta-fila, salvo cuando la sesión no tiene tonelaje (Movilidad): ahí sube a la línea de meta. El ojo pierde el ancla al escanear la lista.</p>
+    <div class="figs">
+      <figure><img src="auditoria-evidencia/05-ev.png" alt="Historial con RPE en posiciones distintas"><figcaption>Fila 3 (sin tonelaje): el RPE quedó inline; en el resto, abajo.</figcaption></figure>
+    </div>
+    <p class="lbl">Propuesta</p>
+    <ul><li>Meta-fila de slots fijos: fecha · duración · series · tonelaje (u omitido) · RPE siempre al final.</li></ul>
+    <label class="pick"><input type="checkbox" data-h="H6"><span>Incorporar al mapeo</span><em>— kit, entra en 39</em></label>
+  </section>
+
+  <!-- H7 -->
+  <section class="h" id="h7" data-name="H7 Zonas sin minutos">
+    <div class="h-top"><span class="h-id">H7</span><h2>Cardio: barra de zonas sin minutos</h2></div>
+    <div class="h-meta"><span class="sev sev-baja">Pulido</span><span class="where">kit</span><span class="where">esfuerzo S</span></div>
+    <p>«Tiempo por zona (semana)» muestra solo la proporción de colores: no dice cuántos minutos por zona ni el total. El dato existe pero no es legible — de nuevo, claridad de datos insertados.</p>
+    <p class="lbl">Propuesta</p>
+    <ul><li>Minutos en la leyenda («Z2 · 50 min») y total semanal junto al título; tooltip/label sobre segmentos anchos.</li></ul>
+    <label class="pick"><input type="checkbox" data-h="H7"><span>Incorporar al mapeo</span><em>— kit, entra en 39 (Salud)</em></label>
+  </section>
+
+  <!-- H8 -->
+  <section class="h" id="h8" data-name="H8 Transiciones tab/pantalla">
+    <div class="h-top"><span class="h-id">H8</span><h2>Cambio de tab y pantalla con corte seco</h2></div>
+    <div class="h-meta"><span class="sev sev-baja">Animación</span><span class="where">kit + repo</span><span class="where">esfuerzo S</span></div>
+    <p>Nav inferior y tabs (Biblioteca, Historial, Salud) cambian sin transición. El repo ya tiene <code>fade-up</code> (280 ms, gated por <code>prefers-reduced-motion</code>) pero solo lo usa Aurora y dos detalles.</p>
+    <p class="lbl">Propuesta</p>
+    <ul><li>Aplicar <code>fade-up</code> corto (180–200 ms) al contenedor de página en cada cambio de tab/nav. Cero CSS nuevo en el repo: la keyframe ya existe.</li></ul>
+    <label class="pick"><input type="checkbox" data-h="H8"><span>Incorporar al mapeo</span><em>— prompt 41 nuevo (o sumar a 39)</em></label>
+  </section>
+
+  <!-- H9 -->
+  <section class="h" id="h9" data-name="H9 Micro-feedback">
+    <div class="h-top"><span class="h-id">H9</span><h2>Momentos clave sin micro-feedback</h2></div>
+    <div class="h-meta"><span class="sev sev-baja">Animación</span><span class="where">kit + repo</span><span class="where">esfuerzo M</span></div>
+    <p>Los tres momentos emocionales de la sesión pasan sin énfasis: «Serie hecha» → el descanso aparece de golpe; últimos 5 s → solo cambia el color; fin de sesión → pantalla estática.</p>
+    <p class="lbl">Propuesta (sobria, sin confeti)</p>
+    <ul>
+      <li>Serie hecha: scale-pulse del botón + el descanso entra con <code>su-up</code> (ya existe).</li>
+      <li>Últimos 5 s: pulso de escala del número (1→1.06) por segundo, además del rojo.</li>
+      <li>Fin de sesión: cascada fade-up del título + stats; el anillo se llena animado.</li>
+      <li>Todo gated por <code>prefers-reduced-motion</code> (patrón ya instalado).</li>
+    </ul>
+    <label class="pick"><input type="checkbox" data-h="H9"><span>Incorporar al mapeo</span><em>— prompt 41 nuevo, alineado con 38</em></label>
+  </section>
+
+  <!-- H10 -->
+  <section class="h" id="h10" data-name="H10 Stagger solo Aurora">
+    <div class="h-top"><span class="h-id">H10</span><h2>Entrada animada solo en Aurora</h2></div>
+    <div class="h-meta"><span class="sev sev-baja">Animación</span><span class="where">kit + repo</span><span class="where">esfuerzo S</span></div>
+    <p>El stagger <code>aurora-anim</code> está bien resuelto, pero solo Aurora lo usa: Stadium, Clásico, Historial, Salud y Perfil montan en seco. Al cambiar de estilo de inicio la diferencia se siente como inconsistencia, no como elección.</p>
+    <p class="lbl">Propuesta</p>
+    <ul><li>Reutilizar <code>.aurora-anim-N</code> en los bloques de Stadium/Clásico y en los heros de Historial/Salud. Mismas clases, cero CSS nuevo.</li></ul>
+    <label class="pick"><input type="checkbox" data-h="H10"><span>Incorporar al mapeo</span><em>— kit, entra en 39</em></label>
+  </section>
+
+  <div class="okbox">
+    <h2>Revisado y en orden — no tocar</h2>
+    <ul>
+      <li>Tokens y 8 temas re-skinean limpio (probado Ion y Pulse); zonas FC y colores de miembro fuera del theming, como corresponde.</li>
+      <li>MediaTabs: el estado activo funciona bien (falsa alarma de captura, verificado en DOM).</li>
+      <li>Sesión guiada: steppers, progreso global, instrucciones legibles y estado urgente del descanso, sólidos.</li>
+      <li>Flujo de programa del kit (lista → detalle → activar, coherencia Aurora/Entrenar): correcto como referencia del prompt 37.</li>
+      <li>Catálogo: las secciones vacías (puntos clave / errores) ya se ocultan.</li>
+      <li><code>prefers-reduced-motion</code> respetado en kit y repo.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <strong id="picked-count">0 elegidos</strong>
+    <span id="picked-list">Marcá «Incorporar al mapeo» en los hallazgos que quieras sumar.</span>
+    <button type="button" id="clear-picks">Limpiar</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY = "su-audit-picks-2026-06-10";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll(".pick input"));
+  var saved = [];
+  try { saved = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { saved = []; }
+
+  function refresh() {
+    var picked = boxes.filter(function (b) { return b.checked; });
+    var names = picked.map(function (b) { return b.dataset.h; });
+    document.getElementById("picked-count").textContent = picked.length + " elegido" + (picked.length === 1 ? "" : "s");
+    document.getElementById("picked-list").textContent = picked.length
+      ? names.join(" · ")
+      : "Marcá «Incorporar al mapeo» en los hallazgos que quieras sumar.";
+    boxes.forEach(function (b) { b.closest("section.h").classList.toggle("sel", b.checked); });
+    try { localStorage.setItem(KEY, JSON.stringify(names)); } catch (e) {}
+  }
+
+  boxes.forEach(function (b) {
+    if (saved.indexOf(b.dataset.h) !== -1) { b.checked = true; }
+    b.addEventListener("change", refresh);
+  });
+  document.getElementById("clear-picks").addEventListener("click", function () {
+    boxes.forEach(function (b) { b.checked = false; });
+    refresh();
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>
