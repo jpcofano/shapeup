@@ -76,14 +76,9 @@ Cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` → Sh
 
 **Repo:** `HEAD` = `origin/main` = **`55a20d1`** (P99, Partes 1 a 3, del 19/10).
 
-**En curso al cierre:**
-- **P104** («Traer lo de Claude Design al repo»). Juan se lo pasó a Code a las 16:15, en la sesión de la app, **sin la Parte 3**: el proyecto del handoff no se encontró. Hace cuatro cosas:
-  - commitea `docs/AUDITORIA-DISENO.md`, el traspaso de la mañana y el propio prompt;
-  - reemplaza el sistema de diseño de la raíz (`colors_and_type.css`, `preview/` y `ui_kits/shapeup/`, más `styles.css` y `thumbnail.html`) por la versión de la cuenta A de Design;
-  - archiva las explorations y las auditorías en `docs/archivo/claude-design/`;
-  - deja los inventarios en `docs/reportes/`.
+**P104 — hecho el 21/10 (ver bitácora).**
 
-  Los insumos están en `docs/auditorias/design-exports/`, que git ignora.
+**En curso al cierre:**
 - **P103** (corrida nocturna, en Descargas), pendiente para **la noche del 21/10**, en la misma sesión y **después** del 104. Lleva un agregado al Bloque 1: el `planSemana` de una sesión vieja guardada después es el del día en que se jugó. El texto para Code:
   > Ejecutá el prompt 103 que está en Descargas. Copialo a docs/prompts/ y seguí sus reglas de corrida nocturna. Agregado al Bloque 1: respuesta de Juan a la pregunta 1 de P99 — una sesión vieja guardada después lleva el planSemana del día en que se jugó, no el del día en que se guarda. Con test.
 

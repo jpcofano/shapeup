@@ -2,7 +2,7 @@
 
 Creado el 21/10/2026 en el chat con Claude (cuenta `jpcofano.ia@gmail.com`). Juan cambia de cuenta: **este documento es el traspaso del área de diseño**. El estado general sigue en `docs/ESTADO-DEL-PROYECTO.md`, que remite acá.
 
-**Estado al 21/10:** paso 1 en curso. Hay que traer los exports de Claude Design de las dos cuentas.
+**Estado al 21/10:** paso 2a hecho (P104): la raíz del repo tiene el sistema de diseño de la cuenta A y lo demás quedó archivado (§8). Sigue el paso 2b. El proyecto del handoff no se encontró.
 
 ---
 
@@ -63,7 +63,11 @@ El kit de la raíz es del **06/06/2026** (`README.md`, `SKILL.md`, `colors_and_t
 ## 5 · Plan, paso a paso
 
 - ☐ **1. Exportar Design de las dos cuentas.** Juan pega el texto del §6 en cada proyecto de Design, y después descarga el proyecto entero. Todo a Descargas, con el nombre de la cuenta. El avance se anota en el §8.
-- ☐ **2a. Traer al repo lo de la cuenta A, tal cual** (prompt de Code, una vez descargado el proyecto del handoff). La raíz del repo pasa a la versión de Design, que es estrictamente más nueva que la de junio. Las explorations, los mocks, el tablero de estados y `HANDOFF-portado.md` van a `docs/archivo/claude-design/`, con su origen; los inventarios, a `docs/reportes/`. No se traen los generados de la plataforma (`_ds_bundle.js`, `_ds_manifest.json`, `_adherence.oxlintrc.json`), las capturas sueltas (`_*.png`, `audit-shots/`, `auditoria-evidencia/`), `uploads/` (copias viejas de documentos del repo) ni lo de la cuenta B.
+  - 21/10: las dos cuentas exportadas, menos el proyecto del handoff de la cuenta A, que no se encontró (§8). Por eso el paso queda abierto.
+- ☑ **2a. Traer al repo lo de la cuenta A, tal cual.** Hecho el 21/10 por P104, sin el proyecto del handoff, que no se encontró.
+  - La raíz del repo pasó a la versión de Design, que es estrictamente más nueva que la de junio (`42379e2`).
+  - Las explorations y los mocks, **con las capturas que citan sus auditorías** (`audit-shots/`, `auditoria-evidencia/`, `_b.png`, `_c.png`, `_preview.png` y `_opts.png`, unos 330 KB), el lienzo y las variantes de ícono fueron a `docs/archivo/claude-design/`, con su origen (`963e774`). Los inventarios, a `docs/reportes/`.
+  - No se trajeron los generados de la plataforma (`_ds_bundle.js`, `_ds_manifest.json`, `_adherence.oxlintrc.json` y `.thumbnail`), `uploads/` (copias viejas de documentos del repo) ni el design system de la cuenta B, del que solo se guardó el brief.
 - ☐ **2b. Kit = app.** Claude compara los dos exports entre sí, con el repo y con la app. Arma el **Design System** desde el código real (`tokens.css`, `home-redux.css`, `src/components`, `src/routes`), más lo rescatable de los exports. Juan lo revisa.
   - Sale un prompt de Code que actualiza la raíz: `README.md`, `SKILL.md`, `colors_and_type.css`, `preview/` y `ui_kits/`.
   - Lo que Design propuso y nunca se construyó queda listado aparte, como insumo de la auditoría. No se porta solo.
@@ -137,7 +141,20 @@ Hay **al menos tres proyectos** de ShapeUp en Design, repartidos en dos cuentas.
 
 - Un segundo pedido en la cuenta B dejó `design-export-handoff.zip.zip`, con el mismo inventario, que es idéntico, y una copia del design system viejo en `design-system/`. **No es el proyecto del handoff.** En Descargas, el primer zip de la cuenta B se renombró a `Inventario ShapeUp — cuenta1.zip`.
 - **Falta:** descargar el proyecto del handoff de la **cuenta A**, el que tiene `ShapeUp Estados.dc.html`. Está en la misma cuenta que el design system que tiene `explorations/` y 5 temas.
-- **El paso 2a lo hace el prompt `docs/prompts/104-traer-claude-design-al-repo.md`.** Si el zip del handoff está, lo incluye; si no, lo saltea y lo anota.
+- **El paso 2a lo hizo el prompt `docs/prompts/104-traer-claude-design-al-repo.md`** el 21/10. El zip del handoff no estaba: esa parte se salteó.
+
+**Dónde quedó lo archivado (P104, 21/10):**
+- **La raíz del repo**, con la versión de la cuenta A: `colors_and_type.css`, `styles.css`, `thumbnail.html`, `preview/` (30 tarjetas) y `ui_kits/shapeup/` (12 archivos). `README.md`, `SKILL.md` y `assets/` siguen como estaban.
+- **`docs/archivo/claude-design/`**, con un `README.md` que dice de dónde sale cada cosa:
+  - `cuenta-A/explorations/`, con las auditorías, las decisiones, los mocks y sus capturas. Sin `home-redux/design_handoff_theming/`, idéntico a `docs/home-redux/design_handoff_theming/`;
+  - `cuenta-A/design-canvas.jsx`, `.design-canvas.state.json` y `_opts.png`;
+  - `cuenta-A/pwa-iconos-opciones.html` y `cuenta-A/assets/pwa-options/`;
+  - `cuenta-A/prompts-code/`: el 37, el 45 y `MAPEO-ADDENDUM.md`, los únicos que difieren del repo;
+  - `cuenta-A/scripts/`: `data/traducciones-fedb.es.json` y `borrar-historial.ts.txt`;
+  - `cuenta-B/BRIEF-para-design.md`;
+  - `handoff-design-2026-09-25.md`.
+- **`docs/reportes/`:** `design-export-cuenta-A-2026-10-21.md` y `design-export-cuenta-B-2026-10-21.md`.
+- **El proyecto del handoff** (`ShapeUp Estados.dc.html`, `HANDOFF-portado.md`): no se encontró. Lo que se sabe está en la fila 1 de la tabla.
 
 **Exports completos (21/10, 13:15).** Juan pidió a cada cuenta un «export completo», y Design creó un proyecto nuevo en cada una:
 - **«Cuenta 1» de Juan = cuenta A.** Tiene adjunto el design system id `9dcf2f54…`, con 5 temas, modo claro y `explorations/`. El contenido es igual a `ShapeUp Design System.zip`, salvo los dos wordmark, por comillas reescritas en la copia.

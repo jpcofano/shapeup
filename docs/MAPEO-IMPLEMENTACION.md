@@ -132,6 +132,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P98 | Las rutinas de VR por escalones: dos modos, la regla de progresión y el programa de 5 días (ADR #046) | ✅ | 2026-10-02 |
 | P102 | Cambiar lo que toca hoy (ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre (enmienda del #046) | ✅ | 2026-10-15 |
 | P99 | Marcas de la app y análisis de sesión en dos capas (enmienda del #016) | en curso (Partes 1–3) | 2026-10-19 |
+| P104 | Traer lo de Claude Design al repo: la raíz del sistema de diseño (cuenta A) y el archivo (`24fcb79`, `42379e2`, `963e774`) | ✅ | 2026-10-21 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -148,6 +149,33 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-21] P104 — Traer lo de Claude Design al repo, antes de que cierre
+
+Claude Design por separado cierra el 14/12/2026. Plan y estado del área: `docs/AUDITORIA-DISENO.md`.
+Sin tocar `src/`, la UI ni Firestore, y sin deploy.
+
+- **Parte 0** (`24fcb79`): `docs/AUDITORIA-DISENO.md` entra al repo. Las decisiones de P99 del 21/10 que
+  tenía en su §1 pasan a su lugar: el `planSemana` del día jugado, a `ANALISIS-ASISTIDO.md` §8 y al
+  roadmap como agregado al Bloque 1 de P103. `ESTADO-DEL-PROYECTO.md` pasa a ser el traspaso del 21/10 a
+  la tarde, tal cual. El roadmap suma P103 y P101.
+- **Parte 1** (`42379e2`): la raíz del sistema de diseño pasa a la versión de la cuenta A, tal cual:
+  `colors_and_type.css` (5 temas con claro y oscuro), `preview/` (30 tarjetas: 5 nuevas y `col-themes`
+  actualizada), `ui_kits/shapeup/` (12 archivos, con `body-map.jsx` y `screens-programa.jsx`), y los
+  nuevos `styles.css` y `thumbnail.html`. `README.md`, `SKILL.md` y `assets/` no se tocaron. Nada de la
+  app usa estos archivos. El kit carga con un servidor estático; `preview/brand-pwa.html` apunta a
+  `../assets/pwa/icons/`, que en el repo es `../assets/pwa/`.
+- **Parte 2** (`963e774`): el archivo en `docs/archivo/claude-design/`, con su `README.md`. Tiene las
+  explorations con sus capturas, el lienzo, las variantes de ícono, los prompts que difieren (37, 45 y
+  `MAPEO-ADDENDUM.md`), los dos de `scripts/`, el brief de la cuenta B y el handoff del 25/09. Los
+  inventarios de las dos cuentas van a `docs/reportes/`.
+- **Comparación por hash:** contra `HEAD` y sin el final de línea, porque git en Windows deja CRLF en la
+  copia de trabajo y el hash crudo daba distinto en archivos iguales. Así resultaron iguales:
+  - `design_handoff_theming`;
+  - los prompts 46 a 49 y `PROMPTS-design.md`;
+  - `assets/pwa/30-d8-pwa-instalar.md`, igual a `docs/prompts/30-d8-pwa-instalar.md`.
+- **Parte 3, salteada:** el proyecto del handoff de la cuenta A (`ShapeUp Estados.dc.html`,
+  `HANDOFF-portado.md`) no se encontró.
 
 ### [2026-10-19] P99 — Partes 1 a 3: marcas de la app, paquete, esquema 3 y prompt v4 (enmienda del #016)
 
