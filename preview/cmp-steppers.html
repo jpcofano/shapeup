@@ -1,0 +1,41 @@
+<!-- @dsCard group="Components" name="Steppers de serie" subtitle="Reps/carga sin teclado + anillo de descanso" viewport="700x190" -->
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:18px;display:flex;gap:22px;align-items:center}
+  .quick-log-label{font:600 11px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .stepper{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);padding:6px;margin-top:5px}
+  .stepper-btn{width:40px;height:40px;border-radius:var(--r-sm);border:none;background:var(--card-hover);color:var(--fg);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .stepper-val{font:800 22px/1 var(--font-sans);font-variant-numeric:tabular-nums;letter-spacing:-.02em;min-width:54px;text-align:center}
+  .suf{font:600 13px/1 var(--font-sans);color:var(--muted)}
+  .ic{display:inline-flex}.ic svg{display:block}
+</style></head><body><div class="wrap">
+  <div>
+    <span class="quick-log-label">Reps</span>
+    <div class="stepper">
+      <button class="stepper-btn ic"><i data-lucide="minus"></i></button>
+      <span class="stepper-val">10</span>
+      <button class="stepper-btn ic"><i data-lucide="plus"></i></button>
+    </div>
+  </div>
+  <div>
+    <span class="quick-log-label">Carga</span>
+    <div class="stepper">
+      <button class="stepper-btn ic"><i data-lucide="minus"></i></button>
+      <span class="stepper-val">22.5<span class="suf"> kg</span></span>
+      <button class="stepper-btn ic"><i data-lucide="plus"></i></button>
+    </div>
+  </div>
+  <div style="position:relative;width:96px;height:96px;margin-left:auto">
+    <svg width="96" height="96" style="transform:rotate(-90deg);display:block">
+      <circle cx="48" cy="48" r="40" fill="none" stroke="var(--border)" stroke-width="8"/>
+      <circle cx="48" cy="48" r="40" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="75"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 26px/1 var(--font-sans);font-variant-numeric:tabular-nums;letter-spacing:-.03em">1:08</div>
+  </div>
+</div>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons({attrs:{'stroke-width':1.8}});</script>
+</body></html>

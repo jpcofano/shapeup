@@ -103,4 +103,25 @@ function MiniChart({ data, color = "var(--accent)" }) {
   );
 }
 
-Object.assign(window, { Icon, Avatar, AvatarStack, Badge, WeekStrip, ProgressDots, MiniChart });
+/* Sparkline de área (tendencia) */
+function Sparkline({ data, color = "var(--accent)", height = 44 }) {
+  if (!data || data.length < 2) return null;
+  const W = 300, H = height;
+  const max = Math.max(...data), min = Math.min(...data), range = max - min || 1;
+  const pts = data.map((v, i) => [(i / (data.length - 1)) * W, H - 4 - ((v - min) / range) * (H - 10)]);
+  const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const area = `${line} L${W} ${H} L0 ${H} Z`;
+  const id = "sg" + Math.round(max);
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: "block" }}>
+      <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={color} stopOpacity="0.28" /><stop offset="100%" stopColor={color} stopOpacity="0" />
+      </linearGradient></defs>
+      <path d={area} fill={`url(#${id})`} />
+      <path d={line} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="3.5" fill={color} />
+    </svg>
+  );
+}
+
+Object.assign(window, { Icon, Avatar, AvatarStack, Badge, WeekStrip, ProgressDots, MiniChart, Sparkline });

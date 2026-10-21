@@ -1,15 +1,47 @@
 /* ShapeUp UI Kit — Biblioteca (Rutinas | Ejercicios) + RutinaDetalle */
 
-function Biblioteca({ go }) {
-  const [tab, setTab] = React.useState("rutinas");
+// Reproductor de demo del ejercicio (placeholder — el usuario sube/linkea el clip real).
+function VideoPlayer({ ejercicio }) {
+  const [playing, setPlaying] = React.useState(false);
+  return (
+    <section style={{ marginTop: 12 }}>
+      <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 10", borderRadius: "var(--r-md)", overflow: "hidden", background: "var(--card-hover)", border: "1px solid var(--border)" }}>
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%)" }} />
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8 }}>
+          {playing ? (
+            <React.Fragment>
+              <div className="vp-pulse" style={{ width: 46, height: 46, borderRadius: "50%", border: "2px solid var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
+                <Icon name="loader" size={20} />
+              </div>
+              <span style={{ fontSize: 11, color: "var(--muted)" }}>Reproduciendo demo…</span>
+            </React.Fragment>
+          ) : (
+            <button onClick={() => setPlaying(true)} style={{ background: "var(--accent)", color: "var(--on-accent)", border: "none", width: 52, height: 52, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "var(--shadow-fab)" }}>
+              <Icon name="play" size={22} fill="currentColor" color="var(--on-accent)" />
+            </button>
+          )}
+        </div>
+        <span style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,.55)", color: "#fff", fontSize: 10, fontWeight: 600, padding: "3px 7px", borderRadius: 6, display: "inline-flex", alignItems: "center", gap: 4 }}>
+          <Icon name="video" size={11} /> Demo · 0:12
+        </span>
+      </div>
+    </section>
+  );
+}
+
+function Biblioteca({ go, memberId, activoId, onActivar, tabInicial }) {
+  const [tab, setTab] = React.useState(tabInicial || "rutinas");
   return (
     <div className="page">
       <div className="page-header"><h1 className="page-title">Biblioteca</h1></div>
       <div className="tabs" style={{ marginTop: -4 }}>
+        <button className={`tab${tab === "programas" ? " active" : ""}`} onClick={() => setTab("programas")}>Programas</button>
         <button className={`tab${tab === "rutinas" ? " active" : ""}`} onClick={() => setTab("rutinas")}>Rutinas</button>
         <button className={`tab${tab === "ejercicios" ? " active" : ""}`} onClick={() => setTab("ejercicios")}>Ejercicios</button>
       </div>
-      {tab === "rutinas" ? <RutinasTab go={go} /> : <CatalogoTab />}
+      {tab === "programas" && <ProgramasTab memberId={memberId} activoId={activoId} onActivar={onActivar} go={go} />}
+      {tab === "rutinas" && <RutinasTab go={go} />}
+      {tab === "ejercicios" && <CatalogoTab />}
     </div>
   );
 }
@@ -65,7 +97,25 @@ function CatalogoTab() {
           </button>
           {abierto === e.id && (
             <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)" }}>
-              <section style={{ marginTop: 12 }}>
+              <VideoPlayer ejercicio={e} />
+              {e.musculoPrimario && (
+                <section style={{ marginTop: 14 }}>
+                  <p className="section-title" style={{ marginBottom: 8 }}>Músculos trabajados</p>
+                  <BodyMap primario={e.musculoPrimario} secundarios={e.musculosSecundarios} />
+                </section>
+              )}
+              {(e.nivel || e.mecanica || e.patron || e.equipo) && (
+                <section style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {[["Nivel", e.nivel], ["Mecánica", e.mecanica], ["Patrón", e.patron], ["Equipo", e.equipo && e.equipo.join(", ")]]
+                    .filter(([, v]) => v).map(([k, v]) => (
+                    <div key={k}>
+                      <span className="t-label" style={{ display: "block" }}>{k}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{v}</span>
+                    </div>
+                  ))}
+                </section>
+              )}
+              <section style={{ marginTop: 14 }}>
                 <p className="section-title" style={{ marginBottom: 6 }}>Ejecución</p>
                 <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
                   {e.instrucciones.map((p, i) => <li key={i} style={{ fontSize: 13, lineHeight: 1.5 }}>{p}</li>)}

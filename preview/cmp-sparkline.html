@@ -1,0 +1,35 @@
+<!-- @dsCard group="Components" name="Sparkline + records" subtitle="Tendencia de área + record personal (PR)" viewport="700x180" -->
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:18px;display:flex;gap:18px;align-items:stretch}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;flex:1;display:flex;flex-direction:column;gap:8px}
+  .t-label{font:600 11px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .ic{display:inline-flex}.ic svg{display:block}
+</style></head><body><div class="wrap">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span class="t-label">Volumen semanal</span>
+      <span style="font:700 12px/1 var(--font-sans);color:var(--accent)">↑ 0.3k vs sem. ant.</span>
+    </div>
+    <svg width="100%" viewBox="0 0 300 44" preserveAspectRatio="none" style="display:block">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity="0.28"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+      <path d="M0 30 L75 24 L150 27 L225 12 L300 6 L300 44 L0 44 Z" fill="url(#g)"/>
+      <path d="M0 30 L75 24 L150 27 L225 12 L300 6" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="300" cy="6" r="3.5" fill="var(--accent)"/>
+    </svg>
+  </div>
+  <div class="card" style="flex:0 0 230px">
+    <span class="t-label">Record personal</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:34px;height:34px;border-radius:9px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center" class="ic"><i data-lucide="trophy"></i></span>
+      <div style="flex:1"><p style="margin:0;font:600 14px/1.2 var(--font-sans)">Press de banca</p><p style="margin:0;font:400 11px/1 var(--font-sans);color:var(--muted)">03/06/2026</p></div>
+      <div style="text-align:right"><div style="font:800 16px/1 var(--font-sans);font-variant-numeric:tabular-nums">24 kg</div><div style="font:600 11px/1 var(--font-sans);color:var(--accent)">+1.5 kg</div></div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons({attrs:{'stroke-width':1.8}});</script>
+</body></html>

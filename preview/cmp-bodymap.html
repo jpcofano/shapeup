@@ -1,0 +1,55 @@
+<!-- @dsCard group="Components" name="Mapa muscular" subtitle="Silueta frente/espalda con músculos resaltados (B3)" viewport="700x260" -->
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:18px;display:flex;gap:26px}
+  .col{display:flex;gap:10px;align-items:flex-start}
+  svg{display:block}
+  .cap{font:400 9px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:center;display:block;margin-top:2px}
+  .info .t-label{display:block;margin-bottom:4px}
+  .prim{display:inline-flex;align-items:center;gap:7px;font:700 14px/1 var(--font-sans)}
+  .sw{width:12px;height:12px;border-radius:3px;background:var(--accent)}
+  .sw2{width:9px;height:9px;border-radius:2px;background:color-mix(in srgb,var(--accent) 38%,transparent)}
+  .sec{display:inline-flex;align-items:center;gap:5px;font:400 12px/1 var(--font-sans);color:var(--muted);margin-right:8px}
+  h4{margin:0 0 12px;font:600 11px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+</style></head><body><div class="wrap" id="wrap"></div>
+<script>
+const AC='var(--accent)', SEC='color-mix(in srgb,var(--accent) 38%,transparent)', OFF='var(--card-hover)', ST='var(--border)';
+function body(prim, sec){
+  const f=m=>prim===m?AC:sec.includes(m)?SEC:OFF;
+  const front=`<svg viewBox="0 0 100 220" width="58"><g stroke="${ST}" stroke-width="0.8">
+    <circle cx="50" cy="18" r="11" fill="${OFF}"/><rect x="44" y="28" width="12" height="7" rx="2" fill="${OFF}"/>
+    <ellipse cx="29" cy="44" rx="11" ry="8" fill="${f('hombros')}"/><ellipse cx="71" cy="44" rx="11" ry="8" fill="${f('hombros')}"/>
+    <path d="M37 40 H63 Q66 55 50 60 Q34 55 37 40 Z" fill="${f('pecho')}"/>
+    <rect x="40" y="61" width="20" height="34" rx="5" fill="${f('core')}"/>
+    <rect x="20" y="52" width="9" height="26" rx="4" fill="${f('biceps')}"/><rect x="71" y="52" width="9" height="26" rx="4" fill="${f('biceps')}"/>
+    <rect x="17" y="79" width="8" height="24" rx="4" fill="${f('antebrazo')}"/><rect x="75" y="79" width="8" height="24" rx="4" fill="${f('antebrazo')}"/>
+    <rect x="40" y="98" width="9" height="48" rx="5" fill="${f('cuadriceps')}"/><rect x="51" y="98" width="9" height="48" rx="5" fill="${f('cuadriceps')}"/>
+    <rect x="41" y="150" width="7" height="40" rx="4" fill="${OFF}"/><rect x="52" y="150" width="7" height="40" rx="4" fill="${OFF}"/></g></svg>`;
+  const back=`<svg viewBox="0 0 100 220" width="58"><g stroke="${ST}" stroke-width="0.8">
+    <circle cx="50" cy="18" r="11" fill="${OFF}"/><path d="M40 32 H60 L57 44 H43 Z" fill="${f('trapecio')}"/>
+    <ellipse cx="29" cy="46" rx="10" ry="8" fill="${f('hombros')}"/><ellipse cx="71" cy="46" rx="10" ry="8" fill="${f('hombros')}"/>
+    <rect x="38" y="44" width="24" height="16" rx="4" fill="${f('espalda_alta')}"/>
+    <path d="M38 60 H62 L57 92 H43 Z" fill="${f('dorsales')}"/>
+    <rect x="20" y="52" width="9" height="26" rx="4" fill="${f('triceps')}"/><rect x="71" y="52" width="9" height="26" rx="4" fill="${f('triceps')}"/>
+    <rect x="17" y="79" width="8" height="24" rx="4" fill="${OFF}"/><rect x="75" y="79" width="8" height="24" rx="4" fill="${OFF}"/>
+    <rect x="40" y="94" width="9" height="20" rx="5" fill="${f('gluteos')}"/><rect x="51" y="94" width="9" height="20" rx="5" fill="${f('gluteos')}"/>
+    <rect x="40" y="116" width="9" height="32" rx="5" fill="${f('isquios')}"/><rect x="51" y="116" width="9" height="32" rx="5" fill="${f('isquios')}"/>
+    <rect x="41" y="150" width="7" height="40" rx="4" fill="${f('pantorrillas')}"/><rect x="52" y="150" width="7" height="40" rx="4" fill="${f('pantorrillas')}"/></g></svg>`;
+  return `<div class="col"><div><div>${front}</div><span class="cap">Frente</span></div><div><div>${back}</div><span class="cap">Espalda</span></div></div>`;
+}
+const L={pecho:'Pecho',hombros:'Hombros',triceps:'Tríceps',dorsales:'Dorsales',espalda_alta:'Espalda alta',biceps:'Bíceps',cuadriceps:'Cuádriceps',gluteos:'Glúteos',core:'Core'};
+function card(title,prim,sec){
+  return `<div><h4>${title}</h4><div style="display:flex;gap:14px">${body(prim,sec)}
+  <div class="info" style="display:flex;flex-direction:column;gap:8px;justify-content:center">
+    <div><span class="t-label">Principal</span><span class="prim"><span class="sw"></span>${L[prim]}</span></div>
+    <div><span class="t-label">Secundarios</span><div>${sec.map(s=>`<span class="sec"><span class="sw2"></span>${L[s]}</span>`).join('')}</div></div>
+  </div></div></div>`;
+}
+document.getElementById('wrap').innerHTML =
+  card('Press de banca','pecho',['hombros','triceps']) +
+  card('Remo a una mano','dorsales',['espalda_alta','biceps']);
+</script>
+</body></html>

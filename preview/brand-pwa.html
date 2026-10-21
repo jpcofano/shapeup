@@ -1,0 +1,34 @@
+<!-- @dsCard group="Brand" name="PWA · Íconos + Instalar" subtitle="Set de íconos instalables + botón Instalar app" viewport="700x180" -->
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:20px;display:flex;align-items:center;gap:28px}
+  .icons{display:flex;align-items:flex-end;gap:16px}
+  .icons figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .icons img{display:block;border-radius:22%}
+  .cap{font:400 10px/1.2 var(--font-sans);color:var(--muted)}
+  .install{margin-left:auto;display:flex;flex-direction:column;gap:8px;min-width:200px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;display:flex;align-items:center;gap:12px}
+  .badge{width:38px;height:38px;border-radius:10px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ic{display:inline-flex}.ic svg{display:block}
+  .t1{font:600 14px/1.1 var(--font-sans)}
+  .t2{font:400 11px/1.3 var(--font-sans);color:var(--muted)}
+</style></head><body><div class="wrap">
+  <div class="icons">
+    <figure><img src="../assets/pwa/icons/icon-512.png" width="72" height="72"><figcaption class="cap">app · any</figcaption></figure>
+    <figure><img src="../assets/pwa/icons/icon-maskable-512.png" width="56" height="56"><figcaption class="cap">maskable</figcaption></figure>
+    <figure><img src="../assets/pwa/icons/apple-touch-icon.png" width="44" height="44"><figcaption class="cap">apple 180</figcaption></figure>
+    <figure><img src="../assets/pwa/icons/favicon-32.png" width="28" height="28"><figcaption class="cap">favicon</figcaption></figure>
+  </div>
+  <div class="install">
+    <div class="card">
+      <span class="badge ic"><i data-lucide="download"></i></span>
+      <div><div class="t1">Instalar app</div><div class="t2">Agregá ShapeUp a tu inicio</div></div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons({attrs:{'stroke-width':1.8}});</script>
+</body></html>

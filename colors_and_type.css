@@ -4,7 +4,8 @@
    Familiar (hermanas, no gemelas) y agrega la capa de identidad de ShapeUp:
    accent de marca, escala de zonas de FC (Z1→Z5) y estados de fitness.
 
-   Tema: OSCURO por defecto. Castellano (voseo) en la UI.
+   Tema: CLARO/OSCURO por [data-mode]. Acento por [data-theme] (5 familias).
+   Default: oscuro + Ion. Castellano (voseo) en la UI.
    ============================================================================ */
 
 :root {
@@ -25,10 +26,12 @@
    * un tinte sutil de superficie, para que se note sin rediseñar. Los valores
    * de :root son el tema por defecto (Ion). Cada [data-theme] los pisa abajo.
    * Las zonas de FC NO cambian con el tema (son semánticas).                 */
-  --accent:      #22d3ee;             /* Ion — cian eléctrico (default) */
+  --acc-d:       #22d3ee;             /* Ion dark  — valor en modo oscuro */
+  --acc-l:       #0e7490;             /* Ion light — valor AA en modo claro */
+  --accent:      var(--acc-d);        /* resuelto por [data-mode] abajo */
   --accent-dim:  rgba(34, 211, 238, 0.13);
-  --accent-strong:#0891b2;            /* acento sobre fondos claros (logo light) */
-  --on-accent:   #04161a;             /* texto sobre el acento */
+  --accent-strong:#0e7490;            /* acento sobre fondos claros (logo light) */
+  --on-accent:   #0b0f14;             /* texto sobre el acento */
 
   /* ── Semánticos ───────────────────────────────────────────────────────── */
   --danger:      #f87171;
@@ -91,8 +94,8 @@
   --shadow-menu:  0 4px 12px rgba(0, 0, 0, 0.40);
 
   /* ── Transiciones ─────────────────────────────────────────────────────── */
-  --t-fast: 120ms ease;
-  --t-base: 150ms ease;
+  --t-fast: 120ms ease;   /* @kind other */
+  --t-base: 150ms ease;   /* @kind other */
 
   /* ── TIPOGRAFÍA ───────────────────────────────────────────────────────── *
    * Sistema (system-ui). No carga webfonts: rinde nativo en iOS/Android y
@@ -114,88 +117,63 @@
   --fs-timer: 52px;   /* cronómetro de descanso */
 
   /* Pesos */
-  --fw-regular:  400;
-  --fw-medium:   500;
-  --fw-semibold: 600;
-  --fw-bold:     700;
-  --fw-heavy:    800;   /* cifras y títulos atléticos */
+  --fw-regular:  400;   /* @kind font */
+  --fw-medium:   500;   /* @kind font */
+  --fw-semibold: 600;   /* @kind font */
+  --fw-bold:     700;   /* @kind font */
+  --fw-heavy:    800;   /* @kind font */
 
   /* Interlineado */
-  --lh-tight:   1.15;
-  --lh-snug:    1.3;
-  --lh-base:    1.5;
-  --lh-relaxed: 1.6;
+  --lh-tight:   1.15;   /* @kind font */
+  --lh-snug:    1.3;    /* @kind font */
+  --lh-base:    1.5;    /* @kind font */
+  --lh-relaxed: 1.6;    /* @kind font */
 
   /* Tracking */
-  --tracking-tight: -0.02em;   /* títulos grandes */
-  --tracking-label:  0.05em;   /* labels uppercase */
+  --tracking-tight: -0.02em;   /* @kind font */
+  --tracking-label:  0.05em;   /* @kind font */
 
   color-scheme: dark;
 }
 
 /* ════════════════════════════════════════════════════════════════════════ *
-   TEMAS — set el atributo data-theme en el contenedor raíz de la app.
-   Cada tema redefine la familia del acento + un tinte de superficie MARCADO
-   (las superficies se tiñen hacia el hue del acento). Default = Ion.
-   El tema se elige POR MIEMBRO (cada uno ajusta el suyo).
-   Las zonas de FC y los colores de miembro NO cambian con el tema.
+   MODO — claro / oscuro. Set data-mode en el contenedor raíz (junto a
+   data-theme). Resuelve el acento (acc-d/acc-l), las superficies neutras y las
+   sombras. Default (sin data-mode) = oscuro, ya definido en :root.
  * ════════════════════════════════════════════════════════════════════════ */
-
-/* Ion — cian eléctrico · frío, técnico, lo más lejos de Comida */
-[data-theme="ion"] {
-  --bg: #081519; --card: #0f2128; --card-hover: #163039; --border: #1e3b45; --border-dim: #13272e;
-  --accent: #22d3ee; --accent-dim: rgba(34,211,238,0.16); --accent-strong: #0891b2; --on-accent: #04161a;
-  --shadow-fab: 0 4px 16px rgba(34,211,238,0.34);
+[data-mode="dark"] {
+  --bg: #0f1115; --card: #171a21; --card-hover: #1e2130; --border: #232733; --border-dim: #1c2030;
+  --fg: #f5f7fa; --muted: #9aa4b2; --track: #232733;
+  --accent: var(--acc-d); --accent-strong: var(--acc-l); --on-accent: #0b0f14;
+  --accent-dim: color-mix(in srgb, var(--acc-d) 15%, transparent);
+  --shadow-card: 0 20px 60px rgba(0,0,0,0.35);
+  --shadow-menu: 0 4px 12px rgba(0,0,0,0.40);
+  --shadow-fab: 0 4px 16px color-mix(in srgb, var(--acc-d) 32%, transparent);
+  color-scheme: dark;
+}
+[data-mode="light"] {
+  --bg: #eceef1; --card: #ffffff; --card-hover: #f4f5f8; --border: #dfe2e8; --border-dim: #e8eaee;
+  --fg: #14171c; --muted: #5c6570; --track: #dde0e6;
+  --accent: var(--acc-l); --accent-strong: var(--acc-l); --on-accent: #ffffff;
+  --accent-dim: color-mix(in srgb, var(--acc-l) 10%, transparent);
+  --shadow-card: 0 16px 40px rgba(20,23,28,0.12);
+  --shadow-menu: 0 4px 14px rgba(20,23,28,0.14);
+  --shadow-fab: 0 6px 18px color-mix(in srgb, var(--acc-l) 28%, transparent);
+  color-scheme: light;
 }
 
-/* Volt — verde eléctrico · el original, energía y progreso */
-[data-theme="volt"] {
-  --bg: #0b140e; --card: #122017; --card-hover: #1a2d20; --border: #21372a; --border-dim: #16241b;
-  --accent: #4ade80; --accent-dim: rgba(74,222,128,0.15); --accent-strong: #16a34a; --on-accent: #08130b;
-  --shadow-fab: 0 4px 16px rgba(74,222,128,0.32);
-}
-
-/* Solar — ámbar dorado · energía cálida, sol */
-[data-theme="solar"] {
-  --bg: #161108; --card: #221a0d; --card-hover: #2f2614; --border: #3a3019; --border-dim: #271f10;
-  --accent: #f5b62b; --accent-dim: rgba(245,182,43,0.16); --accent-strong: #d99413; --on-accent: #1a1303;
-  --shadow-fab: 0 4px 16px rgba(245,182,43,0.34);
-}
-
-/* Blaze — naranja-coral · intensidad, calor de esfuerzo */
-[data-theme="blaze"] {
-  --bg: #170f0a; --card: #241910; --card-hover: #312317; --border: #3d2d1d; --border-dim: #2a1d13;
-  --accent: #ff7a45; --accent-dim: rgba(255,122,69,0.16); --accent-strong: #ea580c; --on-accent: #1c0a02;
-  --shadow-fab: 0 4px 16px rgba(255,122,69,0.34);
-}
-
-/* Crimson — rojo intenso · potencia, sangre y fuego */
-[data-theme="crimson"] {
-  --bg: #170a0c; --card: #241317; --card-hover: #311c21; --border: #3e262b; --border-dim: #2b181c;
-  --accent: #fb3b53; --accent-dim: rgba(251,59,83,0.16); --accent-strong: #e11d3a; --on-accent: #ffffff;
-  --shadow-fab: 0 4px 16px rgba(251,59,83,0.34);
-}
-
-/* Pulse — rosa intenso · vibrante, bold */
-[data-theme="pulse"] {
-  --bg: #160b12; --card: #23141d; --card-hover: #301d29; --border: #3d2734; --border-dim: #2a1a24;
-  --accent: #ff4d79; --accent-dim: rgba(255,77,121,0.16); --accent-strong: #e11d63; --on-accent: #ffffff;
-  --shadow-fab: 0 4px 16px rgba(255,77,121,0.34);
-}
-
-/* Grape — púrpura · creativo, eléctrico */
-[data-theme="grape"] {
-  --bg: #120c1a; --card: #1e1528; --card-hover: #2a1e38; --border: #352845; --border-dim: #241a31;
-  --accent: #b15cff; --accent-dim: rgba(177,92,255,0.17); --accent-strong: #9333ea; --on-accent: #ffffff;
-  --shadow-fab: 0 4px 16px rgba(177,92,255,0.34);
-}
-
-/* Indigo — violeta-azul · nocturno, premium */
-[data-theme="indigo"] {
-  --bg: #0e0d1c; --card: #17162b; --card-hover: #20203c; --border: #2a2a4a; --border-dim: #1d1c33;
-  --accent: #7c83ff; --accent-dim: rgba(124,131,255,0.17); --accent-strong: #6366f1; --on-accent: #ffffff;
-  --shadow-fab: 0 4px 16px rgba(124,131,255,0.34);
-}
+/* ════════════════════════════════════════════════════════════════════════ *
+   TEMAS (acentos) — set data-theme en el contenedor raíz, junto a data-mode.
+   Son 5 familias. Cada una declara su par dark/light (acc-d/acc-l); el bloque
+   [data-mode] de arriba resuelve --accent según el modo activo. Las superficies
+   son NEUTRAS y las fija el modo — el acento no tiñe el fondo. Default = Ion.
+   El tema se elige POR MIEMBRO. Zonas de FC y colores de miembro NO cambian.
+ * ════════════════════════════════════════════════════════════════════════ */
+[data-theme="ion"]    { --acc-d: #22d3ee; --acc-l: #0e7490; }  /* cian eléctrico · frío, técnico */
+[data-theme="volt"]   { --acc-d: #4ade80; --acc-l: #15803d; }  /* verde · energía y progreso */
+[data-theme="blaze"]  { --acc-d: #ff7a45; --acc-l: #c2410c; }  /* naranja-coral · intensidad */
+[data-theme="indigo"] { --acc-d: #8b90ff; --acc-l: #4f46e5; }  /* violeta-azul · nocturno, premium */
+[data-theme="pulse"]  { --acc-d: #ff4d79; --acc-l: #be185c; }  /* rosa · vibrante, bold */
 
 /* ============================================================================
    ESTILOS SEMÁNTICOS — clases reutilizables de tipografía

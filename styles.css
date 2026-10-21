@@ -1,0 +1,15 @@
+/* ============================================================================
+   ShapeUp — styles.css
+   Punto de entrada único del design system. Importá ESTE archivo; reexporta
+   la fuente de verdad de tokens, temas y tipografía.
+
+   - colors_and_type.css → tokens (superficies, accent tematizable, 8 temas
+     [data-theme], zonas de FC Z1→Z5, estados de fitness, radios, espaciado)
+     + escala tipográfica y clases semánticas .t-*.
+
+   Nota: ui_kits/shapeup/app.css son estilos de componentes del UI kit (se
+   cargan dentro del kit), y explorations/* son mockups descartables — por eso
+   no se importan acá.
+   ============================================================================ */
+
+@import "./colors_and_type.css";

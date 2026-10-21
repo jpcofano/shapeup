@@ -1,0 +1,41 @@
+<!-- @dsCard group="Components" name="Vista semanal de programa" subtitle="Días de entreno vs descanso (por día de semana)" viewport="700x190" -->
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{padding:18px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;max-width:380px}
+  .t-label{font:600 11px/1 var(--font-sans);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:12px}
+  .d{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 2px;border-radius:10px}
+  .d.today{background:var(--accent-dim);border:1px solid var(--accent)}
+  .dl{font:600 10px/1 var(--font-sans);text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .d.today .dl{color:var(--accent)}
+  .circ{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .train{background:var(--accent-dim);color:var(--accent)}
+  .rest{border:1px dashed var(--border);color:var(--muted)}
+  .cap{font:400 9px/1.2 var(--font-sans);color:var(--muted);text-align:center;min-height:22px}
+  .ic{display:inline-flex}.ic svg{display:block}
+  .meta{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .badge{background:rgba(154,164,178,.12);color:var(--muted);border-radius:999px;padding:2px 8px;font:600 11px/1.5 var(--font-sans)}
+</style></head><body><div class="wrap">
+<div class="card">
+  <span class="t-label">Recomposición 4 días · Tu semana</span>
+  <div class="week" id="w"></div>
+  <div class="meta"><span class="badge">Recomposición</span><span class="badge">Intermedio</span><span class="badge">4 días/sem</span><span class="badge">3 descanso</span></div>
+</div>
+</div>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+const L=['L','M','M','J','V','S','D'];
+const dias=[{t:'Empuje'},{r:1},{t:'Pierna'},{r:1},{t:'Empuje'},{t:'Pierna'},{r:1}];
+const TODAY=2;
+document.getElementById('w').innerHTML=L.map((l,i)=>{
+  const d=dias[i],rest=d.r,today=i===TODAY;
+  const circ=rest?`<span class="circ rest ic"><i data-lucide="moon"></i></span>`:`<span class="circ train ic"><i data-lucide="biceps-flexed"></i></span>`;
+  return `<div class="d ${today?'today':''}"><span class="dl">${l}</span>${circ}<span class="cap">${rest?'Descanso':d.t}</span></div>`;
+}).join('');
+lucide.createIcons({attrs:{'stroke-width':1.6,'fill':'currentColor'}});
+</script>
+</body></html>
