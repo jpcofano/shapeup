@@ -520,6 +520,8 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P98 | ✅ (02/10) Rutinas de VR y progresión: rutinas por tiempo, dos modos y una regla que calcula el sistema. La progresión se muestra en la rutina, no como marca de la sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P93 |
 | P102 | ✅ (15/10) Cambiar lo que toca hoy (bloque 11, ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre. Ver [RUTINAS-VR.md](RUTINAS-VR.md) | P98 |
 | P99 | Marcas de la app y análisis de sesión en dos capas, en cuatro partes: diagnóstico, marcas de la app, esquema 3 y prompt 4, pantalla. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
+| P103 | Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
+| P101 | Auditoría de diseño: lo próximo de pantalla. Plan, diagnóstico y estado: `docs/AUDITORIA-DISENO.md`. | P103 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
 ## Backlog (traspaso del 30/09, §7)

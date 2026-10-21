@@ -1,22 +1,33 @@
-# ShapeUp — traspaso de sesión · 03/10/2026
+# ShapeUp — traspaso de sesión · 21/10/2026 (tarde)
 
-Para el próximo chat. Reemplaza al traspaso del 02/10 (y al del 30/09). Desde P100, este documento **es** `docs/ESTADO-DEL-PROYECTO.md`: Code lo copia ahí tal cual y reemplaza al anterior.
+Para el próximo chat, **en otra cuenta de Claude**. Reemplaza al traspaso del 21/10 a la mañana (`ESTADO-DEL-PROYECTO shape up 21-10.md`) y lo contiene. Cuando Code lo copie, pasa a ser `docs/ESTADO-DEL-PROYECTO.md` (ver §6, paso 1).
+
+**La memoria de la cuenta anterior no viaja.** Todo lo que hace falta está en este documento, en el repo y, para el diseño, en `docs/AUDITORIA-DISENO.md`.
 
 ---
 
-## 0 · Para el próximo chat: primero clonar y leer
+## 0 · Para el próximo chat: primero leer
 
-El repo de la app es público: `https://github.com/jpcofano/shapeup`. Antes de responder, clonalo y leé, en este orden:
+**Si el chat está vinculado a la PC de Juan** (app de escritorio), leé directo del clon local:
+- repo: `C:\Users\Usuario\OneDrive\Documentos\AppsScript\ShapeUp`;
+- prompts y descargas: `C:\Users\Usuario\Downloads`.
 
-1. `CLAUDE.md`: las reglas de trabajo, el índice de ADRs y la sección **«Documentación»**, que dice dónde va cada cosa.
-2. `docs/ESTADO-DEL-PROYECTO.md`: tendría que ser este documento (03/10). Si es más viejo, la copia todavía no se commiteó.
-3. `docs/ANALISIS-ASISTIDO.md`: el plan de marcas y análisis (P99 y P94), con sus insumos de las pruebas del 30/09 y el 02/10. **Es la base de P99.**
-4. `docs/RUTINAS-VR.md`: cómo funciona la regla de progresión de VR (series por dificultad, motivos de «mantener», salida a mitad). Remite al ADR #046.
-5. `docs/ADR.md`: los ADRs completos. Los nuevos son el #045 (zonas y FC máxima) y el #046 (rutinas de VR y progresión, con su enmienda de la dificultad).
-6. `docs/ROADMAP-producto.md` §11: el orden de lo que viene.
-7. `docs/prompts/97-…`, `98-…` y `100-…`: muestran el formato de los prompts que funcionan.
+Ahí también está `docs/auditorias/ultimochat.md`, el último reporte de Code, que no está en git.
 
-Para ver lo último commiteado, corré `git log --oneline -15`. Al cierre del 03/10, `HEAD` era `043bf7d` (más el commit de esta copia).
+**Si no está vinculado,** cloná `https://github.com/jpcofano/shapeup` (`git clone --depth 1`) y pedile a Juan que adjunte `ultimochat.md`.
+
+**En este orden:**
+1. `CLAUDE.md`: las reglas de trabajo, el índice de ADRs y la tabla «Documentación».
+2. **Este documento.**
+3. **`docs/AUDITORIA-DISENO.md`: el plan, el diagnóstico y el estado de la auditoría de diseño (P101).** Es lo que se trabajó hoy a la tarde. Tiene su propio §0 «Para el próximo chat».
+4. `docs/ANALISIS-ASISTIDO.md`: el diseño de las marcas y del análisis. El catálogo y lo decidido en P99 están al día.
+5. `docs/RUTINAS-VR.md`, `docs/ADR.md` (los últimos: #045, #046 y, si P103 corrió, #047) y `docs/ROADMAP-producto.md` §11.
+6. **El formato de prompt que funciona:**
+   - `docs/prompts/102-…` y `99-…`;
+   - `103-…`: la corrida nocturna, sin preguntas;
+   - `104-…`: traer archivos, con «pará y reportá».
+
+**Lo primero que tenés que averiguar:** `git log --oneline -15` y el `ultimochat.md`, para saber si corrieron el 104 y el 103 (§3).
 
 ---
 
@@ -25,15 +36,25 @@ Para ver lo último commiteado, corré `git log --oneline -15`. Al cierre del 03
 **Juan**, Buenos Aires, castellano rioplatense con voseo. Construye **ShapeUp**, una app de entrenamiento familiar. Hoy la usa él solo; lo que se construye tiene que dejar prevista a la familia.
 
 **El método:**
-- Juan conversa el diseño **conmigo**. Yo escribo **prompts numerados y autocontenidos**, que declaran las decisiones cerradas y le piden a Claude Code **«pará y reportá»** en vez de reinterpretar.
-- **Code** ejecuta y reporta en `docs/auditorias/ultimochat.md`, que está ignorado por git en los dos repos.
-- **Commits:** cuando lo hace Code, muestra antes la lista de archivos y confirma árbol limpio y `origin/main` = `HEAD`.
-- **Juan corre a mano cualquier script que escriba en Firestore**, primero en seco y después con `-- --aplicar`.
-- Code trabaja en **dos sesiones**, una por repo. Cuando le paso un texto para Code, digo **en qué sesión va**. Si la respuesta de Code no corresponde a lo pedido, suele ser que se pegó en la sesión equivocada.
-- **Juan a veces no sabe si ya le pasó un texto a Code.** Antes de dar el paso siguiente, se verifica con el último reporte.
-- Juan a veces pega cosas de otros proyectos (Apps Script, E3, formularios). Se aclara en una línea y se sigue.
+- Juan conversa el diseño **con el chat**. El chat escribe **prompts numerados y autocontenidos**, con las decisiones cerradas. Se pasan como archivo: Juan lo baja a Descargas y Code lo copia a `docs/prompts/`.
+  - **Si el chat está vinculado a la PC,** puede dejar el archivo directo en el repo, sin commitear, y decírselo a Code. Así se hizo con el 104.
+- **Cada prompt lleva su tabla de reparto de agentes y modelos:**
+  - liviano para explorar;
+  - intermedio para la lógica pura y la documentación;
+  - principal para las pantallas, en serie;
+  - y siempre una **revisión final de un agente que no escribió el código**.
+- **«Pará y reportá»** en los prompts normales. **Corrida nocturna** (P103) sin preguntas: bloque por bloque, cada uno con commit y push solo si da verde; si no, se revierte y sigue.
+- **Code reporta en `docs/auditorias/ultimochat.md`.** Cuando Code tiene preguntas, el chat propone respuestas con su recomendación y sus pros y contras, y arma el texto para pegarle.
+- **Commits:** separados en `App —`, `Herramientas —` y `docs —`. Code muestra la lista de archivos antes de cada uno; después, push y confirmar `origin/main` = `HEAD`.
+- **Juan corre a mano:** los scripts que escriben en Firestore (primero en seco, después con `-- --aplicar`), el `build` y el `deploy`.
+- **Code trabaja en dos sesiones,** una por repo. Siempre se dice en cuál va cada texto.
+- **Lo que funciona:**
+  - empezar por el hallazgo;
+  - opciones con pros y contras cuando la decisión es de Juan;
+  - textos listos para pegar.
 
-**Lo que funciona:** empezar por el hallazgo; una decisión por vez; opciones con pros y contras cuando la decisión es suya; textos para Code listos para pegar. Juan corrige rápido: se reconoce y se sigue.
+  Juan corrige rápido: se reconoce y se sigue.
+- **Juan a veces no sabe si ya le pasó algo a Code.** Antes de dar el paso siguiente, se verifica con el último reporte o con el log.
 
 ---
 
@@ -41,194 +62,184 @@ Para ver lo último commiteado, corré `git log --oneline -15`. Al cierre del 03
 
 | | |
 |---|---|
-| **App** | `github.com/jpcofano/shapeup`: React, TypeScript y Firebase, público. **El clon está en OneDrive, a propósito** (corregido el 01/10: el traspaso del 30/09 decía `C:\dev\shapeup`) |
-| **Puente** | `github.com/jpcofano/shapeup-bridge`: Android y Kotlin. Clon en `C:\dev\shapeup-bridge` |
+| **App** | `github.com/jpcofano/shapeup` (React, TypeScript y Firebase, público). El clon está en **OneDrive, a propósito**: `C:\Users\Usuario\OneDrive\Documentos\AppsScript\ShapeUp` |
+| **Puente** | `github.com/jpcofano/shapeup-bridge` (Android y Kotlin), clon en `C:\dev\shapeup-bridge` |
 | **Firebase** | `shapeup-41e74`, Firestore en `southamerica-east1`, nivel gratuito |
 | **Máquina** | Windows, cmd.exe |
+| **Diseño** | La versión de **Claude Design por separado cierra el 14/12/2026**. Desde ahora, el diseño se hace **dentro de Claude**, con los tipos de artifact **Design System** y **Design** (ver `docs/AUDITORIA-DISENO.md` §4) |
 
-La cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` → ShapeUp importa y enriquece.**
-
----
-
-## 3 · Estado al cierre (03/10)
-
-**Commits de la app, del 30/09 al 03/10:**
-
-| Commit | Qué |
-|---|---|
-| `600aa37` | P93: análisis asistido, con las enmiendas de ventana y prescripción y el prompt v3 |
-| `d0decc9` | El plan de marcas integrado en `ANALISIS-ASISTIDO.md` |
-| `fa1014f` | Los prompts 97 y 98 |
-| `a636dce` | **P100**: el orden de la documentación |
-| `557749b` / `817d74f` | Decisión del 01/10: el análisis no menciona la progresión; enmienda a P98 |
-| `9529fdb` + `aa0d8a1` | **P97**: zonas como Samsung, FC máxima declarada, estimación, revisión y enriquecimiento v8 |
-| `6a90eaf` | Los insumos de las pruebas del 30/09 y el 02/10 para P99 |
-| `ba9e41f` | **P98** (app): las rutinas de VR por escalones, con dos modos y la regla de progresión, y su documentación |
-| `6a5a98a` | **P98** (herramientas): el seed `seed:rutinas-vr`, `package.json` y `SEEDS.md` |
-| `b7be4d8` | Cierre de P98: este ESTADO, el insumo de P99 y `docs/RUTINAS-VR.md` (nuevo) |
-| `12a9ca3` | Ajuste a P98: la dificultad declarada separa las series de la regla (enmienda del #046) |
-| `b947bb9` | Arreglo: el botón principal invisible en modo oscuro (`home-redux.css` pisaba `--accent` en `<html>` desde P65) |
-| `22bcd4d` | Ajuste a P98: el cierre de VR no deja guardar sin elegir la dificultad |
-| `043bf7d` | Arreglo: la salida de las pantallas de VR (✕ en el cierre, confirmación por minutos jugados, «Reiniciar» que funciona, sin «Guardar y salir» en VR) |
-
-**P98: cerrado.** Seed aplicado, hosting deployado (antes del commit: ver §8) y commiteado. `tsc` limpio y 1564 tests; falla solo la suite de reglas, que necesita el emulador.
-- **Reglas: sin cambios y sin deploy.**
-  - `/config/progresion` cae en `/config/{docId}`: lo lee cualquier miembro y lo escribe solo el owner. Lo escribe solo la tarjeta de «Familia y datos», que ve solo Juan.
-  - `archivada` en `/rutinas`, `subidasVR` en `/config/perfiles` y el escalón en `/historial` pasan porque esas reglas no validan campos.
-
-**Ya aplicado en Firestore:**
-- `corregir:zonas`: las zonas de los cuatro perfiles con la convención de Samsung, y el origen de la FC máxima;
-- `seed:rutinas-vr`.
-
-**Deployado:** el hosting con P93, P97 y P98. Las sesiones se rehicieron a la biometría v8. **Los cuatro ajustes del 02 y 03/10 (`12a9ca3` a `043bf7d`) estaban sin deployar al cierre**: ver §6.
-
-**Lo que muestra la app ahora:**
-- **Revisión de la FC máxima de Juan:** la estimación de ShapeUp da **173** y la vigente es **169** (origen `samsung`). **La decisión es de Juan.** Quedarse en 169 mantiene las zonas iguales a las de la pantalla de Samsung; con 173 suben unos 3 latidos. Hay tres sesiones excluidas de la estimación (12/09, 18/09 y 29/09), con picos suavizados de 174, 179 y 183, por la regla «pico > vigente + 10».
-- **maria, sofia y federico:** «falta confirmar». Su origen es `edad-provisoria` (220 − edad).
-- **Programa activo de Juan: el PRG-0013, de 5 días:** Combat largo, Ritmo suave, Creed, Ritmo suave, Combat largo. El PRG-0012 de María no se tocó.
-  - Qué programa usa cada miembro lo dice `config/programaActivo`, no el estado del programa. El PRG-0013 queda en estado «Plantilla» **a propósito**: si estuviera en «Activo», la app se lo daría por defecto a los miembros sin programa elegido.
-  - El PRG-0004 (6 días) lleva la etiqueta «Pausado», que la app no lee.
-- **Sesión de prueba sin descartar:** `SES-20261002205619-jjmxi6` (RUT-0026, Combat largo), «En curso» en `/sesiones`, 0 min. No llegó a `/historial`. Se descarta en el teléfono con ✕ → «Salir sin guardar» después del deploy de `043bf7d`; si no, la borra Home en la PC (sesiones abiertas de más de 24 h que ese dispositivo no tiene en local). Dejarla «En curso» no afecta ninguna pantalla.
+Cadena de datos: **reloj Samsung → puente (Data SDK) → `/ingesta-sdk` → ShapeUp importa y enriquece.**
 
 ---
 
-## 4 · Lo que se aprendió en esta sesión
+## 3 · Estado al cierre (21/10, 16:15)
 
-- **P97: las zonas quedaron verificadas.** En la sesión testigo del 27/09, Z5 da 3,6 min contra 4,08 de Samsung, y las cinco zonas quedan a menos de medio minuto.
-  - Había **tres copias** del cálculo de zonas: el seed, el botón del editor y el respaldo de `pisosDe`. Ahora hay una sola, `zonasDesdeFcMax`.
-  - **Trampa de redondeo:** en punto flotante, `0.7 × 170 = 118,999…`. El cálculo se hace con enteros.
-- **La estimación de la FC máxima puede subir como mucho 10 latidos por revisión,** por la regla de `fcDudosa`. Lo que distingue un pico real de uno falso es la cadencia como testigo, que está en el backlog.
-- **P98: había cuatro rutinas de VR, no una,** y el diseño chocaba con los ADR #039 y #040. Se resolvió con el #046:
-  - la rutina no se modifica, y las subidas de escalón van en `perfiles.{miembro}.subidasVR[]`;
-  - el modo se elige al empezar;
-  - la confirmación de Juan entra en la regla como condición «y»: puede frenar una subida, nunca causarla.
-- **«2 de 6» en el análisis del 30/09:** salía del PRG-0004, que es de 6 días. Lo resuelve el PRG-0013.
-- **Verificar P98 en el teléfono encontró dos errores que los tests no veían:** el botón principal invisible en oscuro (venía de P65, afectaba a toda la app) y el cierre de VR sin salida. Los dos se arreglaron el 02 y 03/10. Mirar la app real en los dos modos es parte de verificar.
-- **Code paró bien dos veces** en vez de reinterpretar: la dificultad (que la regla ignoraba) y la hoja de salida (reusarla tal cual se salteaba la dificultad obligatoria).
-- **Análisis de prueba** (chat «PowerBeatsVR sesión análisis», 27/09 y 30/09): la v3 todavía compara contra lo prescripto y comenta las calorías. Pide datos que la app tiene (FC de reposo, sueño y edad) y duda de la FC aunque la app no la marcó como dudosa. Todo eso está en los insumos de P99.
+**Repo:** `HEAD` = `origin/main` = **`55a20d1`** (P99, Partes 1 a 3, del 19/10).
+
+**En curso al cierre:**
+- **P104** («Traer lo de Claude Design al repo»). Juan se lo pasó a Code a las 16:15, en la sesión de la app, **sin la Parte 3**: el proyecto del handoff no se encontró. Hace cuatro cosas:
+  - commitea `docs/AUDITORIA-DISENO.md`, el traspaso de la mañana y el propio prompt;
+  - reemplaza el sistema de diseño de la raíz (`colors_and_type.css`, `preview/` y `ui_kits/shapeup/`, más `styles.css` y `thumbnail.html`) por la versión de la cuenta A de Design;
+  - archiva las explorations y las auditorías en `docs/archivo/claude-design/`;
+  - deja los inventarios en `docs/reportes/`.
+
+  Los insumos están en `docs/auditorias/design-exports/`, que git ignora.
+- **P103** (corrida nocturna, en Descargas), pendiente para **la noche del 21/10**, en la misma sesión y **después** del 104. Lleva un agregado al Bloque 1: el `planSemana` de una sesión vieja guardada después es el del día en que se jugó. El texto para Code:
+  > Ejecutá el prompt 103 que está en Descargas. Copialo a docs/prompts/ y seguí sus reglas de corrida nocturna. Agregado al Bloque 1: respuesta de Juan a la pregunta 1 de P99 — una sesión vieja guardada después lleva el planSemana del día en que se jugó, no el del día en que se guarda. Con test.
+
+**Lo que hace P103:**
+1. La pantalla de la sesión (P99, Parte 4): la curva en SVG, los badges, los destacados, el detalle plegado, y la tarjeta de la FC máxima con el pico crudo y el suavizado.
+2. El cierre de la documentación de P99, con el **ADR #047**.
+3. Los restos de P102.
+4. La hoja de salida de `SesionJuego`.
+5. La prescripción guardada en las sesiones de fuerza.
+
+**P102:** commiteado y pusheado. Falta confirmar con Juan:
+- si corrió `seed:rutinas-vr` (crea `RUT-0030`), si hizo el deploy y si lo probó en el teléfono;
+- si desapareció la sesión de prueba del 02/10 (`SES-20261002205619-jjmxi6`).
+
+**P99: Partes 1 a 3 commiteadas y pusheadas. Sin deployar, a propósito** (decisión de Juan del 21/10: se espera a la Parte 4).
+- Con el deploy, `VERSION_ENRIQUECIMIENTO` = 9 re-enriquece las sesiones que todavía tienen crudo, y les suma curva y marcas.
+- Desde el deploy, cargar un análisis exige el esquema 3.
+
+**FC máxima de Juan:** queda en **169** (decisión del 15/10). Falta confirmar que la tarjeta de revisión se cerró con «Dejar como está».
+
+**Pendiente de Juan:** cargar su **año de nacimiento** en Perfil → Configuración.
+
+---
+
+## 4 · Lo que se aprendió (21/10, tarde)
+
+- **El sistema de diseño de la raíz era del 06/06.**
+  - Tenía 8 temas, solo oscuro, `system-ui` y un solo Inicio. La app ya tiene 5 temas × claro/oscuro (P65), carga Archivo y Hanken Grotesk, y tiene 5 estilos de Inicio.
+  - Faltaban unas 15 pantallas: las posteriores a junio.
+- **Hay tres capas de estilos que no coinciden:** el kit de la raíz, `src/styles/tokens.css` y `src/styles/home-redux.css`. Las direcciones Pulse y Premium **solo se aplican a Home y a la barra de navegación**; el resto de la app usa otro juego de superficies y no tiene la rampa de acento.
+- **Mucho trabajo de Claude Design nunca había vuelto al repo:** el kit de junio (Aurora, Stadium y Clásico, Foto/Demo/Músculo, el mapa muscular, Programas, la sesión libre), los tokens de P65 y las explorations y auditorías que el repo citaba sin tenerlas. **P104 lo trae.**
+- **Juan tuvo Design en dos cuentas:**
+  - **Cuenta A**, «Cuenta 1» para Juan: la buena.
+  - **Cuenta B**, «cuenta 2»: el design system viejo, anterior a los temas. Se descarta.
+- **El proyecto del handoff del 25/09 no se encontró.** Era el del tablero `ShapeUp Estados.dc.html` y `HANDOFF-portado.md`. Puede haberse borrado o haber estado en una cuenta que ya no tiene Design. No bloquea nada:
+  - esas pantallas ya están construidas en la app;
+  - el brief está archivado;
+  - sus tres propuestas sin implementar están anotadas en `AUDITORIA-DISENO.md` §8.
+- **Design abre un proyecto nuevo por cada pedido** que se pega en un chat nuevo. Para trabajar sobre un proyecto existente, hay que pegar el pedido **en su conversación**.
+- **Diferencia de tokens a resolver en la auditoría.** En el design system de Design, el modo oscuro tiene superficie **neutra**. En la app, el oscuro se **tiñe por tema**, a propósito desde P65.
 
 ---
 
 ## 5 · Decisiones cerradas: no se re-discuten
 
-Las de antes siguen en pie: ADR #042 a #044, P79, la FC máxima en la opción C, VR por tiempo con modo por bloques y modo corrido, que no se marque nada durante la sesión, y que la progresión la calcule el sistema y la acepte Juan. Las nuevas:
+Siguen en pie las de antes: ADR #042 a #046, las decisiones de marcas de `ANALISIS-ASISTIDO.md` (con las respuestas del 16/10 a P99) y la documentación de P100. Las de P102 están en `RUTINAS-VR.md`. Las nuevas (21/10):
 
-**Marcas y análisis (P99 y P94).** El detalle está en `ANALISIS-ASISTIDO.md`.
-- **Dos capas.** La app calcula las marcas medidas en todas las sesiones. El análisis suma un veredicto, dos destacados y marcas propias que **apuntan a una marca de la app o a un tramo**, sin escribir números propios.
-- **La prioridad de las marcas la fija la app.**
-  - **Nivel 1 (badges):** calidad, récord, pico sobre la vigente, carga, zona alta o volumen, y semana con meta.
-  - **Nivel 2 (secundarias):** tramo sostenido, mitades, recuperación, picos en Z5, entrada en calor, recuperación al terminar y pico.
-  - **Candidata nueva: tramo bajo.**
-- Las marcas que tienen un momento o un tramo se dibujan sobre la curva.
-- **El análisis mira solo lo realizado:** no evalúa el cumplimiento de la prescripción.
-- **Las calorías salen del paquete.**
-- **El análisis puede recomendar fuerza.**
-- **El análisis de sesión no menciona la progresión (opción A):** la propuesta se explica en la rutina, con los datos que usó la regla.
-- **P99 crea el prompt v4 y el esquema 3.** P98 no tocó el prompt.
-- **P94, el análisis general,** propone **focos**; Juan los acepta y viajan como dato en el paquete. Nunca reescribe el prompt. Si propone una marca nueva, sale como pedido de código.
+**P99**
+- El `planSemana` de una sesión vieja guardada después es **el del día en que se jugó**. Va en P103.
+- **No se deploya hasta la Parte 4.**
+- La pantalla de §6 se construye como está; la auditoría la ajusta después.
 
-**Documentación (P100).** El detalle está en la sección «Documentación» de `CLAUDE.md`.
-- Cada tipo de información tiene un solo lugar.
-- Las decisiones de diseño van en el documento del área, no solo en ESTADO, porque ESTADO se reemplaza en cada traspaso.
-- No se borra nada: se archiva en `docs/archivo/`.
-- Los ADRs van en `docs/ADR.md`, con su línea en el índice de `CLAUDE.md`.
+**Diseño (P101).** El detalle está en `docs/AUDITORIA-DISENO.md` §1.
+- **Primero el kit tiene que quedar igual a la app** (paso 2b). Recién después se audita.
+- **Cuando el kit y la app no coinciden, gana la app.** Lo que convenga cambiar lo decide la auditoría, no el paso de igualar.
+- **El diseño se hace dentro de Claude** (artifacts Design System y Design), no en Claude Design por separado.
+- **La fuente de verdad sigue en la raíz del repo** (P100). El artifact es el banco de trabajo: lo que se decide vuelve al repo por un prompt de Code.
+- **Lo de la cuenta B no se trae,** salvo su inventario y el brief.
 
-**Zonas (P97, ADR #045).**
-- La convención de Samsung: el techo es `floor(pct × fcMax)` y el piso de la zona siguiente es techo + 1.
-- El origen de la FC máxima es uno de cuatro: `samsung`, `estimacion-shapeup`, `medida` o `edad-provisoria`.
-- Las sesiones guardan las zonas con que se calcularon (`zonasUsadas`).
-- `fcDudosa` sigue excluyendo sesiones de la estimación.
-- El editor recalcula las zonas solo con un botón, y avisa si no corresponden a la FC máxima.
-
-**Rutinas de VR (P98, ADR #046).**
-- Las cuatro rutinas viejas están archivadas; la 0014 sigue.
-- La regla compara la última sesión contra el promedio de las dos primeras del escalón, con el mismo modo, el mismo juego y **la misma dificultad declarada** (enmienda del 02/10). Cada dificultad es una serie propia; ninguna sesión se excluye por la dificultad.
-- **Solo propone la serie de la dificultad prevista por el escalón.** Las otras, «Mixto» incluida, se calculan y se muestran como informativas, sin botón. En Ritmo suave, igual: solo la serie «Por defecto» propone bajar.
-- **El cierre no deja guardar sin elegir la dificultad.** Si alguna sesión llega sin ella, queda en su propia serie informativa.
-- En Ritmo suave, la regla se evalúa por juego.
-- Las dificultades son relativas («por defecto», «+1», «+2»), salvo Bodycombat, hasta que Juan pase los nombres reales.
-- Los números de la regla están en `/config/progresion`: el umbral de 5 bpm, que es provisorio, 3 sesiones, 2 semanas y 90 %.
-- «VR» sigue en `LUGARES`.
-- `progresionVR.ts` convive con las rutinas viejas.
-- Cómo quedó implementada (reporte de P98, 02/10):
-  - el 90 % se mide contra el tiempo prescripto con descansos (2 × 20 con 2 min de descanso = 42 min);
-  - las exclusiones se aplican antes de contar las 3 sesiones, las 2 semanas y las «dos seguidas»;
-  - «mantener» tiene cinco motivos a la vista, incluidos: la FC bajó menos que el umbral, una sesión no completada suelta y el último escalón;
-  - el modo que se ofrece primero es el de la rutina (bloques en Combat y Creed, corrido en Ritmo suave), no el de la última sesión como en P80; Combat corto tiene un solo modo y no pregunta;
-  - en Ritmo suave, PowerBeats se guarda como el ejercicio de la sesión, no como reemplazo;
-  - en VR por escalones no hay «Guardar y salir»: se guarda solo con «Terminar» → cierre → dificultad. «Salir sin guardar» y «Reiniciar» piden confirmación si hay minutos jugados (desde el 03/10; antes, salir a mitad guardaba sin escalón);
-  - «completa» usa el mismo criterio que la regla: la confirmación de Juan y el 90 %.
-
-**Numeración:** P94 y P95 están reservados y P99 es el próximo. El ajuste de diseño será **P101**.
+**Numeración:** P94 y P95 están reservados; P101 es el ajuste de diseño; P103 es la corrida nocturna; P104 es traer Claude Design. **El próximo libre es P105.**
 
 ---
 
 ## 6 · Próximos pasos, en orden
 
-**1. Pushear y deployar los ajustes.** Al cierre, `043bf7d` estaba commiteado pero **no pusheado**: primero `git push`, después confirmar `origin/main` = `HEAD`, después deploy del hosting (las reglas no cambiaron). En el teléfono, cerrar la app del todo y volver a abrirla antes de entrar a Combat largo.
+**1. Verificar el 104** con `ultimochat.md` y el log:
+- ¿Se reemplazó la raíz? Verificar que **nada de la app** usaba esos archivos: era la condición para avanzar.
+- ¿Se archivó lo de `docs/archivo/claude-design/`? ¿Están los inventarios en `docs/reportes/`?
+- **Después, que Code copie este traspaso.** Texto para Code, sesión de la app:
+  > Copiá «HANDOFF-ShapeUp-2026-10-21.md» de Descargas a docs/ESTADO-DEL-PROYECTO.md (reemplaza al de la mañana del 21/10). Commit «docs — traspaso del 21/10 a la tarde», push y confirmá origin/main = HEAD.
 
-**2. Verificar P98 en la app:**
-- la semana de Home muestra 5 días;
-- la Biblioteca no muestra las rutinas viejas;
-- el umbral se puede editar en la tarjeta de «Familia y datos» (solo la ve el owner);
-- al empezar, la app pregunta el modo; **ya verificado el 02/10**;
-- al cerrar, pide confirmar si completó y en qué nivel; **ya verificado el 02/10**;
-- en oscuro, los botones principales se ven (tema Ion y alguno más);
-- «Guardar» del cierre queda deshabilitado hasta elegir la dificultad;
-- la ✕ entra bien en el header del cierre y de los dos fines genéricos;
-- con la sesión de prueba: ✕ → «Salir sin guardar» → confirma por minutos → desaparece.
+  Si el 103 ya está corriendo o corrió, hacelo después de él.
 
-**3. Decidir la revisión de la FC máxima** (173 o 169), desde la tarjeta de Perfil.
+**2. Verificar el 103** (si corrió): la tabla de bloques, las «Decisiones que tomé» y los choques con ADRs. Si no corrió, Juan se lo pasa con el texto del §3.
 
-**4. Escribir P99: marcas y análisis de sesión.** Es lo próximo que me toca, y sale de `ANALISIS-ASISTIDO.md` (el plan y los insumos). Va por partes:
-- **Parte 1, diagnóstico:**
-  - qué datos hay para las marcas condicionales;
-  - si las marcas se guardan en la sesión o se calculan al mostrar;
-  - de dónde sale la semana: tiene que ser el programa activo;
-  - si existen la FC de reposo y el sueño por día;
-  - propuestas para lo que está abierto en el plan: el umbral de `calidad`, la tolerancia del tramo sostenido, el récord de fuerza, el tope de `marcasAnalisis` y la pantalla.
-- **Parte 2:** las marcas de la app, incluidos el tramo bajo y la recuperación medida en las bajadas de la curva.
-- **Parte 3:** el esquema 3 y el prompt v4. Eso incluye sumar las marcas, la FC de reposo, el sueño y la edad al paquete, y sacar las calorías. El prompt v4 analiza solo lo realizado y no especula sobre artefactos si `fcDudosa` es falso. El validador suma dos rechazos: una `refMarca` que no existe y un `armado` cuyas versiones no coinciden con las de la sesión. **El paquete tiene que mandar el escalón y el modo que se jugaron:** hoy manda la rutina tal como está (el E1 del modo por defecto, aclarado como tal).
-- **Parte 4:** la pantalla.
-- **Verificación:** contra la sesión testigo del 27/09, con los valores de después de P97.
+**3. Deploy,** con el Bloque 1 del 103 hecho:
+1. `git status` limpio y `origin/main` = `HEAD`;
+2. `npm run build`;
+3. `firebase deploy --only hosting`. Las reglas no cambian.
 
-**5. Usar la app.** La regla de P98 empieza a proponer después de 3 sesiones en 2 semanas en el mismo escalón y modo. **Juan anota los nombres de las dificultades** de Creed, Beat the Beats y PowerBeats.
+Si Juan no confirmó el seed de P102, corre antes `npm run seed:rutinas-vr`: primero en seco, después con `-- --aplicar`.
 
-**6. Auditoría con Design y P101.** Juan quiere hacer una sesión con Design que audite toda la app. Falta decidir cuándo: antes de P99, después, o entre las Partes 3 y 4 de P99 (las primeras no tocan pantalla; la 4 es la pantalla de marcas). El brief lleva lo ya anotado: la etiqueta de la tarjeta de la FC máxima (§7), `SesionJuego` (§7) y las capturas del 02/10. Lo que salga va a P101, que se documenta en el sistema de diseño de la raíz (`README.md`, `SKILL.md`, `ui_kits/` y `preview/`).
+**4. En el teléfono, en claro y en oscuro:**
+1. cerrar la app del todo y abrirla, para que se re-enriquezca a la v9;
+2. cargar el año de nacimiento;
+3. mirar una sesión con curva y una sin curva;
+4. probar P102;
+5. confirmar que la sesión del 02/10 desapareció.
 
-**7. P94: análisis general y focos.**
+**5. Un análisis de prueba con el prompt v4,** en un chat nuevo. Hay que ver:
+- que no compare contra lo prescripto;
+- que no hable de calorías;
+- que no especule sobre artefactos;
+- que el validador acepte el JSON.
+
+**6. Auditoría de diseño. Seguir `docs/AUDITORIA-DISENO.md` §5 desde el paso 2b:**
+- **2b. Kit = app.** Crear el artifact **Design System** de ShapeUp leyendo el código real:
+  - `src/styles/tokens.css`, `src/styles/home-redux.css`, `src/components/` y `src/routes/`;
+  - más la raíz ya actualizada por el 104.
+
+  Juan lo revisa. Después, un prompt de Code (P105) deja la raíz igual al artifact.
+- **3. Capturas reales:** cada pantalla en claro y en oscuro, a 390 px, más las páginas de QA (`/qa/temas`, `QaHomeRedux` y `QaSaludResumen`). Pueden salir de `docs/auditorias/capturas/` (si el 103 las sacó) o del navegador integrado de la app de escritorio.
+- **4. La auditoría,** en un lienzo **Design**. Incluye:
+  - la pantalla de marcas y la curva;
+  - `SesionJuego`;
+  - la etiqueta de la FC máxima;
+  - las tres propuestas perdidas del handoff;
+  - y la decisión de extender (o no) las direcciones de Home a toda la app, y de si el oscuro va teñido o neutro.
+- **5. P101 para Code,** por partes.
+
+**7. P94: el análisis general con focos.** Code ya avisó que no es trivial: hace falta el agregado, una colección nueva con sus reglas y la identidad miembro + rango.
 
 ---
 
 ## 7 · Backlog
 
-El vigente está en el roadmap. Lo agregado en estos días:
-- revisar `docs/reportes/pendientes-anteriores-a-P100.md`;
-- cerrar el historial de git al terminar el proyecto (ADR #015);
-- usar la cadencia como testigo de la FC de muñeca (es lo que destraba la estimación de la FC máxima);
-- sacar «VR» de `LUGARES`;
-- retirar `progresionVR.ts` cuando no quede ninguna rutina vieja activa;
-- guardar la prescripción en las sesiones de fuerza;
-- P95 (sincronización incremental y duplicados);
-- el build tardó 48 minutos una vez. Si se repite, sospechar de OneDrive;
-- **la tarjeta de revisión de la FC máxima** muestra el pico **suavizado** (174, 179, 183) con el motivo «pico > vigente + 10», pero la regla usa el pico **crudo**: con 179 sobre 169 + 10 no cierra a la vista. La exclusión está bien; la etiqueta tiene que mostrar el pico crudo que la disparó;
-- `SesionJuego`: la ✕ no descarta, no tiene hoja de salida ni cierre (ya está en el roadmap).
+El vigente está en el roadmap. Lo agregado:
+- **Sueño y FC de reposo por el puente** (repo `shapeup-bridge`): hoy solo llegan con el ZIP.
+- **VR a medida:** series informativas por configuración.
+- **«Cambiar»:** el aviso a la tercera vez que se esquiva la misma rutina, y la cobertura del plan (ROADMAP 11.3 y 11.4).
+- **Del 21/10:**
+  - el comentario de `styles.css` dice «8 temas» (se corrige en el paso 2b);
+  - `explorations/Home Aurora+ (mock).html`: Design no lo pudo leer por el nombre; verificar que se archivó bien.
+- **Siguen:**
+  - P95 (sincronización incremental y duplicados);
+  - la cadencia como testigo de la FC de muñeca;
+  - sacar «VR» de `LUGARES`;
+  - retirar `progresionVR.ts` cuando no quede ninguna rutina vieja activa;
+  - cerrar el historial de git al terminar el proyecto (ADR #015);
+  - `docs/reportes/pendientes-anteriores-a-P100.md`.
+- **Si P103 salteó algún bloque,** vuelve acá.
 
 ---
 
 ## 8 · Las trampas
 
-Las de antes siguen valiendo: no restar dos relojes distintos; anclar en el extremo confiable; no medir sobre datos que están por corregirse; verificar contra una fuente externa antes de construir encima; `npm run algo -- --flag`; un `-m` por párrafo en cmd.exe; WorkManager y Doze. Las nuevas:
+Siguen valiendo las de antes:
+- commit y push antes del deploy;
+- un script que cambia datos base va antes del deploy que los usa;
+- «commiteado» no implica «pusheado»;
+- un chat nuevo por cada análisis de sesión;
+- revisar las reglas cuando aparece una colección nueva;
+- los ADRs cambian de a uno, con la enmienda anotada;
+- no deployar P99 a medias;
+- reproducir con un test antes de dar por hecho un error;
+- `npm ci` necesita `--legacy-peer-deps` en un entorno limpio.
 
-- **Commitear y pushear antes de deployar,** así lo publicado siempre corresponde a un commit que está en GitHub. (P98 se deployó antes del commit, y `043bf7d` quedó sin push: no repetir.) «Commiteado» en un reporte de Code no implica pusheado: se mira `origin/main`.
-- **Cuando Code dice «falta el commit de X», verificar que X esté hecho.** El 02/10 el arreglo del botón no estaba aplicado, no solo sin commitear.
-- **Un script que cambia los datos base va antes del deploy** que los usa. P97: si se deployaba antes, la v8 rehacía las sesiones con el 152 y se las guardaba.
-- **Un chat nuevo por cada análisis de sesión.** El bloque `armado` lo escribe la app; el chat solo lo copia.
-- **Revisar las reglas cuando aparece un documento o colección nueva** en Firestore. La suite de reglas necesita el emulador.
-- **Los ADRs cambian de a uno,** con enmiendas anotadas en el ADR original, nunca en silencio.
+Las nuevas:
+- **Si el chat deja archivos en el repo sin commitear,** avisarle a Code en el mismo texto. Si no, pueden quedar fuera de los commits, o entrar en uno que no corresponde.
+- **No hagas que una corrida nocturna toque los mismos documentos que un prompt que está corriendo.** Uno por vez, en la misma sesión de Code.
+- **Los zips no se commitean:** `*.zip` y `docs/auditorias/` están en `.gitignore`. Lo que tiene que quedar se extrae a `docs/archivo/` o `docs/reportes/`.
+- **Para Design, pegá el pedido en la conversación del proyecto existente;** en un chat nuevo, Design arma un proyecto vacío.
+- **Los nombres de cuenta:** Design no ve el mail. Para distinguir proyectos, pedile señales: el id del design system adjunto, si tiene `explorations/` y cuántos temas define.
 
 ---
 
 ## 9 · Un detalle que conviene no perder
 
-Lo que destrabó P97 y P98 fue lo mismo que antes: **mirar los datos reales.** La tabla contra Samsung cerró el 152, la lectura de Firestore mostró las cuatro rutinas, y el «2 de 6» llevó al programa de 6 días. Cuando haya que decidir entre suponer y medir, se mide.
+Lo de hoy fue lo mismo de siempre, aplicado al diseño: **antes de auditar, mirar qué hay de verdad.** El kit parecía la referencia y era de junio; el trabajo de Design parecía estar en el repo y no estaba. Se midió con hashes contra el commit antes de decidir qué se trae. Cuando haya que decidir entre suponer y medir, se mide.

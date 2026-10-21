@@ -385,6 +385,9 @@ Para distinguir el origen de cada marca: las de la app van **sólidas**, y las d
 - **Meta de la semana:** se guarda al cerrar (`Historial.planSemana`: `metaDias`, `idPrograma`). Sin ese dato, no hay marca `semana` y el paquete manda `contexto.semana: null`. No se completa con la meta de hoy.
 - **Pico:** `picoSobreVigente` decide con el pico suavizado. La tarjeta de revisión de la FC máxima con el mismo criterio va en la Parte 4.
 - **Ids de marca fijos:** un análisis esquema 3 guardado se valida contra las marcas recalculadas de la misma sesión.
+- **`planSemana` de una sesión vieja guardada después** (21/10): es **el del día en que se jugó**, no el del
+  día en que se guarda (por ejemplo, la de VR que se guarda «la de ese día», P102). Va como agregado al
+  Bloque 1 de P103. Hasta entonces, el código guarda el plan del día en que se cierra.
 - **Dónde viven las marcas — esquema mixto:** las de la curva se calculan al enriquecer y se guardan
   versionadas en `biometria.marcas` (ADR #038); las demás (`calidad`, `record`, `carga`, `zonaAlta` o
   `volumen`, `semana`) se calculan al mostrar (como las recomendaciones, ADR #023). Decidido; el ADR
