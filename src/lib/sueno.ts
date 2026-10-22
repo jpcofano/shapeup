@@ -94,7 +94,18 @@ function esSiesta(registro: RegistroSueno): boolean {
  * Ordena descendente por fecha (más reciente primero).
  */
 export function consolidarNoches(registros: RegistroSueno[]): NocheSueno[] {
-  const conHoras = registros.filter((r) => r.horas != null && r.horas > 0);
+  // P105: el mismo tramo puede estar dos veces (dos documentos con el mismo
+  // inicio y el mismo fin); se cuenta una sola. Solo los idénticos: dos tramos
+  // distintos de la misma noche se siguen sumando.
+  const vistos = new Set<string>();
+  const conHoras = registros.filter((r) => {
+    if (r.horas == null || r.horas <= 0) return false;
+    if (r.inicioMs == null || r.finMs == null) return true;
+    const clave = `${r.inicioMs}-${r.finMs}`;
+    if (vistos.has(clave)) return false;
+    vistos.add(clave);
+    return true;
+  });
 
   // Agrupar tramos por fecha de mañana
   const porFecha = new Map<string, RegistroSueno[]>();

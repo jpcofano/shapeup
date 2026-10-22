@@ -561,6 +561,29 @@ function groupByDay(
   return map;
 }
 
+/**
+ * El par de presión de cada día (P105): la lectura más tardía del día que
+ * tenga sistólica y diastólica. Con la misma hora, gana la última del archivo.
+ * Una fila con un solo valor no entra: un par a medias no es una lectura.
+ */
+export function presionPorDia(
+  filas: Record<string, string>[],
+): Map<string, { sistolica: number; diastolica: number }> {
+  const porDia = new Map<string, { ms: number; sistolica: number; diastolica: number }>();
+  for (const f of filas) {
+    const t = col(f, "start_time");
+    const off = col(f, "time_offset") || undefined;
+    const fecha = epochToDate(t, off);
+    const ms = epochToMs(t, off);
+    const sistolica = numOpt(col(f, "systolic"));
+    const diastolica = numOpt(col(f, "diastolic"));
+    if (!fecha || ms == null || sistolica == null || diastolica == null) continue;
+    const previa = porDia.get(fecha);
+    if (!previa || ms >= previa.ms) porDia.set(fecha, { ms, sistolica, diastolica });
+  }
+  return new Map([...porDia].map(([fecha, { sistolica, diastolica }]) => [fecha, { sistolica, diastolica }]));
+}
+
 function dayMapToMetricas(
   map: DayMap,
   miembro: MiembroId,
@@ -685,8 +708,13 @@ export function parsearMetricas(
 
   // ── Presión arterial ──────────────────────────────────────────────────────
   if (f.includes("blood_pressure")) {
-    const bySisDay = groupByDay(filas, "systolic");
-    const byDiaDay = groupByDay(filas, "diastolic");
+    // P105: el par de cada día sale de UNA lectura, la más tardía por hora que
+    // tenga los dos valores. Antes se agrupaba cada valor por separado y se
+    // tomaba el último del archivo: si el CSV no venía ordenado, o una fila
+    // traía uno solo, el par podía mezclar dos lecturas.
+    const pares = presionPorDia(filas);
+    const bySisDay: DayMap = new Map([...pares].map(([fecha, p]) => [fecha, [p.sistolica]]));
+    const byDiaDay: DayMap = new Map([...pares].map(([fecha, p]) => [fecha, [p.diastolica]]));
     all.push(...dayMapToMetricas(bySisDay, miembro, "presion-sistolica",  "ultimo-del-dia", "mmHg", lastArr));
     all.push(...dayMapToMetricas(byDiaDay, miembro, "presion-diastolica", "ultimo-del-dia", "mmHg", lastArr));
     return { items: all, errors };

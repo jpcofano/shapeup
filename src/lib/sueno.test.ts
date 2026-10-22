@@ -244,3 +244,33 @@ describe("promedioNoches", () => {
     expect(prom).toBe(7.1);
   });
 });
+
+// P105 — un tramo repetido (mismo inicio y mismo fin, dos documentos) se
+// sumaba dos veces. Caso inventado.
+describe("consolidarNoches — tramos repetidos (P105)", () => {
+  const tramo = (id: string, inicioIso: string, finIso: string): RegistroSueno => {
+    const inicioMs = Date.parse(inicioIso), finMs = Date.parse(finIso);
+    return {
+      idSueno: id, miembro: "juanpablo", fecha: "2026-05-01", horas: (finMs - inicioMs) / 3_600_000,
+      inicioMs, finMs, fuente: "samsung-health-csv",
+    };
+  };
+
+  it("el mismo tramo dos veces cuenta una sola", () => {
+    const [n] = consolidarNoches([
+      tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T09:00:00Z"),
+      tramo("b", "2026-05-02T02:00:00Z", "2026-05-02T09:00:00Z"),
+    ]);
+    expect(n.horasTotal).toBe(7);
+    expect(n.tramos).toBe(1);
+  });
+
+  it("dos tramos distintos de la misma noche se siguen sumando", () => {
+    const [n] = consolidarNoches([
+      tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T05:00:00Z"),
+      tramo("b", "2026-05-02T05:30:00Z", "2026-05-02T09:00:00Z"),
+    ]);
+    expect(n.horasTotal).toBe(6.5);
+    expect(n.tramos).toBe(2);
+  });
+});

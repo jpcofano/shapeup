@@ -545,3 +545,69 @@ uuid-fc-001,1710488400000,UTC-0300,1001,,3600000,47.08,133.65286`;
     expect(items[0].kcal).toBeCloseTo(47.08, 1);
   });
 });
+
+// ── P105 Bloque 1 — presión arterial: el par del día ──────────────────────────
+// Casos inventados. Formato datetime del CSV: la hora del string es UTC.
+describe("parsearMetricas — blood_pressure (P105)", () => {
+  const ENC = `com.samsung.shealth.blood_pressure,6000010,9
+datauuid,com.samsung.shealth.blood_pressure.start_time,com.samsung.shealth.blood_pressure.time_offset,com.samsung.shealth.blood_pressure.systolic,com.samsung.shealth.blood_pressure.diastolic,com.samsung.shealth.blood_pressure.pulse`;
+  const par = (csv: string, fecha: string) => {
+    const { items } = parsearMetricas("com.samsung.shealth.blood_pressure.csv", csv, "juanpablo");
+    const de = (tipo: string) => items.find((i) => i.tipo === tipo && i.fecha === fecha)?.valor;
+    return { sis: de("presion-sistolica"), dia: de("presion-diastolica"), items };
+  };
+
+  it("P1: «último del día» es el más tardío por hora, no el último del archivo", () => {
+    // La de las 20:00 local está ANTES en el archivo que la de las 08:00.
+    const csv = `${ENC}
+bp-2,2026-03-10 23:00:00.000,UTC-0300,131,85,70
+bp-1,2026-03-10 11:00:00.000,UTC-0300,118,76,64`;
+    expect(par(csv, "2026-03-10")).toMatchObject({ sis: 131, dia: 85 });
+  });
+
+  it("P2: el par sale de una misma lectura; una fila sin diastólica no se mezcla", () => {
+    const csv = `${ENC}
+bp-1,2026-03-11 11:00:00.000,UTC-0300,120,80,60
+bp-2,2026-03-11 22:00:00.000,UTC-0300,140,,72`;
+    expect(par(csv, "2026-03-11")).toMatchObject({ sis: 120, dia: 80 });
+  });
+
+  it("P2: un día sin ninguna lectura completa no guarda medio par", () => {
+    const csv = `${ENC}
+bp-1,2026-03-12 11:00:00.000,UTC-0300,125,,60`;
+    const r = par(csv, "2026-03-12");
+    expect(r.sis).toBeUndefined();
+    expect(r.dia).toBeUndefined();
+  });
+
+  it("P3: una lectura a las 22:00 de Buenos Aires queda en ese día, no en el siguiente", () => {
+    // 22:00 −03:00 del 13/03 = 01:00 UTC del 14/03.
+    const csv = `${ENC}
+bp-1,2026-03-14 01:00:00.000,UTC-0300,117,74,61`;
+    expect(par(csv, "2026-03-13")).toMatchObject({ sis: 117, dia: 74 });
+    expect(par(csv, "2026-03-14").sis).toBeUndefined();
+  });
+
+  it("P3: igual con el formato viejo, epoch en ms", () => {
+    const ms = Date.UTC(2026, 2, 15, 1, 0); // 22:00 −03:00 del 14/03
+    const csv = `${ENC}
+bp-1,${ms},UTC-0300,119,77,60`;
+    expect(par(csv, "2026-03-14")).toMatchObject({ sis: 119, dia: 77 });
+  });
+
+  it("con la misma hora, gana la última del archivo", () => {
+    const csv = `${ENC}
+bp-1,2026-03-17 11:00:00.000,UTC-0300,121,79,60
+bp-2,2026-03-17 11:00:00.000,UTC-0300,124,81,62`;
+    expect(par(csv, "2026-03-17")).toMatchObject({ sis: 124, dia: 81 });
+  });
+
+  it("guarda en mmHg, «último del día», un documento por tipo y día", () => {
+    const csv = `${ENC}
+bp-1,2026-03-16 11:00:00.000,UTC-0300,121,79,60
+bp-2,2026-03-16 12:00:00.000,UTC-0300,122,78,61`;
+    const { items } = par(csv, "2026-03-16");
+    expect(items).toHaveLength(2);
+    for (const i of items) expect(i).toMatchObject({ unidad: "mmHg", agregacion: "ultimo-del-dia", fecha: "2026-03-16" });
+  });
+});
