@@ -2,12 +2,85 @@
 
 App de entrenamiento físico para una familia (Juan Pablo · 51, María · 50, Sofía · 17,
 Federico · 16). ShapeUp es **hermana** de la app de **Comida Familiar**: comparte la
-arquitectura de tokens y varios componentes base, pero tiene **identidad propia** — tema
-oscuro, verde eléctrico, energía y progreso. La regla de diseño es **"hermanas, no gemelas
+arquitectura de tokens y varios componentes base, pero tiene **identidad propia** — oscuro
+y claro, un acento por tema (Ion cian por defecto), energía y progreso. La regla de diseño es **"hermanas, no gemelas
 ni extrañas"**.
 
 > Idioma de la UI: **castellano argentino (voseo)**. Energía e intensidad, pero limpio y
 > legible — es una app familiar, no "gym bro".
+
+> **Igual a la app (P105, 22/10/2026).** Este sistema describe la app **como está construida**.
+> Cuando el kit y la app no coinciden, **gana la app**: los tokens de `colors_and_type.css` salen
+> de `src/styles/tokens.css` y `src/styles/home-redux.css`. Lo que convenga cambiar lo decide la
+> auditoría de diseño (P101, `docs/AUDITORIA-DISENO.md`), no este documento. Algunas secciones de
+> más abajo son de junio y describen intenciones de entonces; donde chocan con
+> **«Cómo es la app hoy»**, vale esta sección.
+
+---
+
+## Cómo es la app hoy (P105)
+
+**Temas y modos.** 5 temas (`data-theme`): **Ion** (cian, default), **Volt** (verde), **Blaze**
+(naranja-coral), **Pulse** (rosa) e **Indigo** (violeta-azul). Cada uno en **claro, oscuro o
+sistema**. `data-mode` solo vale `light` o `dark`: «sistema» lo resuelve `ThemeProvider` en JS
+contra `prefers-color-scheme` y pone los dos atributos en `<html>`. Tema, modo y estilo de Inicio
+se eligen **por miembro** en Perfil → Configuración, y se guardan en `localStorage` (por
+dispositivo).
+- **En oscuro, la superficie se tiñe por tema** (`--bg`, `--card`, `--card-hover`, `--border`,
+  `--border-dim` propios de cada tema). **En claro, la superficie es neutra y compartida**; solo
+  cambia el acento. *(Decisión abierta para la auditoría: el design system de Design dejaba el
+  oscuro neutro también.)*
+- Los semánticos (`--danger`, `--warning`, `--info` y sus `-dim`) tienen un valor por modo; en
+  claro son más oscuros, para pasar AA como texto.
+- Las zonas de FC y los colores de miembro no cambian con el tema ni con el modo.
+
+| Tema | Acento oscuro | Acento claro | Default de |
+|---|---|---|---|
+| **Ion** ⭐ | `#22d3ee` | `#0e7490` | Juan Pablo |
+| **Volt** | `#4ade80` | `#15803d` | Federico |
+| **Blaze** | `#ff7a45` | `#c2410c` | — |
+| **Pulse** | `#ff4d79` | `#be185c` | María |
+| **Indigo** | `#8b90ff` | `#4f46e5` | Sofía |
+
+**Fuentes.** Toda la app usa `system-ui`. `index.html` carga además **Archivo** y **Hanken
+Grotesk** (Google Fonts), que solo usan los estilos de Inicio **Pulse** y **Premium**.
+
+**Estilos de Inicio (5).** Se eligen en Perfil → Configuración: **Aurora** (por defecto: anillo de progreso y
+tarjeta de vidrio), **Stadium** (marquesina grande y tira de stats), **Clásico** (tarjetas
+simples), **Pulse** (enérgico, anillo segmentado, Archivo) y **Premium** (minimalista, Hanken
+Grotesk). Pulse y Premium son las «direcciones de Home» (`.dir-a` y `.dir-c .v21`).
+
+**Movimiento.** `--dur-fast` 140 ms, `--dur-base` 220 ms, `--dur-slow` 420 ms; `--ease-out` y
+`--ease-spring`. El anillo de Aurora usa `--ring-from` y `--ring-to` (siguen al acento).
+
+### Las tres capas de estilos
+
+| Capa | Archivo | Qué alcanza |
+|---|---|---|
+| **Kit** | `colors_and_type.css` (esta raíz) | Los tokens de la app, copiados, más los de las direcciones de Home en una sección aparte. Lo usan `preview/` y `ui_kits/`. **No entra en el build de la app.** |
+| **Tokens de la app** | `src/styles/tokens.css` | **Toda la app**: superficies, acento por tema y modo, semánticos, zonas, radios, espaciado, movimiento, tipografía. |
+| **Componentes de la app** | `src/index.css` | Las clases de componentes (`.card`, `.btn-primary`, `.modal-sheet`, `.glass-card`, …), sobre los tokens de arriba. |
+| **Direcciones de Home** | `src/styles/home-redux.css` | **Solo Home y la barra de navegación**, y solo con el estilo Pulse o Premium. Otras superficies (`--card2`, `--surface`), la rampa de acento (`--accent-subtle/-border/-muted/-solid/-strong`), `--track`, `--pos`/`--neg`, radios asimétricos en Premium y las fuentes Archivo y Hanken Grotesk. |
+
+Si las direcciones de Home se extienden a toda la app lo decide la auditoría (P101).
+
+### Pantallas de la app y si están en el kit
+
+| Pantalla de la app | En el kit (`ui_kits/shapeup/`) |
+|---|---|
+| Inicio (`Home`): Aurora, Stadium, Clásico, Pulse, Premium | En parte: Aurora, Stadium y Clásico |
+| Biblioteca: Programas, Rutinas, Ejercicios (`Catalogo`) | Sí, de junio |
+| Detalle de rutina y de programa | Sí, de junio |
+| Entrenar (la lista) y «Cambiar» (`HojaCambiar`, `FranjaCambio`) | En parte: la lista de junio; sin «Cambiar» |
+| Sesión guiada (`EntrenarSesion`) y sesión libre | Sí, de junio (sin la hoja de salida de P68) |
+| VR por escalones: inicio, sesión por tiempo, cierre con dificultad; VR a medida | No |
+| Sesión de juego (`SesionJuego`) y su hoja de salida | No |
+| Historial | Sí, de junio |
+| Detalle de la sesión: marcas, curva (`CurvaSesion`), análisis | Solo el detalle de junio, sin curva ni marcas |
+| Salud: Resumen, Composición, Cardio, Sueño, Progreso | Composición, Cardio, Sueño y Progreso, de junio; falta Resumen y el puente |
+| Perfil y Configuración (lo de cada miembro y, solo owner, «Familia y datos»; `RevisionFcMax`) | Perfil de junio, con Apariencia y Estilo de inicio; sin el resto de Configuración |
+| Formularios de rutina y de ejercicio | No |
+| Componentes sueltos: chip de sincronización, adherencia, `BarraZonas`, `TrendChart`, `PantallaError` | No |
 
 ---
 
@@ -59,6 +132,10 @@ Lo que ShapeUp **crea propio** sobre la base heredada:
 
 ## Temas (funcionalidad del producto)
 
+> _Sección de junio. Desde P65 son **5 temas** × claro/oscuro, no 8: la tabla de abajo quedó
+> vieja (Solar, Crimson y Grape ya no existen, y el acento de Indigo es `#8b90ff`). Vale
+> «Cómo es la app hoy», arriba._
+
 ShapeUp es **multi-tema**, y el tema se elige **por miembro** (cada uno ajusta el suyo). La
 base oscura, la tipografía, el espaciado, los colores de miembro y las zonas de FC **no
 cambian**; lo que cambia es la **familia del acento** (botones, nav activo, chips, dots, timer,
@@ -82,7 +159,7 @@ Tema** y se persiste por miembro. Ver `preview/col-themes.html`.
 | **Grape** | `grape` | `#b15cff` púrpura | Creativo, eléctrico. |
 | **Indigo** | `indigo` | `#7c83ff` violeta | Nocturno, premium. |
 
-Defaults por miembro: Juan Pablo → Ion · María → Pulse · Sofía → Grape · Federico → Volt.
+Defaults por miembro: Juan Pablo → Ion · María → Pulse · Sofía → Indigo · Federico → Volt.
 
 ```html
 <div class="su-app" data-theme="indigo"> … toda la app re-skinea … </div>
@@ -119,8 +196,9 @@ Defaults por miembro: Juan Pablo → Ion · María → Pulse · Sofía → Grape
 
 ## VISUAL FOUNDATIONS
 
-**Tema.** Oscuro por defecto (`color-scheme: dark`). Fondo casi negro azulado `#0f1115`,
-tarjetas un punto más claras `#171a21`. No hay tema claro en la app (sí en Comida).
+**Tema.** Oscuro por defecto (`color-scheme: dark`), con modo claro y «sistema» desde P65 (ver
+«Cómo es la app hoy»). En oscuro, cada tema tiñe sus superficies; los valores neutros de `:root`
+(`#0f1115`, `#171a21`) solo se ven sin `data-theme`.
 
 **Color.** Un único acento de marca **tematizable** (default Ion cian) usado con disciplina:
 botones primarios, estados activos, foco de input, nav activo, el FAB. Semánticos acotados
@@ -130,8 +208,9 @@ lugar con multicolor "de verdad", también constante entre temas (significa inte
 
 **Temas.** Ver la sección dedicada más abajo.
 
-**Tipografía.** `system-ui` — no se cargan webfonts (rinde nativo, app liviana / PWA). **La
-identidad tipográfica vive en el peso, no en la familia:** títulos 700-800, cifras 800 con
+**Tipografía.** `system-ui` en toda la app. Las únicas webfonts son Archivo y Hanken Grotesk,
+para los estilos de Inicio Pulse y Premium. **La identidad tipográfica vive en el peso, no en la
+familia:** títulos 700-800, cifras 800 con
 `font-variant-numeric: tabular-nums` y tracking negativo (`-0.04em`) para que peso, carga y
 timer se lean como un tablero atlético. Labels de sección en 11px uppercase + `letter-spacing
 .05em`. Ver `colors_and_type.css` para la escala completa y las clases semánticas (`.t-display`,
@@ -143,10 +222,10 @@ padding 16px y 78px abajo para el nav fijo.
 
 **Bordes y radios.** Radios `8 / 12 / 18px` (sm/md/lg) + `999px` para chips/badges/avatares.
 Borde de 1px `#232733` define casi todo (las tarjetas son borde, no sombra). Hover de tarjeta:
-el borde pasa a verde. Inputs: borde gris → verde en foco.
+el fondo toma `--accent-dim`. Inputs: borde gris → `--accent` en foco.
 
 **Sombras.** Casi inexistentes en el tema oscuro; el contraste lo da el borde. Excepciones
-funcionales: modales/auth (`0 20px 60px rgba(0,0,0,.35)`), bottom-sheets, y el **glow verde del
+funcionales: modales/auth (`0 20px 60px rgba(0,0,0,.35)`), bottom-sheets, y el **glow del acento en el
 FAB** (`0 4px 16px rgba(74,222,128,.30)`), que es lo más cercano a un acento decorativo.
 
 **Backgrounds / texturas.** Planos. Sin gradientes en superficies de contenido, sin imágenes
@@ -155,21 +234,24 @@ de fondo, sin patrones. (La pantalla del prototipo usa un radial sutil solo como
 (`--accent-dim`, `--zona-z*-dim`).
 
 **Cards.** Fondo `--card`, borde 1px `--border`, radio `lg (18px)`, padding 16px. Sin sombra.
-Variantes: `card` (genérica), `rutina-card` (cliqueable, borde→verde en hover), `descanso-card`
+Variantes: `card` (genérica), `rutina-card` (cliqueable, se tiñe con el acento en hover), `descanso-card`
 (centrada, timer), `auth-card` (la única con sombra).
 
-**Animación.** Mínima y funcional. Transiciones de 120-180ms en color/borde/opacidad. Spinner
+**Animación.** Funcional. Tokens de movimiento: `--dur-fast` 140 ms, `--dur-base` 220 ms,
+`--dur-slow` 420 ms, `--ease-out` y `--ease-spring` (un rebote corto, usado en presiones y en el
+anillo de Aurora). Transiciones en color/borde/opacidad. Spinner
 de carga (0.7s linear). Bottom-sheets entran con `translateY` (0.25s ease). El botón de serie
 hace `scale(0.98)` al apretar. **Sin** bounces, parallax, ni loops decorativos.
 
 **Hover / press.**
 - Botón primario: `opacity .88` en hover.
 - Botón secundario / chip: el borde y el texto pasan de muted a fg/accent.
-- Tarjeta de rutina: borde → verde.
+- Tarjeta de rutina: se tiñe con el acento.
 - Icon-button: fondo `--card-hover`.
 - Press del botón de serie / FAB: `scale` (0.98 / 1.06).
 
-**Transparencia y blur.** Blur no se usa. Transparencia sí, como tintes `rgba` de color sobre
+**Transparencia y blur.** Blur solo en la tarjeta de vidrio de Aurora (`.glass-card`,
+`blur(12px)`). Transparencia sí, como tintes `rgba` de color sobre
 el fondo (estados, zonas, backdrops de modal al 72%).
 
 **Vibe de imagery.** La app no usa fotos. Lo "visual" son datos: dots de progreso, barras del
@@ -181,7 +263,7 @@ MiniChart, la tira semanal, los avatares de color. Frío, oscuro, de alto contra
 
 - **Sistema:** [**Lucide**](https://lucide.dev) (`lucide-react` en el código). Es la única
   familia de íconos. Trazo **`stroke-width: 1.8`**, tamaño 16–24px, `currentColor` (heredan el
-  color del contexto: muted por defecto, verde si está activo).
+  color del contexto: muted por defecto, el acento si está activo).
 - **Íconos del nav (6):** `house` (Inicio), `library` (Rutinas), `zap` (Entrenar), `history`
   (Historial), `heart` (Salud), `user` (Perfil).
 - **Íconos de acción frecuentes:** `zap` (empezar/intensidad), `biceps-flexed` (día de
@@ -203,12 +285,15 @@ MiniChart, la tira semanal, los avatares de color. Frío, oscuro, de alto contra
 | Archivo | Qué es |
 |---|---|
 | `README.md` | Este documento. |
-| `colors_and_type.css` | **Fuente de verdad** de tokens: color, zonas FC, estados, radio, espaciado, tipografía + clases semánticas. Importar siempre. |
+| `colors_and_type.css` | Tokens del kit, **iguales a los de la app** (`src/styles/tokens.css`; la fuente de verdad es el código): color, temas y modos, zonas FC, estados, radio, espaciado, movimiento, tipografía + clases semánticas, y al final las direcciones de Home. Importar siempre. |
+| `styles.css` | Punto de entrada: importa `colors_and_type.css`. |
 | `SKILL.md` | Instrucciones para usar este sistema como Agent Skill. |
-| `assets/shapeup-icon.svg` | Ícono de app (squircle verde + chevron). Base para íconos PWA. |
-| `assets/shapeup-mark.svg` | Solo la marca (chevron verde, fondo transparente) para UI oscura. |
+| `assets/shapeup-icon.svg` | Ícono de app (squircle + doble chevron), **en el verde de junio** (`#4ade80`). La app no lo usa. |
+| `assets/shapeup-mark.svg` | Solo la marca (chevron, fondo transparente), en el verde de junio. En la app la marca la dibuja `src/components/Brand.tsx` con `currentColor` (sigue al acento). |
 | `assets/shapeup-wordmark.svg` | Lockup horizontal Shape**Up** sobre oscuro. |
 | `assets/shapeup-wordmark-light.svg` | Lockup para fondos claros. |
+| `assets/pwa/` | Los 8 íconos PNG de la PWA (favicon 16/32/48, apple-touch 180, 192/512 y maskable 192/512) y su `manifest.json`. Son los de `public/icons/` de la app (squircle oscuro + doble chevron cian; no cambian con el tema). Los usa `preview/brand-pwa.html`. |
+| `assets/icons-alt-v2/` y `assets/pwa.zip` | Una variante alternativa de los mismos íconos y el zip original. Archivo de Design; la app no los usa. |
 | `preview/*.html` | Tarjetas del Design System (color, type, spacing, componentes). |
 | `ui_kits/shapeup/` | **UI kit interactivo** de la app — ver abajo. |
 | `docs/prompts/` | **Prompts para Claude Code** (pulido D1–D7, numerados 23–29) — implementan este sistema en el repo `jpcofano/shapeup`. Empezá por `PROMPTS-design.md`. (P100: `prompts-code/` se integró a `docs/prompts/`.) |
@@ -224,7 +309,7 @@ MiniChart, la tira semanal, los avatares de color. Frío, oscuro, de alto contra
 ## Cómo diseñar con este sistema
 
 1. Importá `colors_and_type.css`. Usá **siempre tokens**, nunca hex hardcodeado.
-2. Tema oscuro, una columna, mobile-first. Respetá el nav de 6 ítems.
+2. Una columna, mobile-first, en los 5 temas × claro y oscuro. Respetá el nav de 6 ítems.
 3. Texto en **voseo**, sentence case, labels de sección en uppercase.
 4. Íconos **Lucide** 1.8 stroke. Logo desde `assets/`.
 5. Para piezas de fitness (sesión, cardio) usá las zonas FC y los estados de identidad.
