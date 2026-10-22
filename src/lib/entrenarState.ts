@@ -1087,6 +1087,25 @@ function esBloqueVR_(b: BloqueEjercicio): boolean {
   return p?.modalidad === "Cardio" && p.formato === "Intervalos" && !!p.juegoSugerido;
 }
 
+/**
+ * La prescripción de fuerza del bloque tal como está en la rutina ahora (P103):
+ * series, reps, carga y descanso, más RIR y tempo si los tiene. `undefined` si
+ * el bloque no es de Fuerza.
+ */
+export function prescripcionFuerzaDelBloque(b: BloqueEjercicio): BloqueRegistro["prescripcionFuerza"] {
+  const p = b.prescripcion;
+  if (b.modalidad !== "Fuerza" || p?.modalidad !== "Fuerza") return undefined;
+  const { value, min, max, raw } = p.repsObjetivo;
+  return {
+    series: p.series,
+    repsObjetivo: { value, raw, ...(min != null ? { min } : {}), ...(max != null ? { max } : {}) },
+    ...(p.cargaKg != null ? { cargaKg: p.cargaKg } : {}),
+    descansoSeg: p.descansoSeg,
+    ...(p.rirObjetivo != null ? { rirObjetivo: p.rirObjetivo } : {}),
+    ...(p.tempo ? { tempo: p.tempo } : {}),
+  };
+}
+
 export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): BloqueRegistro[] {
   return rutina.bloques.map((b, idx) => {
     const motivo = state.saltados[idx];
@@ -1097,6 +1116,8 @@ export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): 
       }));
     // 1RM estimado, solo Fuerza y solo si hay valor (P70).
     const e1rm = b.modalidad === "Fuerza" ? e1rmKg(series) : undefined;
+    // La sesión libre no tiene prescripción: sus valores son los de por defecto (P103).
+    const prescFuerza = rutina.idRutina === "libre" ? undefined : prescripcionFuerzaDelBloque(b);
     // P98: en Ritmo suave se elige el juego al empezar; el bloque guarda el que se jugó.
     const juego = state.vrEscalon && rutina.vr && idx === indiceBloqueVR(rutina)
       && state.vrEscalon.idEjercicio !== b.idEjercicio ? state.vrEscalon : null;
@@ -1113,6 +1134,8 @@ export function construirBloquesRegistro(state: EntrenarState, rutina: Rutina): 
       ...(e1rm !== undefined ? { e1rmKg: e1rm } : {}),
       // Solo en el bloque de VR (P79): con qué parámetros se jugó.
       ...(state.prescripcionVR && esBloqueVR_(b) ? { prescripcionUsada: state.prescripcionVR } : {}),
+      // Solo en bloques de Fuerza (P103): con qué prescripción se entrenó.
+      ...(prescFuerza ? { prescripcionFuerza: prescFuerza } : {}),
       // Solo en bloques sustituidos (P73).
       ...(sust ? {
         idEjercicioOriginal: sust.idOriginal,

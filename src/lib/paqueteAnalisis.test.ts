@@ -249,6 +249,22 @@ describe("de dónde salió la prescripción (enmienda P93)", () => {
     expect(fuerza.prescripcionAclaracion).toMatch(/puede diferir de la que regía/);
   });
 
+  it("si la sesión de fuerza guardó su prescripción (P103), usa esa y no la rutina actual", () => {
+    const guardada: Historial = {
+      ...conFuerza,
+      bloques: [conFuerza.bloques[0], {
+        ...conFuerza.bloques[1],
+        prescripcionFuerza: { series: 4, repsObjetivo: { value: 6, raw: "6" }, cargaKg: 50, descansoSeg: 150 },
+      }],
+    };
+    const [, fuerza] = armarPaqueteSesion({
+      sesion: guardada, contexto: { ...contexto(), rutina: RUTINA }, curva: null, prompt: PROMPT,
+    }).datos.ejercicios;
+    expect(fuerza.prescripcionOrigen).toBe("sesion");
+    expect(fuerza.prescripcion).toEqual({ series: 4, reps: "6", cargaKg: 50, descansoSeg: 150 });
+    expect(fuerza).not.toHaveProperty("prescripcionAclaracion");
+  });
+
   it("sin rutina y sin nada guardado, no hay prescripción ni origen", () => {
     const [, fuerza] = armar(null as never).datos.ejercicios;
     expect(fuerza).not.toHaveProperty("prescripcion");

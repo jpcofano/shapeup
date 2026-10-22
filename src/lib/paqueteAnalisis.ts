@@ -160,16 +160,23 @@ function ejercicio(
 ): Record<string, unknown> {
   const seg = (ms: number | undefined) => (ms == null || origenMs == null ? undefined : Math.round((ms - origenMs) / 1000));
   // La prescripción: la que se usó ese día si la sesión la guardó (VR de P79,
-  // `prescripcionUsada`; VR por escalones y a medida, `vr.prescripto`, P99); si
-  // no, la rutina como está HOY, declarada como tal.
+  // `prescripcionUsada`; VR por escalones y a medida, `vr.prescripto`, P99;
+  // fuerza, `prescripcionFuerza`, P103); si no, la rutina como está HOY,
+  // declarada como tal.
   const delEscalon = vr && b.idEjercicio === vr.idEjercicio
     ? { bloques: vr.prescripto.bloques, minutosBloque: vr.prescripto.minutosBloque, descansoSeg: vr.prescripto.descansoSeg, modo: vr.modo }
     : null;
-  const presc = b.prescripcionUsada || delEscalon ? undefined : bloqueDeRutina(b, rutina);
+  const pf = b.prescripcionFuerza;
+  const presc = b.prescripcionUsada || delEscalon || pf ? undefined : bloqueDeRutina(b, rutina);
   const prescripcion = delEscalon
     ? { prescripcion: delEscalon, prescripcionOrigen: "sesion" as const }
     : b.prescripcionUsada
     ? { prescripcion: { ...b.prescripcionUsada }, prescripcionOrigen: "sesion" as const }
+    : pf
+    ? {
+        prescripcion: limpio({ series: pf.series, reps: pf.repsObjetivo.raw, cargaKg: pf.cargaKg, rirObjetivo: pf.rirObjetivo, descansoSeg: pf.descansoSeg, tempo: pf.tempo }),
+        prescripcionOrigen: "sesion" as const,
+      }
     : presc
       ? {
           prescripcion: prescripcionCorta(presc.prescripcion),

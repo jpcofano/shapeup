@@ -630,6 +630,24 @@ export interface BloqueRegistro {
     /** Minutos de juego a los que apuntaba la sesión (P80). */
     duracionObjetivoMin?: number;
   };
+  /**
+   * La prescripción de fuerza con la que se entrenó este bloque (P103): la de
+   * la rutina en ese momento. La historia no depende de la rutina de hoy; es el
+   * mismo criterio que el `prescripto` de VR (ADR #039). Solo en bloques de
+   * Fuerza de una rutina (la sesión libre no tiene una: sus valores son los
+   * de por defecto), y ausente en las sesiones guardadas antes. No entra en
+   * ningún cálculo: el análisis la recibe como contexto, sin evaluar el
+   * cumplimiento. RIR y tempo van si la rutina los tiene, para que el paquete
+   * no pierda lo que antes leía de la rutina.
+   */
+  prescripcionFuerza?: {
+    series: number;
+    repsObjetivo: RangoNumerico;
+    cargaKg?: number;
+    descansoSeg: number;
+    rirObjetivo?: number;
+    tempo?: string;
+  };
 }
 
 /** Zona de molestia marcada al cerrar la sesión (P70). */
