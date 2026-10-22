@@ -55,9 +55,12 @@ teléfono.
 | `screens-programa.jsx` | `ProgramasTab`, `ProgramaDetalle`, `VistaSemanal`, `sesionDeHoy` (flujo de programa por día de semana, activo por miembro). |
 | `screens-salud.jsx` | `Salud`, `Historial` (+ Progreso), `HistorialDetalle`, `Perfil`. |
 | `app.jsx` | Shell, nav inferior de 6 ítems, router, tema por miembro, estilo de inicio. |
+| `pantallas-nuevas.html` | **P105.** Pantallas posteriores a junio, **como están construidas**: el detalle de la sesión con curva y marcas, la VR por escalones (inicio y cierre), la sesión de juego con su hoja de salida, Perfil → Configuración y Salud → Resumen. Estático (no navega), en Ion oscuro y claro, sin la barra de navegación. El marcado sale de renderizar las rutas reales de `src/routes/` con datos inventados, y los estilos son las reglas de `src/index.css` que usan. |
 
 ## Notas
 - Tokens desde `../../colors_and_type.css`; logo desde `../../assets/`.
 - Íconos **Lucide** vía CDN. Componente `<Icon name size stroke color fill />`.
 - Componentes globales (`window.*`) para compartir scope entre archivos Babel.
 - Es una base para componer mocks: reutilizá las pantallas y primitivos, no los reinventes.
+- El kit interactivo (`index.html`) es de junio. Lo que no coincide con la app lo dice
+  `../../README.md`, «Pantallas de la app y si están en el kit»; cuando no coinciden, gana la app.

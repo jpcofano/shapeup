@@ -73,14 +73,14 @@ Si las direcciones de Home se extienden a toda la app lo decide la auditoría (P
 | Detalle de rutina y de programa | Sí, de junio |
 | Entrenar (la lista) y «Cambiar» (`HojaCambiar`, `FranjaCambio`) | En parte: la lista de junio; sin «Cambiar» |
 | Sesión guiada (`EntrenarSesion`) y sesión libre | Sí, de junio (sin la hoja de salida de P68) |
-| VR por escalones: inicio, sesión por tiempo, cierre con dificultad; VR a medida | No |
-| Sesión de juego (`SesionJuego`) y su hoja de salida | No |
+| VR por escalones: inicio, sesión por tiempo, cierre con dificultad; VR a medida | Inicio y cierre en `pantallas-nuevas.html` (P105, estático); sin la sesión por tiempo ni VR a medida |
+| Sesión de juego (`SesionJuego`) y su hoja de salida | En `pantallas-nuevas.html` (P105, estático) |
 | Historial | Sí, de junio |
-| Detalle de la sesión: marcas, curva (`CurvaSesion`), análisis | Solo el detalle de junio, sin curva ni marcas |
-| Salud: Resumen, Composición, Cardio, Sueño, Progreso | Composición, Cardio, Sueño y Progreso, de junio; falta Resumen y el puente |
-| Perfil y Configuración (lo de cada miembro y, solo owner, «Familia y datos»; `RevisionFcMax`) | Perfil de junio, con Apariencia y Estilo de inicio; sin el resto de Configuración |
+| Detalle de la sesión: marcas, curva (`CurvaSesion`), análisis | En `pantallas-nuevas.html` (P105, estático); el interactivo tiene el de junio |
+| Salud: Resumen, Composición, Cardio, Sueño, Progreso | Composición, Cardio, Sueño y Progreso, de junio; Resumen y el panel del puente en `pantallas-nuevas.html` (P105) |
+| Perfil y Configuración (lo de cada miembro y, solo owner, «Familia y datos»; `RevisionFcMax`) | Perfil de junio en el interactivo; Configuración completa en `pantallas-nuevas.html` (P105) |
 | Formularios de rutina y de ejercicio | No |
-| Componentes sueltos: chip de sincronización, adherencia, `BarraZonas`, `TrendChart`, `PantallaError` | No |
+| Componentes sueltos: chip de sincronización, adherencia, `BarraZonas`, `TrendChart`, `PantallaError` | Como tarjetas en `preview/cmp-*.html` (P105), menos `PantallaError` |
 
 ---
 
@@ -295,7 +295,7 @@ MiniChart, la tira semanal, los avatares de color. Frío, oscuro, de alto contra
 | `assets/pwa/` | Los 8 íconos PNG de la PWA (favicon 16/32/48, apple-touch 180, 192/512 y maskable 192/512) y su `manifest.json`. Son los de `public/icons/` de la app (squircle oscuro + doble chevron cian; no cambian con el tema). Los usa `preview/brand-pwa.html`. |
 | `assets/icons-alt-v2/` y `assets/pwa.zip` | Una variante alternativa de los mismos íconos y el zip original. Archivo de Design; la app no los usa. |
 | `preview/*.html` | Tarjetas del Design System (color, type, spacing, componentes). |
-| `ui_kits/shapeup/` | **UI kit interactivo** de la app — ver abajo. |
+| `ui_kits/shapeup/` | **UI kit interactivo** de la app (de junio) y `pantallas-nuevas.html` (P105) — ver abajo. |
 | `docs/prompts/` | **Prompts para Claude Code** (pulido D1–D7, numerados 23–29) — implementan este sistema en el repo `jpcofano/shapeup`. Empezá por `PROMPTS-design.md`. (P100: `prompts-code/` se integró a `docs/prompts/`.) |
 
 ### UI Kits

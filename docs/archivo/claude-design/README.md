@@ -53,6 +53,13 @@ Los inventarios de las dos cuentas, que Design escribió el 21/10, están en `do
 **Los HTML piden `../colors_and_type.css`**, que en esta carpeta no existe: para verlos con estilo,
 abrilos con un servidor desde la raíz o copialos al lado de `colors_and_type.css`.
 
+_Revisado el 22/10/2026 (P105)._ Los que tienen esa ruta rota son tres, todos en `cuenta-A/explorations/`:
+`Auditoria UI 2026-06-10.html`, `Entrenar - opciones de media.html` y `Home Aurora+ (mock).html`. Esperaban el
+`colors_and_type.css` de la **raíz del proyecto de Design**, que en el repo es la versión del commit `42379e2`
+(P104). Desde P105 el `colors_and_type.css` de la raíz es igual a la app y ya no es aquel: para verlos como
+eran, usá `git show 42379e2:colors_and_type.css`. No se editan: son archivo. El resto de los HTML de esta
+carpeta no tiene rutas locales rotas.
+
 ## Lo que no se trajo, y por qué
 
 - **Los generados de la plataforma:** `_ds_bundle.js`, `_ds_manifest.json`, `_adherence.oxlintrc.json` y
