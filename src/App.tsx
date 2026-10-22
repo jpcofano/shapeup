@@ -38,6 +38,12 @@ const router = createBrowserRouter([
       { path: "/qa/home-redux",                 element: <QaHomeRedux /> },
       { path: "/qa/salud-resumen",              element: <QaSaludResumen /> },
       { path: "/qa/temas",                      element: <QaTemas /> },
+      // P105: carga aparte (lazy), así la curva de la sesión testigo no entra en el bundle principal.
+      {
+        path: "/qa/sesion",
+        lazy: () => import("./routes/QaSesion").then((m) => ({ Component: m.QaSesion })),
+        HydrateFallback: () => null,
+      },
 
       // ── App con AppShell ───────────────────────────────────────────────────────
       {
@@ -68,7 +74,7 @@ export default function App() {
   const { user, memberId, loading } = useAuth();
 
   // QA de theming/mocks (P53, P64, P65): datos mock, sin info de usuario → no requiere login.
-  const QA_SIN_LOGIN = ["/qa/home-redux", "/qa/salud-resumen", "/qa/temas"];
+  const QA_SIN_LOGIN = ["/qa/home-redux", "/qa/salud-resumen", "/qa/temas", "/qa/sesion"];
   if (QA_SIN_LOGIN.includes(window.location.pathname)) {
     return <RouterProvider router={router} />;
   }
