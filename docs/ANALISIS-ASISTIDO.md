@@ -424,6 +424,12 @@ El resto de la pantalla (stats, series, FC de Samsung, contexto del día, análi
   `volumen`, `semana`) se calculan al mostrar (como las recomendaciones, ADR #023). Decidido y fijado
   en el **ADR #047** (21/10).
 
+- **La prescripción de fuerza guardada** (`BloqueRegistro.prescripcionFuerza`, P103 Bloque 5). Respuestas
+  del 22/10:
+  - **La sesión libre no la guarda.** Sus valores son los de por defecto; no hubo prescripción.
+  - **No va en `ultimasSesiones`** (`prescripcionDeEsaSesion`, que hoy trae solo VR) por ahora. Queda en
+    el backlog como decisión de P94.
+
 **La pantalla de §6** se construyó como estaba decidida (Parte 4, `6023035`). **Sigue abierto, para la
 auditoría de diseño (P101):** ajustarla. No queda ninguna decisión abierta de P99.
 

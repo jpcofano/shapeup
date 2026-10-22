@@ -147,3 +147,9 @@ La hoja ofrece:
 - **Salir sin guardar.**
 
 Sin «Seguir entrenando» ni «Reiniciar», y tocar afuera no cierra la hoja.
+
+## «Ver todas» por Programas (P103, respuesta del 22/10)
+
+En la pestaña Programas de Biblioteca no se empieza ninguna sesión, así que la franja «Cambiando…» se
+oculta ahí (P103, Bloque 3); el cambio sigue en la URL y vuelve al pasar a Rutinas o Ejercicios.
+**Decidido el 22/10: alcanza con eso.** La prevista no viaja por `ProgramaDetalle` → rutina.

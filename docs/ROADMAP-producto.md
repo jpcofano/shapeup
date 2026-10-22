@@ -523,6 +523,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P99 | ✅ (21/10) Marcas de la app y análisis de sesión en dos capas, en cinco partes: diagnóstico, marcas de la app, esquema 3 y prompt 4 (19/10, `f8b0781` y `55a20d1`), pantalla (P103 Bloque 1, `6023035`) y cierre de documentos con el ADR #047 (P103 Bloque 2). Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
 | P104 | ✅ (21/10) Traer lo de Claude Design al repo antes de que cierre (14/12): la raíz del sistema de diseño pasa a la versión de la cuenta A, y las explorations, las auditorías y los inventarios quedan archivados. Ver `docs/AUDITORIA-DISENO.md` §8 | — |
 | P103 | ✅ (21/10) Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
+| P105 | En curso (22/10). Corrida nocturna: auditoría de los datos de salud (la presión primero), `/qa/sesion`, capturas, el kit de la raíz igual a la app (paso 2b del lado del repo) y el diagnóstico de diseño medible. Prompt: `docs/prompts/105-corrida-nocturna-salud-y-kit-igual-a-la-app.md` | P103 |
 | P101 | Auditoría de diseño: lo próximo de pantalla. Plan, diagnóstico y estado: `docs/AUDITORIA-DISENO.md`. | P103 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
@@ -532,6 +533,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - **El sueño y la FC de reposo solo llegan si se importó el ZIP de ese día: la vía D no los trae. Evaluar sumarlos al puente (repo shapeup-bridge)** (P99 Parte 3: el paquete de análisis los manda, pero llegan `null` sin ZIP).
 - ~~**Guardar la prescripción al cerrar las sesiones de fuerza.** Chico, no urgente.~~ Hecho en P103 (Bloque 5): `BloqueRegistro.prescripcionFuerza`.
 - **P94** — análisis global sobre un rango de semanas. Code avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango).
+  - **Decisión de P94:** si la prescripción de fuerza guardada (`prescripcionFuerza`, P103) va también en `ultimasSesiones` del paquete, como `prescripcionDeEsaSesion` (hoy solo VR). Respuesta del 22/10 a P103: no por ahora.
 - **P95** — sincronización incremental y duplicados (18 MB por sincronización, 12 registros duplicados, `updateTime` disponible).
 - Del inventario del SDK, aprobado como idea: la **cadencia** como testigo de la FC de muñeca en VR y boxeo, `logWithHeartRate` para la cobertura, `skeletal_muscle_mass`.
   (02/10: la cadencia es también lo que distinguiría un pico real de uno falso en la estimación de la FC máxima; hoy la regla del pico de `fcDudosa` la limita a +10 por revisión. ADR #045.)

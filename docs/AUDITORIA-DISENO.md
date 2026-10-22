@@ -3,6 +3,7 @@
 Creado el 21/10/2026 en el chat con Claude (cuenta `jpcofano.ia@gmail.com`). Juan cambia de cuenta: **este documento es el traspaso del área de diseño**. El estado general sigue en `docs/ESTADO-DEL-PROYECTO.md`, que remite acá.
 
 **Estado al 21/10:** paso 2a hecho (P104): la raíz del repo tiene el sistema de diseño de la cuenta A y lo demás quedó archivado (§8). Sigue el paso 2b. El proyecto del handoff no se encontró.
+**22/10:** el orden del paso 2b cambió: primero Code iguala la raíz a la app (P105), después el chat arma el artifact (§5).
 
 ---
 
@@ -68,8 +69,12 @@ El kit de la raíz es del **06/06/2026** (`README.md`, `SKILL.md`, `colors_and_t
   - La raíz del repo pasó a la versión de Design, que es estrictamente más nueva que la de junio (`42379e2`).
   - Las explorations y los mocks, **con las capturas que citan sus auditorías** (`audit-shots/`, `auditoria-evidencia/`, `_b.png`, `_c.png`, `_preview.png` y `_opts.png`, unos 330 KB), el lienzo y las variantes de ícono fueron a `docs/archivo/claude-design/`, con su origen (`963e774`). Los inventarios, a `docs/reportes/`.
   - No se trajeron los generados de la plataforma (`_ds_bundle.js`, `_ds_manifest.json`, `_adherence.oxlintrc.json` y `.thumbnail`), `uploads/` (copias viejas de documentos del repo) ni el design system de la cuenta B, del que solo se guardó el brief.
-- ☐ **2b. Kit = app.** Claude compara los dos exports entre sí, con el repo y con la app. Arma el **Design System** desde el código real (`tokens.css`, `home-redux.css`, `src/components`, `src/routes`), más lo rescatable de los exports. Juan lo revisa.
-  - Sale un prompt de Code que actualiza la raíz: `README.md`, `SKILL.md`, `colors_and_type.css`, `preview/` y `ui_kits/`.
+- ☐ **2b. Kit = app.** **Orden nuevo (22/10):**
+  1. **Code deja la raíz igual a la app** (P105, la corrida nocturna del 22/10, Bloque 4): `README.md`, `SKILL.md`, `colors_and_type.css`, `preview/` y `ui_kits/`. El criterio ya está cerrado: **cuando no coinciden, gana la app.**
+  2. **El chat arma el artifact Design System** desde la raíz ya igualada y desde el código real (`tokens.css`, `home-redux.css`, `src/components`, `src/routes`), más lo rescatable de los exports.
+  3. **Juan lo revisa.**
+
+  _Antes (21/10): el chat armaba el artifact, Juan lo revisaba y recién después un prompt de Code igualaba la raíz._
   - Lo que Design propuso y nunca se construyó queda listado aparte, como insumo de la auditoría. No se porta solo.
   - Los inventarios de los exports se guardan en `docs/reportes/` (hallazgos que tienen que quedar); los zips no van a git.
 - ☐ **3. Capturas reales,** con P103 desplegado: cada pantalla en claro y en oscuro, a 390 px, más las páginas de QA. Pueden ser las de `docs/auditorias/capturas/` (si P103 las sacó) o las del navegador integrado. Más las capturas del 02/10.

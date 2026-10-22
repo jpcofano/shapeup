@@ -137,8 +137,9 @@ Siguen en pie las de antes: ADR #042 a #046, las decisiones de marcas de `ANALIS
 - **El diseño se hace dentro de Claude** (artifacts Design System y Design), no en Claude Design por separado.
 - **La fuente de verdad sigue en la raíz del repo** (P100). El artifact es el banco de trabajo: lo que se decide vuelve al repo por un prompt de Code.
 - **Lo de la cuenta B no se trae,** salvo su inventario y el brief.
+- **Orden del paso 2b (22/10):** primero Code iguala la raíz a la app (P105), después el chat arma el artifact Design System y Juan lo revisa. Detalle en `docs/AUDITORIA-DISENO.md` §5.
 
-**Numeración:** P94 y P95 están reservados; P101 es el ajuste de diseño; P103 es la corrida nocturna; P104 es traer Claude Design. **El próximo libre es P105.**
+**Numeración:** P94 y P95 están reservados; P101 es el ajuste de diseño; P103 es la corrida nocturna; P104 es traer Claude Design; P105 es la corrida nocturna del 22/10 (salud y kit igual a la app). **El próximo libre es P106.**
 
 ---
 
