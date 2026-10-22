@@ -3,7 +3,7 @@
 Creado el 21/10/2026 en el chat con Claude (cuenta `jpcofano.ia@gmail.com`). Juan cambia de cuenta: **este documento es el traspaso del área de diseño**. El estado general sigue en `docs/ESTADO-DEL-PROYECTO.md`, que remite acá.
 
 **Estado al 21/10:** paso 2a hecho (P104): la raíz del repo tiene el sistema de diseño de la cuenta A y lo demás quedó archivado (§8). Sigue el paso 2b. El proyecto del handoff no se encontró.
-**22/10:** el orden del paso 2b cambió: primero Code iguala la raíz a la app (P105), después el chat arma el artifact (§5).
+**22/10:** el orden del paso 2b cambió: primero Code iguala la raíz a la app (P105), después el chat arma el artifact (§5). **P105 hizo la parte del repo del 2b**, las capturas del paso 3 y el diagnóstico medible para el paso 4.
 
 ---
 
@@ -75,10 +75,23 @@ El kit de la raíz es del **06/06/2026** (`README.md`, `SKILL.md`, `colors_and_t
   3. **Juan lo revisa.**
 
   _Antes (21/10): el chat armaba el artifact, Juan lo revisaba y recién después un prompt de Code igualaba la raíz._
+  - **22/10: el punto 1 está hecho (P105, Bloque 4).**
+    - Tokens: `741c187`.
+    - README y SKILL: `769dfbd`.
+    - `preview/`: `fb134ae`.
+    - `ui_kits/shapeup/pantallas-nuevas.html`: `ab0ede5`.
+
+    Siguen los puntos 2 y 3: el artifact y la revisión de Juan. Lo que faltó del kit está en el backlog del roadmap.
   - Lo que Design propuso y nunca se construyó queda listado aparte, como insumo de la auditoría. No se porta solo.
   - Los inventarios de los exports se guardan en `docs/reportes/` (hallazgos que tienen que quedar); los zips no van a git.
-- ☐ **3. Capturas reales,** con P103 desplegado: cada pantalla en claro y en oscuro, a 390 px, más las páginas de QA. Pueden ser las de `docs/auditorias/capturas/` (si P103 las sacó) o las del navegador integrado. Más las capturas del 02/10.
-- ☐ **4. Auditoría** en un lienzo de **Design**: hallazgos por pantalla con severidad, propuestas mockeadas solo de los más importantes y las decisiones abiertas aparte (entre ellas, si las direcciones de Home se extienden a toda la app). Entran también la pantalla de marcas (P99 §6, construida por P103), la curva, `SesionJuego` y la etiqueta de la FC máxima.
+- ☐ **3. Capturas reales.** _22/10 (P105, Bloque 3):_
+  - **Dónde están:** en `docs/auditorias/capturas/2026-10-22/`, que git ignora; ver su `indice.md`. Las del kit de después están en `despues-kit/`.
+  - **Qué hay:** las páginas de QA (`/qa/sesion` en los 5 temas × 2 modos, `/qa/temas`, `/qa/home-redux`, `/qa/salud-resumen`) y el kit antes y después.
+  - **Cómo se sacaron:** a 390 px, desde el build local, sin P103 desplegado.
+  - **Qué falta:** las de la app real con sesión iniciada.
+
+  Lo que pedía el paso: con P103 desplegado, cada pantalla en claro y en oscuro, a 390 px, más las páginas de QA. Pueden ser las de `docs/auditorias/capturas/` (si P103 las sacó) o las del navegador integrado. Más las capturas del 02/10.
+- ☐ **4. Auditoría** en un lienzo de **Design**. **Insumo medido:** `docs/reportes/diagnostico-diseno-2026-10-22.md` (P105, Bloque 5): contraste, valores escritos a mano, toques y fuentes chicas, las dos capas, lo diseñado y nunca construido, y una tabla de hallazgos con su decisión abierta. Lo que pide el paso: hallazgos por pantalla con severidad, propuestas mockeadas solo de los más importantes y las decisiones abiertas aparte (entre ellas, si las direcciones de Home se extienden a toda la app). Entran también la pantalla de marcas (P99 §6, construida por P103), la curva, `SesionJuego` y la etiqueta de la FC máxima.
 - ☐ **5. P101 para Code,** por partes. Al cerrar, el sistema de diseño de la raíz queda al día.
 
 ---

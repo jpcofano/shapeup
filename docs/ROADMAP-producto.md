@@ -523,7 +523,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P99 | ✅ (21/10) Marcas de la app y análisis de sesión en dos capas, en cinco partes: diagnóstico, marcas de la app, esquema 3 y prompt 4 (19/10, `f8b0781` y `55a20d1`), pantalla (P103 Bloque 1, `6023035`) y cierre de documentos con el ADR #047 (P103 Bloque 2). Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
 | P104 | ✅ (21/10) Traer lo de Claude Design al repo antes de que cierre (14/12): la raíz del sistema de diseño pasa a la versión de la cuenta A, y las explorations, las auditorías y los inventarios quedan archivados. Ver `docs/AUDITORIA-DISENO.md` §8 | — |
 | P103 | ✅ (21/10) Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
-| P105 | En curso (22/10). Corrida nocturna: auditoría de los datos de salud (la presión primero), `/qa/sesion`, capturas, el kit de la raíz igual a la app (paso 2b del lado del repo) y el diagnóstico de diseño medible. Prompt: `docs/prompts/105-corrida-nocturna-salud-y-kit-igual-a-la-app.md` | P103 |
+| P105 | ✅ (22/10) Corrida nocturna: auditoría de los datos de salud (la presión primero), `/qa/sesion`, capturas, el kit de la raíz igual a la app (paso 2b del lado del repo) y el diagnóstico de diseño medible. Prompt: `docs/prompts/105-corrida-nocturna-salud-y-kit-igual-a-la-app.md` | P103 |
 | P101 | Auditoría de diseño: lo próximo de pantalla. Plan, diagnóstico y estado: `docs/AUDITORIA-DISENO.md`. | P103 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
@@ -546,6 +546,14 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - **Series informativas por configuración** de la rutina a medida (RUT-0030): agrupar las sesiones con el mismo juego, bloques, minutos y descanso. La sesión ya guarda lo necesario (P102).
 - **Aviso por esquive repetido** (bloque 11.4): a la tercera vez que se cambia la misma rutina. P102 guarda `rutinaPrevista` pero no avisa.
 - **Cobertura del plan** (bloque 11.3): la métrica separada de la adherencia. P102 guarda los datos, no la calcula.
+- **Datos de salud (P105, decisiones para el chat):**
+  - los 1537 `fc-reposo` viejos, que según P56 no son reposo y Progreso dibuja como «FC reposo»;
+  - 31 días con dos mediciones idénticas;
+  - los tramos de sueño que se superponen (mismo inicio, otro fin);
+  - que la app diga cuándo la presión está vieja: solo llega con el ZIP.
+
+  Los valores, en `docs/auditorias/auditoria-salud-2026-10-22.md` (local, ignorado por git); se miden de nuevo con `npm run auditoria:calidad-salud`.
+- **Kit (P105, lo que no llegó a `ui_kits/`):** la sesión por tiempo, VR a medida, «Cambiar» en el kit interactivo, los formularios de rutina y ejercicio y `PantallaError`.
 - ~~**SesionJuego: ✕ sin descartar, sin hoja de salida ni cierre** (03/10). La ✕ solo navega a /entrenar: el reloj sigue en el teléfono y vuelve al entrar; «Terminar» guarda directo. Para la auditoría de diseño.~~ Hecho en P103 (Bloque 4): la ✕ y el «atrás» abren la hoja de salida.
 
 

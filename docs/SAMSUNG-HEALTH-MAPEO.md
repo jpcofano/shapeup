@@ -69,7 +69,7 @@ que sembramos las zonas por miembro en `config/perfiles`.
 |---|---|---|
 | `sleep_duration` | `horas` | min → h (`/60`) |
 | `original_bed_time` (o `…sleep.start_time`) | `horaAcostarse` | epoch → `HH:MM` |
-| `…sleep.start_time` | `fecha` | epoch → fecha |
+| `…sleep.start_time` | `fecha` | epoch → fecha (local, con el `time_offset` de la fila; es el día del inicio, la noche la asigna `consolidarNoches`) |
 | — | `fuente` | `"samsung-health-csv"` |
 
 Extra (no en el modelo, útil para señal de recuperación): `sleep_score`, `efficiency`,
@@ -88,10 +88,16 @@ Para métricas sin colección tipada propia. **Granularidad diaria** — no se g
 | `oxygen_saturation` | `spo2` | promedio diario | % |
 | `respiratory_rate` | `frecuencia-respiratoria` | promedio por noche | rpm |
 | `skin_temperature` | `temperatura-piel` | promedio por noche | °C |
-| `blood_pressure` | `presion-sistolica` / `presion-diastolica` | último del día | mmHg |
+| `blood_pressure` | `presion-sistolica` / `presion-diastolica` | último del día: la lectura **más tardía del día** que tenga los dos valores; el par sale de esa sola lectura (P105) | mmHg |
 | `vitality` | `vitality` | promedio diario | — |
 
 `idMetrica = ${miembro}-${tipo}-${fecha}` → idempotente por día. Colección Firestore: `/metricas-salud`.
+
+**Presión (P105, 22/10).** Antes de P105 se agrupaba cada valor por separado y se guardaba el último **del
+archivo**: si el CSV no venía ordenado, o una fila traía uno solo de los dos valores, el par podía mezclar dos
+lecturas. Desde P105 (`presionPorDia`), un día sin ninguna lectura completa no guarda medio par. Reimportar un
+ZIP pisa el par de cada día con el correcto; los medios pares viejos, si hubiera, no se borran solos. La
+presión **solo llega con el ZIP**: el puente (vía D) no la trae.
 
 ## 5) Señales del motor de recomendaciones — disponibilidad confirmada
 El export confirma que **el set propuesto (`SENALES_SALUD`) es 100% obtenible**. Fuente de cada una:

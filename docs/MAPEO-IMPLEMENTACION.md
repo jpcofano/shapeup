@@ -134,6 +134,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P99 | Marcas de la app y análisis de sesión en dos capas: Partes 1–3 (`f8b0781`, `55a20d1`), Parte 4 (`6023035`, P103) y Parte 5, documentación (ADR #047; enmienda del #016) | ✅ | 2026-10-21 |
 | P103 | Corrida nocturna: cierre de P99 y pendientes chicos (`6023035`, `315510d`, `1e18b7b`, `51b3acf`, `720bee9`) | ✅ | 2026-10-21 |
 | P104 | Traer lo de Claude Design al repo: la raíz del sistema de diseño (cuenta A) y el archivo (`24fcb79`, `42379e2`, `963e774`) | ✅ | 2026-10-21 |
+| P105 | Corrida nocturna: auditoría de salud (la presión primero), `/qa/sesion`, capturas, el kit igual a la app y el diagnóstico de diseño (`5e475f0`, `9e2de46`, `e9e4726`, `2ac6729`, `741c187`, `769dfbd`, `fb134ae`, `ab0ede5`, `d91dd3e`, `480c71d`) | ✅ | 2026-10-22 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -150,6 +151,41 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-22] P105 — Corrida nocturna: los datos de salud, el kit igual a la app y el diagnóstico de diseño
+
+Prompt: `docs/prompts/105-corrida-nocturna-salud-y-kit-igual-a-la-app.md`. Sin escrituras en Firestore, sin
+deploy, sin instalar nada. **Juan no deploya hasta que el chat revise la corrida.**
+
+- **Bloque 0** (`5e475f0`, docs): respuestas a P103 en `RUTINAS-VR.md`, `ANALISIS-ASISTIDO.md` §8 y el
+  roadmap; el orden nuevo del paso 2b (`AUDITORIA-DISENO.md` §5, `ESTADO-DEL-PROYECTO.md` §5).
+- **Bloque 1: auditoría de salud** (solo lectura, sin ZIP: no había uno con presión en Descargas).
+  - **App** (`9e2de46`): el par de presión del día sale de una sola lectura, la más tardía con los dos valores
+    (`presionPorDia`, `src/import/samsungHealth.ts`). Antes: el último del archivo, con cada valor por
+    separado (P1 y P2, confirmados con tests). P3 (la zona horaria) se descartó con tests. `consolidarNoches`
+    cuenta una vez un tramo de sueño idéntico.
+  - **Herramientas** (`e9e4726`): `scripts/auditoria-calidad-salud.ts` (`npm run auditoria:calidad-salud`)
+    y `scripts/lib/chequeosSalud.ts`.
+  - Hallazgos que quedan abiertos (los valores, en `docs/auditorias/auditoria-salud-2026-10-22.md`, local e ignorado por git):
+    - los `fc-reposo` viejos, que según P56 no son reposo, y Progreso los dibuja;
+    - 31 días con mediciones duplicadas;
+    - un tramo de sueño con el mismo inicio y otro fin (16/08/2026).
+- **Bloque 2** (`2ac6729`, App): `/qa/sesion`, sin login. Los componentes de `HistorialDetalle` con la sesión
+  testigo, en cuatro casos, con un id ficticio para no tocar la sesión real. Ruta lazy.
+- **Bloque 3** (sin commit): capturas a 390 px en `docs/auditorias/capturas/2026-10-22/`, antes y después del
+  kit. Chrome headless no baja de 512 px de ventana en Windows; se usó emulación por el protocolo DevTools,
+  sin instalar nada.
+- **Bloque 4: el kit igual a la app** (docs):
+  - **4a** (`741c187`): `colors_and_type.css` sale de `tokens.css`, más los tokens de las direcciones de Home.
+  - **4b** (`769dfbd`): `README.md` y `SKILL.md` con «Cómo es la app hoy», las capas y las pantallas.
+  - **4c** (`fb134ae`): `preview/` con las tarjetas de color y tipografía nuevas, `brand-pwa` arreglada y 10
+    tarjetas de componentes renderizadas del código real.
+  - **4d** (`ab0ede5`): `ui_kits/shapeup/pantallas-nuevas.html`, con cinco pantallas renderizadas de las rutas
+    reales.
+  - Lo que faltó del kit está en el backlog del roadmap.
+- **Bloque 5** (`d91dd3e` Herramientas, `480c71d` docs): `docs/reportes/diagnostico-diseno-2026-10-22.md` y
+  `scripts/contraste-tokens.ts`. Hallazgo principal: el texto de los botones no pasa AA en Pulse e Indigo
+  oscuro (3,19 y 2,79).
 
 ### [2026-10-21] P103 — Corrida nocturna: cierre de P99 y pendientes chicos
 
