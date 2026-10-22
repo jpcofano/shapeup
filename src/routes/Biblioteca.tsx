@@ -207,13 +207,16 @@ export function Biblioteca() {
         <h1 className="page-title">Biblioteca</h1>
       </div>
 
-      {cambio && <FranjaCambio cambio={cambio} onCancelar={cancelarCambio} />}
+      {/* P103: la franja solo donde el cambio viaja hasta la sesión (Rutinas y
+          Ejercicios). Desde Programas no se empieza ninguna sesión: ahí se oculta,
+          para no prometer algo que no hace. */}
+      {cambio && tab !== "programas" && <FranjaCambio cambio={cambio} onCancelar={cancelarCambio} />}
 
       <TabBar tabs={TABS} active={tab} onChange={switchTab} />
 
       {tab === "programas"  && <ProgramasList />}
       {tab === "rutinas"    && <RutinasList cambio={cambio} />}
-      {tab === "ejercicios" && <Catalogo embedded />}
+      {tab === "ejercicios" && <Catalogo embedded cambio={cambio} />}
     </div>
   );
 }

@@ -11,6 +11,8 @@ import { getEjercicios } from "../data/ejercicios";
 import { filtrarEjercicios } from "../lib/filtros";
 import { useAuth } from "../auth/useAuth";
 import { BodyMap } from "../components/BodyMap";
+import { busquedaCambio } from "../lib/cambioDia";
+import type { CambioDelDia } from "../lib/entrenarState";
 
 // ── Ficha técnica (premium) ──────────────────────────────────────────────────
 
@@ -49,7 +51,7 @@ function FichaTecnica({ ej }: { ej: Ejercicio }) {
 
 // ── Detalle inline de un ejercicio ───────────────────────────────────────────
 
-function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
+function EjercicioCard({ ej, onEdit, cambio }: { ej: Ejercicio; onEdit?: () => void; cambio?: CambioDelDia | null }) {
   const [abierto, setAbierto] = useState(false);
   const navigate = useNavigate();
 
@@ -93,7 +95,8 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
           <button
             className="btn-primary"
             style={{ marginTop: 10, width: "100%" }}
-            onClick={() => navigate(`/entrenar/ejercicio/${ej.idEjercicio}`)}
+            // P103: con un cambio en curso («Ver todas»), la prevista viaja a la sesión.
+            onClick={() => navigate(`/entrenar/ejercicio/${ej.idEjercicio}${busquedaCambio(cambio ?? null)}`)}
           >
             <Zap size={18} /> Empezar este ejercicio
           </button>
@@ -196,9 +199,11 @@ function EjercicioCard({ ej, onEdit }: { ej: Ejercicio; onEdit?: () => void }) {
 interface CatalogoProps {
   /** true cuando se renderiza dentro de Biblioteca (sin wrapper .page extra) */
   embedded?: boolean;
+  /** El cambio en curso desde «Ver todas» (P102/P103): viaja a la sesión de un ejercicio. */
+  cambio?: CambioDelDia | null;
 }
 
-export function Catalogo({ embedded = false }: CatalogoProps) {
+export function Catalogo({ embedded = false, cambio = null }: CatalogoProps) {
   const navigate           = useNavigate();
   const { memberId }       = useAuth();
   const isOwner            = memberId === "juanpablo";
@@ -293,6 +298,7 @@ export function Catalogo({ embedded = false }: CatalogoProps) {
               key={ej.idEjercicio}
               ej={ej}
               onEdit={isOwner ? () => navigate(`/catalogo/${ej.idEjercicio}/editar`) : undefined}
+              cambio={cambio}
             />
           ))}
         </div>

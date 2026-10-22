@@ -10,8 +10,9 @@
 //  - **El récord es «a la fecha»**: se compara solo contra las sesiones
 //    anteriores (fecha menor, o la misma fecha con `inicioMs` menor), así el
 //    récord de una sesión no cambia cuando después aparece una mejor.
-//  - La semana cuenta contra la meta guardada al cerrar (`planSemana`), no
-//    contra el plan de hoy: sin `planSemana`, no hay marca.
+//  - La semana cuenta contra la meta del día en que se jugó la sesión
+//    (`planSemana`, sellada ese día), no contra el plan de hoy: sin
+//    `planSemana`, no hay marca.
 //  - Todo es función pura (ADR #009): sin Firebase, testeable directo.
 // ════════════════════════════════════════════════════════════════════════════
 

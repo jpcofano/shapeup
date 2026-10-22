@@ -20,7 +20,7 @@ import {
   camposCambio, camposPlanSemana,
   type EntrenarState,
 } from "../lib/entrenarState";
-import { cambioDeNavegacion } from "../lib/cambioDia";
+import { cambioDeUbicacion } from "../lib/cambioDia";
 import {
   cargarConfigLibre, guardarConfigLibre, borrarConfigLibre,
   mismosEjercicios, restaurarConfig,
@@ -152,14 +152,21 @@ export function EntrenarSesionLibre() {
   // - Vieja: lo resuelve `reiniciarYSellar` si se reinicia; si se guarda, va
   //   con el suyo.
   const location = useLocation();
-  const [cambioNav] = useState(() => cambioDeNavegacion(location.state));
+  // Por el `state` de la hoja «Cambiar», o por la URL desde el catálogo («Ver todas», P103).
+  const [cambioNav] = useState(() => cambioDeUbicacion(location));
   /** La sesión cargada al montar era vieja: reiniciarla toma el cambio de hoy. */
   const reiniciaVieja = useRef(false);
   useEffect(() => {
     const vieja = sesionVieja(state, Date.now());
     reiniciaVieja.current = vieja;
+    // Con el atajo de un ejercicio y otra sesión libre con series, esa sesión
+    // todavía no se resolvió (la hoja pregunta si se guarda): el cambio no se le
+    // sella a ella. Lo fija `arrancarAtajo`, cuando arranca la nueva (P103).
+    const pendiente = idEjercicioAtajo != null && seriesHechasTotales(state) > 0;
     if (state.inicioMs == null) session.fijarCambio(cambioNav, null);
-    else if (!vieja && cambioNav && !state.cambio) session.fijarCambio(cambioNav, null);
+    else if (!vieja && !pendiente && cambioNav && !state.cambio) session.fijarCambio(cambioNav, null);
+    // P103: se saca de la navegación, así «atrás» no lo vuelve a aplicar.
+    if (cambioNav) navigate(location.pathname, { replace: true, state: null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -224,6 +231,9 @@ export function EntrenarSesionLibre() {
     setEjDefaults(defaults);
     setAvisoLibre(null);
     reiniciarYSellar();
+    // La sesión del atajo es nueva: lleva el cambio de hoy, o ninguno, y no el
+    // de la sesión anterior que conservaría el reinicio (P103).
+    session.fijarCambio(cambioNav, null);
     setSesionIniciada(true);
   }
 

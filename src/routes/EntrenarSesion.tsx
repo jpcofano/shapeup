@@ -279,6 +279,10 @@ export function EntrenarSesion() {
     const vieja  = sesionVieja(state, Date.now());
     const cierreVR = vieja ? cierreViejoVR(state) : null;
     reiniciaVieja.current = vieja;
+    // P103: el cambio ya se leyó y vive en `cambioNav` (y, si corresponde, en el
+    // estado). Se saca de la navegación antes de cualquier otra cosa, así volver
+    // con «atrás» no lo aplica de nuevo, tampoco si se abre la hoja de salida.
+    if (cambioNav) navigate(location.pathname, { replace: true, state: null });
     if (cierreVR === "hoja" && state.inicioMs != null) {
       setCierreViejo(true);
       abrirSalida(mensajeSesionVieja(state.inicioMs));

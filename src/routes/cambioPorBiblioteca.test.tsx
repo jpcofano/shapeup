@@ -132,3 +132,59 @@ describe("«Ver todas»: el cambio viaja por la URL (P102)", () => {
     expect("motivoCambio" in opts).toBe(false);
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+//  P103 Bloque 3 — los restos de P102
+// ════════════════════════════════════════════════════════════════════════════
+describe("Los restos de P102 (P103)", () => {
+  async function montarEn(entradas: string[], indice?: number) {
+    const router = createMemoryRouter(
+      [
+        { path: "/biblioteca", element: createElement(Biblioteca) },
+        { path: "/biblioteca/:id", element: createElement(RutinaDetalle) },
+        { path: "/entrenar/:rutinaId", element: createElement(EntrenarSesion) },
+        { path: "/entrenar", element: createElement("div", { id: "lista" }, "lista") },
+        { path: "/historial", element: createElement("div", { id: "historial" }) },
+      ],
+      { initialEntries: entradas, initialIndex: indice },
+    );
+    const div = document.createElement("div");
+    root = createRoot(div);
+    await act(async () => { root!.render(createElement(RouterProvider, { router })); });
+    await esperar();
+    const tocar = async (texto: string) => {
+      const b = [...div.querySelectorAll("button")].find((x) => x.textContent?.trim() === texto || x.title === texto);
+      if (!b) throw new Error(`no está el botón «${texto}»`);
+      await act(async () => { b.click(); });
+      await esperar();
+    };
+    return { router, div, tocar };
+  }
+
+  it("en la pestaña Programas la franja se oculta: por ahí no se empieza ninguna sesión", async () => {
+    const { div, router } = await montarEn([`/biblioteca?tab=programas&enLugarDe=${RUT_CREED}`]);
+    expect(div.querySelector("[data-testid=franja-cambio]")).toBeNull();
+    // El cambio sigue en la URL: al volver a Rutinas, la franja vuelve.
+    expect(router.state.location.search).toContain("enLugarDe");
+  });
+
+  it("al empezar, el cambio sale de la navegación: «atrás» no lo vuelve a aplicar", async () => {
+    const { router, tocar } = await montarEn(
+      ["/biblioteca", `/entrenar/${COMBAT.idRutina}?enLugarDe=${RUT_CREED}&motivo=poco-tiempo`], 1,
+    );
+    // Se selló en el estado de la sesión, y la URL quedó limpia (con replace).
+    const clave = `entrenar:rutina:${COMBAT.idRutina}`;
+    expect(JSON.parse(localStorage.getItem(clave)!).cambio).toEqual({ rutinaPrevista: RUT_CREED, motivo: "poco-tiempo" });
+    expect(router.state.location.search).toBe("");
+    expect(router.state.location.state).toBeNull();
+
+    // Sale sin guardar y vuelve con «atrás»: la sesión nueva no trae el cambio.
+    await tocar("Salir");
+    await tocar("Salir sin guardar");
+    expect(router.state.location.pathname).toBe("/entrenar");
+    await act(async () => { await router.navigate(-1); });
+    await esperar();
+    expect(router.state.location.pathname).toBe(`/entrenar/${COMBAT.idRutina}`);
+    expect(JSON.parse(localStorage.getItem(clave)!).cambio).toBeNull();
+  });
+});
