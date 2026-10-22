@@ -132,7 +132,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P98 | Las rutinas de VR por escalones: dos modos, la regla de progresión y el programa de 5 días (ADR #046) | ✅ | 2026-10-02 |
 | P102 | Cambiar lo que toca hoy (ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre (enmienda del #046) | ✅ | 2026-10-15 |
 | P99 | Marcas de la app y análisis de sesión en dos capas: Partes 1–3 (`f8b0781`, `55a20d1`), Parte 4 (`6023035`, P103) y Parte 5, documentación (ADR #047; enmienda del #016) | ✅ | 2026-10-21 |
-| P103 | Corrida nocturna: cierre de P99 y pendientes chicos | en curso (Bloques 1–2) | 2026-10-21 |
+| P103 | Corrida nocturna: cierre de P99 y pendientes chicos (`6023035`, `315510d`, `1e18b7b`, `51b3acf`, `720bee9`) | ✅ | 2026-10-21 |
 | P104 | Traer lo de Claude Design al repo: la raíz del sistema de diseño (cuenta A) y el archivo (`24fcb79`, `42379e2`, `963e774`) | ✅ | 2026-10-21 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
@@ -153,7 +153,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 ### [2026-10-21] P103 — Corrida nocturna: cierre de P99 y pendientes chicos
 
-**En curso (Bloques 1–2).** Los bloques 3 a 5 se suman acá a medida que se cierren. Prompt:
+Los cinco bloques hechos, cada uno con su commit y su push. Prompt:
 `docs/prompts/103-corrida-nocturna-cierre-p99-y-pendientes.md`.
 
 - **Bloque 1: P99 Parte 4, la pantalla de la sesión** (`6023035`, App). Calidad, veredicto, badges,
@@ -168,7 +168,30 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
   línea en el índice de `CLAUDE.md`; `ANALISIS-ASISTIDO.md` al día (P99 hecho, §6 como quedó construido, con
   la nota de que P101 lo ajusta, y el catálogo final); P99 ✅ en el roadmap y el pendiente del sueño y la FC
   de reposo en el backlog; esta entrada y la de P99.
-- **Bloques 3 a 5:** pendientes de registrar.
+- **Bloque 3: los restos de P102** (`1e18b7b`, App).
+  - «Ver todas» por Ejercicios: «Empezar este ejercicio» lleva la prevista a la sesión de un ejercicio
+    suelto (`Catalogo` recibe el `cambio` y arma la URL con `busquedaCambio`).
+  - Por Programas no se empieza ninguna sesión: la franja se oculta en esa pestaña, y el cambio sigue en la URL.
+  - Al empezar, `EntrenarSesion` y `EntrenarSesionLibre` sacan el cambio de la navegación con `replace`
+    (`state` y `?enLugarDe=&motivo=`), antes de cualquier hoja: «atrás» no lo vuelve a aplicar.
+  - El atajo de un ejercicio con otra sesión libre pendiente: el cambio no se le sella a la pendiente; lo
+    lleva la sesión nueva (`arrancarAtajo`).
+  - Tests: `cambioPorBiblioteca.test.tsx` (2 nuevos), `cambioPorEjercicios.test.tsx` (nuevo, 2).
+- **Bloque 4: la salida de `SesionJuego`** (`51b3acf`, App).
+  - La ✕ y el «atrás» (`useBlocker`) abren `HojaSalida` con «Terminar y guardar», «Salir sin guardar» y
+    «Seguir jugando», sin «Reiniciar».
+  - Salir sin guardar borra `shapeup:sesion-juego`; en Firestore no hay nada hasta «Terminar». Con un
+    minuto o más, confirma con «Se descartan N min jugados.».
+  - `HojaSalida` suma props opcionales (`sinSeries`, `textoGuardar`, `textoSeguir`; `onReiniciar`
+    opcional); con los defaults, VR y la sesión libre quedan igual.
+  - Tests: `SesionJuego.salida.test.tsx` (nuevo, 8).
+- **Bloque 5: la prescripción guardada en fuerza** (`720bee9`, App).
+  - `BloqueRegistro.prescripcionFuerza`, opcional: series, reps, carga y descanso de la rutina al cerrar,
+    y RIR y tempo si los tiene. Solo en bloques de Fuerza de una rutina; la sesión libre no la guarda.
+  - `prescripcionUsada` (VR) no se tocó, y no entra en ningún cálculo.
+  - El paquete la manda como la prescripción de esa sesión (`prescripcionOrigen: "sesion"`) en vez de la
+    rutina de hoy.
+  - Tests: `entrenarState.prescripcionFuerza.test.ts` (nuevo, 9) y uno en `paqueteAnalisis.test.ts`.
 
 ### [2026-10-21] P104 — Traer lo de Claude Design al repo, antes de que cierre
 

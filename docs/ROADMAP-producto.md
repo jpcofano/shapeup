@@ -399,9 +399,10 @@ de bloquearte la app.
 **Cómo quedó (P102).** Botón «Cambiar» junto a «Empezar», en Home (todos los layouts) y en Entrenar.
 La hoja ofrece, en este orden: VR a medida; otras rutinas del programa; otras de VR (Combat corto
 incluida); sesión libre; «Ver todas» (Biblioteca: la prevista viaja por la URL, `?enLugarDe=…&motivo=…`,
-hasta la rutina y la sesión, con una franja «Cambiando …» y una ✕ que cancela el cambio). Motivo opcional en
+hasta la rutina y la sesión, con una franja «Cambiando …» y una ✕ que cancela el cambio; desde P103 también por
+la pestaña Ejercicios, y en Programas la franja se oculta). Motivo opcional en
 chips: poco tiempo, cansado, dolor, otra cosa. La prevista viaja por el `state` de la navegación y se
-fija en `EntrenarState.cambio`. «Ya entrenaste hoy» se calcula sobre el día, no la semana, y una
+fija en `EntrenarState.cambio`; al empezar, sale de la navegación, así «atrás» no lo vuelve a aplicar (P103). «Ya entrenaste hoy» se calcula sobre el día, no la semana, y una
 sesión con `rutinaPrevista` cubre el día de la prevista (`proximaSesion`). Detalle en
 [RUTINAS-VR.md](RUTINAS-VR.md) y en el ADR #030.
 
@@ -521,7 +522,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P102 | ✅ (15/10) Cambiar lo que toca hoy (bloque 11, ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre. Ver [RUTINAS-VR.md](RUTINAS-VR.md) | P98 |
 | P99 | ✅ (21/10) Marcas de la app y análisis de sesión en dos capas, en cinco partes: diagnóstico, marcas de la app, esquema 3 y prompt 4 (19/10, `f8b0781` y `55a20d1`), pantalla (P103 Bloque 1, `6023035`) y cierre de documentos con el ADR #047 (P103 Bloque 2). Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
 | P104 | ✅ (21/10) Traer lo de Claude Design al repo antes de que cierre (14/12): la raíz del sistema de diseño pasa a la versión de la cuenta A, y las explorations, las auditorías y los inventarios quedan archivados. Ver `docs/AUDITORIA-DISENO.md` §8 | — |
-| P103 | Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
+| P103 | ✅ (21/10) Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
 | P101 | Auditoría de diseño: lo próximo de pantalla. Plan, diagnóstico y estado: `docs/AUDITORIA-DISENO.md`. | P103 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
@@ -529,7 +530,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 
 - **Diagnóstico de la sesión libre del 07/07** (ambigua, dos candidatas) y de la **sesión de fuerza del 29/06** (dura 17 min pero sus series abarcan 38,6 y el reloj midió 39; anterior a P84c, sin inicio ni fin guardados). Ambas de lectura, en un mismo prompt.
 - **El sueño y la FC de reposo solo llegan si se importó el ZIP de ese día: la vía D no los trae. Evaluar sumarlos al puente (repo shapeup-bridge)** (P99 Parte 3: el paquete de análisis los manda, pero llegan `null` sin ZIP).
-- **Guardar la prescripción al cerrar las sesiones de fuerza.** Chico, no urgente.
+- ~~**Guardar la prescripción al cerrar las sesiones de fuerza.** Chico, no urgente.~~ Hecho en P103 (Bloque 5): `BloqueRegistro.prescripcionFuerza`.
 - **P94** — análisis global sobre un rango de semanas. Code avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango).
 - **P95** — sincronización incremental y duplicados (18 MB por sincronización, 12 registros duplicados, `updateTime` disponible).
 - Del inventario del SDK, aprobado como idea: la **cadencia** como testigo de la FC de muñeca en VR y boxeo, `logWithHeartRate` para la cobertura, `skeletal_muscle_mass`.
@@ -543,7 +544,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - **Series informativas por configuración** de la rutina a medida (RUT-0030): agrupar las sesiones con el mismo juego, bloques, minutos y descanso. La sesión ya guarda lo necesario (P102).
 - **Aviso por esquive repetido** (bloque 11.4): a la tercera vez que se cambia la misma rutina. P102 guarda `rutinaPrevista` pero no avisa.
 - **Cobertura del plan** (bloque 11.3): la métrica separada de la adherencia. P102 guarda los datos, no la calcula.
-- **SesionJuego: ✕ sin descartar, sin hoja de salida ni cierre** (03/10). La ✕ solo navega a /entrenar: el reloj sigue en el teléfono y vuelve al entrar; «Terminar» guarda directo. Para la auditoría de diseño.
+- ~~**SesionJuego: ✕ sin descartar, sin hoja de salida ni cierre** (03/10). La ✕ solo navega a /entrenar: el reloj sigue en el teléfono y vuelve al entrar; «Terminar» guarda directo. Para la auditoría de diseño.~~ Hecho en P103 (Bloque 4): la ✕ y el «atrás» abren la hoja de salida.
 
 
 ---

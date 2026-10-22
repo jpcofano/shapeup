@@ -1105,7 +1105,8 @@ Sin claves, sin servidor, sin costo: la persona es el transporte, a propósito.
     duración y el tramo de las series difieren más de 12 %, va `discrepanciaDuracion` con los dos
     números, y el prompt pide no concluir de duración ni de densidad.
   - `prescripcionOrigen` vale `sesion` (hoy solo VR, `prescripcionUsada`) o `rutina-actual`, que
-    es solo una referencia.
+    es solo una referencia. _Nota del 21/10 (P103): `sesion` también en los bloques de fuerza
+    guardados desde P103 (`prescripcionFuerza`) y en VR por escalones (`vr.prescripto`, P99)._
 - **Nada de consejo médico**: una señal de salud va como bandera `consultar-profesional`, nunca
   como diagnóstico.
 - La curva no se persiste (ADR #016): para el paquete se vuelve a leer del crudo del puente
