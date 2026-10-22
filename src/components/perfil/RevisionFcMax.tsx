@@ -123,7 +123,8 @@ export function RevisionFcMax({ miembro, perfil, historial, onGuardado }: Props)
           <ul style={{ margin: 0, padding: 0, listStyle: "none", fontSize: 11, color: "var(--muted)" }}>
             {estimacion.sesionesExcluidas.map((x) => (
               <li key={x.idHist}>
-                {ddmm(x.fecha)} · {x.nombre || "Sesión"} · {x.pico ?? "—"} · {TEXTO_EXCLUSION[x.motivo]}
+                {/* P103: los dos picos, el crudo (el que dispara la regla) y el suavizado. */}
+                {ddmm(x.fecha)} · {x.nombre || "Sesión"} · pico {x.picoCrudo ?? "—"} crudo, {x.pico ?? "—"} suavizado · {TEXTO_EXCLUSION[x.motivo]}
               </li>
             ))}
           </ul>

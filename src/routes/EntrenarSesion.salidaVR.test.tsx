@@ -41,6 +41,8 @@ vi.mock("../data/configProgresion", () => ({
   getConfigProgresion: vi.fn(() => Promise.resolve({ ok: false, error: "default" })),
 }));
 vi.mock("../lib/audioAlert", () => ({ unlockAudio: vi.fn(), playPitidoVR: vi.fn(), audioSuspendido: vi.fn(() => false) }));
+/** El plan de HOY (P99): una sesión vieja no lo tiene que tomar. */
+vi.mock("../hooks/usePlanSemana", () => ({ usePlanSemana: () => ({ metaDias: 5, idPrograma: "PRG-0013" }) }));
 
 import { EntrenarSesion } from "./EntrenarSesion";
 import { descartarSesion, crearSesion } from "../data/sesiones";
@@ -323,5 +325,31 @@ describe("El aviso de sonido al reabrir (P102)", () => {
   it("con el sonido andando, no hay aviso", async () => {
     const { div } = await montar(sesionVR(25));
     expect(div.textContent).not.toContain("Tocá la pantalla para activar el sonido");
+  });
+});
+
+describe("El plan de la semana de una sesión vieja (P99, respuesta del 21/10)", () => {
+  it("«Guardar la de ese día» lleva el plan sellado el día que se jugó, no el de hoy", async () => {
+    const vieja = { ...sesionVR(HACE_13_DIAS, 40), planSemana: { metaDias: 6, idPrograma: "PRG-0004" } };
+    const { tocar } = await montar(vieja);
+    await tocar("Guardar la de ese día");
+    await tocar("Mixto");
+    await tocar("Guardar");
+    expect(finalizarSesion).toHaveBeenCalledWith(expect.objectContaining({ planSemana: { metaDias: 6, idPrograma: "PRG-0004" } }));
+  });
+
+  it("sin plan sellado ese día, se guarda sin plan: no toma el de hoy", async () => {
+    const { tocar } = await montar(sesionVR(HACE_13_DIAS, 40));
+    await tocar("Guardar la de ese día");
+    await tocar("Mixto");
+    await tocar("Guardar");
+    expect("planSemana" in vi.mocked(finalizarSesion).mock.calls[0][0]).toBe(false);
+  });
+
+  it("una sesión de hoy sella el plan de hoy y lo guarda", async () => {
+    const { tocar } = await montar(sesionVR(45, 40));
+    await tocar("Mixto");
+    await tocar("Guardar");
+    expect(finalizarSesion).toHaveBeenCalledWith(expect.objectContaining({ planSemana: { metaDias: 5, idPrograma: "PRG-0013" } }));
   });
 });

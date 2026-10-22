@@ -66,6 +66,11 @@ export interface SesionExcluida {
   nombre: string;
   /** El pico suavizado, si la sesión lo tiene. */
   pico: number | null;
+  /**
+   * El pico crudo de la curva (`biometria.fcMax`): el que dispara la regla del
+   * pico sobre la vigente (P103). Se muestra al lado del suavizado.
+   */
+  picoCrudo: number | null;
   motivo: MotivoExclusion;
 }
 
@@ -116,7 +121,7 @@ export function estimarFcMax(
   const excluir = (h: (typeof historial)[number], b: BiometriaSesion, motivo: MotivoExclusion) =>
     sesionesExcluidas.push({
       idHist: h.idHist, fecha: h.fechaRealizada, nombre: h.nombreJuego ?? h.nombreRutina ?? "",
-      pico: b.fcPicoSuavizado ?? null, motivo,
+      pico: b.fcPicoSuavizado ?? null, picoCrudo: b.fcMax ?? null, motivo,
     });
   for (const h of historial) {
     if (h.fechaRealizada < desde || h.fechaRealizada > hasta) continue;

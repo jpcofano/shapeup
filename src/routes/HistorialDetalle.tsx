@@ -21,6 +21,7 @@ import { ymdLocal } from "../lib/semana";
 import { AnalisisSesion } from "../components/historial/AnalisisSesion";
 import { getRutina } from "../data/rutinas";
 import { lineaCambio } from "../lib/cambioDia";
+import { CabeceraMarcas } from "../components/historial/CabeceraMarcas";
 
 function formatFecha(s: string): string {
   const [y, m, d] = s.split("-");
@@ -177,6 +178,10 @@ export function HistorialDetalle() {
           </p>
         )}
       </div>
+
+      {/* P99 §6 (P103): la calidad, el veredicto, los badges, los destacados, la
+          curva con las marcas y las secundarias. Lo medido se ve igual sin análisis. */}
+      <CabeceraMarcas h={h} historial={historialMiembro} />
 
       {/* Stats */}
       <div className="card">

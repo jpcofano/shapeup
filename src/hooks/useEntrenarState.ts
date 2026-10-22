@@ -28,6 +28,8 @@ import {
   cambiarLugar as _cambiarLugar,
   construirBloquesRegistro,
   fijarCambio as _fijarCambio,
+  sellarPlanSemana as _sellarPlanSemana,
+  type PlanSemanaSesion,
   estadoNuevo,
   type CambioDelDia,
   type EntrenarState,
@@ -160,6 +162,11 @@ export function useEntrenarState(sessionKey: string, rutina: Rutina | null) {
      */
     empezarDeNuevo(idSesion: string, cambio: CambioDelDia | null) {
       dispatch((s) => estadoNuevo(s, idSesion, cambio));
+    },
+    /** Sella el plan de la semana del día en que se juega (P99). No pisa uno sellado. */
+    sellarPlanSemana(plan: PlanSemanaSesion | null) {
+      const now = Date.now();
+      dispatch((s) => _sellarPlanSemana(s, plan, now));
     },
     /** Fija lo que tocaba hoy (P102); `null` lo saca. Una prevista igual a la sesión no se guarda. */
     fijarCambio(cambio: CambioDelDia | null, idRutinaSesion?: string | null) {

@@ -46,9 +46,9 @@ describe("estimarFcMax (P97, decisión 4)", () => {
       sesion("d", "2026-09-26", 165),
     ], HOY, [], 169);
     expect(e.sesionesExcluidas).toEqual([
-      { idHist: "a", fecha: "2026-09-29", nombre: "VR — Quema", pico: 183, motivo: "pico-sobre-vigente" },
-      { idHist: "b", fecha: "2026-09-28", nombre: "Fuerza A", pico: 150, motivo: "saltos" },
-      { idHist: "c", fecha: "2026-09-27", nombre: "Libre", pico: 168, motivo: "cobertura" },
+      { idHist: "a", fecha: "2026-09-29", nombre: "VR — Quema", pico: 183, picoCrudo: 184, motivo: "pico-sobre-vigente" },
+      { idHist: "b", fecha: "2026-09-28", nombre: "Fuerza A", pico: 150, picoCrudo: 160, motivo: "saltos" },
+      { idHist: "c", fecha: "2026-09-27", nombre: "Libre", pico: 168, picoCrudo: null, motivo: "cobertura" },
     ]);
   });
   it("por la regla del pico, la estimación sube como mucho 10 latidos por revisión", () => {

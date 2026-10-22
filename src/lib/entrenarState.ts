@@ -22,6 +22,7 @@ import type {
 } from "../types/models";
 import { seriesObjetivo } from "./metricas";
 import { e1rmKg } from "./resumenSesion";
+import { ymdLocal } from "./semana";
 export { seriesObjetivo } from "./metricas";
 
 // ─── Estado (serializable; espejo de ProgresoSesion) ──────────────────────────
@@ -115,7 +116,18 @@ export interface EntrenarState {
    * va a `Historial.rutinaPrevista` y `motivoCambio`. `null` = no hubo cambio.
    */
   cambio: CambioDelDia | null;
+  /**
+   * La meta y el programa del día en que se jugó la sesión (P99, respuesta de
+   * Juan del 21/10). Se sella al empezar, el mismo día: una sesión vieja que se
+   * guarda después lleva el plan de ese día, no el del día en que se guarda.
+   * `null` = no se selló (la sesión es anterior a este cambio, o el plan no
+   * cargó ese día): se guarda sin plan, y no se completa con el de hoy.
+   */
+  planSemana: PlanSemanaSesion | null;
 }
+
+/** La meta de la semana y el programa vigentes (P99): lo que guarda `Historial.planSemana`. */
+export interface PlanSemanaSesion { metaDias: number; idPrograma: string | null }
 
 /** La rutina que tocaba y por qué se cambió, si se dijo (P102). */
 export interface CambioDelDia {
@@ -153,6 +165,7 @@ export const INITIAL_ENTRENAR_STATE: EntrenarState = {
   vrEscalon: null,
   progresionVR: null,
   cambio: null,
+  planSemana: null,
 };
 
 /**
@@ -729,6 +742,26 @@ export function estadoReiniciado(state: EntrenarState): EntrenarState {
     // Lo que tocaba hoy sigue tocando: reiniciar no deshace el cambio (P102).
     cambio: state.cambio,
   };
+}
+
+/**
+ * Sella el plan de la semana del día en que se juega (P99). Solo si la sesión
+ * arrancó hoy: el plan de hoy no es el de una sesión de otro día. Una vez
+ * sellado no se pisa.
+ */
+export function sellarPlanSemana(
+  state: EntrenarState,
+  plan: PlanSemanaSesion | null,
+  now: number = Date.now(),
+): EntrenarState {
+  if (state.planSemana || !plan || state.inicioMs == null) return state;
+  if (ymdLocal(new Date(state.inicioMs)) !== ymdLocal(new Date(now))) return state;
+  return { ...state, planSemana: plan };
+}
+
+/** El campo de `finalizarSesion`: el plan sellado el día que se jugó, o nada. */
+export function camposPlanSemana(state: Pick<EntrenarState, "planSemana">): { planSemana?: PlanSemanaSesion } {
+  return state.planSemana ? { planSemana: state.planSemana } : {};
 }
 
 /**

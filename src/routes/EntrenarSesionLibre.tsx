@@ -17,7 +17,7 @@ import {
   buildBloqueLibre, buildVirtualRutina,
   finParcialMs, sesionVieja, mensajeSesionVieja, quitarBloques,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
-  camposCambio,
+  camposCambio, camposPlanSemana,
   type EntrenarState,
 } from "../lib/entrenarState";
 import { cambioDeNavegacion } from "../lib/cambioDia";
@@ -136,6 +136,13 @@ export function EntrenarSesionLibre() {
 
   const session    = useEntrenarState(SESSION_KEY, virtualRutina);
   const state      = session.state;
+
+  // P99: el plan de la semana se sella el día en que se juega, y no se pisa.
+  // Una sesión vieja guardada después lleva el de ese día, no el de hoy.
+  useEffect(() => {
+    if (planSemana) session.sellarPlanSemana(planSemana);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planSemana, state.inicioMs]);
 
   // Lo que tocaba hoy, si se llegó desde «Cambiar» (P102). Se fija una vez al
   // montar; reiniciar lo conserva, así llega a la sesión que se arranque.
@@ -375,7 +382,7 @@ export function EntrenarSesionLibre() {
       ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
       completitud: rutinaCompleta(state, virtualRutina) ? "completa" : "parcial",
       ...camposCambio(state),
-      ...(planSemana ? { planSemana } : {}),
+      ...camposPlanSemana(state),
     });
     setGuardandoSalida(false);
     if (!result.ok) { setErrorSalida(result.error); return; }
@@ -704,7 +711,7 @@ export function EntrenarSesionLibre() {
               ...(cierre.ventana ? { ventana: cierre.ventana } : {}),
               completitud: completa ? "completa" : "parcial",
               ...camposCambio(state),
-              ...(planSemana ? { planSemana } : {}),
+              ...camposPlanSemana(state),
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
             cerrarSesionLocal();

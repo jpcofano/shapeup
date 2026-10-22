@@ -12,7 +12,7 @@ import {
   rutinaCompleta, rutinaTerminada, seriesHechasTotales, valorPrefillSerie,
   finParcialMs, sesionVieja, mensajeSesionVieja,
   bloqueCompleto, seriesObjetivo, nombreSiguientePendiente, aContinuacionDescanso,
-  vrEscalonCerrado, indiceBloqueVR, minutosJugadosVR, cierreViejoVR, camposCambio,
+  vrEscalonCerrado, indiceBloqueVR, minutosJugadosVR, cierreViejoVR, camposCambio, camposPlanSemana,
 } from "../lib/entrenarState";
 import { InicioEscalonVR } from "../components/entrenar/InicioEscalonVR";
 import { InicioAMedidaVR } from "../components/entrenar/InicioAMedidaVR";
@@ -146,6 +146,13 @@ export function EntrenarSesion() {
   const session    = useEntrenarState(sessionKey, rutina);
   const state      = session.state;
 
+  // P99: el plan de la semana se sella el día en que se juega, y no se pisa.
+  // Una sesión vieja guardada después lleva el de ese día, no el de hoy.
+  useEffect(() => {
+    if (planSemana) session.sellarPlanSemana(planSemana);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planSemana, state.inicioMs]);
+
   // Reiniciar (hoja de salida y pantalla de fin): confirma si hay series. Sella
   // el inicio de la sesión nueva en el mismo handler: si ya estábamos en el
   // bloque 0, el efecto de montaje no se vuelve a disparar.
@@ -235,7 +242,7 @@ export function EntrenarSesion() {
       idSesion:    state.idSesion ?? undefined,
       completitud: rutinaCompleta(state, rutina) ? "completa" : "parcial",
       ...camposCambio(state),
-      ...(planSemana ? { planSemana } : {}),
+      ...camposPlanSemana(state),
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
     salirTrasGuardar(result.value.pendiente);
@@ -616,7 +623,7 @@ export function EntrenarSesion() {
           completoDeclarado: d.completoDeclarado, dificultad: d.dificultad,
         },
         ...camposCambio(state),
-        ...(planSemana ? { planSemana } : {}),
+        ...camposPlanSemana(state),
         // El día de la sesión es el día en que se jugó: una sesión vieja que se
         // guarda «la de ese día» no cae hoy (P102).
         ...(desde != null ? { fechaMs: desde } : {}),
@@ -696,7 +703,7 @@ export function EntrenarSesion() {
               // El lazo de evaluación de P79: qué sugirió la app y qué se hizo.
               ...(state.progresionVR ? { progresionVR: state.progresionVR } : {}),
               ...camposCambio(state),
-              ...(planSemana ? { planSemana } : {}),
+              ...camposPlanSemana(state),
             });
             if (!result.ok) { setSaveError(result.error); setSaving(false); return; }
             // limpiar (dentro de salirTrasGuardar), no reiniciar: reiniciar
@@ -765,7 +772,7 @@ export function EntrenarSesion() {
       completitud: objetivoMinHoy > 0 && minutos >= objetivoMinHoy * FRACCION_TIEMPO_COMPLETO
         ? "completa" : "parcial",
       ...camposCambio(state),
-      ...(planSemana ? { planSemana } : {}),
+      ...camposPlanSemana(state),
     });
     if (!result.ok) { setErrorSalida(result.error); setGuardandoSalida(false); return; }
     salirTrasGuardar(result.value.pendiente);

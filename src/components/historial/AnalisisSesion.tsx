@@ -10,6 +10,20 @@ import { validarAnalisisSesion, contextoValidacion } from "../../lib/validarAnal
 import { analisisParaGuardar } from "../../lib/analisis";
 import { PROMPT_SESION } from "./promptSesion";
 
+/**
+ * El detalle de un análisis de esquema 3 va plegado (P99 §6): el veredicto y
+ * los destacados ya están arriba. Los de esquema 2 se siguen viendo como antes.
+ */
+function PlegadoSiEsquema3({ plegar, children }: { plegar: boolean; children: React.ReactNode }) {
+  if (!plegar) return <>{children}</>;
+  return (
+    <details data-testid="detalle-plegado">
+      <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Detalle del análisis</summary>
+      <div style={{ marginTop: 8 }}>{children}</div>
+    </details>
+  );
+}
+
 /** Por encima de esto, además de copiar se ofrece bajarlo como archivo. */
 const GRANDE_BYTES = 30 * 1024;
 
@@ -148,11 +162,28 @@ export function AnalisisSesion({ h, historial, errorHistorial, nocheAnterior, fc
       <p className="section-title" style={{ margin: 0 }}>Análisis asistido</p>
 
       {a && (
+        <PlegadoSiEsquema3 plegar={a.veredicto != null}>
         <div style={{ border: "1px dashed var(--border)", borderRadius: 10, padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
           <p style={{ margin: 0, fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>
             Interpretación · no es un dato medido · {a.generadoEn} · {a.modelo}
           </p>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>{a.resumen}</p>
+
+          {/* Esquema 3 (P103): las marcas del análisis, también en texto (sin curva no se dibujan). */}
+          {a.marcasAnalisis && a.marcasAnalisis.length > 0 && (
+            <div>
+              <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600 }}>Marcas del análisis</p>
+              {a.marcasAnalisis.map((m, i) => (
+                <p key={i} style={{ margin: "0 0 4px", fontSize: 13, lineHeight: 1.45 }}>
+                  <span className="badge badge-muted" style={{ marginRight: 6 }}>{m.tono === "atencion" ? "atención" : "positivo"}</span>
+                  {m.texto}
+                  <span style={{ color: "var(--muted)" }}>
+                    {" "}· {m.refMarca ? `sobre ${m.refMarca}` : m.tramo ? `${Math.round(m.tramo.inicioS / 60)}–${Math.round(m.tramo.finS / 60)} min` : ""}
+                  </span>
+                </p>
+              ))}
+            </div>
+          )}
 
           {a.hallazgos.length > 0 && (
             <div>
@@ -220,6 +251,7 @@ export function AnalisisSesion({ h, historial, errorHistorial, nocheAnterior, fc
             Sacar el análisis
           </button>
         </div>
+        </PlegadoSiEsquema3>
       )}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
