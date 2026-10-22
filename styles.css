@@ -3,9 +3,13 @@
    Punto de entrada único del design system. Importá ESTE archivo; reexporta
    la fuente de verdad de tokens, temas y tipografía.
 
-   - colors_and_type.css → tokens (superficies, accent tematizable, 8 temas
-     [data-theme], zonas de FC Z1→Z5, estados de fitness, radios, espaciado)
-     + escala tipográfica y clases semánticas .t-*.
+   - colors_and_type.css → tokens iguales a los de la app (src/styles/tokens.css):
+     superficies, acento por 5 temas [data-theme] × claro/oscuro [data-mode],
+     semánticos por modo, zonas de FC Z1→Z5, estados de fitness, radios,
+     espaciado, movimiento (--dur-*, --ease-*) y el anillo (--ring-from/to),
+     + escala tipográfica y clases semánticas .t-*. Al final, los tokens de
+     las direcciones de Home (Pulse y Premium), que en la app solo alcanzan
+     a Home y a la barra de navegación.
 
    Nota: ui_kits/shapeup/app.css son estilos de componentes del UI kit (se
    cargan dentro del kit), y explorations/* son mockups descartables — por eso

@@ -1,24 +1,36 @@
-/* ============================================================================
-   ShapeUp — colors_and_type.css
-   Fuente de verdad de estilos. Hereda la arquitectura de tokens de Comida
-   Familiar (hermanas, no gemelas) y agrega la capa de identidad de ShapeUp:
-   accent de marca, escala de zonas de FC (Z1→Z5) y estados de fitness.
+@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&family=Hanken+Grotesk:wght@400..800&display=swap");
 
-   Tema: CLARO/OSCURO por [data-mode]. Acento por [data-theme] (5 familias).
-   Default: oscuro + Ion. Castellano (voseo) en la UI.
+/* ============================================================================
+   ShapeUp — colors_and_type.css (kit de la raíz)
+
+   IGUAL A LA APP (P105, 22/10/2026). Cuando el kit y la app no coinciden, gana
+   la app. Fuente: src/styles/tokens.css (todo, menos el reset base) y, en la
+   sección «Direcciones de Home» del final, los tokens de src/styles/home-redux.css.
+   Si cambian esos archivos, este se actualiza; no al revés.
+
+   - 5 temas por [data-theme] (ion, volt, blaze, pulse, indigo) × modo claro y
+     oscuro por [data-mode]. Default: oscuro + Ion.
+   - En OSCURO la superficie se TIÑE por tema (cada [data-theme] trae su --bg,
+     --card y --border). En CLARO la superficie es neutra y compartida.
+     Decisión abierta para la auditoría (P101): el design system de Design lo
+     dejaba neutro también en oscuro. No se resuelve acá.
+   - Fuentes: la app usa system-ui en todas las pantallas. Archivo (Pulse) y
+     Hanken Grotesk (Premium) las carga index.html y solo las usan las
+     direcciones de Home. Se importan acá para que el kit las tenga.
+   - Castellano (voseo) en la UI.
    ============================================================================ */
 
 :root {
   /* ── Superficies ──────────────────────────────────────────────────────── */
-  --bg:          #0f1115;   /* página: casi negro azulado */
-  --card:        #171a21;   /* tarjetas */
-  --card-hover:  #1e2130;   /* hover de tarjeta / fila */
-  --border:      #232733;   /* borde default */
-  --border-dim:  #1c2030;   /* divisores sutiles */
+  --bg:          #0f1115;
+  --card:        #171a21;
+  --card-hover:  #1e2130;
+  --border:      #232733;
+  --border-dim:  #1c2030;
 
   /* ── Texto ────────────────────────────────────────────────────────────── */
-  --fg:          #f5f7fa;   /* texto principal */
-  --muted:       #9aa4b2;   /* secundario, hints, labels */
+  --fg:          #f5f7fa;
+  --muted:       #9aa4b2;
 
   /* ── Marca / accent · TEMATIZABLE ─────────────────────────────────────── *
    * ShapeUp tiene TEMAS. La base oscura no cambia; lo que cambia es la familia
@@ -26,14 +38,15 @@
    * un tinte sutil de superficie, para que se note sin rediseñar. Los valores
    * de :root son el tema por defecto (Ion). Cada [data-theme] los pisa abajo.
    * Las zonas de FC NO cambian con el tema (son semánticas).                 */
-  --acc-d:       #22d3ee;             /* Ion dark  — valor en modo oscuro */
-  --acc-l:       #0e7490;             /* Ion light — valor AA en modo claro */
-  --accent:      var(--acc-d);        /* resuelto por [data-mode] abajo */
-  --accent-dim:  rgba(34, 211, 238, 0.13);
-  --accent-strong:#0e7490;            /* acento sobre fondos claros (logo light) */
-  --on-accent:   #0b0f14;             /* texto sobre el acento */
+  --accent:       #22d3ee;              /* Ion — cian eléctrico (default) */
+  --accent-dim:   rgba(34, 211, 238, 0.13);
+  --accent-strong:#0891b2;
+  --on-accent:    #04161a;             /* texto sobre el acento */
 
-  /* ── Semánticos ───────────────────────────────────────────────────────── */
+  /* ── Semánticos · TEMATIZABLES POR MODO (P65) ─────────────────────────── *
+   * Los valores de :root son los de modo oscuro. [data-mode="light"] los    *
+   * pisa con equivalentes AA-safe sobre fondo claro — mismo hue, más        *
+   * saturados/oscuros para no perder contraste como texto.                  */
   --danger:      #f87171;
   --danger-dim:  rgba(248, 113, 113, 0.10);
   --warning:     #fbbf24;
@@ -42,173 +55,273 @@
   --info-dim:    rgba(96, 165, 250, 0.12);
 
   /* ── Colores por miembro (sync con /config/perfiles · seed-perfiles.ts) ─── */
-  --member-juanpablo: #60a5fa;   /* JP · 51 */
-  --member-maria:     #f472b6;   /* M  · 50 */
-  --member-sofia:     #a78bfa;   /* S  · 17 */
-  --member-federico:  #34d399;   /* F  · 16 */
+  --member-juanpablo: #60a5fa;
+  --member-maria:     #f472b6;
+  --member-sofia:     #a78bfa;
+  --member-federico:  #34d399;
 
   /* ── Escala de ZONAS DE FC (Z1→Z5) · IDENTIDAD ShapeUp ────────────────── *
-   * Rampa térmica de frío a caliente. Engancha con zonasFC por miembro
-   * (% FCmáx: Z1 50-60 · Z2 60-70 · Z3 70-80 · Z4 80-90 · Z5 90-100) y la
-   * usa el módulo de Salud / cardio.                                         */
-  --zona-z1: #38bdf8;   /* recuperación — frío    (sky) */
-  --zona-z2: #2dd4bf;   /* suave / fat-burn       (teal) */
-  --zona-z3: #a3e635;   /* aeróbico               (lima) */
-  --zona-z4: #fb923c;   /* umbral                 (naranja) */
-  --zona-z5: #ef4444;   /* máximo — caliente      (rojo) */
-  /* Tintes de fondo (12%) para chips/áreas de zona */
+   * Rampa térmica de frío a caliente. Constantes, NO cambian con el tema.    */
+  --zona-z1: #38bdf8;
+  --zona-z2: #2dd4bf;
+  --zona-z3: #a3e635;
+  --zona-z4: #fb923c;
+  --zona-z5: #ef4444;
   --zona-z1-dim: rgba(56, 189, 248, 0.14);
   --zona-z2-dim: rgba(45, 212, 191, 0.14);
   --zona-z3-dim: rgba(163, 230, 53, 0.14);
   --zona-z4-dim: rgba(251, 146, 60, 0.14);
   --zona-z5-dim: rgba(239, 68, 68, 0.14);
 
-  /* ── Estados de FITNESS · IDENTIDAD ShapeUp ───────────────────────────── *
-   * Lo que Comida no tiene: sesión activa, intensidad, descanso en curso.    */
-  --estado-activa:   var(--accent);    /* sesión en curso / serie lista */
-  --estado-descanso: var(--info);      /* descanso corriendo */
-  --estado-descanso-urgent: var(--danger); /* descanso < 5 s */
-  --estado-pausa:    var(--muted);     /* en pausa */
-  --estado-hecho:    var(--accent);    /* completado */
+  /* ── Estados de FITNESS · IDENTIDAD ShapeUp ───────────────────────────── */
+  --estado-activa:          var(--accent);
+  --estado-descanso:        var(--info);
+  --estado-descanso-urgent: var(--danger);
+  --estado-pausa:           var(--muted);
+  --estado-hecho:           var(--accent);
 
   /* ── Radio ────────────────────────────────────────────────────────────── */
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 18px;
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   18px;
   --r-full: 999px;
 
-  /* ── Espaciado (escala 4px, alineada con Comida) ──────────────────────── */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
+  /* ── Espaciado (escala 4px) ───────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
   --space-10: 40px;
   --space-12: 48px;
 
-  /* ── Sombras (funcionales — el dark theme casi no las usa) ────────────── */
-  --shadow-card:  0 20px 60px rgba(0, 0, 0, 0.35);   /* auth-card, modales */
-  --shadow-fab:   0 4px 16px rgba(74, 222, 128, 0.30); /* glow del FAB verde */
-  --shadow-menu:  0 4px 12px rgba(0, 0, 0, 0.40);
+  /* ── D9 Aurora — gradiente del anillo (sigue al acento por tema) ─────── */
+  --ring-from: var(--accent);
+  --ring-to:   color-mix(in oklch, var(--accent), #ffffff 32%);
+
+  /* ── Sombras ──────────────────────────────────────────────────────────── */
+  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --shadow-fab:  0 4px 16px rgba(34, 211, 238, 0.30);
+  --shadow-menu: 0 4px 12px rgba(0, 0, 0, 0.40);
 
   /* ── Transiciones ─────────────────────────────────────────────────────── */
-  --t-fast: 120ms ease;   /* @kind other */
-  --t-base: 150ms ease;   /* @kind other */
+  --t-fast: 120ms ease;
+  --t-base: 150ms ease;
 
-  /* ── TIPOGRAFÍA ───────────────────────────────────────────────────────── *
-   * Sistema (system-ui). No carga webfonts: rinde nativo en iOS/Android y
-   * mantiene la app liviana (es una PWA). La identidad tipográfica de ShapeUp
-   * está en el PESO (700-800) y los numerales tabulares de las cifras grandes,
-   * no en una familia exótica.                                               */
+  /* Movimiento (D15) */
+  --dur-fast:    140ms;
+  --dur-base:    220ms;
+  --dur-slow:    420ms;
+  --ease-out:    cubic-bezier(.22, 1, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+
+  /* ── TIPOGRAFÍA ───────────────────────────────────────────────────────── */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-num:  var(--font-sans);   /* cifras: misma familia, tabular-nums */
+  --font-num:  var(--font-sans);
 
-  /* Escala de tamaños */
-  --fs-xs:    11px;   /* labels uppercase, badges, meta */
-  --fs-sm:    13px;   /* secundario, body chico */
-  --fs-base:  14px;   /* body / inputs / nav */
-  --fs-md:    15px;   /* botones, headers de modal */
-  --fs-lg:    16px;   /* título de tarjeta */
-  --fs-xl:    22px;   /* page-title, "hoy toca" */
-  --fs-2xl:   28px;   /* nombre de ejercicio grande, finish */
-  --fs-3xl:   36px;   /* auth h1 */
-  --fs-timer: 52px;   /* cronómetro de descanso */
+  --fs-xs:    11px;
+  --fs-sm:    13px;
+  --fs-base:  14px;
+  --fs-md:    15px;
+  --fs-lg:    16px;
+  --fs-xl:    22px;
+  --fs-2xl:   28px;
+  --fs-3xl:   36px;
+  --fs-timer: 52px;
 
-  /* Pesos */
-  --fw-regular:  400;   /* @kind font */
-  --fw-medium:   500;   /* @kind font */
-  --fw-semibold: 600;   /* @kind font */
-  --fw-bold:     700;   /* @kind font */
-  --fw-heavy:    800;   /* @kind font */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-heavy:    800;
 
-  /* Interlineado */
-  --lh-tight:   1.15;   /* @kind font */
-  --lh-snug:    1.3;    /* @kind font */
-  --lh-base:    1.5;    /* @kind font */
-  --lh-relaxed: 1.6;    /* @kind font */
+  --lh-tight:   1.15;
+  --lh-snug:    1.3;
+  --lh-base:    1.5;
+  --lh-relaxed: 1.6;
 
-  /* Tracking */
-  --tracking-tight: -0.02em;   /* @kind font */
-  --tracking-label:  0.05em;   /* @kind font */
+  --tracking-tight: -0.02em;
+  --tracking-label:  0.05em;
 
-  color-scheme: dark;
+  color-scheme: dark; /* default previo a hidratar [data-mode] — evita flash */
 }
 
 /* ════════════════════════════════════════════════════════════════════════ *
-   MODO — claro / oscuro. Set data-mode en el contenedor raíz (junto a
-   data-theme). Resuelve el acento (acc-d/acc-l), las superficies neutras y las
-   sombras. Default (sin data-mode) = oscuro, ya definido en :root.
+   TEMAS — 5 temas (P65: consolidado desde 8 — solar/crimson/grape se
+   sacaron para converger con el prototipo Home Redux, que ya validó estos
+   5 en claro y oscuro). Default = Ion (sin data-theme o data-theme="ion").
+   Cada tema redefine acento + superficie oscura teñida + glow del FAB —
+   igual que antes (cero regresión visual en oscuro). El claro NO tiñe
+   superficie por tema (sigue el patrón del prototipo: una sola superficie
+   clara neutra, el acento por tema alcanza para distinguirlos) — ver el
+   bloque [data-mode="light"] compartido más abajo, que la resuelve.
+   Las zonas de FC y los colores de miembro NO cambian con el tema ni con
+   el modo.
  * ════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="ion"] {
+  --bg: #081519; --card: #0f2128; --card-hover: #163039; --border: #1e3b45; --border-dim: #13272e;
+  --accent: #22d3ee; --accent-dim: rgba(34,211,238,0.16); --accent-strong: #0891b2; --on-accent: #04161a;
+  --shadow-fab: 0 4px 16px rgba(34,211,238,0.34);
+}
+[data-theme="ion"][data-mode="light"] {
+  --accent: #0e7490; --accent-dim: rgba(14,116,144,0.10); --accent-strong: #155e75; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(14,116,144,0.22);
+}
+
+[data-theme="volt"] {
+  --bg: #0b140e; --card: #122017; --card-hover: #1a2d20; --border: #21372a; --border-dim: #16241b;
+  --accent: #4ade80; --accent-dim: rgba(74,222,128,0.15); --accent-strong: #16a34a; --on-accent: #08130b;
+  --shadow-fab: 0 4px 16px rgba(74,222,128,0.32);
+}
+[data-theme="volt"][data-mode="light"] {
+  --accent: #15803d; --accent-dim: rgba(21,128,61,0.10); --accent-strong: #166534; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(21,128,61,0.22);
+}
+
+[data-theme="blaze"] {
+  --bg: #170f0a; --card: #241910; --card-hover: #312317; --border: #3d2d1d; --border-dim: #2a1d13;
+  --accent: #ff7a45; --accent-dim: rgba(255,122,69,0.16); --accent-strong: #ea580c; --on-accent: #1c0a02;
+  --shadow-fab: 0 4px 16px rgba(255,122,69,0.34);
+}
+[data-theme="blaze"][data-mode="light"] {
+  --accent: #c2410c; --accent-dim: rgba(194,65,12,0.10); --accent-strong: #9a3412; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(194,65,12,0.22);
+}
+
+[data-theme="pulse"] {
+  --bg: #160b12; --card: #23141d; --card-hover: #301d29; --border: #3d2734; --border-dim: #2a1a24;
+  --accent: #ff4d79; --accent-dim: rgba(255,77,121,0.16); --accent-strong: #e11d63; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(255,77,121,0.34);
+}
+[data-theme="pulse"][data-mode="light"] {
+  --accent: #be185c; --accent-dim: rgba(190,24,92,0.10); --accent-strong: #9d174d; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(190,24,92,0.22);
+}
+
+/* Hex de acento oscuro fijado al del prototipo Home Redux (P65) — los
+   tokens viejos (#7c83ff/#6366f1) quedaban desalineados con
+   [data-accent="indigo"] de home-redux.css. */
+[data-theme="indigo"] {
+  --bg: #0e0d1c; --card: #17162b; --card-hover: #20203c; --border: #2a2a4a; --border-dim: #1d1c33;
+  --accent: #8b90ff; --accent-dim: rgba(139,144,255,0.17); --accent-strong: #6366f1; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(139,144,255,0.34);
+}
+[data-theme="indigo"][data-mode="light"] {
+  --accent: #4f46e5; --accent-dim: rgba(79,70,229,0.10); --accent-strong: #4338ca; --on-accent: #ffffff;
+  --shadow-fab: 0 4px 16px rgba(79,70,229,0.22);
+}
+
+/* ── Modo claro/oscuro (P65) — semánticos compartidos por los 5 temas      *
+   (el acento por tema ya se resolvió arriba). Ambos modos son bloques      *
+   EXPLÍCITOS a propósito — [data-mode="dark"] repite los valores de :root  *
+   en vez de confiar en que ":root" alcance: ":root" solo matchea <html>,   *
+   así que un [data-mode="dark"] anidado dentro de un <html data-mode=      *
+   "light"> (p.ej. la grilla de /qa/temas, que muestra los 10 combos a la   *
+   vez) heredaría el --fg claro de <html> si "oscuro" no tuviera su propia  *
+   regla — bug real, encontrado en el QA visual de este prompt.
+   OJO: --bg/--card/--border NO van acá — esos siguen viviendo en cada      *
+   [data-theme] (superficie teñida por tema, sin cambios). Si se agregaran  *
+   acá también, empatarían en especificidad con [data-theme="x"] y el       *
+   orden de la hoja los haría ganar, aplanando la tinta de los 5 temas a    *
+   un solo gris (la regresión que ya se evitó una vez en este mismo pase).  *
+   [data-mode="light"] sí las lleva porque ahí la superficie SÍ es          *
+   compartida entre temas (ver comentario de la sección TEMAS, arriba). */
 [data-mode="dark"] {
-  --bg: #0f1115; --card: #171a21; --card-hover: #1e2130; --border: #232733; --border-dim: #1c2030;
-  --fg: #f5f7fa; --muted: #9aa4b2; --track: #232733;
-  --accent: var(--acc-d); --accent-strong: var(--acc-l); --on-accent: #0b0f14;
-  --accent-dim: color-mix(in srgb, var(--acc-d) 15%, transparent);
-  --shadow-card: 0 20px 60px rgba(0,0,0,0.35);
-  --shadow-menu: 0 4px 12px rgba(0,0,0,0.40);
-  --shadow-fab: 0 4px 16px color-mix(in srgb, var(--acc-d) 32%, transparent);
+  --fg:         #f5f7fa;
+  --muted:      #9aa4b2;
+
+  --danger:      #f87171;
+  --danger-dim:  rgba(248,113,113,0.10);
+  --warning:     #fbbf24;
+  --warning-dim: rgba(251,191,36,0.10);
+  --info:        #60a5fa;
+  --info-dim:    rgba(96,165,250,0.12);
+
   color-scheme: dark;
 }
+
 [data-mode="light"] {
-  --bg: #eceef1; --card: #ffffff; --card-hover: #f4f5f8; --border: #dfe2e8; --border-dim: #e8eaee;
-  --fg: #14171c; --muted: #5c6570; --track: #dde0e6;
-  --accent: var(--acc-l); --accent-strong: var(--acc-l); --on-accent: #ffffff;
-  --accent-dim: color-mix(in srgb, var(--acc-l) 10%, transparent);
-  --shadow-card: 0 16px 40px rgba(20,23,28,0.12);
-  --shadow-menu: 0 4px 14px rgba(20,23,28,0.14);
-  --shadow-fab: 0 6px 18px color-mix(in srgb, var(--acc-l) 28%, transparent);
+  --bg:         #eceef1;
+  --card:       #ffffff;
+  --card-hover: #f4f5f8;
+  --border:     #dfe2e8;
+  --border-dim: #e8eaee;
+  --fg:         #14171c;
+  --muted:      #5c6570;
+
+  --danger:      #b42318;
+  --danger-dim:  rgba(180,35,24,0.08);
+  --warning:     #92400e;
+  --warning-dim: rgba(146,64,14,0.08);
+  --info:        #1d4ed8;
+  --info-dim:    rgba(29,78,216,0.10);
+
   color-scheme: light;
 }
 
+/* ── Clases semánticas de tipografía ──────────────────────────────────── */
+
+.t-h1         { font: var(--fw-heavy) var(--fs-3xl)/var(--lh-tight) var(--font-sans); letter-spacing: var(--tracking-tight); }
+.t-page-title { font: var(--fw-bold) var(--fs-xl)/var(--lh-snug) var(--font-sans); letter-spacing: -0.01em; }
+.t-display    { font: var(--fw-heavy) var(--fs-2xl)/var(--lh-tight) var(--font-sans); letter-spacing: var(--tracking-tight); }
+.t-card-title { font: var(--fw-semibold) var(--fs-lg)/var(--lh-snug) var(--font-sans); }
+.t-body       { font: var(--fw-regular) var(--fs-base)/var(--lh-base) var(--font-sans); }
+.t-secondary  { font: var(--fw-regular) var(--fs-sm)/var(--lh-base) var(--font-sans); color: var(--muted); }
+.t-label      { font: var(--fw-semibold) var(--fs-xs)/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--muted); }
+.t-num        { font: var(--fw-heavy) var(--fs-timer)/1 var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+
 /* ════════════════════════════════════════════════════════════════════════ *
-   TEMAS (acentos) — set data-theme en el contenedor raíz, junto a data-mode.
-   Son 5 familias. Cada una declara su par dark/light (acc-d/acc-l); el bloque
-   [data-mode] de arriba resuelve --accent según el modo activo. Las superficies
-   son NEUTRAS y las fija el modo — el acento no tiñe el fondo. Default = Ion.
-   El tema se elige POR MIEMBRO. Zonas de FC y colores de miembro NO cambian.
+   DIRECCIONES DE HOME — Pulse (.dir-a) y Premium (.dir-c .v21)
+
+   ⚠ EN LA APP SOLO SE APLICAN A HOME Y A LA BARRA DE NAVEGACIÓN, cuando el
+   estilo de Inicio elegido es Pulse o Premium. El resto de la app usa los
+   tokens de arriba: otras superficies y sin la rampa de acento. Si se
+   extienden a toda la app lo decide la auditoría (P101).
+
+   Van en un contenedor <div class="dir-a|dir-c v21" data-mode="…"
+   data-accent="…">. Ningún selector de esta sección puede ser un [data-mode]
+   suelto: tiene que ir con [data-accent] o pegado a .dir-a/.dir-c.
+   Copiado de src/styles/home-redux.css (solo los tokens; los componentes
+   .a-*, .c-*, .nav-it están allá).
  * ════════════════════════════════════════════════════════════════════════ */
-[data-theme="ion"]    { --acc-d: #22d3ee; --acc-l: #0e7490; }  /* cian eléctrico · frío, técnico */
-[data-theme="volt"]   { --acc-d: #4ade80; --acc-l: #15803d; }  /* verde · energía y progreso */
-[data-theme="blaze"]  { --acc-d: #ff7a45; --acc-l: #c2410c; }  /* naranja-coral · intensidad */
-[data-theme="indigo"] { --acc-d: #8b90ff; --acc-l: #4f46e5; }  /* violeta-azul · nocturno, premium */
-[data-theme="pulse"]  { --acc-d: #ff4d79; --acc-l: #be185c; }  /* rosa · vibrante, bold */
 
-/* ============================================================================
-   ESTILOS SEMÁNTICOS — clases reutilizables de tipografía
-   ============================================================================ */
+/* Acentos: pares oscuro/claro (los mismos hex que los 5 temas). */
+[data-accent="ion"]    { --acc-d: #22d3ee; --acc-l: #0e7490; }
+[data-accent="volt"]   { --acc-d: #4ade80; --acc-l: #15803d; }
+[data-accent="blaze"]  { --acc-d: #ff7a45; --acc-l: #c2410c; }
+[data-accent="indigo"] { --acc-d: #8b90ff; --acc-l: #4f46e5; }
+[data-accent="pulse"]  { --acc-d: #ff4d79; --acc-l: #be185c; }
 
-.t-h1 {            /* auth / hero */
-  font: var(--fw-heavy) var(--fs-3xl)/var(--lh-tight) var(--font-sans);
-  letter-spacing: var(--tracking-tight);
+/* Rampa de intensidad por acento (P54): --accent-subtle, -border, -muted,
+   -solid y -strong. Solo existe dentro de las direcciones de Home. */
+[data-accent][data-mode="dark"] {
+  --accent:        var(--acc-d);
+  --on-accent:     #0b0f14;
+  --accent-dim:    color-mix(in srgb, var(--acc-d) 14%, transparent);
+  --accent-subtle: color-mix(in srgb, var(--acc-d) 10%, transparent);
+  --accent-border: color-mix(in srgb, var(--acc-d) 28%, transparent);
+  --accent-muted:  color-mix(in srgb, var(--acc-d) 72%, var(--fg));
+  --accent-solid:  var(--acc-d);
+  --accent-strong: color-mix(in srgb, var(--acc-d) 88%, white);
 }
-.t-page-title {    /* "Inicio", "Historial", "Salud" */
-  font: var(--fw-bold) var(--fs-xl)/var(--lh-snug) var(--font-sans);
-  letter-spacing: -0.01em;
+[data-accent][data-mode="light"] {
+  --accent:        var(--acc-l);
+  --on-accent:     #ffffff;
+  --accent-dim:    color-mix(in srgb, var(--acc-l) 10%, transparent);
+  --accent-subtle: color-mix(in srgb, var(--acc-l) 8%, transparent);
+  --accent-border: color-mix(in srgb, var(--acc-l) 26%, transparent);
+  --accent-muted:  color-mix(in srgb, var(--acc-l) 72%, var(--fg));
+  --accent-solid:  var(--acc-l);
+  --accent-strong: color-mix(in srgb, var(--acc-l) 88%, black);
 }
-.t-display {       /* nombre de ejercicio en sesión, "¡Sesión completada!" */
-  font: var(--fw-heavy) var(--fs-2xl)/var(--lh-tight) var(--font-sans);
-  letter-spacing: var(--tracking-tight);
-}
-.t-card-title {    /* título de tarjeta de rutina / ejercicio */
-  font: var(--fw-semibold) var(--fs-lg)/var(--lh-snug) var(--font-sans);
-}
-.t-body {
-  font: var(--fw-regular) var(--fs-base)/var(--lh-base) var(--font-sans);
-}
-.t-secondary {
-  font: var(--fw-regular) var(--fs-sm)/var(--lh-base) var(--font-sans);
-  color: var(--muted);
-}
-.t-label {         /* labels de sección uppercase */
-  font: var(--fw-semibold) var(--fs-xs)/1.2 var(--font-sans);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  color: var(--muted);
-}
-.t-num {           /* cifras grandes: peso, tonelaje, timer */
-  font: var(--fw-heavy) var(--fs-timer)/1 var(--font-num);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.04em;
-}
+
+/* Superficies, fuentes y radios de cada dirección. */
+.dir-a { font-family: "Archivo", var(--font-sans); }
+.dir-a[data-mode="dark"]  { --bg: #0a0c10; --card: #14171d; --card2: #1a1e26; --border: #252b36; --fg: #f4f6fa; --muted: #909aa9; --track: #232935; --pos: #34d399; --neg: #f87171; }
+.dir-a[data-mode="light"] { --bg: #eceef1; --card: #ffffff; --card2: #f4f5f8; --border: #dfe2e8; --fg: #14171c; --muted: #5c6570; --track: #dde0e6; --pos: #067647; --neg: #b42318; }
+.dir-c { font-family: "Hanken Grotesk", var(--font-sans); --r-card: 24px 24px 24px 4px; --r-el: 12px 12px 12px 4px; --r-chip: 11px 11px 11px 4px; }
+.dir-c[data-mode="dark"]  { --bg: #0f1012; --surface: #17181c; --surface2: #1f2127; --border: #26282f; --fg: #f2f3f5; --muted: #90949d; --track: #25272d; --pos: #34d399; --neg: #f87171; --card: var(--surface); --card2: var(--surface2); }
+.dir-c[data-mode="light"] { --bg: #f1f1f3; --surface: #ffffff; --surface2: #f5f5f7; --border: #d7d7de; --fg: #151619; --muted: #5f636c; --track: #e5e5e9; --pos: #067647; --neg: #b42318; --card: var(--surface); --card2: var(--surface2); }
