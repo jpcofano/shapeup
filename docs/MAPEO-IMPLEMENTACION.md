@@ -131,7 +131,8 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P97 | Las zonas como las cuenta Samsung; la FC máxima declarada, la estimación y la revisión (ADR #045) | ✅ | 2026-10-02 |
 | P98 | Las rutinas de VR por escalones: dos modos, la regla de progresión y el programa de 5 días (ADR #046) | ✅ | 2026-10-02 |
 | P102 | Cambiar lo que toca hoy (ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre (enmienda del #046) | ✅ | 2026-10-15 |
-| P99 | Marcas de la app y análisis de sesión en dos capas (enmienda del #016) | en curso (Partes 1–3) | 2026-10-19 |
+| P99 | Marcas de la app y análisis de sesión en dos capas: Partes 1–3 (`f8b0781`, `55a20d1`), Parte 4 (`6023035`, P103) y Parte 5, documentación (ADR #047; enmienda del #016) | ✅ | 2026-10-21 |
+| P103 | Corrida nocturna: cierre de P99 y pendientes chicos | en curso (Bloques 1–2) | 2026-10-21 |
 | P104 | Traer lo de Claude Design al repo: la raíz del sistema de diseño (cuenta A) y el archivo (`24fcb79`, `42379e2`, `963e774`) | ✅ | 2026-10-21 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
@@ -149,6 +150,25 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-21] P103 — Corrida nocturna: cierre de P99 y pendientes chicos
+
+**En curso (Bloques 1–2).** Los bloques 3 a 5 se suman acá a medida que se cierren. Prompt:
+`docs/prompts/103-corrida-nocturna-cierre-p99-y-pendientes.md`.
+
+- **Bloque 1: P99 Parte 4, la pantalla de la sesión** (`6023035`, App). Calidad, veredicto, badges,
+  destacados, la curva con las marcas, las secundarias y el detalle plegado, en `HistorialDetalle`
+  (`components/historial/CabeceraMarcas.tsx`, `CurvaSesion.tsx`; geometría pura en `lib/curvaSesion.ts`).
+  El detalle de cómo quedó está en `docs/ANALISIS-ASISTIDO.md` §6.
+  - `RevisionFcMax`: en las sesiones excluidas muestra el pico crudo (`biometria.fcMax`) y el suavizado.
+  - **Agregado de Juan (21/10):** el `planSemana` se sella en `EntrenarState` el día en que se juega; una
+    sesión vieja guardada después lleva el de ese día, y sin plan sellado se guarda sin plan.
+  - **Capturas:** no se sacaron; Playwright no está en el repo y no se instaló nada.
+- **Bloque 2: P99 Parte 5, la documentación** (docs). ADR #047 «Dónde viven las marcas» en `docs/ADR.md` y su
+  línea en el índice de `CLAUDE.md`; `ANALISIS-ASISTIDO.md` al día (P99 hecho, §6 como quedó construido, con
+  la nota de que P101 lo ajusta, y el catálogo final); P99 ✅ en el roadmap y el pendiente del sueño y la FC
+  de reposo en el backlog; esta entrada y la de P99.
+- **Bloques 3 a 5:** pendientes de registrar.
 
 ### [2026-10-21] P104 — Traer lo de Claude Design al repo, antes de que cierre
 
@@ -179,8 +199,8 @@ Sin tocar `src/`, la UI ni Firestore, y sin deploy.
 
 ### [2026-10-19] P99 — Partes 1 a 3: marcas de la app, paquete, esquema 3 y prompt v4 (enmienda del #016)
 
-**En curso.** Hechas las Partes 1 a 3. Faltan la 4 (pantalla) y la 5 (cierre de documentos, ADR de
-dónde viven las marcas, roadmap). Diseño en `docs/ANALISIS-ASISTIDO.md` (§3, §4, §8).
+**Cerrado con P103** (Parte 4 en el Bloque 1, Parte 5 en el Bloque 2; ver la entrada del 21/10). Esta
+entrada cubre las Partes 1 a 3 (`f8b0781`, `55a20d1`). Diseño en `docs/ANALISIS-ASISTIDO.md` (§3, §4, §8).
 
 - **Parte 1, diagnóstico** (informe de Code, solo lectura). Juan decidió: la curva se guarda; la edad
   sale del perfil; la meta de la semana se guarda en la sesión; el pico se mide suavizado; se aprueban
@@ -220,7 +240,8 @@ dónde viven las marcas, roadmap). Diseño en `docs/ANALISIS-ASISTIDO.md` (§3, 
   - «Preparar» no esperaba el historial (el récord y la semana salían mal) y, si el historial fallaba,
     «Guardar» quedaba trabado: los dos lo esperan y dicen el error;
   - el tramo de la mayor bajada se acota al fin de la ventana.
-- **Pendiente:** Parte 4 (pantalla, §6) y Parte 5. No se creó el ADR de dónde viven las marcas.
+- **Pendiente (al 19/10, resuelto después):** Parte 4 (pantalla, §6) y Parte 5. El ADR de dónde viven las marcas es el #047.
+- **Cierre (21/10):** P99 se cerró con P103: la Parte 4 en el Bloque 1 (`6023035`) y la Parte 5 en el Bloque 2.
 
 ### [2026-10-15] P102 — Cambiar lo que toca hoy, VR a medida y la guía de bloques (ADR #030, enmienda del #046)
 

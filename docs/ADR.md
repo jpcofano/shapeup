@@ -1231,3 +1231,35 @@ había ninguna regla que dijera cuándo avanzar.
 - **Con un bloque se sella `descansoSeg: 0` y modo `corrido`**; si no, `bloques`.
 - **La sesión guarda juego, configuración, dificultad y si completó**, para poder agrupar después, como series informativas, las que tienen la misma configuración. Eso queda en el backlog.
 - **La guía de bloques es informativa.** El reloj muestra bloque, descanso y horas de fin con solo el tiempo desde «Empezar» y la prescripción sellada. No corta, no pide toques y no marca nada: «No se marca nada durante la sesión» sigue valiendo, y también el #040 (completitud por tiempo). Los pitidos de cambio son avisos, no registro.
+
+## ADR #047 — Dónde viven las marcas (P99, 2026-10-21)
+
+La sesión muestra marcas que calcula la app, se haya analizado o no (`docs/ANALISIS-ASISTIDO.md` §3). Había
+que decidir cuáles se guardan y cuáles se calculan, y quién manda en el orden. Se decidió el 19/10, con las
+respuestas al diagnóstico (Parte 1); se construyó en las Partes 2 y 3 (19/10) y en la Parte 4 (P103, 21/10). El
+punto del `planSemana` del día jugado es un agregado de Juan del 21/10.
+
+- **Esquema mixto.** Las marcas que salen de la curva (`entradaEnCalor`, `tramoSostenido`, `tramoBajo`,
+  `mitades`, `recuperacionSeries`, `picosZ5`, `pico`, `picoSobreVigente`) se **calculan al enriquecer y se
+  guardan** en `biometria.marcas`, con la versión del enriquecimiento (ADR #038, `VERSION_ENRIQUECIMIENTO` = 9).
+  La curva misma se guarda en `biometria.curva`, a 30 s: es la **enmienda del ADR #016** (granularidad diaria,
+  no cruda), acotada a esa curva submuestreada (unos 0,9 KB por sesión).
+- **Las demás se calculan al mostrar**: `calidad`, `record`, `carga`, `zonaAlta` o `volumen`, `semana`
+  (`lib/marcasSesion.ts`). Dependen de otras sesiones o del perfil de hoy, y son derivables; igual que las
+  recomendaciones (ADR #023), no tienen colección ni campo propio.
+- **Los ids son fijos** (`IDS_MARCA`, en `types/models.ts`). Un análisis esquema 3 guardado se valida contra
+  las marcas **recalculadas** de la misma sesión: una `refMarca` que no existe se rechaza.
+- **El récord es «a la fecha»**: solo contra las sesiones anteriores. Un empate de fecha sin `inicioMs` no
+  cuenta como anterior. Una sesión vieja no pierde su récord porque después llegue una mejor.
+- **La prioridad y el orden los fija la app.** El análisis comenta una marca (`marcasAnalisis`, hasta 5, con
+  `refMarca` o tramo); no sube ni baja ninguna ni agrega marcas nuevas. Orden: nivel 1 `calidad`, `record`,
+  `picoSobreVigente`, `carga`, `zonaAlta` o `volumen`, `semana`; nivel 2 `tramoSostenido`, `tramoBajo`,
+  `mitades`, `recuperacionSeries`, `picosZ5`, `entradaEnCalor`, `pico`. Es una consecuencia del #044: lo medido
+  y lo interpretado no se mezclan. En pantalla, las de la app van sólidas y las del análisis con borde punteado
+  y la etiqueta «análisis».
+- **Sin dato, no hay marca.** Sin curva guardada no hay marcas de curva ni curva dibujada; sin `planSemana`
+  sellado en la sesión no hay marca `semana` (no se completa con la meta de hoy).
+- **El `planSemana` es el del día en que se jugó** (`Historial.planSemana`, sellado en `EntrenarState`). Una
+  sesión vieja guardada después lleva el de ese día, no el del día en que se guarda.
+- **Las marcas usan las zonas guardadas en la sesión** (`zonasUsadas`, ADR #045), no las vigentes. Un cambio
+  de FC máxima no reescribe marcas viejas; la única excepción es la corrección del piso de Z5 (P97).

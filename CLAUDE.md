@@ -117,6 +117,7 @@ Una línea por ADR, con su título. El texto completo está en `docs/ADR.md`.
 - ADR #044 — Lo medido y lo interpretado no se mezclan (P93, 2026-09-30) — `docs/ADR.md`
 - ADR #045 — Las zonas como las cuenta Samsung; la FC máxima es un valor declarado (P97, 2026-10-01) — `docs/ADR.md`
 - ADR #046 — Las rutinas de VR por escalones; la rutina no se muta, el modo se elige, umbral provisorio (P98, 2026-10-02) — `docs/ADR.md`
+- ADR #047 — Dónde viven las marcas: las de la curva se guardan versionadas, las demás se calculan al mostrar; ids fijos, récord «a la fecha», la prioridad la fija la app (P99, 2026-10-21) — `docs/ADR.md`
 
 ## Serie S — Integración de salud ✅ CERRADA (2026-07-04 → 2026-07-17)
 

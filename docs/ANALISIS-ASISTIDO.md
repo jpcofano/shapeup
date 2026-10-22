@@ -1,5 +1,9 @@
 # Análisis asistido — diseño
 
+Estado (21/10/2026): **P99 hecho** (Partes 1 a 4, más el cierre de documentos de la Parte 5; ver la
+sección «Marcas y análisis en dos capas»). Lo que sigue es la auditoría de diseño (P101) y el análisis
+general (P94).
+
 Estado (01/10/2026):
 
 - **El análisis de una sesión está construido** (P93, commit `600aa37`). Vigentes: el prompt
@@ -8,9 +12,9 @@ Estado (01/10/2026):
   original (esquema 1, prompt v1); lo vigente está en el código y en `docs/analisis/`.
 - **Lo que sigue** está en la sección «Marcas y análisis en dos capas (P99) y análisis general
   (P94)»: marcas que calcula la app, un análisis de sesión que las comenta, y el análisis general
-  con focos. El orden es P97 → P98 → P99 → P94.
-- Las tres decisiones abiertas del diseño original quedaron cerradas en P93 (ver al final). Las que
-  siguen abiertas para P99 están en el §8 de la sección nueva.
+  con focos. El orden es P97 → P98 → P99 (hecho) → P94.
+- Las tres decisiones abiertas del diseño original quedaron cerradas en P93 (ver al final). Las de
+  P99 quedaron decididas en el §8 de la sección nueva.
 
 ## La idea
 
@@ -178,11 +182,12 @@ Se guarda aparte, no colgando de una sesión.
 ## Marcas y análisis en dos capas (P99) y análisis general (P94)
 
 _Integrado el 01/10/2026 desde `docs/plan-marcas-y-analisis.md`, que se borró. Las decisiones están
-copiadas tal cual; la pantalla (§6) sigue siendo una propuesta._
+copiadas tal cual. Actualizado el 21/10/2026: la pantalla (§6) ya está construida; abajo figura como quedó._
 
-**Estado (19/10/2026): P99 en curso.** Hechas las Partes 1 (diagnóstico), 2 (marcas de la app) y 3
-(paquete, esquema 3, prompt v4 y validador). **Pendientes:** la Parte 4 (pantalla, §6) y la 5
-(cierre de documentos, ADR de dónde viven las marcas, roadmap). Lo decidido está en el §8.
+**Estado (21/10/2026): P99 hecho.** Partes 1 (diagnóstico), 2 (marcas de la app) y 3 (paquete,
+esquema 3, prompt v4 y validador) del 19/10 (`f8b0781`, `55a20d1`); Parte 4 (la pantalla) en el
+Bloque 1 de P103 (`6023035`, 21/10); Parte 5 (cierre de documentos y ADR #047) en el Bloque 2 de P103.
+Lo decidido está en el §8. _Estado del 19/10, superado: P99 en curso, con la Parte 4 y la 5 pendientes._
 
 Decisiones del chat del 30/09 sobre cómo el análisis deja de ser solo un texto largo y pasa a **marcar la sesión**. Este plan es la base de **P99** (marcas y análisis de sesión) y del diseño de **P94** (análisis general). No es un prompt para Code: los prompts salen de acá.
 
@@ -256,7 +261,7 @@ Van en una fila discreta, sin color, en este orden:
 | 12 | ~~`recuperacionFinal`~~ | ~~Recuperación al terminar~~ | **Descartada en P99:** el reloj sigue apenas unos segundos después del fin (6,8 s el 27/09), no alcanza para un minuto. No existe en el código. | — |
 | 13 | `pico` | Pico | FC máxima de la sesión (suavizada, ±2,5 s), cuando **no** supera la FC máxima con que se calcularon las zonas de esa sesión | sí |
 
-_Actualizado el 19/10/2026 (P99). Orden que fija la app: nivel 1 `calidad`, `record`,
+_Actualizado el 19/10/2026 (P99); **catálogo final**, tal como está en el código (21/10). Orden que fija la app: nivel 1 `calidad`, `record`,
 `picoSobreVigente`, `carga`, `zonaAlta` o `volumen`, `semana`; nivel 2 `tramoSostenido`, `tramoBajo`,
 `mitades`, `recuperacionSeries`, `picosZ5`, `entradaEnCalor`, `pico`. Las filas de arriba conservan
 la numeración original._
@@ -343,29 +348,54 @@ Junto con el escalón y el modo jugados, el paquete tiene que llevar la dificult
 - Las **marcas nuevas** que proponga salen como pedido para Code (decisión 10).
 - Code ya avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango). El diseño fino se hace cuando le toque.
 
-### 6 · Pantalla — propuesta, a confirmar
+### 6 · Pantalla — como quedó construida (P103, Bloque 1, `6023035`)
 
-De arriba hacia abajo:
+_Era una propuesta a confirmar. Se construyó como estaba decidida en el chat, con un agregado arriba
+(la calidad). **La auditoría de diseño con Claude Design (P101) la ajusta después**, así que esto es el
+punto de partida de esa auditoría y no la versión final._
 
-1. **Veredicto** (solo si hay análisis).
-2. **Badges** (nivel 1).
-3. **Dos destacados** (solo si hay análisis).
-4. **Curva** con las marcas que tienen momento o tramo.
-5. **Secundarias** (nivel 2).
-6. **Detalle del análisis**, plegado.
+En `HistorialDetalle`, debajo del título, de arriba hacia abajo (`CabeceraMarcas`, `CurvaSesion` y
+`AnalisisSesion`):
 
-Para distinguir el origen de cada marca: las de la app van **sólidas**, y las del análisis con **borde punteado** y la etiqueta «análisis».
+1. **Calidad**, si aparece, con estilo de aviso: cambia cómo se lee el resto.
+2. **Veredicto** (solo con análisis de esquema 3), con «· análisis».
+3. **Badges de nivel 1**, en el orden del catálogo (§3).
+4. **Dos destacados** (solo con análisis), con borde punteado.
+5. **Curva** con las marcas que tienen momento o tramo.
+6. **Secundarias de nivel 2**, en una fila discreta y sin color.
+7. **Detalle del análisis**, plegado (solo esquema 3; los análisis de esquema 2 se ven como antes).
+
+El resto de la pantalla (stats, series, FC de Samsung, contexto del día, análisis) sigue igual.
+
+**La curva:**
+- SVG a mano, sin librería; la geometría es pura y está en `lib/curvaSesion.ts`.
+- Bandas de zona con `zonasUsadas` de la sesión.
+- Los **tramos** van como franja; los **momentos**, como línea.
+- Las marcas de la app van **sólidas**; las del análisis, con **borde punteado** y la etiqueta «análisis».
+- **Tocar una marca muestra su texto.** Una marca del análisis con `refMarca` se dibuja sobre la marca
+  de la app y no toma el toque: tocar la de la app muestra su texto y, abajo, el comentario del análisis.
+- **Sin curva guardada, no se dibuja ni ocupa lugar.** Las marcas que no salen de la curva se ven igual.
+
+**Además:**
+- Mientras el historial no cargó, no se muestran `record` ni `semana`.
+- Una sesión sin analizar se ve igual en todo lo medido.
+- `RevisionFcMax`: en las sesiones excluidas muestra el pico crudo (`biometria.fcMax`) y el suavizado.
+- El `planSemana` se sella en `EntrenarState` el día en que se juega. Una sesión vieja guardada después
+  lleva el de ese día; sin plan sellado se guarda sin plan (no se completa con el de hoy).
+- **Capturas:** no se sacaron (Playwright no está en el repo y no se instaló nada). Quedan para la
+  auditoría de diseño.
 
 ### 7 · Orden de ejecución
 
 1. **Cerrar P93**: commit y deploy de hosting. _(Commit hecho: `600aa37`, 01/10/2026. El deploy de hosting lo hace Juan.)_
 2. **P97**: zonas como Samsung. Las marcas usan zonas, y no se mide sobre datos que se están por corregir.
 3. **P98**: rutinas de VR y progresión.
-4. **P99**: marcas y análisis de sesión, por partes:
+4. **P99** ✅ (19 y 21/10): marcas y análisis de sesión, por partes:
    - **Parte 1, diagnóstico.** Qué datos hay para las condicionales; si las marcas se guardan en la sesión o se calculan al mostrar; cómo define hoy la app la semana; y propuestas para lo abierto en §8.
    - **Parte 2, marcas de la app.** Valen solas, sin el LLM.
    - **Parte 3, esquema 3 y prompt 4.**
-   - **Parte 4, pantalla.**
+   - **Parte 4, pantalla** (P103, Bloque 1).
+   - **Parte 5, cierre de documentos y ADR #047** (P103, Bloque 2).
 5. **P94**: análisis general y focos.
 
 **Verificación:** las marcas se prueban contra la **sesión testigo del 27/09**. Los valores esperados se toman **después de P97**, con las zonas corregidas, y no ahora.
@@ -382,18 +412,20 @@ Para distinguir el origen de cada marca: las de la app van **sólidas**, y las d
 - **`recuperacionFinal`:** descartada (ver §3).
 - **La curva se guarda** en la sesión (`biometria.curva`, a 30 s); enmienda del ADR #016, `VERSION_ENRIQUECIMIENTO` = 9.
 - **Edad:** `PerfilMiembro.anioNacimiento`, opcional, en Perfil → Configuración. No cambia ninguna FC máxima.
-- **Meta de la semana:** se guarda al cerrar (`Historial.planSemana`: `metaDias`, `idPrograma`). Sin ese dato, no hay marca `semana` y el paquete manda `contexto.semana: null`. No se completa con la meta de hoy.
-- **Pico:** `picoSobreVigente` decide con el pico suavizado. La tarjeta de revisión de la FC máxima con el mismo criterio va en la Parte 4.
+- **Meta de la semana:** se guarda con la sesión (`Historial.planSemana`: `metaDias`, `idPrograma`), la del **día en que se jugó**: se sella en `EntrenarState` ese día (ver el punto del 21/10, abajo). Sin ese dato, no hay marca `semana` y el paquete manda `contexto.semana: null`. No se completa con la meta de hoy.
+- **Pico:** `picoSobreVigente` decide con el pico suavizado. La tarjeta de revisión de la FC máxima muestra los dos picos, crudo y suavizado, en las sesiones excluidas (hecho en la Parte 4, P103 Bloque 1).
 - **Ids de marca fijos:** un análisis esquema 3 guardado se valida contra las marcas recalculadas de la misma sesión.
 - **`planSemana` de una sesión vieja guardada después** (21/10): es **el del día en que se jugó**, no el del
   día en que se guarda (por ejemplo, la de VR que se guarda «la de ese día», P102). Va como agregado al
-  Bloque 1 de P103. Hasta entonces, el código guarda el plan del día en que se cierra.
+  Bloque 1 de P103. **Hecho** (`6023035`): el plan se sella en `EntrenarState` el día en que arranca la
+  sesión; una sesión vieja sin plan sellado se guarda sin plan.
 - **Dónde viven las marcas — esquema mixto:** las de la curva se calculan al enriquecer y se guardan
   versionadas en `biometria.marcas` (ADR #038); las demás (`calidad`, `record`, `carga`, `zonaAlta` o
-  `volumen`, `semana`) se calculan al mostrar (como las recomendaciones, ADR #023). Decidido; el ADR
-  que lo fija se escribe en la Parte 5.
+  `volumen`, `semana`) se calculan al mostrar (como las recomendaciones, ADR #023). Decidido y fijado
+  en el **ADR #047** (21/10).
 
-**Sigue abierto:** si la pantalla de §6 queda así (Parte 4).
+**La pantalla de §6** se construyó como estaba decidida (Parte 4, `6023035`). **Sigue abierto, para la
+auditoría de diseño (P101):** ajustarla. No queda ninguna decisión abierta de P99.
 
 ## Fuera de alcance
 
@@ -422,5 +454,5 @@ resolvió:
    prompt, de esquema, ventana y `versionEnriquecimiento`), que alcanza para reconstruirlo; si la
    biometría cambió después, la versión lo delata.
 
-**Siguen abiertas**, para el diagnóstico de P99: las del §8 de la sección «Marcas y análisis en
-dos capas (P99) y análisis general (P94)».
+**Las de P99** (_antes «siguen abiertas»; decididas al 21/10_) están en el §8 de la sección «Marcas y
+análisis en dos capas (P99) y análisis general (P94)».

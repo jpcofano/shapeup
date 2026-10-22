@@ -519,7 +519,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P97 | ✅ (02/10) Zonas como las cuenta Samsung: la convención de redondeo, la FC máxima declarada con su origen y las zonas guardadas en cada sesión. Las marcas usan zonas, y no se mide sobre datos que se están por corregir. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md), «Marcas y análisis en dos capas» | P92c, P93 |
 | P98 | ✅ (02/10) Rutinas de VR y progresión: rutinas por tiempo, dos modos y una regla que calcula el sistema. La progresión se muestra en la rutina, no como marca de la sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P93 |
 | P102 | ✅ (15/10) Cambiar lo que toca hoy (bloque 11, ADR #030), VR a medida (RUT-0030), la guía de bloques del reloj y la sesión vieja en el cierre. Ver [RUTINAS-VR.md](RUTINAS-VR.md) | P98 |
-| P99 | Marcas de la app y análisis de sesión en dos capas, en cuatro partes: diagnóstico, marcas de la app, esquema 3 y prompt 4, pantalla. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
+| P99 | ✅ (21/10) Marcas de la app y análisis de sesión en dos capas, en cinco partes: diagnóstico, marcas de la app, esquema 3 y prompt 4 (19/10, `f8b0781` y `55a20d1`), pantalla (P103 Bloque 1, `6023035`) y cierre de documentos con el ADR #047 (P103 Bloque 2). Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P97, P98 |
 | P104 | ✅ (21/10) Traer lo de Claude Design al repo antes de que cierre (14/12): la raíz del sistema de diseño pasa a la versión de la cuenta A, y las explorations, las auditorías y los inventarios quedan archivados. Ver `docs/AUDITORIA-DISENO.md` §8 | — |
 | P103 | Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
 | P101 | Auditoría de diseño: lo próximo de pantalla. Plan, diagnóstico y estado: `docs/AUDITORIA-DISENO.md`. | P103 |
@@ -528,6 +528,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 ## Backlog (traspaso del 30/09, §7)
 
 - **Diagnóstico de la sesión libre del 07/07** (ambigua, dos candidatas) y de la **sesión de fuerza del 29/06** (dura 17 min pero sus series abarcan 38,6 y el reloj midió 39; anterior a P84c, sin inicio ni fin guardados). Ambas de lectura, en un mismo prompt.
+- **El sueño y la FC de reposo solo llegan si se importó el ZIP de ese día: la vía D no los trae. Evaluar sumarlos al puente (repo shapeup-bridge)** (P99 Parte 3: el paquete de análisis los manda, pero llegan `null` sin ZIP).
 - **Guardar la prescripción al cerrar las sesiones de fuerza.** Chico, no urgente.
 - **P94** — análisis global sobre un rango de semanas. Code avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango).
 - **P95** — sincronización incremental y duplicados (18 MB por sincronización, 12 registros duplicados, `updateTime` disponible).
