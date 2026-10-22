@@ -29,6 +29,7 @@
     "seed:rutinas-vr": "npx tsx scripts/seed-rutinas-vr.ts",
     "limpiar:salud": "npx tsx scripts/limpiar-salud.ts",
     "auditoria:salud": "npx tsx scripts/auditoria-salud.ts",
+    "auditoria:calidad-salud": "npx tsx scripts/auditoria-calidad-salud.ts",
     "rematch:salud": "npx tsx scripts/rematch-salud.ts",
     "corregir:mecanica": "npx tsx scripts/corregir-mecanica.ts",
     "corregir:ventanas": "npx tsx scripts/corregir-ventanas-vr.ts",
