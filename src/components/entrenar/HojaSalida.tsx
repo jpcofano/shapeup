@@ -12,7 +12,8 @@ interface Props {
   /** Salir sin guardar, ya confirmado si había series. */
   onDescartar: () => void;
   onSeguir:    () => void;
-  onReiniciar: () => void;
+  /** Sin esto, no se ofrece «Reiniciar sesión» (sesión de juego, P103). */
+  onReiniciar?: () => void;
   /**
    * Minutos jugados en VR por escalones (P99). Con más de 0, salir sin guardar
    * pide confirmación aunque no haya series, y la cuenta es en minutos.
@@ -20,6 +21,13 @@ interface Props {
   minutosJugados?: number;
   /** `false`: no se ofrece «Guardar y salir» (VR por escalones guarda desde su cierre, P99). */
   puedeGuardar?:   boolean;
+  /**
+   * Sesión que no registra series (juego, P103): guardar no las exige. Los
+   * textos de guardar y seguir se adaptan con `textoGuardar` y `textoSeguir`.
+   */
+  sinSeries?:      boolean;
+  textoGuardar?:   string;
+  textoSeguir?:    string;
   /**
    * Sesión vieja de VR por escalones que quedó en el cierre (P102): se ofrece
    * guardarla como la de ese día, descartarla y empezar de nuevo, o salir. No
@@ -39,6 +47,7 @@ interface Props {
 export function HojaSalida({
   series, contexto, guardando, error, onGuardar, onDescartar, onSeguir, onReiniciar,
   minutosJugados = 0, puedeGuardar = true, cierreViejo,
+  sinSeries = false, textoGuardar = "Guardar y salir", textoSeguir = "Seguir entrenando",
 }: Props) {
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
 
@@ -81,12 +90,12 @@ export function HojaSalida({
                   <button
                     type="button"
                     className="btn-primary"
-                    disabled={series === 0 || guardando}
+                    disabled={(series === 0 && !sinSeries) || guardando}
                     onClick={onGuardar}
                   >
-                    {guardando ? "Guardando…" : "Guardar y salir"}
+                    {guardando ? "Guardando…" : textoGuardar}
                   </button>
-                  {series === 0 && (
+                  {series === 0 && !sinSeries && (
                     <p className="hoja-salida-nota">Todavía no hay series para guardar</p>
                   )}
                 </>
@@ -95,12 +104,14 @@ export function HojaSalida({
                 Salir sin guardar
               </button>
               <button type="button" className="btn-secondary" disabled={guardando} onClick={onSeguir}>
-                Seguir entrenando
+                {textoSeguir}
               </button>
               {error && <p className="inline-error" style={{ margin: 0 }}>{error}</p>}
-              <button type="button" className="hoja-salida-reiniciar" disabled={guardando} onClick={onReiniciar}>
-                Reiniciar sesión
-              </button>
+              {onReiniciar && (
+                <button type="button" className="hoja-salida-reiniciar" disabled={guardando} onClick={onReiniciar}>
+                  Reiniciar sesión
+                </button>
+              )}
             </>
           ) : (
             <>

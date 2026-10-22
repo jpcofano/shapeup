@@ -9,9 +9,13 @@
 //  Lo que sí importa es la FC, y por eso la línea sobre arrancar el workout en
 //  el reloj: sin eso, la sesión queda como "40 minutos de Behemoth" y no dice
 //  nada.
+//
+//  La ✕ y el «atrás» abren la hoja de salida (P103): salir sin guardar borra
+//  la sesión del teléfono (en Firestore no hay nada hasta «Terminar»), seguir
+//  jugando, o terminar y guardar como el botón del reloj.
 // ════════════════════════════════════════════════════════════════════════════
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useBlocker } from "react-router-dom";
 import { X } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { esOwner } from "../data/visibilidad";
@@ -19,6 +23,7 @@ import { getJuegosSinEjercicio } from "../data/diccionarios";
 import { finalizarSesion } from "../data/historial";
 import { cierreDeSesion } from "../lib/metricas";
 import { SesionPorTiempo } from "../components/entrenar/SesionPorTiempo";
+import { HojaSalida } from "../components/entrenar/HojaSalida";
 import { useWakeLock } from "../hooks/useWakeLock";
 
 /** La sesión en curso sobrevive a un reload: el reloj no se puede perder. */
@@ -47,8 +52,22 @@ export function SesionJuego() {
   const [error, setError] = useState<string | null>(null);
   const [enCurso, setEnCurso] = useState<EnCurso | null>(() => leerEnCurso());
   const [guardando, setGuardando] = useState(false);
+  const [salida, setSalida] = useState(false);
+  /** Salida ya decidida (guardada o descartada): el «atrás» no la frena. */
+  const saliendo = useRef(false);
 
   useWakeLock(enCurso != null);
+
+  // «Atrás» del sistema con el juego en curso: pasa por la hoja de salida (P103).
+  const blocker = useBlocker(({ currentLocation, nextLocation }) =>
+    enCurso != null
+    && !saliendo.current
+    && currentLocation.pathname !== nextLocation.pathname);
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    blocker.reset();
+    setSalida(true);
+  }, [blocker]);
 
   useEffect(() => {
     void (async () => {
@@ -82,7 +101,15 @@ export function SesionJuego() {
     if (!r.ok) { setError(r.error); setGuardando(false); return; }
 
     try { localStorage.removeItem(CLAVE); } catch { /* sesión privada */ }
+    saliendo.current = true;
     navigate("/historial");
+  }
+
+  /** Salir sin guardar: la sesión vive solo en el teléfono, se borra de ahí. */
+  function descartar() {
+    try { localStorage.removeItem(CLAVE); } catch { /* sesión privada */ }
+    saliendo.current = true;
+    navigate("/entrenar");
   }
 
   // ── Sesión en curso: el reloj de P80, sin objetivo ────────────────────────
@@ -90,7 +117,7 @@ export function SesionJuego() {
     return (
       <div className="page">
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <button className="btn-icon-sm" onClick={() => navigate("/entrenar")} title="Volver">
+          <button className="btn-icon-sm" onClick={() => { setError(null); setSalida(true); }} title="Salir">
             <X size={18} />
           </button>
           <p style={{ margin: 0, fontWeight: 600 }}>Sesión de juego</p>
@@ -104,11 +131,27 @@ export function SesionJuego() {
           guardando={guardando}
         />
 
-        {error && <p style={{ fontSize: 13, color: "var(--danger)" }}>{error}</p>}
+        {error && !salida && <p style={{ fontSize: 13, color: "var(--danger)" }}>{error}</p>}
 
         <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 12, textAlign: "center" }}>
           Para que quede la frecuencia cardíaca, arrancá el workout "Shape up" en el reloj.
         </p>
+
+        {salida && (
+          <HojaSalida
+            series={0}
+            sinSeries
+            textoGuardar="Terminar y guardar"
+            textoSeguir="Seguir jugando"
+            // Minutos enteros al abrir la hoja: con menos de uno, salir no pregunta.
+            minutosJugados={Math.max(0, Math.floor((Date.now() - enCurso.inicioMs) / 60_000))}
+            guardando={guardando}
+            error={error}
+            onGuardar={() => void terminar()}
+            onDescartar={descartar}
+            onSeguir={() => setSalida(false)}
+          />
+        )}
       </div>
     );
   }
