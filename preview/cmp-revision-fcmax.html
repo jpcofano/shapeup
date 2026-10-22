@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="RevisionFcMax" subtitle="Perfil → Configuración: la revisión de la FC máxima (P97/P103)" viewport="760x420" --><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<!-- Recreada como está construida (P105): el marcado sale de renderizar src/components/perfil/RevisionFcMax.tsx
+     con datos inventados, y los estilos son las reglas de src/index.css que usa. -->
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  a{color:inherit}
+  button{font-family:inherit}
+  body{background:#0b0c0f;color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:360px;background:var(--bg);color:var(--fg);border-radius:var(--r-lg);padding:16px;box-sizing:border-box;font-family:var(--font-sans)}
+  .etq{font:var(--fw-semibold) 11px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
+  .marco{position:relative}
+  /* Las hojas son fixed en la app; en la tarjeta se muestran en su lugar. */
+  .marco .modal-backdrop{position:relative;inset:auto;min-height:0;background:transparent}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 24px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-secondary:hover { border-color: var(--muted); color: var(--fg); }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin: 0; }
+.form-input,
+.form-select,
+.form-textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 12px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus { border-color: var(--accent); }
+.fin-saltado .btn-secondary { width: auto; padding: 8px 14px; }
+.hoja-salida > .btn-secondary { min-height: 48px; }
+@media (prefers-reduced-motion: no-preference) {
+.card { transition: transform 80ms var(--ease-out); }
+.card:active { transform: scale(0.985); }
+}
+</style></head><body><div class="wrap"><div class="col" data-theme="ion" data-mode="dark"><div class="etq">Ion · oscuro</div><div class="marco"><div id="revision-fc" class="card" style="display: flex; flex-direction: column; gap: 12px;"><div><p class="section-title" style="margin: 0px;">FC máxima: revisión</p><p style="margin: 2px 0px 0px; font-size: 11px; color: var(--muted);">Tu FC máxima sale de la edad y falta confirmarla.</p></div><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;"><div style="display: flex; flex-direction: column; gap: 4px; min-width: 0px;"><p style="margin: 0px; font-size: 11px; color: var(--muted);">ShapeUp estima</p><p style="margin: 0px; font-size: 22px; font-weight: 700;">165</p><ul style="margin: 0px; padding: 0px; list-style: none; font-size: 11px; color: var(--muted);"><li>16/10 · 168</li><li style="color: var(--fg); font-weight: 600;">12/10 · 165 ← se usa</li></ul></div><div style="display: flex; flex-direction: column; gap: 4px; min-width: 0px;"><p style="margin: 0px; font-size: 11px; color: var(--muted);">Vigente</p><p style="margin: 0px; font-size: 22px; font-weight: 700;">169</p><p style="margin: 0px; font-size: 11px; color: var(--muted);">Origen sin declarar</p></div><div style="display: flex; flex-direction: column; gap: 4px; min-width: 0px;"><label for="fc-samsung" style="margin: 0px; font-size: 11px; color: var(--muted);">Samsung muestra</label><input id="fc-samsung" inputmode="numeric" class="form-input" placeholder="—" type="number" value=""><p style="margin: 0px; font-size: 11px; color: var(--muted);">Samsung Health → Perfil. No se lee sola.</p></div></div><div style="display: flex; flex-direction: column; gap: 4px;"><p style="margin: 0px; font-size: 11px; font-weight: 600;">Sesiones que no se usaron</p><ul style="margin: 0px; padding: 0px; list-style: none; font-size: 11px; color: var(--muted);"><li>19/10 · VR — Combat largo · pico 184 crudo, 176 suavizado · pico &gt; vigente + 10</li></ul></div><p style="margin: 0px; font-size: 11px; color: var(--muted);">La estimación es el segundo pico más alto de la FC suavizada en las últimas 12 semanas, solo con sesiones bien medidas. Nunca baja.</p><div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="btn-secondary" style="width: auto; padding: 6px 10px; font-size: 12px;">Usar la de ShapeUp</button><button class="btn-secondary" style="width: auto; padding: 6px 10px; font-size: 12px;" disabled="">Usar la de Samsung</button><button class="btn-secondary" style="width: auto; padding: 6px 10px; font-size: 12px;">Dejar como está</button></div></div></div></div><div class="col" data-theme="ion" data-mode="light"><div class="etq">Ion · claro</div><div class="marco"><div id="revision-fc" class="card" style="display: flex; flex-direction: column; gap: 12px;"><div><p class="section-title" style="margin: 0px;">FC máxima: revisión</p><p style="margin: 2px 0px 0px; font-size: 11px; color: var(--muted);">Tu FC máxima sale de la edad y falta confirmarla.</p></div><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;"><div style="display: flex; flex-direction: column; gap: 4px; min-width: 0px;"><p style="margin: 0px; font-size: 11px; color: var(--muted);">ShapeUp estima</p><p style="margin: 0px; font-size: 22px; font-weight: 700;">165</p><ul style="margin: 0px; padding: 0px; list-style: none; font-size: 11px; color: var(--muted);"><li>16/10 · 168</li><li style="color: var(--fg); font-weight: 600;">12/10 · 165 ← se usa</li></ul></div><div style="display: flex; flex-direction: column; gap: 4px; min-width: 0px;"><p style="margin: 0px; font-size: 11px; color: var(--muted);">Vigente</p><p style="margin: 0px; font-size: 22px; font-weight: 700;">169</p><p style="margin: 0px; font-size: 11px; color: var(--muted);">Origen sin declarar</p></div><div style="display: flex; flex-direction: column; gap: 4px; min-width: 0px;"><label for="fc-samsung" style="margin: 0px; font-size: 11px; color: var(--muted);">Samsung muestra</label><input id="fc-samsung" inputmode="numeric" class="form-input" placeholder="—" type="number" value=""><p style="margin: 0px; font-size: 11px; color: var(--muted);">Samsung Health → Perfil. No se lee sola.</p></div></div><div style="display: flex; flex-direction: column; gap: 4px;"><p style="margin: 0px; font-size: 11px; font-weight: 600;">Sesiones que no se usaron</p><ul style="margin: 0px; padding: 0px; list-style: none; font-size: 11px; color: var(--muted);"><li>19/10 · VR — Combat largo · pico 184 crudo, 176 suavizado · pico &gt; vigente + 10</li></ul></div><p style="margin: 0px; font-size: 11px; color: var(--muted);">La estimación es el segundo pico más alto de la FC suavizada en las últimas 12 semanas, solo con sesiones bien medidas. Nunca baja.</p><div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="btn-secondary" style="width: auto; padding: 6px 10px; font-size: 12px;">Usar la de ShapeUp</button><button class="btn-secondary" style="width: auto; padding: 6px 10px; font-size: 12px;" disabled="">Usar la de Samsung</button><button class="btn-secondary" style="width: auto; padding: 6px 10px; font-size: 12px;">Dejar como está</button></div></div></div></div></div></body></html>

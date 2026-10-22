@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="Tarjeta de adherencia" subtitle="Home: la semana contra la meta, racha y récord (P77)" viewport="760x230" --><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<!-- Recreada como está construida (P105): el marcado sale de renderizar src/components/AdherenciaCard.tsx
+     con datos inventados, y los estilos son las reglas de src/index.css que usa. -->
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  a{color:inherit}
+  button{font-family:inherit}
+  body{background:#0b0c0f;color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:360px;background:var(--bg);color:var(--fg);border-radius:var(--r-lg);padding:16px;box-sizing:border-box;font-family:var(--font-sans)}
+  .etq{font:var(--fw-semibold) 11px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
+  .marco{position:relative}
+  /* Las hojas son fixed en la app; en la tarjeta se muestran en su lugar. */
+  .marco .modal-backdrop{position:relative;inset:auto;min-height:0;background:transparent}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin: 0; }
+@media (prefers-reduced-motion: no-preference) {
+.card { transition: transform 80ms var(--ease-out); }
+.card:active { transform: scale(0.985); }
+}
+</style></head><body><div class="wrap"><div class="col" data-theme="ion" data-mode="dark"><div class="etq">Ion · oscuro</div><div class="marco"><div class="card" style="display: flex; flex-direction: column; gap: 10px;"><p class="section-title" style="margin: 0px;">Tu semana</p><p style="margin: 0px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;"><span style="font-size: 26px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;">2 de 4</span><span style="font-size: 14px; color: var(--muted);">días</span><span style="font-size: 12px; color: var(--muted);">· 1 día de movimiento</span></p><p style="margin: 0px; display: flex; align-items: center; gap: 6px; font-size: 13px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="currentColor" stroke-width="0" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame" aria-hidden="true" style="flex-shrink: 0;"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg><span style="font-weight: 700;">Racha: 3 semanas</span><span style="color: var(--muted);">· récord 6</span></p><p style="margin: 0px; font-size: 12px; color: var(--muted);">Últimas 12 semanas: 9 de 12</p></div></div></div><div class="col" data-theme="ion" data-mode="light"><div class="etq">Ion · claro</div><div class="marco"><div class="card" style="display: flex; flex-direction: column; gap: 10px;"><p class="section-title" style="margin: 0px;">Tu semana</p><p style="margin: 0px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;"><span style="font-size: 26px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;">2 de 4</span><span style="font-size: 14px; color: var(--muted);">días</span><span style="font-size: 12px; color: var(--muted);">· 1 día de movimiento</span></p><p style="margin: 0px; display: flex; align-items: center; gap: 6px; font-size: 13px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="currentColor" stroke-width="0" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame" aria-hidden="true" style="flex-shrink: 0;"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg><span style="font-weight: 700;">Racha: 3 semanas</span><span style="color: var(--muted);">· récord 6</span></p><p style="margin: 0px; font-size: 12px; color: var(--muted);">Últimas 12 semanas: 9 de 12</p></div></div></div></div></body></html>

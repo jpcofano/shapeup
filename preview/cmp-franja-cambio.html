@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="FranjaCambio" subtitle="«Cambiando …» en Biblioteca, rutina y sesión (P102)" viewport="760x110" --><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<!-- Recreada como está construida (P105): el marcado sale de renderizar src/components/entrenar/FranjaCambio.tsx
+     con datos inventados, y los estilos son las reglas de src/index.css que usa. -->
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  a{color:inherit}
+  button{font-family:inherit}
+  body{background:#0b0c0f;color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:360px;background:var(--bg);color:var(--fg);border-radius:var(--r-lg);padding:16px;box-sizing:border-box;font-family:var(--font-sans)}
+  .etq{font:var(--fw-semibold) 11px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
+  .marco{position:relative}
+  /* Las hojas son fixed en la app; en la tarjeta se muestran en su lugar. */
+  .marco .modal-backdrop{position:relative;inset:auto;min-height:0;background:transparent}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+.btn-icon-sm {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.btn-icon-sm:hover { background: var(--card-hover); color: var(--fg); }
+.btn-icon-sm.danger:hover { color: var(--danger); }
+.btn-icon-sm:disabled { opacity: 0.25; cursor: default; }
+@media (prefers-reduced-motion: no-preference) {
+.card { transition: transform 80ms var(--ease-out); }
+.card:active { transform: scale(0.985); }
+}
+</style></head><body><div class="wrap"><div class="col" data-theme="ion" data-mode="dark"><div class="etq">Ion · oscuro</div><div class="marco"><div role="status" data-testid="franja-cambio" class="card" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-color: var(--accent); background: var(--accent-dim);"><p style="margin: 0px; flex: 1 1 0%; font-size: 13px;"><strong>Cambiando VR — Creed</strong><span style="color: var(--muted);"> · Cansado</span><br><span style="color: var(--muted);">Elegí la rutina que vas a hacer en su lugar.</span></p><button type="button" class="btn-icon-sm" title="Cancelar el cambio"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div></div></div><div class="col" data-theme="ion" data-mode="light"><div class="etq">Ion · claro</div><div class="marco"><div role="status" data-testid="franja-cambio" class="card" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-color: var(--accent); background: var(--accent-dim);"><p style="margin: 0px; flex: 1 1 0%; font-size: 13px;"><strong>Cambiando VR — Creed</strong><span style="color: var(--muted);"> · Cansado</span><br><span style="color: var(--muted);">Elegí la rutina que vas a hacer en su lugar.</span></p><button type="button" class="btn-icon-sm" title="Cancelar el cambio"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div></div></div></div></body></html>

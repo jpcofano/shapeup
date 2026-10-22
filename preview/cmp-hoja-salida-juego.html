@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="HojaSalida · juego" subtitle="Variante de SesionJuego: Terminar y guardar, sin Reiniciar" viewport="760x360" --><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<!-- Recreada como está construida (P105): el marcado sale de renderizar src/components/entrenar/HojaSalida.tsx
+     con datos inventados, y los estilos son las reglas de src/index.css que usa. -->
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  a{color:inherit}
+  button{font-family:inherit}
+  body{background:#0b0c0f;color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:360px;background:var(--bg);color:var(--fg);border-radius:var(--r-lg);padding:16px;box-sizing:border-box;font-family:var(--font-sans)}
+  .etq{font:var(--fw-semibold) 11px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
+  .marco{position:relative}
+  /* Las hojas son fixed en la app; en la tarjeta se muestran en su lugar. */
+  .marco .modal-backdrop{position:relative;inset:auto;min-height:0;background:transparent}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--r-md);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 24px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-secondary:hover { border-color: var(--muted); color: var(--fg); }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+.modal-sheet {
+  background: var(--card);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  width: 100%;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+}
+.bloque-saltado .btn-primary { padding: 10px 20px; }
+.vista-dia-pie .btn-primary { width: 100%; }
+.fin-saltado .btn-secondary { width: auto; padding: 8px 14px; }
+.confirmar-titulo { margin: 0; font-size: 17px; font-weight: 700; }
+.hoja-salida {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 16px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+.hoja-salida > .btn-primary { width: 100%; min-height: 52px; }
+.hoja-salida > .btn-secondary { min-height: 48px; }
+.hoja-salida > button:disabled { opacity: 0.45; cursor: default; }
+@media (prefers-reduced-motion: no-preference) {
+.btn-primary {
+    transition: opacity var(--dur-fast) var(--ease-out), transform 80ms var(--ease-out);
+  }
+.btn-primary:active { transform: scale(0.985); }
+}
+</style></head><body><div class="wrap"><div class="col" data-theme="ion" data-mode="dark"><div class="etq">Ion · oscuro</div><div class="marco"><div class="modal-backdrop"><div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="hoja-salida-titulo"><div class="hoja-salida"><p id="hoja-salida-titulo" class="confirmar-titulo">¿Salir de la sesión?</p><button type="button" class="btn-primary">Terminar y guardar</button><button type="button" class="btn-secondary">Salir sin guardar</button><button type="button" class="btn-secondary">Seguir jugando</button></div></div></div></div></div><div class="col" data-theme="ion" data-mode="light"><div class="etq">Ion · claro</div><div class="marco"><div class="modal-backdrop"><div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="hoja-salida-titulo"><div class="hoja-salida"><p id="hoja-salida-titulo" class="confirmar-titulo">¿Salir de la sesión?</p><button type="button" class="btn-primary">Terminar y guardar</button><button type="button" class="btn-secondary">Salir sin guardar</button><button type="button" class="btn-secondary">Seguir jugando</button></div></div></div></div></div></div></body></html>

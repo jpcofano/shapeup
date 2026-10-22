@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="Chip de sincronización" subtitle="Home, con la sincronización del puente terminada (P85)" viewport="760x90" --><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<!-- Recreada como está construida (P105): el marcado sale de renderizar src/components/SincronizacionChip.tsx
+     con datos inventados, y los estilos son las reglas de src/index.css que usa. -->
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  a{color:inherit}
+  button{font-family:inherit}
+  body{background:#0b0c0f;color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:360px;background:var(--bg);color:var(--fg);border-radius:var(--r-lg);padding:16px;box-sizing:border-box;font-family:var(--font-sans)}
+  .etq{font:var(--fw-semibold) 11px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
+  .marco{position:relative}
+  /* Las hojas son fixed en la app; en la tarjeta se muestran en su lugar. */
+  .marco .modal-backdrop{position:relative;inset:auto;min-height:0;background:transparent}
+.pendientes-chip {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+}
+.pendientes-chip-boton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.25);
+  color: var(--warning);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pendientes-chip.error .pendientes-chip-boton {
+  background: rgba(248,113,113,0.1);
+  border-color: rgba(248,113,113,0.25);
+  color: var(--danger);
+}
+.sync-chip .pendientes-chip-boton {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--muted);
+  font-weight: 500;
+}
+.sync-chip.ok .pendientes-chip-boton { color: var(--accent); }
+</style></head><body><div class="wrap"><div class="col" data-theme="ion" data-mode="dark"><div class="etq">Ion · oscuro</div><div class="marco"><div class="pendientes-chip sync-chip ok"><button type="button" class="pendientes-chip-boton"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Salud al día · 2 actividades nuevas · 1 sesión con biometría</button></div></div></div><div class="col" data-theme="ion" data-mode="light"><div class="etq">Ion · claro</div><div class="marco"><div class="pendientes-chip sync-chip ok"><button type="button" class="pendientes-chip-boton"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Salud al día · 2 actividades nuevas · 1 sesión con biometría</button></div></div></div></div></body></html>

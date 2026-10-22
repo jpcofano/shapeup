@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="HojaCambiar" subtitle="«Cambiar» lo que toca hoy (P102, ADR #030)" viewport="760x640" --><html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<!-- Recreada como está construida (P105): el marcado sale de renderizar src/components/entrenar/HojaCambiar.tsx
+     con datos inventados, y los estilos son las reglas de src/index.css que usa. -->
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  a{color:inherit}
+  button{font-family:inherit}
+  body{background:#0b0c0f;color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:360px;background:var(--bg);color:var(--fg);border-radius:var(--r-lg);padding:16px;box-sizing:border-box;font-family:var(--font-sans)}
+  .etq{font:var(--fw-semibold) 11px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px}
+  .marco{position:relative}
+  /* Las hojas son fixed en la app; en la tarjeta se muestran en su lugar. */
+  .marco .modal-backdrop{position:relative;inset:auto;min-height:0;background:transparent}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 24px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-secondary:hover { border-color: var(--muted); color: var(--fg); }
+.filter-chip {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.filter-chip:hover { border-color: var(--muted); color: var(--fg); }
+.filter-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+.modal-sheet {
+  background: var(--card);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  width: 100%;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+.modal-close:hover { color: var(--fg); }
+.fin-saltado .btn-secondary { width: auto; padding: 8px 14px; }
+.paso-carga-body .filter-chip { min-height: 44px; min-width: 52px; font-size: 15px; }
+.hoja-salida > .btn-secondary { min-height: 48px; }
+</style></head><body><div class="wrap"><div class="col" data-theme="ion" data-mode="dark"><div class="etq">Ion · oscuro</div><div class="marco"><div class="modal-backdrop"><div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="hoja-cambiar-titulo"><div class="modal-header"><span id="hoja-cambiar-titulo">En lugar de VR — Creed</span><button type="button" class="modal-close" title="Cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div><div style="overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px;"><p class="t-label" style="margin: 0px;">¿Por qué? (opcional)</p><div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;"><button type="button" class="filter-chip" aria-pressed="false">Poco tiempo</button><button type="button" class="filter-chip" aria-pressed="false">Cansado</button><button type="button" class="filter-chip" aria-pressed="false">Me duele algo</button><button type="button" class="filter-chip" aria-pressed="false">Ganas de otra cosa</button></div><div style="display: contents;"><p class="t-label" style="margin: 8px 0px 0px;">Del programa</p><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">Fuerza A — Tren superior</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">Fuerza B — Tren inferior</button></div><div style="display: contents;"><p class="t-label" style="margin: 8px 0px 0px;">Otras de VR</p><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">VR — Combat largo</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">VR a medida</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dumbbell" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"></path><path d="m2.5 21.5 1.4-1.4"></path><path d="m20.1 3.9 1.4-1.4"></path><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"></path><path d="m9.6 14.4 4.8-4.8"></path></svg>Sesión libre</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list" aria-hidden="true"><path d="M3 5h.01"></path><path d="M3 12h.01"></path><path d="M3 19h.01"></path><path d="M8 5h13"></path><path d="M8 12h13"></path><path d="M8 19h13"></path></svg>Ver todas</button></div></div></div></div></div></div><div class="col" data-theme="ion" data-mode="light"><div class="etq">Ion · claro</div><div class="marco"><div class="modal-backdrop"><div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="hoja-cambiar-titulo"><div class="modal-header"><span id="hoja-cambiar-titulo">En lugar de VR — Creed</span><button type="button" class="modal-close" title="Cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></div><div style="overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px;"><p class="t-label" style="margin: 0px;">¿Por qué? (opcional)</p><div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;"><button type="button" class="filter-chip" aria-pressed="false">Poco tiempo</button><button type="button" class="filter-chip" aria-pressed="false">Cansado</button><button type="button" class="filter-chip" aria-pressed="false">Me duele algo</button><button type="button" class="filter-chip" aria-pressed="false">Ganas de otra cosa</button></div><div style="display: contents;"><p class="t-label" style="margin: 8px 0px 0px;">Del programa</p><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">Fuerza A — Tren superior</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">Fuerza B — Tren inferior</button></div><div style="display: contents;"><p class="t-label" style="margin: 8px 0px 0px;">Otras de VR</p><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">VR — Combat largo</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;">VR a medida</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dumbbell" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"></path><path d="m2.5 21.5 1.4-1.4"></path><path d="m20.1 3.9 1.4-1.4"></path><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"></path><path d="m9.6 14.4 4.8-4.8"></path></svg>Sesión libre</button></div><div style="display: contents;"><button type="button" class="btn-secondary" style="justify-content: flex-start; text-align: left; display: flex; align-items: center; gap: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list" aria-hidden="true"><path d="M3 5h.01"></path><path d="M3 12h.01"></path><path d="M3 19h.01"></path><path d="M8 5h13"></path><path d="M8 12h13"></path><path d="M8 19h13"></path></svg>Ver todas</button></div></div></div></div></div></div></div></body></html>
