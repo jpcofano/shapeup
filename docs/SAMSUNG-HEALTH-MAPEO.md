@@ -88,7 +88,7 @@ Para métricas sin colección tipada propia. **Granularidad diaria** — no se g
 | `oxygen_saturation` | `spo2` | promedio diario | % |
 | `respiratory_rate` | `frecuencia-respiratoria` | promedio por noche | rpm |
 | `skin_temperature` | `temperatura-piel` | promedio por noche | °C |
-| `blood_pressure` | `presion-sistolica` / `presion-diastolica` | último del día: la lectura **más tardía del día** que tenga los dos valores; el par sale de esa sola lectura (P105) | mmHg |
+| `blood_pressure` | `presion-sistolica` / `presion-diastolica` | último del día: el **promedio de la última tanda** de lecturas completas (P106, reemplaza la regla de P105) | mmHg |
 | `vitality` | `vitality` | promedio diario | — |
 
 `idMetrica = ${miembro}-${tipo}-${fecha}` → idempotente por día. Colección Firestore: `/metricas-salud`.
@@ -98,6 +98,20 @@ archivo**: si el CSV no venía ordenado, o una fila traía uno solo de los dos v
 lecturas. Desde P105 (`presionPorDia`), un día sin ninguna lectura completa no guarda medio par. Reimportar un
 ZIP pisa el par de cada día con el correcto; los medios pares viejos, si hubiera, no se borran solos. La
 presión **solo llega con el ZIP**: el puente (vía D) no la trae.
+
+**Presión (P106, 22/10): el promedio de la tanda.** Reemplaza la regla de P105, que era «la lectura más tardía».
+- **Qué es una tanda:** lecturas completas, ordenadas por hora, cada una a **15 minutos o menos** de la
+  anterior (`MINUTOS_TANDA_PRESION`). Juan se toma tres al hilo.
+- **El valor del día:** el **promedio de la última tanda**, redondeado a entero, con la sistólica y la
+  diastólica promediadas sobre las mismas lecturas.
+- **Lo que se mantiene:**
+  - una fila con un solo valor no entra;
+  - un día sin lecturas completas no guarda nada;
+  - `agregacion` sigue siendo `"ultimo-del-dia"`, porque es la última medición del día.
+- **Para aplicarla:** hay que reimportar un ZIP después del deploy.
+- **Health Sync, por si algún día se lee:** sus CSV de Drive cambian el orden de las columnas entre archivos
+  (`Fecha,Hora,Sistólica,Diastólica` en uno, `Fecha,Hora,Diastólica,Sistólica,Frecuencia cardiaca,Comentario` en
+  otro). Habría que leerlos por encabezado. Health Sync no es una vía.
 
 ## 5) Señales del motor de recomendaciones — disponibilidad confirmada
 El export confirma que **el set propuesto (`SENALES_SALUD`) es 100% obtenible**. Fuente de cada una:

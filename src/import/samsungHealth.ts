@@ -561,15 +561,21 @@ function groupByDay(
   return map;
 }
 
+/** Dos lecturas a esta distancia o menos son de la misma tanda (P106). */
+export const MINUTOS_TANDA_PRESION = 15;
+
 /**
- * El par de presión de cada día (P105): la lectura más tardía del día que
- * tenga sistólica y diastólica. Con la misma hora, gana la última del archivo.
- * Una fila con un solo valor no entra: un par a medias no es una lectura.
+ * El par de presión de cada día (P106, reemplaza la regla de P105): el
+ * **promedio de la última tanda**. Una tanda son lecturas seguidas, cada una a
+ * 15 minutos o menos de la anterior (Juan se toma tres al hilo). La sistólica y
+ * la diastólica se promedian sobre las mismas lecturas y se redondean a entero.
+ * Una fila con un solo valor no entra: un par a medias no es una lectura. Un
+ * día sin lecturas completas no guarda nada.
  */
 export function presionPorDia(
   filas: Record<string, string>[],
 ): Map<string, { sistolica: number; diastolica: number }> {
-  const porDia = new Map<string, { ms: number; sistolica: number; diastolica: number }>();
+  const porDia = new Map<string, { ms: number; sistolica: number; diastolica: number }[]>();
   for (const f of filas) {
     const t = col(f, "start_time");
     const off = col(f, "time_offset") || undefined;
@@ -578,10 +584,19 @@ export function presionPorDia(
     const sistolica = numOpt(col(f, "systolic"));
     const diastolica = numOpt(col(f, "diastolic"));
     if (!fecha || ms == null || sistolica == null || diastolica == null) continue;
-    const previa = porDia.get(fecha);
-    if (!previa || ms >= previa.ms) porDia.set(fecha, { ms, sistolica, diastolica });
+    porDia.set(fecha, [...(porDia.get(fecha) ?? []), { ms, sistolica, diastolica }]);
   }
-  return new Map([...porDia].map(([fecha, { sistolica, diastolica }]) => [fecha, { sistolica, diastolica }]));
+  const out = new Map<string, { sistolica: number; diastolica: number }>();
+  for (const [fecha, lecturas] of porDia) {
+    const orden = [...lecturas].sort((a, b) => a.ms - b.ms);
+    // La última tanda: desde el final hacia atrás, mientras el salto sea de 15 min o menos.
+    let i = orden.length - 1;
+    while (i > 0 && orden[i].ms - orden[i - 1].ms <= MINUTOS_TANDA_PRESION * 60_000) i--;
+    const tanda = orden.slice(i);
+    const prom = (k: "sistolica" | "diastolica") => Math.round(tanda.reduce((s, l) => s + l[k], 0) / tanda.length);
+    out.set(fecha, { sistolica: prom("sistolica"), diastolica: prom("diastolica") });
+  }
+  return out;
 }
 
 function dayMapToMetricas(
@@ -708,10 +723,10 @@ export function parsearMetricas(
 
   // ── Presión arterial ──────────────────────────────────────────────────────
   if (f.includes("blood_pressure")) {
-    // P105: el par de cada día sale de UNA lectura, la más tardía por hora que
-    // tenga los dos valores. Antes se agrupaba cada valor por separado y se
-    // tomaba el último del archivo: si el CSV no venía ordenado, o una fila
-    // traía uno solo, el par podía mezclar dos lecturas.
+    // P106: el par de cada día es el promedio de la última tanda de lecturas
+    // completas (`presionPorDia`). P105 había dejado una sola lectura, la más
+    // tardía; antes de P105 se agrupaba cada valor por separado y se tomaba el
+    // último del archivo, y el par podía mezclar dos lecturas.
     const pares = presionPorDia(filas);
     const bySisDay: DayMap = new Map([...pares].map(([fecha, p]) => [fecha, [p.sistolica]]));
     const byDiaDay: DayMap = new Map([...pares].map(([fecha, p]) => [fecha, [p.diastolica]]));

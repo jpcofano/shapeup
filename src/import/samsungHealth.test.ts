@@ -595,11 +595,62 @@ bp-1,${ms},UTC-0300,119,77,60`;
     expect(par(csv, "2026-03-14")).toMatchObject({ sis: 119, dia: 77 });
   });
 
-  it("con la misma hora, gana la última del archivo", () => {
+  it("con la misma hora son de la misma tanda: se promedian (P106)", () => {
     const csv = `${ENC}
 bp-1,2026-03-17 11:00:00.000,UTC-0300,121,79,60
 bp-2,2026-03-17 11:00:00.000,UTC-0300,124,81,62`;
-    expect(par(csv, "2026-03-17")).toMatchObject({ sis: 124, dia: 81 });
+    expect(par(csv, "2026-03-17")).toMatchObject({ sis: 123, dia: 80 });
+  });
+
+  // ── P106: el promedio de la última tanda ───────────────────────────────────
+  it("P106: tres lecturas en 4 minutos dan el promedio de las tres", () => {
+    const csv = `${ENC}
+bp-1,2026-04-01 11:00:00.000,UTC-0300,120,80,60
+bp-2,2026-04-01 11:02:00.000,UTC-0300,124,82,61
+bp-3,2026-04-01 11:04:00.000,UTC-0300,119,77,59`;
+    // 363 / 3 = 121; 239 / 3 = 79,67 → 80.
+    expect(par(csv, "2026-04-01")).toMatchObject({ sis: 121, dia: 80 });
+  });
+
+  it("P106: con una tanda a la mañana y otra a la tarde, vale la de la tarde", () => {
+    const csv = `${ENC}
+bp-1,2026-04-02 11:00:00.000,UTC-0300,130,85,60
+bp-2,2026-04-02 11:03:00.000,UTC-0300,132,86,60
+bp-3,2026-04-02 21:00:00.000,UTC-0300,118,76,60
+bp-4,2026-04-02 21:05:00.000,UTC-0300,116,74,60`;
+    expect(par(csv, "2026-04-02")).toMatchObject({ sis: 117, dia: 75 });
+  });
+
+  it("P106: una lectura sola es su propia tanda", () => {
+    const csv = `${ENC}
+bp-1,2026-04-03 11:00:00.000,UTC-0300,125,83,60`;
+    expect(par(csv, "2026-04-03")).toMatchObject({ sis: 125, dia: 83 });
+  });
+
+  it("P106: a 15 minutos justos es la misma tanda; a 16, otra", () => {
+    const misma = `${ENC}
+bp-1,2026-04-04 11:00:00.000,UTC-0300,120,80,60
+bp-2,2026-04-04 11:15:00.000,UTC-0300,130,90,60`;
+    expect(par(misma, "2026-04-04")).toMatchObject({ sis: 125, dia: 85 });
+    const otra = `${ENC}
+bp-1,2026-04-05 11:00:00.000,UTC-0300,120,80,60
+bp-2,2026-04-05 11:16:00.000,UTC-0300,130,90,60`;
+    expect(par(otra, "2026-04-05")).toMatchObject({ sis: 130, dia: 90 });
+  });
+
+  it("P106: el promedio se redondea a entero (,5 para arriba)", () => {
+    const csv = `${ENC}
+bp-1,2026-04-06 11:00:00.000,UTC-0300,121,80,60
+bp-2,2026-04-06 11:01:00.000,UTC-0300,122,81,60`;
+    expect(par(csv, "2026-04-06")).toMatchObject({ sis: 122, dia: 81 });
+  });
+
+  it("P106: el desorden del archivo no cambia la tanda", () => {
+    const csv = `${ENC}
+bp-3,2026-04-07 21:04:00.000,UTC-0300,119,77,60
+bp-1,2026-04-07 11:00:00.000,UTC-0300,140,90,60
+bp-2,2026-04-07 21:00:00.000,UTC-0300,121,79,60`;
+    expect(par(csv, "2026-04-07")).toMatchObject({ sis: 120, dia: 78 });
   });
 
   it("guarda en mmHg, «último del día», un documento por tipo y día", () => {
