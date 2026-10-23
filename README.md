@@ -32,7 +32,9 @@ dispositivo).
   oscuro neutro también.)*
 - Los semánticos (`--danger`, `--warning`, `--info` y sus `-dim`) tienen un valor por modo; en
   claro son más oscuros, para pasar AA como texto.
-- Las zonas de FC y los colores de miembro no cambian con el tema ni con el modo.
+- Las zonas de FC y los colores de miembro no cambian con el tema. Las zonas sí tienen un valor
+  por modo (P109): en claro son más oscuras, para que la curva y los textos de zona se lean
+  sobre el fondo claro.
 
 | Tema | Acento oscuro | Acento claro | Default de |
 |---|---|---|---|
@@ -76,11 +78,11 @@ Si las direcciones de Home se extienden a toda la app lo decide la auditoría (P
 | VR por escalones: inicio, sesión por tiempo, cierre con dificultad; VR a medida | Inicio y cierre en `pantallas-nuevas.html` (P105, estático); sin la sesión por tiempo ni VR a medida |
 | Sesión de juego (`SesionJuego`) y su hoja de salida | En `pantallas-nuevas.html` (P105, estático) |
 | Historial | Sí, de junio |
-| Detalle de la sesión: marcas, curva (`CurvaSesion`), análisis | En `pantallas-nuevas.html` (P105, estático); el interactivo tiene el de junio |
-| Salud: Resumen, Composición, Cardio, Sueño, Progreso | Composición, Cardio, Sueño y Progreso, de junio; Resumen y el panel del puente en `pantallas-nuevas.html` (P105) |
+| Detalle de la sesión (`DetalleSesion`): la curva pintada por zona con sus marcas, «Tiempo en zonas», «Lo que hiciste», análisis | En `pantallas-nuevas.html` (regenerada en P109, estático); el interactivo tiene el de junio |
+| Salud: Resumen, Cuerpo, Cardio, Sueño, Tendencias (P109; antes «Composición» y «Progreso») | Composición, Cardio, Sueño y Progreso (el kit de junio, con los nombres de entonces); el Resumen nuevo (la fecha, las pestañas en píldora, el puente en una línea, el sueño de anoche y «Tu cuerpo») en `pantallas-nuevas.html` (P109) y en `preview/cmp-resumen-salud.html` |
 | Perfil y Configuración (lo de cada miembro y, solo owner, «Familia y datos»; `RevisionFcMax`) | Perfil de junio en el interactivo; Configuración completa en `pantallas-nuevas.html` (P105) |
 | Formularios de rutina y de ejercicio | No |
-| Componentes sueltos: chip de sincronización, adherencia, `BarraZonas`, `TrendChart`, `PantallaError` | Como tarjetas en `preview/cmp-*.html` (P105), menos `PantallaError` |
+| Componentes sueltos: chip de sincronización, adherencia, `BarraZonas`, `TrendChart`, `PantallaError`; la curva de la sesión y «Tiempo en zonas» | Como tarjetas en `preview/cmp-*.html` (P105; la curva, `BarraZonas` y «Tiempo en zonas», de P109), menos `PantallaError` |
 
 ---
 
@@ -114,9 +116,22 @@ Lo que ShapeUp **crea propio** sobre la base heredada:
    `#22d3ee`)**, el más lejos del marrón/bordó cálido de Comida — ShapeUp se lee frío, oscuro,
    atlético. 5 temas: **Ion** (cian), **Volt** (verde), **Indigo** (violeta), **Blaze**
    (naranja-coral), **Pulse** (rosa). Se eligen en Perfil. Ver sección *Temas*.
-3. **Escala de zonas de FC (Z1→Z5)** — rampa térmica de frío a caliente, como tokens
-   (`--zona-z1..z5`). Engancha con `zonasFC` por miembro (% FCmáx: Z1 50-60 · Z2 60-70 ·
-   Z3 70-80 · Z4 80-90 · Z5 90-100) y la usa el módulo de Salud / cardio.
+3. **Escala de zonas de FC (Z1→Z5)** — los colores y los nombres de Samsung Health (P109,
+   enmienda del ADR #045), como tokens (`--zona-z1..z5` y sus `-dim`: 14 % del color en oscuro,
+   12 % en claro). Engancha con `zonasFC` por miembro (% FCmáx: Z1 50-60 · Z2 60-70 ·
+   Z3 70-80 · Z4 80-90 · Z5 90-100) y la usan el detalle de la sesión y Salud → Cardio.
+
+   | Zona | Nombre (Samsung) | Oscuro | Claro |
+   |---|---|---|---|
+   | Z5 | Máximo | `#ef4444` | `#dc2626` |
+   | Z4 | Anaeróbico | `#f97316` | `#c2410c` |
+   | Z3 | Aeróbico | `#facc15` | `#a16207` |
+   | Z2 | Control del peso | `#22c55e` | `#15803d` |
+   | Z1 | Intensidad baja | `#3b82f6` | `#2563eb` |
+
+   Los nombres viven en un solo lugar, `NOMBRE_ZONA` (`src/lib/zonas.ts`). Donde entra, la zona
+   se escribe «Anaeróbico · Z4» (`nombreZonaLargo`); donde no, «Z4». Las muestras:
+   `preview/col-zonas.html`, `preview/cmp-tiempo-en-zonas.html` y `preview/cmp-barra-zonas.html`.
 4. **Estados de fitness** que Comida no tiene: *sesión activa*, *descanso en curso*,
    *intensidad por zona*, *completado* (ver `preview/cmp-fitness-states.html`).
 5. **Visuales de progreso** pulidos como pieza de identidad: `MiniChart`, `ProgressDots`,
@@ -138,7 +153,7 @@ Lo que ShapeUp **crea propio** sobre la base heredada:
 
 ShapeUp es **multi-tema**, y el tema se elige **por miembro** (cada uno ajusta el suyo). La
 base oscura, la tipografía, el espaciado, los colores de miembro y las zonas de FC **no
-cambian**; lo que cambia es la **familia del acento** (botones, nav activo, chips, dots, timer,
+cambian** con el tema; lo que cambia es la **familia del acento** (botones, nav activo, chips, dots, timer,
 FAB, foco, banners) más un **tinte de superficie marcado** (las superficies se tiñen hacia el
 hue del acento), para que cada tema *se sienta* distinto sin rediseñar nada.
 
@@ -301,7 +316,8 @@ MiniChart, la tira semanal, los avatares de color. Frío, oscuro, de alto contra
 ### UI Kits
 - **`ui_kits/shapeup/`** — recreación interactiva de la app ShapeUp. Abrí
   `ui_kits/shapeup/index.html`: login → home → sesión guiada (con timer de descanso y banners
-  de técnica) → biblioteca/catálogo → historial → salud (composición/cardio/sueño/progreso) →
+  de técnica) → biblioteca/catálogo → historial → salud (composición/cardio/sueño/progreso; en la
+  app, desde P109, «Cuerpo» y «Tendencias») →
   perfil (cambiá de miembro). Ver su `README.md` para los componentes.
 
 ---
