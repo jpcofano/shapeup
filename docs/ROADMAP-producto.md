@@ -524,6 +524,10 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P104 | ✅ (21/10) Traer lo de Claude Design al repo antes de que cierre (14/12): la raíz del sistema de diseño pasa a la versión de la cuenta A, y las explorations, las auditorías y los inventarios quedan archivados. Ver `docs/AUDITORIA-DISENO.md` §8 | — |
 | P103 | ✅ (21/10) Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
 | P105 | ✅ (22/10) Corrida nocturna: auditoría de los datos de salud (la presión primero), `/qa/sesion`, capturas, el kit de la raíz igual a la app (paso 2b del lado del repo) y el diagnóstico de diseño medible. Prompt: `docs/prompts/105-corrida-nocturna-salud-y-kit-igual-a-la-app.md` | P103 |
+| P106 | Lo que dejó P105: la presión como el promedio de la tanda, la presión vieja a la vista, sin `fc-reposo`, el sueño por la unión de tramos, las pesadas repetidas, y dos arreglos de accesibilidad. Corre en el Bloque 1 de P109. Prompt: `docs/prompts/106-salud-al-dia-y-dos-arreglos-medidos.md` | P105 |
+| P107 | El puente pide presión, sueño y SpO2 (SDK 1.1.0). En la otra sesión, repo `shapeup-bridge` | P106 |
+| P108 | Reservado: el adaptador de la app para presión, sueño y SpO2, con los registros reales de P107 | P107 |
+| P109 | Corrida nocturna: P106, las zonas como Samsung, el detalle de la sesión y el Resumen de Salud nuevos (auditoría de diseño, paso 4). Prompt: `docs/prompts/109-corrida-nocturna-zonas-detalle-y-resumen.md`. **El próximo libre es P110** | P105 |
 | P101 | Auditoría de diseño: lo próximo de pantalla. Plan, diagnóstico y estado: `docs/AUDITORIA-DISENO.md`. | P103 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 

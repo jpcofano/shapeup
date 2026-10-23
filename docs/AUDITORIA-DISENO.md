@@ -91,7 +91,22 @@ El kit de la raíz es del **06/06/2026** (`README.md`, `SKILL.md`, `colors_and_t
   - **Qué falta:** las de la app real con sesión iniciada.
 
   Lo que pedía el paso: con P103 desplegado, cada pantalla en claro y en oscuro, a 390 px, más las páginas de QA. Pueden ser las de `docs/auditorias/capturas/` (si P103 las sacó) o las del navegador integrado. Más las capturas del 02/10.
-- ☐ **4. Auditoría** en un lienzo de **Design**. **Insumo medido:** `docs/reportes/diagnostico-diseno-2026-10-22.md` (P105, Bloque 5): contraste, valores escritos a mano, toques y fuentes chicas, las dos capas, lo diseñado y nunca construido, y una tabla de hallazgos con su decisión abierta. Lo que pide el paso: hallazgos por pantalla con severidad, propuestas mockeadas solo de los más importantes y las decisiones abiertas aparte (entre ellas, si las direcciones de Home se extienden a toda la app). Entran también la pantalla de marcas (P99 §6, construida por P103), la curva, `SesionJuego` y la etiqueta de la FC máxima.
+- ◐ **4. Auditoría: en curso (22/10).** Juan decidió con el chat el detalle de la sesión y Salud → Resumen. Las referencias están en `docs/prompts/109-diseno/` (`DetalleFinal.html`, `ResumenFinal.html` y `RampaZonas.html`), y las construye P109. **El lienzo de la auditoría y el artifact Design System viven en la cuenta de Claude de Juan:** la fuente de verdad es esa carpeta de referencias y el repo. Las decisiones cerradas:
+  1. **Colores de zona como Samsung**, con un valor por modo (enmienda del ADR #045).
+  2. **Nombres de Samsung donde entren**: el detalle, el chip de la zona dominante y Configuración. La forma larga es «Anaeróbico · Z4»; donde no entra, «Z4».
+  3. **La curva se pinta por zona**:
+     - sin bandas de fondo, con líneas guía en los pisos de zona y las ppm a la derecha, y un eje de tiempo de 4 o 5 marcas;
+     - las marcas de la app y del análisis salen de la curva y pasan a ser chips que se tocan, debajo de ella;
+     - el pico queda como un punto.
+  4. **«Tiempo en zonas»**, estilo Samsung, en lugar de las dos barras apiladas.
+  5. **Salud → Resumen**:
+     - el puente en una línea cuando está al día;
+     - el sueño de anoche destacado;
+     - las tarjetas de «Tu cuerpo»;
+     - las pestañas «Cuerpo» y «Tendencias».
+  6. **Todo toque mide al menos 44 px.**
+
+  Lo que pedía el paso 4 originalmente: una auditoría en un lienzo de **Design**. **Insumo medido:** `docs/reportes/diagnostico-diseno-2026-10-22.md` (P105, Bloque 5): contraste, valores escritos a mano, toques y fuentes chicas, las dos capas, lo diseñado y nunca construido, y una tabla de hallazgos con su decisión abierta. Lo que pide el paso: hallazgos por pantalla con severidad, propuestas mockeadas solo de los más importantes y las decisiones abiertas aparte (entre ellas, si las direcciones de Home se extienden a toda la app). Entran también la pantalla de marcas (P99 §6, construida por P103), la curva, `SesionJuego` y la etiqueta de la FC máxima.
 - ☐ **5. P101 para Code,** por partes. Al cerrar, el sistema de diseño de la raíz queda al día.
 
 ---

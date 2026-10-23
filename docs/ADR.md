@@ -1165,6 +1165,23 @@ el redondeo.
 - **El orden importa**: `npm run corregir:zonas -- --aplicar` va **antes** de deployar la versión 8.
   Si la sincronización rehace las sesiones con las zonas viejas, quedan guardadas con esas.
 
+**Enmienda (P109, 22/10/2026, decidida por Juan en la auditoría de diseño):** de Samsung no son solo los
+rangos, también **los colores y los nombres**. La rampa vieja (cian, verde azulado, lima, naranja, rojo) se
+reemplaza, y desde ahora las zonas **cambian con el modo** (siguen sin cambiar con el tema):
+
+| Zona | Nombre | Oscuro | Claro |
+|---|---|---|---|
+| Z5 | Máximo | `#ef4444` | `#dc2626` |
+| Z4 | Anaeróbico | `#f97316` | `#c2410c` |
+| Z3 | Aeróbico | `#facc15` | `#a16207` |
+| Z2 | Control del peso | `#22c55e` | `#15803d` |
+| Z1 | Intensidad baja | `#3b82f6` | `#2563eb` |
+
+- Los `-dim` son el mismo color al 14 % en oscuro y al 12 % en claro.
+- Los nombres viven en un solo lugar (`NOMBRE_ZONA`, `lib/zonas.ts`). La forma larga es «Anaeróbico · Z4»;
+  donde no entra, «Z4».
+- Los rangos y la convención de arriba no cambian.
+
 ## ADR #046 — Las rutinas de VR por escalones (P98, 2026-10-02)
 
 Las cuatro rutinas de VR estaban escritas como rondas cortas con descanso, y Juan no juega así: el

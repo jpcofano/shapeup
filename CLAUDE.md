@@ -115,7 +115,7 @@ Una línea por ADR, con su título. El texto completo está en `docs/ADR.md`.
 - ADR #042 — La app define cuánto dura la sesión; el reloj aporta los datos (P83, 2026-09-22) — `docs/ADR.md`
 - ADR #043 — La tolerancia del 12 %: qué muestras entran, no cuánto duró (P92, 2026-09-27) — `docs/ADR.md`
 - ADR #044 — Lo medido y lo interpretado no se mezclan (P93, 2026-09-30) — `docs/ADR.md`
-- ADR #045 — Las zonas como las cuenta Samsung; la FC máxima es un valor declarado (P97, 2026-10-01) — `docs/ADR.md`
+- ADR #045 — Las zonas como las cuenta Samsung; la FC máxima es un valor declarado (P97, 2026-10-01; enmienda P109: colores y nombres de Samsung) — `docs/ADR.md`
 - ADR #046 — Las rutinas de VR por escalones; la rutina no se muta, el modo se elige, umbral provisorio (P98, 2026-10-02) — `docs/ADR.md`
 - ADR #047 — Dónde viven las marcas: las de la curva se guardan versionadas, las demás se calculan al mostrar; ids fijos, récord «a la fecha», la prioridad la fija la app (P99, 2026-10-21) — `docs/ADR.md`
 
