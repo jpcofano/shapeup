@@ -110,3 +110,19 @@ export function zonaPorPiso(fc: number, pisos: Pisos): ZonaFC | null {
   for (const p of pisos) if (fc >= p.min) return p.zona;
   return null;
 }
+
+// ── Los nombres de Samsung (P109, enmienda del ADR #045) ──────────────────────
+
+/** El nombre de cada zona, como lo dice Samsung Health. Un solo lugar. */
+export const NOMBRE_ZONA: Record<ZonaFC, string> = {
+  Z5: "Máximo",
+  Z4: "Anaeróbico",
+  Z3: "Aeróbico",
+  Z2: "Control del peso",
+  Z1: "Intensidad baja",
+};
+
+/** La forma larga: «Anaeróbico · Z4». Donde no entra, alcanza con la zona sola. */
+export function nombreZonaLargo(zona: ZonaFC): string {
+  return `${NOMBRE_ZONA[zona]} · ${zona}`;
+}

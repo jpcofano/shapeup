@@ -7,7 +7,7 @@ import {
 } from "../../types/models";
 import { migrarEquipoPorLugar } from "../../lib/perfil";
 import { validarAnioNacimiento, validarZonas, type ZonasFC } from "../../lib/configuracion";
-import { zonasCorresponden, zonasDesdeFcMax } from "../../lib/zonas";
+import { zonasCorresponden, zonasDesdeFcMax, NOMBRE_ZONA } from "../../lib/zonas";
 import { ETIQUETA_ORIGEN } from "../../lib/fcMaxima";
 import { actualizarPerfil, type PatchPerfil } from "../../data/perfiles";
 
@@ -353,12 +353,15 @@ export function EditorPerfil({ miembro, perfil, metaDelPlan, onGuardado }: Props
             {ORIGENES_FC_MAX.map((o) => <option key={o} value={o}>{ETIQUETA_ORIGEN[o]}</option>)}
           </select>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr", gap: "6px 8px", alignItems: "center", maxWidth: 260 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr", gap: "6px 8px", alignItems: "center", maxWidth: 340 }}>
           {ZONAS_FC.map((z) => {
             const r = borrador.zonasFC[z];
             return (
               <Fragment key={z}>
-                <span style={{ fontSize: 12, fontWeight: 600 }}>{z}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: `var(--zona-${z.toLowerCase()})` }} />
+                  {z} <span style={{ fontWeight: 400, color: "var(--muted)" }}>{NOMBRE_ZONA[z]}</span>
+                </span>
                 <input
                   type="number" inputMode="numeric" className="form-input" aria-label={`${z} mínimo`}
                   value={r && Number.isFinite(r.min) ? r.min : ""}

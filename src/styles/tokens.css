@@ -47,17 +47,20 @@
   --member-sofia:     #a78bfa;
   --member-federico:  #34d399;
 
-  /* ── Escala de ZONAS DE FC (Z1→Z5) · IDENTIDAD ShapeUp ────────────────── *
-   * Rampa térmica de frío a caliente. Constantes, NO cambian con el tema.    */
-  --zona-z1: #38bdf8;
-  --zona-z2: #2dd4bf;
-  --zona-z3: #a3e635;
-  --zona-z4: #fb923c;
+  /* ── Escala de ZONAS DE FC (Z1→Z5) · los colores de Samsung ─────────── *
+   * P109 (enmienda del ADR #045): los colores y los nombres son los de     *
+   * Samsung (NOMBRE_ZONA en lib/zonas.ts). No cambian con el tema; sí con   *
+   * el modo: estos son los de oscuro, y [data-mode="light"] los pisa con    *
+   * los de claro, más oscuros para leerse. Los -dim, al 14 % (12 % claro).  */
+  --zona-z1: #3b82f6;
+  --zona-z2: #22c55e;
+  --zona-z3: #facc15;
+  --zona-z4: #f97316;
   --zona-z5: #ef4444;
-  --zona-z1-dim: rgba(56, 189, 248, 0.14);
-  --zona-z2-dim: rgba(45, 212, 191, 0.14);
-  --zona-z3-dim: rgba(163, 230, 53, 0.14);
-  --zona-z4-dim: rgba(251, 146, 60, 0.14);
+  --zona-z1-dim: rgba(59, 130, 246, 0.14);
+  --zona-z2-dim: rgba(34, 197, 94, 0.14);
+  --zona-z3-dim: rgba(250, 204, 21, 0.14);
+  --zona-z4-dim: rgba(249, 115, 22, 0.14);
   --zona-z5-dim: rgba(239, 68, 68, 0.14);
 
   /* ── Estados de FITNESS · IDENTIDAD ShapeUp ───────────────────────────── */
@@ -144,8 +147,8 @@
    superficie por tema (sigue el patrón del prototipo: una sola superficie
    clara neutra, el acento por tema alcanza para distinguirlos) — ver el
    bloque [data-mode="light"] compartido más abajo, que la resuelve.
-   Las zonas de FC y los colores de miembro NO cambian con el tema ni con
-   el modo.
+   Las zonas de FC y los colores de miembro NO cambian con el tema. Las
+   zonas sí cambian con el modo (P109); los colores de miembro, no.
  * ════════════════════════════════════════════════════════════════════════ */
 
 [data-theme="ion"] {
@@ -217,6 +220,17 @@
    [data-mode="light"] sí las lleva porque ahí la superficie SÍ es          *
    compartida entre temas (ver comentario de la sección TEMAS, arriba). */
 [data-mode="dark"] {
+  --zona-z1: #3b82f6;
+  --zona-z2: #22c55e;
+  --zona-z3: #facc15;
+  --zona-z4: #f97316;
+  --zona-z5: #ef4444;
+  --zona-z1-dim: rgba(59, 130, 246, 0.14);
+  --zona-z2-dim: rgba(34, 197, 94, 0.14);
+  --zona-z3-dim: rgba(250, 204, 21, 0.14);
+  --zona-z4-dim: rgba(249, 115, 22, 0.14);
+  --zona-z5-dim: rgba(239, 68, 68, 0.14);
+
   --fg:         #f5f7fa;
   --muted:      #9aa4b2;
 
@@ -231,6 +245,17 @@
 }
 
 [data-mode="light"] {
+  --zona-z1: #2563eb;
+  --zona-z2: #15803d;
+  --zona-z3: #a16207;
+  --zona-z4: #c2410c;
+  --zona-z5: #dc2626;
+  --zona-z1-dim: rgba(37, 99, 235, 0.12);
+  --zona-z2-dim: rgba(21, 128, 61, 0.12);
+  --zona-z3-dim: rgba(161, 98, 7, 0.12);
+  --zona-z4-dim: rgba(194, 65, 12, 0.12);
+  --zona-z5-dim: rgba(220, 38, 38, 0.12);
+
   --bg:         #eceef1;
   --card:       #ffffff;
   --card-hover: #f4f5f8;

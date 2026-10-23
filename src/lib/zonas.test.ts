@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pisosDe, zonaPorPiso, zonasCorresponden, zonasDesdeFcMax, zonasEfectivas } from "./zonas";
+import { pisosDe, zonaPorPiso, zonasCorresponden, zonasDesdeFcMax, zonasEfectivas, NOMBRE_ZONA, nombreZonaLargo } from "./zonas";
 import { derivarZona } from "./matchBiometrico";
 import { derivarZona as derivarZonaCardio } from "../import/samsungHealth";
 import type { PerfilMiembro } from "../types/models";
@@ -102,5 +102,18 @@ describe("zonasCorresponden: el aviso del editor (P97)", () => {
     expect(zonasCorresponden({}, 169)).toBe(true);
     expect(zonasCorresponden(undefined, 169)).toBe(true);
     expect(zonasCorresponden(zonasDesdeFcMax(169), null)).toBe(true);
+  });
+});
+
+describe("los nombres de Samsung (P109)", () => {
+  it("una por zona, como en Samsung Health", () => {
+    expect(NOMBRE_ZONA).toEqual({
+      Z5: "Máximo", Z4: "Anaeróbico", Z3: "Aeróbico", Z2: "Control del peso", Z1: "Intensidad baja",
+    });
+  });
+
+  it("la forma larga es «Nombre · Zn»", () => {
+    expect(nombreZonaLargo("Z4")).toBe("Anaeróbico · Z4");
+    expect(nombreZonaLargo("Z1")).toBe("Intensidad baja · Z1");
   });
 });
