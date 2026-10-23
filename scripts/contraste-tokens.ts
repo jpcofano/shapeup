@@ -5,7 +5,7 @@
 //  estándar, en Markdown, la razón de contraste de los pares que importan: texto
 //  y texto secundario sobre fondo y tarjeta, acento sobre tarjeta y texto sobre
 //  el botón principal, para los 5 temas × claro y oscuro y para las dos
-//  direcciones de Home. No toca Firestore ni escribe archivos.
+//  direcciones de Home; y las zonas de FC sobre la tarjeta y el fondo (P109). No toca Firestore ni escribe archivos.
 //
 //  Uso: npx tsx scripts/contraste-tokens.ts > salida.md
 // ════════════════════════════════════════════════════════════════════════════
@@ -89,6 +89,22 @@ for (const t of TEMAS) {
     for (const [et, r] of pares) (filas[et] ??= []).push(celda(r, false));
   }
   for (const [et, celdas] of Object.entries(filas)) L.push(`| ${et} | ${t} | ${celdas.join(" | ")} |`);
+}
+
+L.push("\n### Zonas de FC (P109): 3:1 sobre la tarjeta y el fondo\n");
+L.push("Son componentes gráficos (barras, líneas, puntos): piden 3:1. ✗ = no llega.\n");
+const celdaG = (r: number) => `${r.toFixed(2).replace(".", ",")}${pasaAA(r, true) ? "" : " ✗"}`;
+const colsZ = ["claro / tarjeta", "claro / fondo", ...TEMAS.flatMap((t) => [`${t} osc. / tarjeta`, `${t} osc. / fondo`])];
+L.push(`| Zona | ${colsZ.join(" | ")} |`);
+L.push(`|---|${colsZ.map(() => "---").join("|")}|`);
+for (const z of ["z5", "z4", "z3", "z2", "z1"]) {
+  const claro = efectivos("ion", "light");
+  const celdas = [celdaG(razonContraste(claro[`zona-${z}`], claro.card)), celdaG(razonContraste(claro[`zona-${z}`], claro.bg))];
+  for (const t of TEMAS) {
+    const v = efectivos(t, "dark");
+    celdas.push(celdaG(razonContraste(v[`zona-${z}`], v.card)), celdaG(razonContraste(v[`zona-${z}`], v.bg)));
+  }
+  L.push(`| ${z.toUpperCase()} | ${celdas.join(" | ")} |`);
 }
 
 console.log(L.join("\n"));
