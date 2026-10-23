@@ -151,3 +151,44 @@ export function estadoDelPedido(
   if (!esPropio) return { como, estado: "no-se-sabe" };
   return { como, estado: ahora - pedido.pedidoMs > SIN_RESPUESTA_MS ? "sin-respuesta" : "esperando" };
 }
+
+// ── P109: el puente en una línea ──────────────────────────────────────────────
+
+/** Sin corridas en este lapso, el puente probablemente esté frenado por batería. */
+export const HORAS_SIN_CORRER_AVISO = 12;
+
+/**
+ * ¿El puente está al día, sin nada que pida acción? (P109) Entonces Salud lo
+ * muestra en una línea («Datos al día · el reloj sincronizó hace N h»). Si no,
+ * la tarjeta completa de siempre: nunca sincronizó, está frenado, hubo un
+ * error o errores al subir, hay un pedido sin respuesta o que llegó tarde, una
+ * sesión que todavía no llegó, o se está sincronizando. La lógica de cada
+ * estado es la de la tarjeta; esto solo decide cuál de las dos se ve.
+ */
+export function puenteAlDia(d: {
+  ultimaCorridaMs: number | null | undefined;
+  erroresAlSubir?: number | null;
+  ahora: number;
+  error?: string | null;
+  enCurso: boolean;
+  llegoTarde?: boolean;
+  sesionSinLlegar?: string | null;
+  pedido?: PedidoVisto | null;
+  pedidoPropio?: PedidoPropio | null;
+}): boolean {
+  if (d.ultimaCorridaMs == null) return false;
+  if (d.ahora - d.ultimaCorridaMs > HORAS_SIN_CORRER_AVISO * 3_600_000) return false;
+  if (d.error || d.erroresAlSubir || d.enCurso || d.llegoTarde || d.sesionSinLlegar) return false;
+  const delPedido = estadoDelPedido(d.pedido ?? null, d.ultimaCorridaMs, d.ahora, d.pedidoPropio);
+  if (delPedido && (delPedido.estado === "sin-respuesta" || delPedido.estado === "esperando")) return false;
+  return true;
+}
+
+/** «hace menos de una hora», «hace 2 h», «hace 3 días». */
+export function haceCuanto(ms: number, ahora: number): string {
+  const horas = Math.floor((ahora - ms) / 3_600_000);
+  if (horas < 1) return "hace menos de una hora";
+  if (horas < 24) return `hace ${horas} h`;
+  const dias = Math.floor(horas / 24);
+  return `hace ${dias} ${dias === 1 ? "día" : "días"}`;
+}

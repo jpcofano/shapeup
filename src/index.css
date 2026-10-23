@@ -1742,3 +1742,58 @@
 .lista-filas summary.lista-fila::-webkit-details-marker { display: none; }
 .lista-filas details[open] summary.lista-fila .fila-chevron { transform: rotate(180deg); }
 .lista-fila-contenido { padding: 0 16px 14px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ════════════════════════════════════════════════════════════════════════ *
+   P109 — Salud → Resumen (referencia: docs/prompts/109-diseno/ResumenFinal.html)
+ * ════════════════════════════════════════════════════════════════════════ */
+.salud-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex: 1; }
+.salud-fecha { font-size: var(--fs-sm); color: var(--muted); }
+.salud-header .page-title { margin: 2px 0 0; font-size: var(--fs-2xl); font-weight: var(--fw-heavy); letter-spacing: -0.02em; }
+.salud-acciones { display: flex; gap: 8px; }
+
+/* Las pestañas en píldora: si no entran, scroll adentro de la píldora (nunca de la página). */
+.pildora {
+  display: flex; gap: 2px; padding: 3px; border-radius: var(--r-full);
+  background: var(--card); border: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.pildora::-webkit-scrollbar { display: none; }
+.pildora button {
+  flex: 1 0 auto; min-height: 44px; border: none; border-radius: var(--r-full);
+  background: transparent; color: var(--muted); font-size: 12px; font-weight: var(--fw-semibold);
+  padding: 0 10px; cursor: pointer; white-space: nowrap;
+}
+.pildora button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); font-weight: var(--fw-bold); }
+
+.linea-puente {
+  display: flex; align-items: center; gap: 10px; padding: 2px 2px 2px 14px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.linea-puente-punto { width: 8px; height: 8px; border-radius: var(--r-full); background: var(--accent); flex-shrink: 0; }
+.linea-puente-boton { border: none; background: transparent; color: var(--accent); }
+
+.resumen-seccion { display: flex; justify-content: space-between; align-items: baseline; padding: 0 2px; }
+.resumen-valor { font-size: 26px; }
+.resumen-pie { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; }
+.resumen-sueno { display: flex; flex-direction: column; gap: 16px; padding: 18px; border-radius: 22px; }
+.icono-cuadrado {
+  width: 28px; height: 28px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  background: var(--accent-dim); color: var(--accent);
+}
+.resumen-sueno-fila { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.resumen-sueno-valor { margin: 0; font-size: var(--fs-3xl); font-weight: var(--fw-heavy); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.resumen-sueno-valor small { font-size: var(--fs-md); font-weight: var(--fw-medium); color: var(--muted); }
+.resumen-sueno-barras { position: relative; display: flex; align-items: flex-end; gap: 8px; }
+.resumen-sueno-barra { flex: 1; border-radius: var(--r-sm); background: color-mix(in srgb, var(--accent) 24%, transparent); }
+.resumen-sueno-barra.ultima { background: var(--accent); }
+.resumen-sueno-barra.vacia { background: var(--border); }
+.resumen-sueno-promedio { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--muted); }
+.resumen-sueno-dias { display: flex; gap: 8px; font-size: 11px; color: var(--muted); text-align: center; }
+.resumen-sueno-dias span { flex: 1; }
+.resumen-sueno-dias span.ultima { color: var(--fg); font-weight: var(--fw-bold); }
+.link-tendencias {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px;
+  border-radius: var(--r-full); border: 1px solid var(--border); background: transparent;
+  color: var(--accent); font-size: var(--fs-base); font-weight: var(--fw-semibold); cursor: pointer;
+}

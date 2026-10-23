@@ -3,22 +3,37 @@ import { RefreshCw, AlertTriangle, Clock } from "lucide-react";
 import type { EstadoPuente } from "../../data/ingestaSdk";
 import type { ResumenSincronizacion } from "../../data/sincronizarPuente";
 import {
-  textoImportacion, estadoDelPedido, type UltimaImportacion, type PedidoVisto, type PedidoPropio,
+  textoImportacion, estadoDelPedido, HORAS_SIN_CORRER_AVISO, haceCuanto as hace,
+  type UltimaImportacion, type PedidoVisto, type PedidoPropio,
 } from "../../lib/estadoPuente";
 import type { FasePedido } from "../../lib/pedirYTraer";
 
-/** Sin corridas en este lapso, el puente probablemente esté frenado por batería. */
-export const HORAS_SIN_CORRER_AVISO = 12;
+export { HORAS_SIN_CORRER_AVISO };
 
 /** Cuántas actividades que quedan solo en salud se listan antes de resumir. */
 const MAX_VISIBLES = 20;
 
-function hace(ms: number, ahora: number): string {
-  const horas = Math.floor((ahora - ms) / 3_600_000);
-  if (horas < 1) return "hace menos de una hora";
-  if (horas < 24) return `hace ${horas} h`;
-  const dias = Math.floor(horas / 24);
-  return `hace ${dias} ${dias === 1 ? "día" : "días"}`;
+/**
+ * El puente en una línea (P109), cuando está al día (`puenteAlDia`): «Datos al
+ * día · el reloj sincronizó hace N h», con el botón de sincronizar redondo.
+ * Al tocarlo arranca el pedido, el estado deja de estar al día y vuelve la
+ * tarjeta completa con el progreso.
+ */
+export function LineaPuente({ ultimaCorridaMs, ahora, onSincronizar }: {
+  ultimaCorridaMs: number; ahora: number; onSincronizar: () => void;
+}) {
+  return (
+    <div data-testid="linea-puente" className="linea-puente">
+      <span className="linea-puente-punto" aria-hidden />
+      <span style={{ flex: 1, fontSize: 13 }}>
+        <b>Datos al día</b>
+        <span style={{ color: "var(--muted)" }}> · el reloj sincronizó {hace(ultimaCorridaMs, ahora)}</span>
+      </span>
+      <button type="button" className="btn-redondo linea-puente-boton" aria-label="Sincronizar ahora" onClick={onSincronizar}>
+        <RefreshCw size={18} />
+      </button>
+    </div>
+  );
 }
 
 function fechaHora(ms: number): string {

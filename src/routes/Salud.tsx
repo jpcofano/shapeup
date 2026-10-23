@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { TabBar } from "../components/TabBar";
 import { Plus, Upload, FileText } from "lucide-react";
 import type {
   MedicionCorporal, SesionCardio, RegistroSueno,
@@ -34,7 +33,9 @@ import { limpiarCacheDiasActivos } from "../lib/cacheDiasActivos";
 import { correrPaso, resumirPasos } from "../lib/pasoImport";
 import { leerEstadoPuente, type EstadoPuente } from "../data/ingestaSdk";
 import { sincronizarDesdePuente, type ResumenSincronizacion } from "../data/sincronizarPuente";
-import { PuentePanel, PuentePreview } from "../components/salud/PuentePanel";
+import { PuentePanel, PuentePreview, LineaPuente } from "../components/salud/PuentePanel";
+import { puenteAlDia } from "../lib/estadoPuente";
+import { SaludEncabezado, PildoraTabs, type TabSalud } from "../components/salud/SaludEncabezado";
 import { sesionSinLlegar, textoSesionSinLlegar } from "../lib/estadoPuente";
 import { pedirYTraer, avisoRespuesta, type ComoContesto, type FasePedido } from "../lib/pedirYTraer";
 import { leerMarcaPedido, marcarEsperaVencida } from "../lib/pedidoLocal";
@@ -55,7 +56,7 @@ import { ProgresoTab }   from "../components/salud/ProgresoTab";
 import { ImportPreview, ManualForm } from "../components/salud/ImportPanel";
 import type { PreviewState, CardioEx } from "../components/salud/ImportPanel";
 
-type Tab = "resumen" | "composicion" | "cardio" | "sueno" | "progreso";
+type Tab = TabSalud;
 
 // ── Fechas del paginado (P76b) ──────────────────────────────────────────────
 // Todo en hora local: la `fecha` de /cardio es local, no UTC (P76a).
@@ -697,38 +698,25 @@ export function Salud() {
     setImportMsg(errorMsg && importados === 0 ? `Error: ${errorMsg}` : fmtImportMsg(importados, omitidos) + sufijoCSV);
   }
 
-  const TABS: { key: Tab; label: string }[] = [
-    { key: "resumen",     label: "Resumen"     },
-    { key: "composicion", label: "Composición" },
-    { key: "cardio",      label: "Cardio"      },
-    { key: "sueno",       label: "Sueño"       },
-    { key: "progreso",    label: "Progreso"    },
-  ];
-
   const hoy = new Date().toISOString().slice(0, 10);
+  const ahora = Date.now();
+  const pedidoPropio = user?.uid ? leerMarcaPedido(window.localStorage, user.uid) : null;
+  // P109: al día y sin nada que pida acción, el puente va en una línea; si no, la tarjeta de siempre.
+  const alDia = puenteAlDia({
+    ultimaCorridaMs: estadoPuente?.ultimaCorridaMs, erroresAlSubir: estadoPuente?.errores, ahora,
+    error: errorPuente, enCurso: sincronizando || fasePuente != null, llegoTarde,
+    sesionSinLlegar: textoPendiente, pedido: pedidoPuente, pedidoPropio,
+  });
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1 className="page-title">Salud</h1>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <button className="btn-icon-sm" title="Importar ZIP de Samsung Health" onClick={() => zipRef.current?.click()}>
-            <Upload size={18} />
-          </button>
-
-          <button
-            className="btn-icon-sm"
-            title="CSV suelto (alternativa al ZIP)"
-            onClick={() => fileRef.current?.click()}
-            style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)" }}
-          >
-            <FileText size={15} />
-          </button>
-
-          <button className="btn-icon-sm" title="Carga manual" onClick={() => setShowManual(true)}>
-            <Plus size={18} />
-          </button>
-        </div>
+        <SaludEncabezado
+          ahora={ahora}
+          onZip={() => zipRef.current?.click()}
+          onCsv={() => fileRef.current?.click()}
+          onManual={() => setShowManual(true)}
+        />
 
         <input
           ref={zipRef} type="file" accept=".zip" style={{ display: "none" }}
@@ -740,7 +728,7 @@ export function Salud() {
         />
       </div>
 
-      <TabBar tabs={TABS} active={tab} onChange={setTab} size="sm" style={{ marginBottom: 12 }} />
+      <PildoraTabs tab={tab} onChange={setTab} />
 
       {zipProgress !== null && (
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -765,10 +753,13 @@ export function Salud() {
       {loading && <div className="empty-state"><div className="spinner" /></div>}
 
       {/* Puente Samsung (PU4): lo que sube solo, sin exportar el ZIP a mano. */}
-      {user?.uid && (
+      {user?.uid && alDia && estadoPuente?.ultimaCorridaMs != null && (
+        <LineaPuente ultimaCorridaMs={estadoPuente.ultimaCorridaMs} ahora={ahora} onSincronizar={vistaPreviaPuente} />
+      )}
+      {user?.uid && !alDia && (
         <PuentePanel
           estado={estadoPuente}
-          ahora={Date.now()}
+          ahora={ahora}
           sincronizando={sincronizando}
           onSincronizar={vistaPreviaPuente}
           error={errorPuente}
@@ -776,7 +767,7 @@ export function Salud() {
           sesionSinLlegar={textoPendiente}
           fase={fasePuente}
           pedido={pedidoPuente}
-          pedidoPropio={user?.uid ? leerMarcaPedido(window.localStorage, user.uid) : null}
+          pedidoPropio={pedidoPropio}
           llegoTarde={llegoTarde}
           onTraerLoQueLlego={() => void traerLoQueLlego()}
         />
@@ -806,7 +797,7 @@ export function Salud() {
           metricas={metricas}
           sueno={sueno}
           mediciones={mediciones}
-          hoy={hoy}
+          hoy={ymdLocal(new Date(ahora))}
           onTabChange={(t) => setTab(t as Tab)}
           metricasError={metricasError}
           onReintentarMetricas={reintentarMetricas}

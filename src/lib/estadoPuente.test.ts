@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   finDeSesion, sesionSinLlegar, explicarSinBiometria, textoSesionSinLlegar, textoImportacion,
-  estadoDelPedido,
+  estadoDelPedido, puenteAlDia, haceCuanto,
 } from "./estadoPuente";
 import type { BiometriaSesion, Historial } from "../types/models";
 
@@ -122,5 +122,48 @@ describe("estadoDelPedido (P91: sin cruzar relojes)", () => {
 
   it("sin pedido, nada", () => {
     expect(estadoDelPedido(null, CORRIDA, CORRIDA)).toBeNull();
+  });
+});
+
+// P109: el puente en una línea cuando está al día; la tarjeta completa cuando algo pide acción.
+describe("puenteAlDia", () => {
+  const base = { ultimaCorridaMs: CORRIDA, ahora: CORRIDA + 2 * H, enCurso: false };
+
+  it("corrió hace 2 h, sin errores ni pedidos → al día", () => {
+    expect(puenteAlDia(base)).toBe(true);
+  });
+
+  it("nunca sincronizó → tarjeta", () => {
+    expect(puenteAlDia({ ...base, ultimaCorridaMs: undefined })).toBe(false);
+    expect(puenteAlDia({ ...base, ultimaCorridaMs: null })).toBe(false);
+  });
+
+  it("frenado (más de 12 h sin correr) → tarjeta", () => {
+    expect(puenteAlDia({ ...base, ahora: CORRIDA + 13 * H })).toBe(false);
+  });
+
+  it("con error, errores al subir, sincronizando, llegó tarde o una sesión sin llegar → tarjeta", () => {
+    expect(puenteAlDia({ ...base, error: "No se pudo leer" })).toBe(false);
+    expect(puenteAlDia({ ...base, erroresAlSubir: 2 })).toBe(false);
+    expect(puenteAlDia({ ...base, enCurso: true })).toBe(false);
+    expect(puenteAlDia({ ...base, llegoTarde: true })).toBe(false);
+    expect(puenteAlDia({ ...base, sesionSinLlegar: "La sesión de hoy todavía no llegó" })).toBe(false);
+  });
+
+  it("un pedido propio esperando o sin respuesta → tarjeta; uno que respondió → al día", () => {
+    const pedido = { pedidoMs: CORRIDA + H, origen: "boton", corridaPreviaMs: CORRIDA };
+    const propio = { ms: pedido.pedidoMs };
+    expect(puenteAlDia({ ...base, pedido, pedidoPropio: propio, ahora: pedido.pedidoMs + 60_000 })).toBe(false);
+    expect(puenteAlDia({ ...base, pedido, pedidoPropio: propio, ahora: pedido.pedidoMs + 11 * 60_000 })).toBe(false);
+    expect(puenteAlDia({ ...base, ultimaCorridaMs: CORRIDA + 2 * H, ahora: CORRIDA + 3 * H, pedido, pedidoPropio: propio })).toBe(true);
+  });
+});
+
+describe("haceCuanto", () => {
+  it("menos de una hora, horas y días", () => {
+    expect(haceCuanto(CORRIDA, CORRIDA + 30 * 60_000)).toBe("hace menos de una hora");
+    expect(haceCuanto(CORRIDA, CORRIDA + 2 * H)).toBe("hace 2 h");
+    expect(haceCuanto(CORRIDA, CORRIDA + 25 * H)).toBe("hace 1 día");
+    expect(haceCuanto(CORRIDA, CORRIDA + 72 * H)).toBe("hace 3 días");
   });
 });
