@@ -115,9 +115,9 @@ function SenalCard({
           )}
         </div>
 
-        {senal.fechaUltima && (
+        {(senal.textoAntiguedad || senal.fechaUltima) && (
           <p style={{ margin: "2px 0 0", fontSize: 10, color: "var(--muted)" }}>
-            medida el {fechaCorta(senal.fechaUltima)}
+            {senal.textoAntiguedad ?? `medida el ${fechaCorta(senal.fechaUltima!)}`}
           </p>
         )}
 

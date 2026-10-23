@@ -4,8 +4,7 @@ import {
   senalPeor,
   UMBRAL_FC_REPOSO_ATENCION_BPM,
   UMBRAL_FC_REPOSO_ALERTA_BPM,
-  MIN_DATOS_BASELINE,
-} from "./resumenSalud";
+  MIN_DATOS_BASELINE, textoAntiguedadPresion, textoHace, TEXTO_PRESION_VIEJA } from "./resumenSalud";
 import type { MetricaSalud, RegistroSueno, MedicionCorporal } from "../types/models";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -337,14 +336,20 @@ describe("presion", () => {
     expect(p.valorTexto).toBe("110/70");
   });
 
-  it("dato de hace más de 60 días → no aparece (recencia)", () => {
+  it("P106: un dato de hace más de 60 días sigue a la vista, con su antigüedad", () => {
     const senales = calcularResumenSalud(mkPresion(offsetDate(HOY, -61), 113, 78), [], [], HOY);
-    expect(senales.find((s) => s.clave === "presion")).toBeUndefined();
+    const p = senales.find((s) => s.clave === "presion")!;
+    expect(p.valorTexto).toBe("113/78");
+    expect(p.textoAntiguedad).toBe(`hace 61 días · ${TEXTO_PRESION_VIEJA}`);
+    expect(p.estado).toBe("ok");
   });
 
-  it("dato de hace exactamente 60 días → aparece (borde incluido)", () => {
-    const senales = calcularResumenSalud(mkPresion(offsetDate(HOY, -60), 113, 78), [], [], HOY);
-    expect(senales.find((s) => s.clave === "presion")).toBeDefined();
+  it("P106: la antigüedad dice hoy, ayer o hace N días; a los 8 días suma «se actualiza con el ZIP»", () => {
+    expect(textoAntiguedadPresion(HOY, HOY)).toBe("hoy");
+    expect(textoAntiguedadPresion(offsetDate(HOY, -1), HOY)).toBe("ayer");
+    expect(textoAntiguedadPresion(offsetDate(HOY, -7), HOY)).toBe("hace 7 días");
+    expect(textoAntiguedadPresion(offsetDate(HOY, -8), HOY)).toBe("hace 8 días · se actualiza con el ZIP");
+    expect(textoHace(offsetDate(HOY, -3), HOY)).toBe("hace 3 días");
   });
 
   it("fuera del rango típico → motivo explicativo, pero estado sigue 'ok' (sin semáforo)", () => {

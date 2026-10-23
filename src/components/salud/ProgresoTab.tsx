@@ -8,6 +8,7 @@ import type {
 import { consolidarNoches } from "../../lib/sueno";
 import { soloShapeUp } from "../../lib/tipoHistorial";
 import { serieTendencia, alcanzaMinimoChip, type RangoTendencia } from "../../lib/tendencias";
+import { textoAntiguedadPresion } from "../../lib/resumenSalud";
 
 // ── Tendencias de salud (I1) ──────────────────────────────────────────────────
 
@@ -76,6 +77,14 @@ function TendenciasSalud({
   const metrica = METRICAS_TENDENCIA.find((m) => m.clave === clave)!;
 
   const serie = serieTendencia(valoresPorClave[clave], rango, hoy);
+  // P106: la fecha del último dato de presión (solo llega con el ZIP), sin colores.
+  // El último día con los dos valores, como en Resumen (el par es del mismo día).
+  const ultimaPresion = clave === "presion"
+    ? (() => {
+        const conDiastolica = new Set(metricas.filter((m) => m.tipo === "presion-diastolica").map((m) => m.fecha));
+        return valoresPorClave.presion.map((p) => p.fecha).filter((f) => conDiastolica.has(f)).sort().at(-1) ?? null;
+      })()
+    : null;
   const serieDiastolica = clave === "presion"
     ? serieTendencia(
         metricas.filter((m) => m.tipo === "presion-diastolica").map((m) => ({ fecha: m.fecha, valor: m.valor })),
@@ -134,6 +143,11 @@ function TendenciasSalud({
 
       {resumen && (
         <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--muted)" }}>{resumen}</p>
+      )}
+      {ultimaPresion && (
+        <p data-testid="presion-antiguedad" style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
+          Último dato: {textoAntiguedadPresion(ultimaPresion, hoy)}
+        </p>
       )}
       {extremos && (
         <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>{extremos}</p>

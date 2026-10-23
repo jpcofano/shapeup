@@ -17,6 +17,8 @@ export interface SenalSalud {
   /** Fecha ("YYYY-MM-DD") de la última medición — señales que se miden por rachas
    *  (presión, SpO2) la muestran en texto secundario para no engañar sobre recencia. */
   fechaUltima?: string;
+  /** La antigüedad del dato, ya en texto (P106, presión): «hace 12 días · se actualiza con el ZIP». */
+  textoAntiguedad?: string;
 }
 
 // Señales informativas estilo "peso": sin semáforo, sin juicio de color — la
@@ -25,8 +27,34 @@ export interface SenalSalud {
 export const CLAVES_SIN_SEMAFORO = new Set<SenalSalud["clave"]>(["peso", "presion", "spo2"]);
 
 // Rango de recencia: no mostrar como "actual" un valor de hace más de 60 días
-// (presión/SpO2 se miden por rachas, no todos los días — ver decisión owner S-fix-b).
+// (SpO2 se mide por rachas, no todos los días — ver decisión owner S-fix-b).
+// Desde P106 la presión NO usa este corte: queda visible con su antigüedad.
 const DIAS_RECENCIA_INFORMATIVA = 60;
+
+/** A partir de cuántos días la presión se ve como vieja (P106). */
+export const DIAS_PRESION_VIEJA = 7;
+/**
+ * Lo que se agrega a una presión vieja (P106). Hoy la presión solo llega con el
+ * ZIP; cuando P108 sume el puente, este texto cambia acá y en ningún otro lado.
+ */
+export const TEXTO_PRESION_VIEJA = "se actualiza con el ZIP";
+
+/** Días entre dos fechas "YYYY-MM-DD" (hasta − desde). */
+function diasEntre(desde: string, hasta: string): number {
+  return Math.round((Date.parse(`${hasta}T12:00:00Z`) - Date.parse(`${desde}T12:00:00Z`)) / 86_400_000);
+}
+
+/** «hoy», «ayer» o «hace N días» (P106). */
+export function textoHace(fecha: string, hoy: string): string {
+  const n = Math.max(0, diasEntre(fecha, hoy));
+  return n === 0 ? "hoy" : n === 1 ? "ayer" : `hace ${n} días`;
+}
+
+/** La antigüedad de la presión: «hace N días», y si pasaron más de 7, «· se actualiza con el ZIP». */
+export function textoAntiguedadPresion(fecha: string, hoy: string): string {
+  const base = textoHace(fecha, hoy);
+  return diasEntre(fecha, hoy) > DIAS_PRESION_VIEJA ? `${base} · ${TEXTO_PRESION_VIEJA}` : base;
+}
 
 // Rangos de referencia publicados (AHA/ACC 2017 para presión; guías clínicas
 // generales de SpO2 en reposo a nivel del mar). Solo para el texto del motivo
@@ -298,7 +326,8 @@ export function calcularResumenSalud(
       .filter((f) => diaPorFecha.has(f))
       .sort((a, b) => b.localeCompare(a))[0];
 
-    if (fechaMasReciente != null && addDays(hoy, -DIAS_RECENCIA_INFORMATIVA) <= fechaMasReciente) {
+    // P106: sin corte de recencia; la presión vieja se ve, con su antigüedad.
+    if (fechaMasReciente != null) {
       const sistolica  = sisPorFecha.get(fechaMasReciente)!;
       const diastolica = diaPorFecha.get(fechaMasReciente)!;
       const itemsSis   = [...sisPorFecha.entries()].map(([fecha, valor]) => ({ fecha, valor }));
@@ -316,6 +345,7 @@ export function calcularResumenSalud(
         motivo: fueraDeRango ? MOTIVO_FUERA_DE_RANGO : undefined,
         serie14d: calcSerie14d(itemsSis, hoy),
         fechaUltima: fechaMasReciente,
+        textoAntiguedad: textoAntiguedadPresion(fechaMasReciente, hoy),
       });
     }
   }
