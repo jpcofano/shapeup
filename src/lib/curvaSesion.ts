@@ -19,11 +19,20 @@
 //      (con `refMarca`, sobre el tramo de ESA marca de la app; con tramo
 //      propio, el suyo). Todo recortado a la ventana.
 //
+//  5. P109: la curva se pinta por zona. `tramos` corta la curva donde cambia
+//     la zona (el punto del cambio queda en los dos tramos, así no hay
+//     huecos), con la zona de cada punto según los pisos de `zonas`; por
+//     debajo de Z1, `zona` es null. `guias` son los pisos de zona (y el techo
+//     de Z5) para las líneas punteadas; `marcasTiempo`, el eje de tiempo con
+//     marcas redondas; `punto(seg)`, dónde cae la curva en un segundo dado
+//     (para el punto del pico).
+//
 //  Coordenadas con 1 decimal. Sin claves `undefined`: se omiten.
 //  Puro (ADR #009).
 // ════════════════════════════════════════════════════════════════════════════
 import type { CurvaGuardada, MarcaAnalisis, MarcaSesion, ZonaFC } from "../types/models";
 import { ZONAS_FC } from "../types/models";
+import { zonaPorPiso, type Pisos } from "./zonas";
 
 const ANCHO_DEFECTO = 340;
 const ALTO_DEFECTO = 140;
@@ -41,6 +50,33 @@ export interface GeometriaCurva {
   segmentos: string[];
   /** Una banda por zona presente en `zonas`, recortada al eje Y; de Z1 a Z5. */
   bandas: { zona: ZonaFC; y: number; alto: number }[];
+  /** P109: la curva por zona, para un <polyline points> cada uno. `zona` null = debajo de Z1. */
+  tramos: { zona: ZonaFC | null; puntos: string }[];
+  /** P109: los pisos de las zonas (y el techo de Z5), dentro del eje Y. */
+  guias: { fc: number; y: number }[];
+  /** P109: el eje de tiempo: marcas redondas y la duración al final. */
+  marcasTiempo: { x: number; texto: string }[];
+  /** P109: dónde cae la curva en un segundo de la ventana (el punto más cercano a menos de 2 pasos). */
+  punto: (seg: number) => { x: number; y: number } | null;
+}
+
+/** La zona de una FC con la regla única de `lib/zonas` (la más alta cuyo piso se alcanzó). null = debajo de Z1. */
+function zonaDe(fc: number, zonas: EntradaGeometria["zonas"]): ZonaFC | null {
+  const pisos: Pisos = [...ZONAS_FC].reverse().filter((z) => zonas?.[z]).map((z) => ({ zona: z, min: zonas![z]!.min }));
+  return zonaPorPiso(fc, pisos);
+}
+
+/** «m:ss» desde segundos. */
+function mmss(s: number): string {
+  const t = Math.round(s);
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+}
+
+/** Un paso redondo en minutos para unas 4 marcas: el más cercano a duración / 4. */
+export function pasoDeTiempoMin(duracionS: number): number {
+  const PASOS = [1, 2, 5, 10, 12, 15, 20, 30, 45, 60, 90, 120];
+  const ideal = duracionS / 60 / 4;
+  return PASOS.reduce((a, b) => (Math.abs(b - ideal) < Math.abs(a - ideal) ? b : a));
 }
 
 export interface EntradaGeometria {
@@ -121,7 +157,55 @@ export function geometriaCurva(e: EntradaGeometria): GeometriaCurva | null {
     bandas.push({ zona: z, y: yArriba, alto: r1(y(abajo) - yArriba) });
   }
 
-  return { ancho, alto, duracionS, fcMin, fcMax, x, y, segmentos, bandas };
+  // P109: la curva por zona. Se corta en los huecos (como los segmentos) y
+  // donde cambia la zona; el punto del cambio queda en los dos tramos.
+  const tramos: GeometriaCurva["tramos"] = [];
+  let tramo: { zona: ZonaFC | null; ps: { s: number; fc: number }[] } | null = null;
+  const cerrarTramo = (): void => {
+    if (tramo && tramo.ps.length > 0) {
+      const ps = tramo.ps.length === 1 ? [tramo.ps[0], tramo.ps[0]] : tramo.ps;
+      tramos.push({ zona: tramo.zona, puntos: ps.map((p) => `${x(p.s)},${y(p.fc)}`).join(" ") });
+    }
+    tramo = null;
+  };
+  let previo: { s: number; fc: number } | null = null;
+  for (const p of dentro) {
+    const z = zonaDe(p.fc, zonas);
+    if (previo && p.s - previo.s > 2 * paso) { cerrarTramo(); previo = null; }
+    if (!tramo) tramo = { zona: z, ps: [] };
+    else if (tramo.zona !== z) {
+      tramo.ps.push(p);
+      cerrarTramo();
+      tramo = { zona: z, ps: [] };
+    }
+    tramo.ps.push(p);
+    previo = p;
+  }
+  cerrarTramo();
+
+  // Las guías: los pisos de cada zona y el techo de Z5, si caen en el eje.
+  const valores = new Set<number>();
+  for (const z of ZONAS_FC) if (zonas?.[z]) valores.add(zonas[z]!.min);
+  if (zonas?.Z5) valores.add(zonas.Z5.max);
+  const guias = [...valores]
+    .filter((fc) => fc >= fcMin && fc <= fcMax)
+    .sort((a, b) => b - a)
+    .map((fc) => ({ fc, y: y(fc) }));
+
+  // El eje de tiempo: múltiplos de un paso redondo, sin pisar la duración del final.
+  const pasoS = pasoDeTiempoMin(duracionS) * 60;
+  const marcasTiempo: GeometriaCurva["marcasTiempo"] = [];
+  for (let s = 0; s < duracionS - pasoS * 0.4; s += pasoS) marcasTiempo.push({ x: x(s), texto: mmss(s) });
+  marcasTiempo.push({ x: x(duracionS), texto: mmss(duracionS) });
+
+  const punto = (seg: number): { x: number; y: number } | null => {
+    let mejor: { s: number; fc: number } | null = null;
+    for (const p of dentro) if (!mejor || Math.abs(p.s - seg) < Math.abs(mejor.s - seg)) mejor = p;
+    if (!mejor || Math.abs(mejor.s - seg) > 2 * paso) return null;
+    return { x: x(mejor.s), y: y(mejor.fc) };
+  };
+
+  return { ancho, alto, duracionS, fcMin, fcMax, x, y, segmentos, bandas, tramos, guias, marcasTiempo, punto };
 }
 
 // ── Marcas ───────────────────────────────────────────────────────────────────

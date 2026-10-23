@@ -48,13 +48,13 @@ describe("/qa/sesion (P105)", () => {
   it("pasa sin login: App la muestra aunque no haya usuario", async () => {
     const div = await montarApp("/qa/sesion");
     expect(div.querySelector(".loading-screen")).toBeNull();
-    expect(div.querySelectorAll("[data-caso]")).toHaveLength(4);
+    expect(div.querySelectorAll("[data-caso]")).toHaveLength(5);
   }, 120_000);   // importa App entero y la ruta lazy; con la suite en paralelo tarda
 
-  it("muestra los cuatro casos, con los componentes de la sesión", async () => {
+  it("muestra los cinco casos, con el detalle de la sesión (P109)", async () => {
     const div = await montar("/qa/sesion");
     const casos = [...div.querySelectorAll("[data-caso]")].map((e) => e.getAttribute("data-caso"));
-    expect(casos).toEqual(["curva-esquema3", "curva-sin-analisis", "sin-curva", "esquema2"]);
+    expect(casos).toEqual(["curva-esquema3", "curva-sin-analisis", "sin-curva", "esquema2", "fuerza"]);
 
     const caso = (id: string) => div.querySelector(`[data-caso=${id}]`)!;
     // 1: curva, veredicto y detalle plegado.

@@ -4,7 +4,7 @@
 //  camino real del enriquecimiento.
 // ════════════════════════════════════════════════════════════════════════════
 import { describe, it, expect } from "vitest";
-import { geometriaCurva, marcasDibujables } from "./curvaSesion";
+import { geometriaCurva, pasoDeTiempoMin, marcasDibujables } from "./curvaSesion";
 import { calcularEnriquecimiento } from "./enriquecerImport";
 import { textoMarca } from "./marcasSesion";
 import { zonasDesdeFcMax } from "./zonas";
@@ -228,5 +228,50 @@ describe("la sesión testigo del 27/09", () => {
     const r = marcasDibujables(marcas, undefined, textoMarca, dur);
     expect(r.find((m) => m.idMarca === "tramoSostenido")).toMatchObject({ tipo: "tramo", inicioS: 1806, finS: 2882 });
     expect(r.find((m) => m.idMarca === "pico")?.tipo).toBe("momento");
+  });
+});
+
+// ── P109: la curva por zona, las guías, el eje de tiempo y el punto ───────────
+describe("geometriaCurva — por zona (P109)", () => {
+  const ZONAS = { Z1: { min: 84, max: 101 }, Z2: { min: 102, max: 118 }, Z3: { min: 119, max: 135 }, Z4: { min: 136, max: 152 }, Z5: { min: 153, max: 169 } };
+  const curva = (fc: number[], seg = fc.map((_, i) => i * 30)) =>
+    ({ origenMs: 1_000_000, pasoSeg: 30, seg, fc }) as never;
+  const g = (fc: number[], seg?: number[], duracionS?: number) =>
+    geometriaCurva({ curva: curva(fc, seg), ventanaInicioMs: 1_000_000, zonas: ZONAS, duracionS })!;
+
+  it("corta donde cambia la zona y el punto del cambio queda en los dos tramos", () => {
+    const r = g([110, 112, 125, 140, 141]);
+    expect(r.tramos.map((t) => t.zona)).toEqual(["Z2", "Z3", "Z4"]);
+    const ultimo = (t: { puntos: string }) => t.puntos.split(" ").at(-1);
+    const primero = (t: { puntos: string }) => t.puntos.split(" ")[0];
+    expect(ultimo(r.tramos[0])).toBe(primero(r.tramos[1]));
+  });
+
+  it("debajo de Z1 la zona es null", () => {
+    expect(g([70, 72, 90]).tramos.map((t) => t.zona)).toEqual([null, "Z1"]);
+  });
+
+  it("un hueco corta también la curva por zona", () => {
+    const r = g([110, 111, 112, 113], [0, 30, 300, 330]);
+    expect(r.tramos).toHaveLength(2);
+    expect(r.tramos.every((t) => t.zona === "Z2")).toBe(true);
+  });
+
+  it("las guías son los pisos y el techo de Z5 dentro del eje, de arriba hacia abajo", () => {
+    const r = g([90, 160]);
+    expect(r.guias.map((x) => x.fc)).toEqual([169, 153, 136, 119, 102, 84]);
+  });
+
+  it("el eje de tiempo: cada 12 min en una sesión de 48, y la duración al final", () => {
+    const fc = Array.from({ length: 98 }, () => 120);
+    const r = g(fc, undefined, 48 * 60 + 58);
+    expect(r.marcasTiempo.map((m) => m.texto)).toEqual(["0:00", "12:00", "24:00", "36:00", "48:58"]);
+    expect(pasoDeTiempoMin(20 * 60)).toBe(5);
+  });
+
+  it("el punto de un segundo cae sobre la curva; lejos de todo dato, null", () => {
+    const r = g([110, 150, 120]);
+    expect(r.punto(30)).toEqual({ x: r.x(30), y: r.y(150) });
+    expect(r.punto(10_000)).toBeNull();
   });
 });

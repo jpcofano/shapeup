@@ -2,14 +2,14 @@ import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { ThemeName } from "../contexts/ThemeProvider";
 import type { AnalisisGuardado, Historial, PerfilMiembro } from "../types/models";
-import { CabeceraMarcas } from "../components/historial/CabeceraMarcas";
-import { AnalisisSesion } from "../components/historial/AnalisisSesion";
+import type { NocheSueno } from "../lib/sueno";
+import { DetalleSesion } from "../components/historial/DetalleSesion";
 import { calcularEnriquecimiento } from "../lib/enriquecerImport";
 import { zonasDesdeFcMax } from "../lib/zonas";
 import { CURVA, DATAUUID, HISTORIAL, SESION_SAMSUNG } from "../lib/__fixtures__/sesionTestigo20260927";
 
-// QA de la pantalla de la sesión (P105, para capturas sin login). Los mismos
-// componentes que HistorialDetalle (CabeceraMarcas y AnalisisSesion), sin
+// QA de la pantalla de la sesión (P105, para capturas sin login; P109: el
+// detalle nuevo). El mismo componente que HistorialDetalle (`DetalleSesion`), sin
 // lecturas de Firestore: la sesión testigo del 27/09, enriquecida por el camino
 // real en el navegador. Los análisis son inventados. Tema y modo se eligen en
 // la página o por la URL: /qa/sesion?tema=ion&modo=oscuro.
@@ -57,17 +57,39 @@ const ANALISIS_2 = {
   armadoOrigen: "eco", cargadoMs: Date.UTC(2026, 9, 2, 12),
 } as unknown as AnalisisGuardado;
 
-function Caso({ id, titulo, h }: { id: string; titulo: string; h: Historial }) {
+/** Una noche inventada, para la fila «Dormiste…». */
+const NOCHE: NocheSueno = { fecha: "2026-09-27", horasTotal: 6.5, horasNoche: 6.5, horaAcostarse: "23:41", horaLevantarse: "06:11", tramos: 1 };
+
+/** Una sesión de fuerza inventada, con tres ejercicios y sus minutos por zona. */
+export function sesionFuerzaQa(): Historial {
+  const t0 = new Date(2026, 9, 20, 18, 0).getTime();
+  const serie = (n: number, ini: number, reps: number, kg: number) =>
+    ({ serie: n, completada: true, reps, cargaKg: kg, inicioMs: t0 + ini * 60_000, finMs: t0 + (ini + 1) * 60_000 });
+  return {
+    idHist: "H-QA-FUERZA", miembro: "juanpablo", tipo: "rutina", idRutina: "RUT-QA", nombreRutina: "Fuerza A — Tren superior",
+    fechaRealizada: "2026-10-20", semanaInicio: "2026-10-19", idSesion: "SES-QA-F", duracionRealMin: 42,
+    inicioMs: t0, finMs: t0 + 42 * 60_000, rpe: 7, tonelajeKg: 3960, totalSeriesHechas: 9, notas: "",
+    bloques: [
+      { orden: 1, idEjercicio: "EJ-QA1", nombreEjercicio: "Press de banca", modalidad: "Fuerza",
+        series: [serie(1, 2, 10, 40), serie(2, 5, 10, 40), serie(3, 8, 8, 42.5)], minutosPorZona: { Z2: 4, Z3: 6, Z4: 2 } },
+      { orden: 2, idEjercicio: "EJ-QA2", nombreEjercicio: "Remo con barra", modalidad: "Fuerza",
+        series: [serie(1, 14, 12, 35), serie(2, 17, 12, 35), serie(3, 20, 10, 35)], minutosPorZona: { Z1: 2, Z2: 7, Z3: 3 } },
+      { orden: 3, idEjercicio: "EJ-QA3", nombreEjercicio: "Press militar", modalidad: "Fuerza",
+        series: [serie(1, 26, 10, 20), serie(2, 29, 10, 20), serie(3, 32, 8, 22.5)], minutosPorZona: { Z2: 3, Z3: 8, Z4: 1 } },
+    ],
+  } as unknown as Historial;
+}
+
+function Caso({ id, titulo, h, noche }: { id: string; titulo: string; h: Historial; noche?: NocheSueno }) {
   return (
     <section data-caso={id} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <h2 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>
         {titulo}
       </h2>
-      <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <p style={{ margin: 0, fontWeight: 700, fontSize: 17, color: "var(--fg)" }}>{h.nombreRutina}</p>
-        <CabeceraMarcas h={h} historial={[h]} />
-      </div>
-      <AnalisisSesion h={h} historial={[h]} errorHistorial={null} nocheAnterior={null} fcReposoDia={null} onCambio={() => {}} />
+      <DetalleSesion
+        h={h} historial={[h]} errorHistorial={null} nocheAnterior={noche ?? null} comparativa={null}
+        ultimaCorrida={null} nombrePrevista={null} onVolver={() => {}} onCambio={() => {}}
+      />
     </section>
   );
 }
@@ -83,6 +105,7 @@ export function QaSesion() {
   };
 
   const testigo = useMemo(sesionTestigo, []);
+  const fuerza = useMemo(sesionFuerzaQa, []);
   const sinCurva = useMemo<Historial>(() => {
     const { curva: _c, marcas: _m, ...resto } = testigo.biometria ?? {};
     return { ...testigo, biometria: testigo.biometria ? { ...resto } as Historial["biometria"] : undefined };
@@ -113,10 +136,11 @@ export function QaSesion() {
           <Link to="/" style={{ color: "var(--accent)", fontSize: 13 }}>← Volver a la app</Link>
         </header>
 
-        <Caso id="curva-esquema3" titulo="1 · Con curva y análisis (esquema 3)" h={{ ...testigo, analisis: ANALISIS_3 }} />
+        <Caso id="curva-esquema3" titulo="1 · Con curva y análisis (esquema 3)" h={{ ...testigo, analisis: ANALISIS_3 }} noche={NOCHE} />
         <Caso id="curva-sin-analisis" titulo="2 · Con curva, sin análisis" h={testigo} />
         <Caso id="sin-curva" titulo="3 · Sin curva" h={sinCurva} />
         <Caso id="esquema2" titulo="4 · Con un análisis de esquema 2" h={{ ...testigo, analisis: ANALISIS_2 }} />
+        <Caso id="fuerza" titulo="5 · Fuerza, tres ejercicios (inventada)" h={fuerza} />
       </div>
     </div>
   );
