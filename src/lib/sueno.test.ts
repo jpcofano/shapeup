@@ -274,3 +274,81 @@ describe("consolidarNoches — tramos repetidos (P105)", () => {
     expect(n.tramos).toBe(2);
   });
 });
+
+// P106 — las horas de la noche son la unión de sus tramos. Casos inventados,
+// con `horas` igual al intervalo, así la unión es exacta.
+describe("consolidarNoches — la unión de los tramos (P106)", () => {
+  const tramo = (id: string, inicioIso: string, finIso: string): RegistroSueno => {
+    const inicioMs = Date.parse(inicioIso), finMs = Date.parse(finIso);
+    return {
+      idSueno: id, miembro: "juanpablo", fecha: "2026-05-01", horas: (finMs - inicioMs) / 3_600_000,
+      inicioMs, finMs, fuente: "samsung-health-csv",
+    };
+  };
+  const unaNoche = (...ts: RegistroSueno[]) => consolidarNoches(ts)[0];
+
+  it("el caso del 16/08: mismo inicio, distinto fin → vale el más largo", () => {
+    const n = unaNoche(
+      tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T08:00:00Z"),
+      tramo("b", "2026-05-02T02:00:00Z", "2026-05-02T09:30:00Z"),
+    );
+    expect(n.horasTotal).toBe(7.5);
+    expect(n.tramos).toBe(1);
+  });
+
+  it("uno adentro de otro cuenta una vez", () => {
+    const n = unaNoche(
+      tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T09:00:00Z"),
+      tramo("b", "2026-05-02T04:00:00Z", "2026-05-02T05:00:00Z"),
+    );
+    expect(n.horasTotal).toBe(7);
+  });
+
+  it("superposición parcial: la unión", () => {
+    const n = unaNoche(
+      tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T06:00:00Z"),
+      tramo("b", "2026-05-02T05:00:00Z", "2026-05-02T09:00:00Z"),
+    );
+    expect(n.horasTotal).toBe(7);
+  });
+
+  it("tres tramos encadenados", () => {
+    const n = unaNoche(
+      tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T04:00:00Z"),
+      tramo("b", "2026-05-02T03:30:00Z", "2026-05-02T06:00:00Z"),
+      tramo("c", "2026-05-02T05:30:00Z", "2026-05-02T09:00:00Z"),
+    );
+    expect(n.horasTotal).toBe(7);
+    expect(n.tramos).toBe(1);
+  });
+
+  it("tramos separados se siguen sumando", () => {
+    const n = unaNoche(
+      tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T05:00:00Z"),
+      tramo("b", "2026-05-02T06:00:00Z", "2026-05-02T09:00:00Z"),
+    );
+    expect(n.horasTotal).toBe(6);
+    expect(n.tramos).toBe(2);
+  });
+
+  it("los que apenas se tocan (fin == inicio) se suman aparte", () => {
+    const a = { ...tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T05:00:00Z"), horas: 2.5 };
+    const b = { ...tramo("b", "2026-05-02T05:00:00Z", "2026-05-02T09:00:00Z"), horas: 3.5 };
+    const n = unaNoche(a, b);
+    expect(n.horasTotal).toBe(6);
+    expect(n.tramos).toBe(2);
+  });
+
+  it("un grupo nunca vale más que la suma de sus horas", () => {
+    // B abarca toda la noche pero durmió poco; A, adentro, tiene más horas.
+    const a = { ...tramo("a", "2026-05-02T05:00:00Z", "2026-05-02T06:00:00Z"), horas: 1 };
+    const b = { ...tramo("b", "2026-05-02T03:00:00Z", "2026-05-02T11:00:00Z"), horas: 0.5 };
+    expect(unaNoche(a, b).horasTotal).toBe(1.5);
+  });
+
+  it("si `horas` es menor que el intervalo (rato despierto), el despierto no se cuenta dos veces", () => {
+    const a = { ...tramo("a", "2026-05-02T02:00:00Z", "2026-05-02T09:00:00Z"), horas: 6.5 };
+    const b = { ...tramo("b", "2026-05-02T02:00:00Z", "2026-05-02T08:00:00Z"), horas: 5.5 };
+    expect(unaNoche(a, b).horasTotal).toBe(6.5);
+  });
+});

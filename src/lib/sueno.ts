@@ -86,6 +86,59 @@ function esSiesta(registro: RegistroSueno): boolean {
   return minutos >= 10 * 60 && minutos < 20 * 60;
 }
 
+/**
+ * Las horas de un conjunto de tramos como la **unión** de sus intervalos (P106).
+ * Reemplaza el arreglo de P105, que solo contaba una vez los idénticos.
+ *
+ * - Los tramos que no se tocan se suman como siempre, con sus `horas`.
+ * - Los que se superponen forman un grupo. El grupo vale las `horas` de su tramo
+ *   más largo, más el tiempo que los otros cubren por fuera de él, y nunca más
+ *   que la suma de sus `horas`. Los que apenas se tocan no forman grupo. `horas` es el
+ *   sueño (`sleep_duration`) y el intervalo va de la hora de acostarse al
+ *   despertar, así que el despierto del tramo principal no se cuenta dos veces.
+ *   Con `horas` igual al intervalo, es exactamente la duración de la unión.
+ * - Los tramos sin inicio o fin en epoch (legacy) se suman como antes.
+ *
+ * `tramos` cuenta los grupos: dos copias del mismo tramo son uno.
+ */
+function horasDeLaUnion(tramos: RegistroSueno[]): { horas: number; tramos: number } {
+  const H = 3_600_000;
+  const conEpoch = tramos
+    .filter((t) => t.inicioMs != null && t.finMs != null && t.finMs > t.inicioMs)
+    .sort((a, b) => a.inicioMs! - b.inicioMs!);
+  const sinEpoch = tramos.filter((t) => !conEpoch.includes(t));
+  let horas = sinEpoch.reduce((s, t) => s + (t.horas ?? 0), 0);
+  let grupos = sinEpoch.length;
+
+  let i = 0;
+  while (i < conEpoch.length) {
+    // Un grupo: los que se superponen (o se tocan) con el intervalo acumulado.
+    const grupo = [conEpoch[i]];
+    let fin = conEpoch[i].finMs!;
+    let j = i + 1;
+    // Solo los que se superponen; los que apenas se tocan (inicio == fin) se suman aparte.
+    while (j < conEpoch.length && conEpoch[j].inicioMs! < fin) {
+      grupo.push(conEpoch[j]);
+      fin = Math.max(fin, conEpoch[j].finMs!);
+      j++;
+    }
+    if (grupo.length === 1) {
+      horas += grupo[0].horas ?? 0;
+    } else {
+      const inicio = grupo[0].inicioMs!;
+      const principal = grupo.reduce((a, b) => ((b.horas ?? 0) > (a.horas ?? 0) ? b : a));
+      const spanPrincipal = (principal.finMs! - principal.inicioMs!) / H;
+      const union = (fin - inicio) / H;
+      const suma = grupo.reduce((s, t) => s + (t.horas ?? 0), 0);
+      // Nunca más que la suma de hoy: la unión solo puede sacar lo contado dos veces.
+      horas += Math.min(suma, Math.max(principal.horas ?? 0, (principal.horas ?? 0) + (union - spanPrincipal)));
+    }
+    grupos++;
+    i = j;
+  }
+  return { horas, tramos: grupos };
+}
+
 // ── Función principal ─────────────────────────────────────────────────────────
 
 /**
@@ -94,18 +147,7 @@ function esSiesta(registro: RegistroSueno): boolean {
  * Ordena descendente por fecha (más reciente primero).
  */
 export function consolidarNoches(registros: RegistroSueno[]): NocheSueno[] {
-  // P105: el mismo tramo puede estar dos veces (dos documentos con el mismo
-  // inicio y el mismo fin); se cuenta una sola. Solo los idénticos: dos tramos
-  // distintos de la misma noche se siguen sumando.
-  const vistos = new Set<string>();
-  const conHoras = registros.filter((r) => {
-    if (r.horas == null || r.horas <= 0) return false;
-    if (r.inicioMs == null || r.finMs == null) return true;
-    const clave = `${r.inicioMs}-${r.finMs}`;
-    if (vistos.has(clave)) return false;
-    vistos.add(clave);
-    return true;
-  });
+  const conHoras = registros.filter((r) => r.horas != null && r.horas > 0);
 
   // Agrupar tramos por fecha de mañana
   const porFecha = new Map<string, RegistroSueno[]>();
@@ -118,21 +160,25 @@ export function consolidarNoches(registros: RegistroSueno[]): NocheSueno[] {
 
   const noches: NocheSueno[] = [];
   for (const [fecha, tramos] of porFecha) {
-    let horasNoche = 0;
-    let horasSiesta = 0;
     let primerNocturno: RegistroSueno | undefined;
     let ultimoNocturno: RegistroSueno | undefined;
+    const nocturnos: RegistroSueno[] = [];
+    const siestas: RegistroSueno[] = [];
 
     for (const t of tramos) {
       if (esSiesta(t)) {
-        horasSiesta += t.horas ?? 0;
+        siestas.push(t);
       } else {
-        horasNoche += t.horas ?? 0;
+        nocturnos.push(t);
         if (!primerNocturno) primerNocturno = t;
         ultimoNocturno = t;
       }
     }
 
+    const noche = horasDeLaUnion(nocturnos);
+    const siesta = horasDeLaUnion(siestas);
+    const horasNoche = noche.horas;
+    const horasSiesta = siesta.horas;
     const horasTotal = horasNoche + horasSiesta;
     if (horasTotal === 0) continue;
 
@@ -143,7 +189,7 @@ export function consolidarNoches(registros: RegistroSueno[]): NocheSueno[] {
       horasSiesta: horasSiesta > 0 ? parseFloat(horasSiesta.toFixed(2)) : undefined,
       horaAcostarse: primerNocturno?.horaAcostarse,
       horaLevantarse: ultimoNocturno?.horaLevantarse,
-      tramos: tramos.length,
+      tramos: noche.tramos + siesta.tramos,
     });
   }
 
