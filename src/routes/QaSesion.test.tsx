@@ -19,7 +19,8 @@ window.matchMedia ??= ((q: string) => ({
 let root: Root | null = null;
 afterEach(() => { act(() => root?.unmount()); root = null; });
 
-async function montar(url: string) {
+/** Por `App` entero: lo que importa es que la ruta pase sin login. Es lento (importa todas las rutas). */
+async function montarApp(url: string) {
   window.history.pushState({}, "", url);
   vi.resetModules();
   const { default: App } = await import("../App");
@@ -27,16 +28,31 @@ async function montar(url: string) {
   root = createRoot(div);
   await act(async () => { root!.render(createElement(App)); });
   // La ruta es lazy: espera a que cargue el módulo.
-  for (let i = 0; i < 500 && !div.querySelector("[data-caso]"); i++) {
+  for (let i = 0; i < 1500 && !div.querySelector("[data-caso]"); i++) {
     await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
   }
   return div;
 }
 
+/** La página sola, en un router de memoria: rápido, para lo que se ve. */
+async function montar(url: string) {
+  const { MemoryRouter } = await import("react-router-dom");
+  const { QaSesion } = await import("./QaSesion");
+  const div = document.createElement("div");
+  root = createRoot(div);
+  await act(async () => { root!.render(createElement(MemoryRouter, { initialEntries: [url] }, createElement(QaSesion))); });
+  return div;
+}
+
 describe("/qa/sesion (P105)", () => {
-  it("carga sin login y muestra los cuatro casos, con los componentes de la sesión", async () => {
-    const div = await montar("/qa/sesion");
+  it("pasa sin login: App la muestra aunque no haya usuario", async () => {
+    const div = await montarApp("/qa/sesion");
     expect(div.querySelector(".loading-screen")).toBeNull();
+    expect(div.querySelectorAll("[data-caso]")).toHaveLength(4);
+  }, 120_000);   // importa App entero y la ruta lazy; con la suite en paralelo tarda
+
+  it("muestra los cuatro casos, con los componentes de la sesión", async () => {
+    const div = await montar("/qa/sesion");
     const casos = [...div.querySelectorAll("[data-caso]")].map((e) => e.getAttribute("data-caso"));
     expect(casos).toEqual(["curva-esquema3", "curva-sin-analisis", "sin-curva", "esquema2"]);
 
@@ -53,7 +69,7 @@ describe("/qa/sesion (P105)", () => {
     // 4: esquema 2, sin plegar.
     expect(caso("esquema2").textContent).toContain("esquema 2");
     expect(caso("esquema2").querySelector("[data-testid=detalle-plegado]")).toBeNull();
-  }, 30_000);   // la primera carga importa App entero y la ruta lazy
+  });
 
   it("no usa el id de la sesión real: guardar o borrar no puede tocarla", async () => {
     const { sesionTestigo } = await import("./QaSesion");
@@ -70,5 +86,5 @@ describe("/qa/sesion (P105)", () => {
     expect(raiz.getAttribute("data-theme")).toBe("volt");
     expect(raiz.getAttribute("data-mode")).toBe("light");
     expect((div.querySelector("select[aria-label=Tema]") as HTMLSelectElement).value).toBe("volt");
-  }, 30_000);
+  });
 });
