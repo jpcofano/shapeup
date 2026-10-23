@@ -88,7 +88,7 @@ export function DetalleSesion({
   const bloques = h.bloques ?? [];
   const varios = bloques.length > 1;
   const resumenEjercicios = [
-    h.totalSeriesHechas != null ? `${h.totalSeriesHechas} series` : null,
+    h.totalSeriesHechas != null ? `${h.totalSeriesHechas} ${h.totalSeriesHechas === 1 ? "serie" : "series"}` : null,
     h.tonelajeKg != null && h.tonelajeKg > 0 ? `${h.tonelajeKg.toLocaleString("es")} kg de tonelaje` : null,
     h.rpe != null ? `RPE ${h.rpe}` : null,
   ].filter(Boolean).join(" · ");

@@ -75,6 +75,9 @@ export interface TarjetaCuerpo {
 
 const num = (n: number, dec = 1) => n.toFixed(dec).replace(".", ",").replace(/,0$/, "");
 const conSigno = (n: number, dec = 1) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${num(Math.abs(n), dec)}`;
+/** El cambio con su unidad; si redondeado da cero, «sin cambio» (no «0 kg» ni «sistólica 0»). */
+const cambioTexto = (n: number, dec: number, armar: (s: string) => string) =>
+  Number(Math.abs(n).toFixed(dec)) === 0 ? "sin cambio" : armar(conSigno(n, dec));
 
 /**
  * Las tarjetas de «Tu cuerpo», en este orden: peso, grasa corporal, presión,
@@ -91,7 +94,7 @@ export function tarjetasCuerpo(senales: SenalSalud[], mediciones: MedicionCorpor
     out.push({
       clave: "peso", titulo: "Peso", valor: num(peso.valorActual!), unidad: "kg",
       serie: peso.serie14d.map((p) => p.valor),
-      cambio: peso.baseline != null ? `${conSigno(peso.valorActual! - peso.baseline)} kg` : null,
+      cambio: peso.baseline != null ? cambioTexto(peso.valorActual! - peso.baseline, 1, (s) => `${s} kg`) : null,
       cuando: fechaPeso ? textoHace(fechaPeso, hoy) : null,
     });
   }
@@ -105,7 +108,7 @@ export function tarjetasCuerpo(senales: SenalSalud[], mediciones: MedicionCorpor
     out.push({
       clave: "grasa", titulo: "Grasa corporal", valor: num(ult.grasaPct!), unidad: "%",
       serie: conGrasa.filter((m) => m.fecha >= desde && m.fecha <= hoy).reverse().map((m) => m.grasaPct!),
-      cambio: prev ? `${conSigno(ult.grasaPct! - prev.grasaPct!)} puntos` : null,
+      cambio: prev ? cambioTexto(ult.grasaPct! - prev.grasaPct!, 1, (s) => `${s} puntos`) : null,
       cuando: textoHace(ult.fecha, hoy),
     });
   }
@@ -115,7 +118,7 @@ export function tarjetasCuerpo(senales: SenalSalud[], mediciones: MedicionCorpor
     out.push({
       clave: "presion", titulo: "Presión", valor: presion.valorTexto ?? String(presion.valorActual), unidad: "mmHg",
       serie: presion.serie14d.map((p) => p.valor),
-      cambio: presion.baseline != null ? `sistólica ${conSigno(presion.valorActual! - presion.baseline, 0)}` : null,
+      cambio: presion.baseline != null ? cambioTexto(presion.valorActual! - presion.baseline, 0, (s) => `sistólica ${s}`) : null,
       cuando: presion.textoAntiguedad ?? (presion.fechaUltima ? textoHace(presion.fechaUltima, hoy) : null),
     });
   }
@@ -135,7 +138,7 @@ export function tarjetasCuerpo(senales: SenalSalud[], mediciones: MedicionCorpor
     out.push({
       clave: "hrv", titulo: "HRV", valor: num(hrv.valorActual!, 0), unidad: "ms",
       serie: hrv.serie14d.map((p) => p.valor),
-      cambio: hrv.baseline != null ? `${conSigno(hrv.valorActual! - hrv.baseline, 0)} ms` : null,
+      cambio: hrv.baseline != null ? cambioTexto(hrv.valorActual! - hrv.baseline, 0, (s) => `${s} ms`) : null,
       cuando: null,
     });
   }

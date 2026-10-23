@@ -104,8 +104,23 @@ describe("tarjetasCuerpo", () => {
     const p = t.find((x) => x.clave === "presion")!;
     expect(p.valor).toBe("120/78");
     expect(p.cuando).toBe("hace 2 días");
-    expect(p.cambio).toMatch(/^sistólica /);
+    expect(p.cambio).toBe("sin cambio");   // la sistólica es 120 todos los días
     expect(p.cambio).not.toMatch(/lecturas/);
+  });
+
+  it("el cambio de la presión es el de la sistólica contra su línea de base, con signo", () => {
+    const conSubida = Array.from({ length: 20 }, (_, n) => [
+      met("presion-sistolica", n + 2, n === 0 ? 126 : 120), met("presion-diastolica", n + 2, 78),
+    ]).flat();
+    const p = tarjetasCuerpo(calcularResumenSalud(conSubida, [], [], HOY), [], HOY).find((x) => x.clave === "presion")!;
+    expect(p.valor).toBe("126/78");
+    expect(p.cambio).toBe("sistólica +6");
+  });
+
+  it("un cambio que redondeado da cero dice «sin cambio» (no «−0 kg»)", () => {
+    const pesos = Array.from({ length: 30 }, (_, n) => med(n, { pesoKg: n === 0 ? 79.96 : 80 }));
+    const p = tarjetasCuerpo(calcularResumenSalud([], [], pesos, HOY), pesos, HOY).find((x) => x.clave === "peso")!;
+    expect(p.cambio).toBe("sin cambio");
   });
 
   it("sin datos, ninguna tarjeta", () => {
