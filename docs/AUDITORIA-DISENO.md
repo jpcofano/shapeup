@@ -91,6 +91,9 @@ El kit de la raíz es del **06/06/2026** (`README.md`, `SKILL.md`, `colors_and_t
   - **Qué falta:** las de la app real con sesión iniciada.
 
   Lo que pedía el paso: con P103 desplegado, cada pantalla en claro y en oscuro, a 390 px, más las páginas de QA. Pueden ser las de `docs/auditorias/capturas/` (si P103 las sacó) o las del navegador integrado. Más las capturas del 02/10.
+- **Hallazgos 1 y 2 del diagnóstico de P105 (P106, 23/10):**
+  - **El 1 está resuelto** (`ca93e7f`): `--on-accent` oscuro en Pulse e Indigo oscuro; todos los temas pasan AA en el botón principal (6,04 y 6,76).
+  - **El 2 quedó salteado:** el área de 44 px de la ✕ tapa botones vecinos en tres lugares; ver el backlog del roadmap.
 - ◐ **4. Auditoría: en curso (22/10).** Juan decidió con el chat el detalle de la sesión y Salud → Resumen. Las referencias están en `docs/prompts/109-diseno/` (`DetalleFinal.html`, `ResumenFinal.html` y `RampaZonas.html`), y las construye P109. **El lienzo de la auditoría y el artifact Design System viven en la cuenta de Claude de Juan:** la fuente de verdad es esa carpeta de referencias y el repo. Las decisiones cerradas:
   1. **Colores de zona como Samsung**, con un valor por modo (enmienda del ADR #045).
   2. **Nombres de Samsung donde entren**: el detalle, el chip de la zona dominante y Configuración. La forma larga es «Anaeróbico · Z4»; donde no entra, «Z4».

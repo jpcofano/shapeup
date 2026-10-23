@@ -524,7 +524,7 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P104 | ✅ (21/10) Traer lo de Claude Design al repo antes de que cierre (14/12): la raíz del sistema de diseño pasa a la versión de la cuenta A, y las explorations, las auditorías y los inventarios quedan archivados. Ver `docs/AUDITORIA-DISENO.md` §8 | — |
 | P103 | ✅ (21/10) Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
 | P105 | ✅ (22/10) Corrida nocturna: auditoría de los datos de salud (la presión primero), `/qa/sesion`, capturas, el kit de la raíz igual a la app (paso 2b del lado del repo) y el diagnóstico de diseño medible. Prompt: `docs/prompts/105-corrida-nocturna-salud-y-kit-igual-a-la-app.md` | P103 |
-| P106 | Lo que dejó P105: la presión como el promedio de la tanda, la presión vieja a la vista, sin `fc-reposo`, el sueño por la unión de tramos, las pesadas repetidas, y dos arreglos de accesibilidad. Corre en el Bloque 1 de P109. Prompt: `docs/prompts/106-salud-al-dia-y-dos-arreglos-medidos.md` | P105 |
+| P106 | ✅ (23/10, en P109 Bloque 1) Lo que dejó P105: la presión como el promedio de la tanda, la presión vieja a la vista, sin `fc-reposo`, el sueño por la unión de tramos y el texto del botón en Pulse e Indigo oscuro. Salteadas: las pesadas repetidas (Parte 5) y la ✕ a 44 px (6b), en el backlog. Prompt: `docs/prompts/106-salud-al-dia-y-dos-arreglos-medidos.md` | P105 |
 | P107 | El puente pide presión, sueño y SpO2 (SDK 1.1.0). En la otra sesión, repo `shapeup-bridge` | P106 |
 | P108 | Reservado: el adaptador de la app para presión, sueño y SpO2, con los registros reales de P107 | P107 |
 | P109 | Corrida nocturna: P106, las zonas como Samsung, el detalle de la sesión y el Resumen de Salud nuevos (auditoría de diseño, paso 4). Prompt: `docs/prompts/109-corrida-nocturna-zonas-detalle-y-resumen.md`. **El próximo libre es P110** | P105 |
@@ -534,7 +534,10 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 ## Backlog (traspaso del 30/09, §7)
 
 - **Diagnóstico de la sesión libre del 07/07** (ambigua, dos candidatas) y de la **sesión de fuerza del 29/06** (dura 17 min pero sus series abarcan 38,6 y el reloj midió 39; anterior a P84c, sin inicio ni fin guardados). Ambas de lectura, en un mismo prompt.
-- **El sueño y la FC de reposo solo llegan si se importó el ZIP de ese día: la vía D no los trae. Evaluar sumarlos al puente (repo shapeup-bridge)** (P99 Parte 3: el paquete de análisis los manda, pero llegan `null` sin ZIP).
+- **Sueño por el puente (P107/P108). FC de reposo: sin fuente** (P106: el SDK 1.1.0 no tiene un tipo de FC de reposo; ni el ZIP ni el puente la traen). _Antes: «El sueño y la FC de reposo solo llegan si se importó el ZIP de ese día…»._
+- **Borrar los `fc-reposo` viejos con un script** (en seco, respaldo, `--aplicar`), cuando Juan lo decida. Desde P106 no se leen en ningún lado (`HAY_FUENTE_FC_REPOSO`); los datos siguen.
+- **Pesadas repetidas (P106, Parte 5, salteada):** `/mediciones` no guarda la hora de la medición (`parsearPeso` usa `start_time` solo para la fecha), así que «misma fecha y hora» no se puede verificar. Hay 31 días con dos mediciones de igual peso, grasa y fuente (auditoría de P105). Para juntarlas al mostrar habría que guardar la hora (cambio de datos) o aceptar «mismo día y valores». Decisión para el chat.
+- **El área de toque de 44 px de `.btn-icon-sm` (P106 6b, salteada):** con 8 px de cada lado tapa botones vecinos en `BloqueFormItem` (separación 4 px), en el encabezado de Salud (6 px) y en la sesión libre (columna, 2 px). Hace falta decidir cómo separarlos antes de agrandar el área.
 - ~~**Guardar la prescripción al cerrar las sesiones de fuerza.** Chico, no urgente.~~ Hecho en P103 (Bloque 5): `BloqueRegistro.prescripcionFuerza`.
 - **P94** — análisis global sobre un rango de semanas. Code avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango).
   - **Decisión de P94:** si la prescripción de fuerza guardada (`prescripcionFuerza`, P103) va también en `ultimasSesiones` del paquete, como `prescripcionDeEsaSesion` (hoy solo VR). Respuesta del 22/10 a P103: no por ahora.
@@ -550,11 +553,11 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - **Series informativas por configuración** de la rutina a medida (RUT-0030): agrupar las sesiones con el mismo juego, bloques, minutos y descanso. La sesión ya guarda lo necesario (P102).
 - **Aviso por esquive repetido** (bloque 11.4): a la tercera vez que se cambia la misma rutina. P102 guarda `rutinaPrevista` pero no avisa.
 - **Cobertura del plan** (bloque 11.3): la métrica separada de la adherencia. P102 guarda los datos, no la calcula.
-- **Datos de salud (P105, decisiones para el chat):**
-  - los 1537 `fc-reposo` viejos, que según P56 no son reposo y Progreso dibuja como «FC reposo»;
-  - 31 días con dos mediciones idénticas;
-  - los tramos de sueño que se superponen (mismo inicio, otro fin);
-  - que la app diga cuándo la presión está vieja: solo llega con el ZIP.
+- **Datos de salud (P105, decisiones para el chat):** resueltas en P106, salvo las pesadas repetidas (ver arriba).
+  - ~~los 1537 `fc-reposo` viejos~~: no se leen (P106 Parte 3);
+  - 31 días con dos mediciones idénticas: Parte 5 salteada;
+  - ~~los tramos de sueño que se superponen~~: la unión (P106 Parte 4);
+  - ~~que la app diga cuándo la presión está vieja~~: «hace N días» (P106 Parte 2).
 
   Los valores, en `docs/auditorias/auditoria-salud-2026-10-22.md` (local, ignorado por git); se miden de nuevo con `npm run auditoria:calidad-salud`.
 - **Kit (P105, lo que no llegó a `ui_kits/`):** la sesión por tiempo, VR a medida, «Cambiar» en el kit interactivo, los formularios de rutina y ejercicio y `PantallaError`.

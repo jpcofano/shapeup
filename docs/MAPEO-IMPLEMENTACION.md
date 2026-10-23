@@ -135,6 +135,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P103 | Corrida nocturna: cierre de P99 y pendientes chicos (`6023035`, `315510d`, `1e18b7b`, `51b3acf`, `720bee9`) | ✅ | 2026-10-21 |
 | P104 | Traer lo de Claude Design al repo: la raíz del sistema de diseño (cuenta A) y el archivo (`24fcb79`, `42379e2`, `963e774`) | ✅ | 2026-10-21 |
 | P105 | Corrida nocturna: auditoría de salud (la presión primero), `/qa/sesion`, capturas, el kit igual a la app y el diagnóstico de diseño (`5e475f0`, `9e2de46`, `e9e4726`, `2ac6729`, `741c187`, `769dfbd`, `fb134ae`, `ab0ede5`, `d91dd3e`, `480c71d`) | ✅ | 2026-10-22 |
+| P106 | Lo que dejó P105: la presión como el promedio de la tanda, la presión vieja a la vista, sin `fc-reposo`, el sueño por la unión de tramos y el texto del botón en Pulse e Indigo oscuro (`334b14a`, `3fdc4e9`, `8732d90`, `6ff3d52`, `ca93e7f`, `a43b4ee`). Partes 5 y 6b salteadas. Corrió en P109, Bloque 1 | ✅ | 2026-10-23 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -151,6 +152,27 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-23] P106 — Lo que dejó P105: la salud al día y dos arreglos de accesibilidad (en P109, Bloque 1)
+
+Prompt: `docs/prompts/106-salud-al-dia-y-dos-arreglos-medidos.md`, corrido con las reglas nocturnas de P109: lo
+que decía «pará y reportá» se salteó y se anotó. Un commit por parte.
+
+- **Parte 1** (`334b14a`): la presión del día es el **promedio de la última tanda** (lecturas a 15 min o menos
+  entre sí, `presionPorDia`). Reemplaza la regla de P105. `agregacion` sigue en `"ultimo-del-dia"`.
+- **Parte 2** (`3fdc4e9`): la presión ya no desaparece a los 60 días; Resumen y Tendencias muestran su antigüedad
+  («hace N días · se actualiza con el ZIP», `TEXTO_PRESION_VIEJA`). El SpO2 conserva el corte de 60 días.
+- **Parte 3** (`8732d90`): `fc-reposo` no se lee en ningún lado (`HAY_FUENTE_FC_REPOSO = false`): ni Resumen, ni
+  Tendencias, ni el detalle; la regla 3 de las recomendaciones queda inactiva. Los datos no se tocan.
+- **Parte 4** (`6ff3d52`): las horas de una noche son la unión de sus tramos (`consolidarNoches`).
+- **Parte 5, salteada:** `/mediciones` no guarda la hora, así que «misma fecha y hora» no se puede verificar (31
+  días con valores iguales). Al backlog.
+- **Parte 6a** (`ca93e7f`, kit `a43b4ee`): `--on-accent` oscuro en Pulse (`#1f0610`) e Indigo (`#0d0e2b`) oscuro;
+  todos los temas pasan AA en el botón.
+- **Parte 6b, salteada:** el área de 44 px de `.btn-icon-sm` tapa botones vecinos en `BloqueFormItem`, en el
+  encabezado de Salud y en la sesión libre. Al backlog.
+- **Parte 7:** este registro, el roadmap, `AUDITORIA-DISENO.md` y el paso 6 del §6 de `ESTADO-DEL-PROYECTO.md`.
+- Además, `4139ca5`: el test de `/qa/sesion` de P105, estable con la suite en paralelo.
 
 ### [2026-10-22] P105 — Corrida nocturna: los datos de salud, el kit igual a la app y el diagnóstico de diseño
 

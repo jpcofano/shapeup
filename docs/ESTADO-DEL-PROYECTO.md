@@ -180,7 +180,7 @@ Si Juan no confirmó el seed de P102, corre antes `npm run seed:rutinas-vr`: pri
   - `src/styles/tokens.css`, `src/styles/home-redux.css`, `src/components/` y `src/routes/`;
   - más la raíz ya actualizada por el 104.
 
-  Juan lo revisa. Después, un prompt de Code (P105) deja la raíz igual al artifact.
+  Orden nuevo (22/10): primero Code dejó la raíz igual a la app (P105, hecho); después el chat arma el artifact desde la raíz y el código, y Juan lo revisa.
 - **3. Capturas reales:** cada pantalla en claro y en oscuro, a 390 px, más las páginas de QA (`/qa/temas`, `QaHomeRedux` y `QaSaludResumen`). Pueden salir de `docs/auditorias/capturas/` (si el 103 las sacó) o del navegador integrado de la app de escritorio.
 - **4. La auditoría,** en un lienzo **Design**. Incluye:
   - la pantalla de marcas y la curva;
