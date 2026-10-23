@@ -16,6 +16,7 @@ demás viene acá, con su origen (P100, 01/10/2026).
 | `docs-prompts/46-b2-1-video-youtube-curado.md` | `docs/prompts/46-b2-1-video-youtube-curado.md` | 2026-07-08 | Etapa anterior (lote 1); la vigente es la `(2)`, que quedó en `docs/prompts/` sin renombrar |
 | `docs-prompts/46-b2-1-video-youtube-curado (1).md` | `docs/prompts/46-b2-1-video-youtube-curado (1).md` | 2026-07-08 | Etapa anterior (lotes 1 y 2) |
 | `ESTADO-DEL-PROYECTO-secciones-2026-09-25.md` | `docs/ESTADO-DEL-PROYECTO.md` (encabezado, «Prompts», «ADRs clave», «Cómo retomar») | 2026-10-01 | Secciones superadas: el índice de prompts está en `MAPEO` §1, los ADRs en `docs/ADR.md`, y el traspaso nuevo reemplaza a «Cómo retomar» |
+| `analisis-asistido-s6-p103.md` | `docs/ANALISIS-ASISTIDO.md` §6 («Pantalla — como quedó construida», P103) | 2026-10-21 | P109 rehízo la pantalla; el §6 vigente describe la de P109 |
 
 **Borrados por idénticos** (el contenido sigue en la copia que se conservó; hashes en el reporte de
 P100): `uploads/FORMA-DE-TRABAJO-comida-familiar.md` y `prompts-code/` 23, 24, 25, 26, 27, 29 y

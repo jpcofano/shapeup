@@ -94,7 +94,13 @@ El kit de la raíz es del **06/06/2026** (`README.md`, `SKILL.md`, `colors_and_t
 - **Hallazgos 1 y 2 del diagnóstico de P105 (P106, 23/10):**
   - **El 1 está resuelto** (`ca93e7f`): `--on-accent` oscuro en Pulse e Indigo oscuro; todos los temas pasan AA en el botón principal (6,04 y 6,76).
   - **El 2 quedó salteado:** el área de 44 px de la ✕ tapa botones vecinos en tres lugares; ver el backlog del roadmap.
-- ◐ **4. Auditoría: en curso (22/10).** Juan decidió con el chat el detalle de la sesión y Salud → Resumen. Las referencias están en `docs/prompts/109-diseno/` (`DetalleFinal.html`, `ResumenFinal.html` y `RampaZonas.html`), y las construye P109. **El lienzo de la auditoría y el artifact Design System viven en la cuenta de Claude de Juan:** la fuente de verdad es esa carpeta de referencias y el repo. Las decisiones cerradas:
+- ◐ **4. Auditoría: hecha para el detalle de la sesión y Salud → Resumen (P109, 23/10); sigue para el resto.**
+  - **Hecho** (P109): las seis decisiones de abajo, construidas (`adf3e71`, `56f0e48`, `3fb43f1`) y en el kit (`15ab607`, `30e9264`). Capturas en `docs/auditorias/capturas/2026-10-23/` (git las ignora). **Sin deploy hasta que el chat revise la corrida.**
+  - **Lo que sigue de la auditoría:**
+    - los hallazgos 3 a 15 del diagnóstico de P105 (`docs/reportes/diagnostico-diseno-2026-10-22.md`): toques debajo de 44 fuera de lo que tocó P109 (3), textos de 9 a 11 px (4), tamaños escritos a mano (5), las dos capas (6), oscuro teñido o neutro (7), la rampa de acento solo en Home (8), y los de menor severidad (9 a 15);
+    - **si las direcciones de Home se extienden a toda la app** (hallazgo 6): P109 no las extendió; el detalle y el Resumen usan los tokens de `tokens.css`;
+    - **si el oscuro va teñido o neutro** (hallazgo 7): P109 lo dejó teñido, como estaba.
+  - Las decisiones del 22/10, de Juan con el chat, para el detalle de la sesión y Salud → Resumen. Las referencias están en `docs/prompts/109-diseno/` (`DetalleFinal.html`, `ResumenFinal.html` y `RampaZonas.html`), y las construye P109. **El lienzo de la auditoría y el artifact Design System viven en la cuenta de Claude de Juan:** la fuente de verdad es esa carpeta de referencias y el repo. Las decisiones cerradas:
   1. **Colores de zona como Samsung**, con un valor por modo (enmienda del ADR #045).
   2. **Nombres de Samsung donde entren**: el detalle, el chip de la zona dominante y Configuración. La forma larga es «Anaeróbico · Z4»; donde no entra, «Z4».
   3. **La curva se pinta por zona**:

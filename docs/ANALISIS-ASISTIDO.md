@@ -348,42 +348,42 @@ Junto con el escalón y el modo jugados, el paquete tiene que llevar la dificult
 - Las **marcas nuevas** que proponga salen como pedido para Code (decisión 10).
 - Code ya avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango). El diseño fino se hace cuando le toque.
 
-### 6 · Pantalla — como quedó construida (P103, Bloque 1, `6023035`)
+### 6 · Pantalla — como quedó construida (P109, Bloque 3, `56f0e48`)
 
-_Era una propuesta a confirmar. Se construyó como estaba decidida en el chat, con un agregado arriba
-(la calidad). **La auditoría de diseño con Claude Design (P101) la ajusta después**, así que esto es el
-punto de partida de esa auditoría y no la versión final._
+_La construyó P103 (Bloque 1, `6023035`) y la rehizo P109 con las decisiones de la auditoría de diseño del
+22/10 (`docs/AUDITORIA-DISENO.md` §5, paso 4; referencia `docs/prompts/109-diseno/DetalleFinal.html`). La
+versión de P103 está archivada en `docs/archivo/analisis-asistido-s6-p103.md`._
 
-En `HistorialDetalle`, debajo del título, de arriba hacia abajo (`CabeceraMarcas`, `CurvaSesion` y
-`AnalisisSesion`):
+`HistorialDetalle` solo carga los datos; la pantalla es `DetalleSesion`. De arriba hacia abajo:
 
-1. **Calidad**, si aparece, con estilo de aviso: cambia cómo se lee el resto.
-2. **Veredicto** (solo con análisis de esquema 3), con «· análisis».
-3. **Badges de nivel 1**, en el orden del catálogo (§3).
-4. **Dos destacados** (solo con análisis), con borde punteado.
-5. **Curva** con las marcas que tienen momento o tramo.
-6. **Secundarias de nivel 2**, en una fila discreta y sin color.
-7. **Detalle del análisis**, plegado (solo esquema 3; los análisis de esquema 2 se ven como antes).
+1. **Encabezado:** volver, en un botón redondo de 44 px (todavía sin menú de más opciones); el sobretítulo
+   («VR · PowerBeatsVR»), el nombre y la línea de la fecha («Dom 27/09 · 16:09 · 49 min», `lib/detalleSesion.ts`).
+2. **Calidad**, si aparece, con estilo de aviso.
+3. **Análisis:** el veredicto (esquema 3), los dos destacados y los badges de nivel 1.
+4. **Frecuencia cardíaca** (`TarjetaFrecuencia` + `CurvaSesion`):
+   - la línea se pinta por zona, con los colores de Samsung (`--zona-z*`); sin zonas guardadas (antes de
+     P97), va en el acento;
+   - sin bandas de fondo: líneas guía punteadas en los pisos de zona, con las ppm a la derecha, y un eje de
+     tiempo de 4 o 5 marcas;
+   - el pico es un punto;
+   - **las marcas salen de la curva y son chips de 44 px debajo**: las de la app, sólidas; las del análisis,
+     punteadas y con «análisis». Una del análisis con `refMarca` no es un chip aparte: el chip de la app
+     dice «· análisis» y, al tocarlo, muestra el comentario. Tocar un chip marca su tramo o momento en la
+     curva y muestra su texto;
+   - sin curva guardada, no se dibuja ni ocupa lugar.
+5. **Los números** (duración, calorías, FC media y FC máxima) en una grilla de 2 columnas; uno solo ocupa las dos.
+6. **Tiempo en zonas** (`TiempoEnZonas`), estilo Samsung: la barra con todas las zonas y, por zona, su nombre
+   («Anaeróbico · Z4»), las ppm, el tiempo, el porcentaje y un riel. Reemplaza a las dos barras apiladas.
+7. **Lo que hiciste** (antes «Series registradas»): cada ejercicio con su zona dominante; con más de uno,
+   una barra fina de zonas por ejercicio. Una sesión sin ejercicios (juego) muestra su zona principal y su RPE.
+8. **Filas:** el sueño de la noche anterior y «Más datos» (las marcas secundarias de nivel 2), plegado.
 
-El resto de la pantalla (stats, series, FC de Samsung, contexto del día, análisis) sigue igual.
-
-**La curva:**
-- SVG a mano, sin librería; la geometría es pura y está en `lib/curvaSesion.ts`.
-- Bandas de zona con `zonasUsadas` de la sesión.
-- Los **tramos** van como franja; los **momentos**, como línea.
-- Las marcas de la app van **sólidas**; las del análisis, con **borde punteado** y la etiqueta «análisis».
-- **Tocar una marca muestra su texto.** Una marca del análisis con `refMarca` se dibuja sobre la marca
-  de la app y no toma el toque: tocar la de la app muestra su texto y, abajo, el comentario del análisis.
-- **Sin curva guardada, no se dibuja ni ocupa lugar.** Las marcas que no salen de la curva se ven igual.
-
-**Además:**
+**Además** (sigue de P103):
 - Mientras el historial no cargó, no se muestran `record` ni `semana`.
 - Una sesión sin analizar se ve igual en todo lo medido.
 - `RevisionFcMax`: en las sesiones excluidas muestra el pico crudo (`biometria.fcMax`) y el suavizado.
-- El `planSemana` se sella en `EntrenarState` el día en que se juega. Una sesión vieja guardada después
-  lleva el de ese día; sin plan sellado se guarda sin plan (no se completa con el de hoy).
-- **Capturas:** no se sacaron (Playwright no está en el repo y no se instaló nada). Quedan para la
-  auditoría de diseño.
+- El `planSemana` se sella en `EntrenarState` el día en que se juega.
+- **Capturas:** `docs/auditorias/capturas/2026-10-23/detalle/` (git las ignora), desde `/qa/sesion`.
 
 ### 7 · Orden de ejecución
 

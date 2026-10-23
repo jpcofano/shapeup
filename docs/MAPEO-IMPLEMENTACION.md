@@ -136,6 +136,7 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 | P104 | Traer lo de Claude Design al repo: la raíz del sistema de diseño (cuenta A) y el archivo (`24fcb79`, `42379e2`, `963e774`) | ✅ | 2026-10-21 |
 | P105 | Corrida nocturna: auditoría de salud (la presión primero), `/qa/sesion`, capturas, el kit igual a la app y el diagnóstico de diseño (`5e475f0`, `9e2de46`, `e9e4726`, `2ac6729`, `741c187`, `769dfbd`, `fb134ae`, `ab0ede5`, `d91dd3e`, `480c71d`) | ✅ | 2026-10-22 |
 | P106 | Lo que dejó P105: la presión como el promedio de la tanda, la presión vieja a la vista, sin `fc-reposo`, el sueño por la unión de tramos y el texto del botón en Pulse e Indigo oscuro (`334b14a`, `3fdc4e9`, `8732d90`, `6ff3d52`, `ca93e7f`, `a43b4ee`). Partes 5 y 6b salteadas. Corrió en P109, Bloque 1 | ✅ | 2026-10-23 |
+| P109 | Corrida nocturna: P106 (Bloque 1), las zonas con los colores y nombres de Samsung, el detalle de la sesión nuevo, el Resumen de Salud nuevo y el kit igual a la app (`55fdf44`, `4139ca5`, `adf3e71`, `25214f4`, `15ab607`, `56f0e48`, `3fb43f1`, `4ce53fd`, `30e9264`). Sin deploy: **Juan no deploya hasta que el chat revise la corrida** | ✅ | 2026-10-23 |
 
 > **Reconstruido el 21/09/2026.** Entre P60 y P81 esta tabla quedó sin actualizar: el trabajo
 > se documentó en `CLAUDE.md` y en `docs/ROADMAP-producto.md`, y acá no entró nada. Las
@@ -152,6 +153,40 @@ La fuente de verdad del estado es esta tabla + la Bitácora, no el número de pr
 
 > **La bitácora en prosa falta para P61–P79 (salvo PU4) y desde P82.** No se reconstruye (P100):
 > esos prompts están en el índice de §1.
+
+### [2026-10-23] P109 — Corrida nocturna: las zonas como Samsung, el detalle de la sesión y el Resumen de Salud nuevos
+
+Prompt: `docs/prompts/109-corrida-nocturna-zonas-detalle-y-resumen.md`, con las referencias de
+`docs/prompts/109-diseno/` (`DetalleFinal.html`, `ResumenFinal.html`, `RampaZonas.html`). Sin escrituras en
+Firestore, sin deploy, sin instalar nada. **Juan no deploya hasta que el chat revise la corrida.** El reporte
+completo, en `docs/auditorias/ultimochat.md`.
+
+- **Bloque 0** (`55fdf44`, docs): los prompts 106 y 109 con sus referencias; la enmienda del ADR #045 (colores
+  y nombres de Samsung); el paso 4 de la auditoría en curso; P106–P109 en el roadmap.
+- **Bloque 1:** P106 entero, con reglas nocturnas (ver la entrada de P106, abajo). Antes, `4139ca5`: el test
+  de `/qa/sesion` estable con la suite en paralelo.
+- **Bloque 2** (`adf3e71` App, `25214f4` Herramientas, `15ab607` docs): la rampa de zonas por modo en
+  `tokens.css` (`--zona-z1..z5` y sus `-dim`), `NOMBRE_ZONA` y `nombreZonaLargo` en `lib/zonas.ts`, la
+  etiqueta de zona en Configuración, la tabla de zonas en `scripts/contraste-tokens.ts` (todas pasan 3:1), y el
+  kit (`colors_and_type.css`, `preview/col-zonas.html`).
+- **Bloque 3** (`56f0e48`): el detalle de la sesión nuevo. `HistorialDetalle` solo carga; la pantalla es
+  `DetalleSesion`. La curva se pinta por zona (`tramos`, `guias`, `marcasTiempo` en `lib/curvaSesion.ts`), sin
+  bandas, con guías punteadas en los pisos y el pico como punto; las marcas son chips de 44 px debajo.
+  «Tiempo en zonas» (`TiempoEnZonas`) reemplaza a las dos barras apiladas; «Lo que hiciste» con la zona
+  dominante de cada ejercicio. Los textos, en `lib/detalleSesion.ts`. `/qa/sesion`, con 5 casos.
+- **Bloque 4** (`3fb43f1`): Salud → Resumen nuevo. La fecha arriba del título y botones redondos de 44 px
+  (`SaludEncabezado`), las pestañas en píldora («Cuerpo» y «Tendencias»; las claves no cambian), el puente en
+  una línea cuando está al día (`puenteAlDia` en `lib/estadoPuente.ts`, `LineaPuente`), el sueño de anoche con
+  las 7 noches de calendario y «Tu cuerpo» (peso, grasa, presión, oxígeno en sangre) en `lib/resumenCuerpo.ts`.
+  El Resumen usa la fecha local. `/qa/salud-resumen`, con datos inventados y tema y modo por la URL.
+- **Ajuste** (`4ce53fd`): un cambio que redondeado da cero dice «sin cambio» (antes «sistólica 0»), y el detalle dice «1 serie».
+- **Bloque 5** (`30e9264`, docs): el kit. `preview/cmp-curva-sesion` y `cmp-barra-zonas` rehechas, y
+  `cmp-tiempo-en-zonas` y `cmp-resumen-salud` nuevas, renderizando los componentes reales con datos inventados
+  (método de P105); `ui_kits/shapeup/pantallas-nuevas.html` regenerada entera; el `README.md` de la raíz con
+  la tabla de zonas por modo y las pestañas nuevas de Salud.
+- **Bloque 6:** este registro, el roadmap, `AUDITORIA-DISENO.md` §5 y `ANALISIS-ASISTIDO.md` §6.
+- **Capturas** (git las ignora): `docs/auditorias/capturas/2026-10-23/detalle/` y `.../resumen/`, Ion y Pulse
+  en claro y oscuro, a 390 px, desde el build local.
 
 ### [2026-10-23] P106 — Lo que dejó P105: la salud al día y dos arreglos de accesibilidad (en P109, Bloque 1)
 

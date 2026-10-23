@@ -525,9 +525,9 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 | P103 | ✅ (21/10) Corrida nocturna: la pantalla de la sesión (P99 Parte 4) y el cierre de P99 (ADR #047), los restos de P102, la hoja de salida de `SesionJuego` y la prescripción guardada en fuerza. **Agregado al Bloque 1** (21/10): una sesión vieja guardada después lleva el `planSemana` del día en que se jugó, no el del día en que se guarda, con test. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) §8 | P99 Partes 1–3, P102 |
 | P105 | ✅ (22/10) Corrida nocturna: auditoría de los datos de salud (la presión primero), `/qa/sesion`, capturas, el kit de la raíz igual a la app (paso 2b del lado del repo) y el diagnóstico de diseño medible. Prompt: `docs/prompts/105-corrida-nocturna-salud-y-kit-igual-a-la-app.md` | P103 |
 | P106 | ✅ (23/10, en P109 Bloque 1) Lo que dejó P105: la presión como el promedio de la tanda, la presión vieja a la vista, sin `fc-reposo`, el sueño por la unión de tramos y el texto del botón en Pulse e Indigo oscuro. Salteadas: las pesadas repetidas (Parte 5) y la ✕ a 44 px (6b), en el backlog. Prompt: `docs/prompts/106-salud-al-dia-y-dos-arreglos-medidos.md` | P105 |
-| P107 | El puente pide presión, sueño y SpO2 (SDK 1.1.0). En la otra sesión, repo `shapeup-bridge` | P106 |
-| P108 | Reservado: el adaptador de la app para presión, sueño y SpO2, con los registros reales de P107 | P107 |
-| P109 | Corrida nocturna: P106, las zonas como Samsung, el detalle de la sesión y el Resumen de Salud nuevos (auditoría de diseño, paso 4). Prompt: `docs/prompts/109-corrida-nocturna-zonas-detalle-y-resumen.md`. **El próximo libre es P110** | P105 |
+| P109 | ✅ (23/10) Corrida nocturna: P106 (Bloque 1), las zonas con los colores y nombres de Samsung, el detalle de la sesión nuevo, el Resumen de Salud nuevo y el kit igual a la app (auditoría de diseño, paso 4, para esas dos pantallas). Sin deploy hasta que el chat revise la corrida. Prompt: `docs/prompts/109-corrida-nocturna-zonas-detalle-y-resumen.md`. **El próximo libre es P110** | P105 |
+| P107 | **Lo próximo de datos.** El puente pide presión, sueño y SpO2 (SDK 1.1.0). En la otra sesión, repo `shapeup-bridge` | P106 |
+| P108 | **Lo próximo de datos.** Reservado: el adaptador de la app para presión, sueño y SpO2, con los registros reales de P107 | P107 |
 | P101 | Auditoría de diseño: lo próximo de pantalla. Plan, diagnóstico y estado: `docs/AUDITORIA-DISENO.md`. | P103 |
 | P94 | Análisis general sobre un rango de semanas, con focos propuestos para los análisis de sesión. Ver [ANALISIS-ASISTIDO.md](ANALISIS-ASISTIDO.md) | P99 |
 
@@ -537,6 +537,13 @@ Lo que viene. **Lo ejecutado está en `docs/MAPEO-IMPLEMENTACION.md` §1.** La t
 - **Sueño por el puente (P107/P108). FC de reposo: sin fuente** (P106: el SDK 1.1.0 no tiene un tipo de FC de reposo; ni el ZIP ni el puente la traen). _Antes: «El sueño y la FC de reposo solo llegan si se importó el ZIP de ese día…»._
 - **Borrar los `fc-reposo` viejos con un script** (en seco, respaldo, `--aplicar`), cuando Juan lo decida. Desde P106 no se leen en ningún lado (`HAY_FUENTE_FC_REPOSO`); los datos siguen.
 - **Pesadas repetidas (P106, Parte 5, salteada):** `/mediciones` no guarda la hora de la medición (`parsearPeso` usa `start_time` solo para la fecha), así que «misma fecha y hora» no se puede verificar. Hay 31 días con dos mediciones de igual peso, grasa y fuente (auditoría de P105). Para juntarlas al mostrar habría que guardar la hora (cambio de datos) o aceptar «mismo día y valores». Decisión para el chat.
+- **Lo que quedó afuera de P109** (decisiones de la corrida, para el chat; ver `docs/auditorias/ultimochat.md`):
+  - «Tiempo en zonas» tiene un solo origen: los minutos por zona de la sesión (`biometria.minutosPorZona`). Samsung no guarda segundos por zona propios, así que no hay una segunda fuente con la que compararlo.
+  - En la curva van como chips todas las marcas que salen de ella; la referencia mostraba tres. Elegir cuáles, si se quiere menos, es una decisión para la auditoría.
+  - «Tu promedio» del sueño es la línea de base de `resumenSalud` (la mediana de los días 8 a 35); sin ella, el promedio de las últimas 7 noches.
+  - El cambio de la presión es el de la sistólica contra su línea de base («sistólica +2»).
+  - Mientras carga el estado del puente se ve un momento la tarjeta completa antes de la línea (como antes de P109, cuando la tarjeta se veía siempre).
+  - El prompt de análisis (`docs/analisis/prompt-sesion-v4.md`) lee `fcReposo: null` como «no se importó»; desde P106 es siempre null. No se tocó: el código lee ese prompt y está versionado.
 - **El área de toque de 44 px de `.btn-icon-sm` (P106 6b, salteada):** con 8 px de cada lado tapa botones vecinos en `BloqueFormItem` (separación 4 px), en el encabezado de Salud (6 px) y en la sesión libre (columna, 2 px). Hace falta decidir cómo separarlos antes de agrandar el área.
 - ~~**Guardar la prescripción al cerrar las sesiones de fuerza.** Chico, no urgente.~~ Hecho en P103 (Bloque 5): `BloqueRegistro.prescripcionFuerza`.
 - **P94** — análisis global sobre un rango de semanas. Code avisó que no es trivial: falta el agregado, una colección nueva con sus reglas y otra identidad (miembro y rango).
