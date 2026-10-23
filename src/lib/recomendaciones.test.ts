@@ -211,20 +211,18 @@ describe("calcularRecomendacion", () => {
   });
 
   // ── Regla 3: Cardio Z2 ───────────────────────────────────────────────────
-  it("regla 3: fc-reposo atención → Sumar cardio Z2", () => {
+  // P106: la regla 3 está inactiva mientras no haya una fuente real de FC en reposo.
+  it("P106: regla 3 inactiva — fc-reposo en atención no recomienda cardio Z2", () => {
     const senales = [mkSenal("fc-reposo", "atencion", 65, "FC reposo +6.0 bpm vs tus últimas 4 semanas")];
     const rec = calcularRecomendacion(senales, [], HOY, MIEMBRO);
-    expect(rec?.tipo).toBe("Sumar cardio Z2");
-    expect(rec?.severidad).toBe("sugerencia");
-    expect(rec?.basadoEn).toContain("fc-reposo");
-    expect(rec?.mensaje).toContain("+6.0 bpm");
-    expect(rec?.accionSugerida?.idRutina).toBe(RUTINAS_RECOMENDADAS.z2);
+    expect(rec?.tipo).not.toBe("Sumar cardio Z2");
+    expect(rec?.basadoEn ?? []).not.toContain("fc-reposo");
   });
 
-  it("regla 3: fc-reposo alerta también dispara Z2 (si no hay sueño/hrv con alerta)", () => {
+  it("P106: regla 3 inactiva — tampoco en alerta", () => {
     const senales = [mkSenal("fc-reposo", "alerta", 67, "FC reposo +9.0 bpm vs tus últimas 4 semanas")];
     const rec = calcularRecomendacion(senales, [], HOY, MIEMBRO);
-    expect(rec?.tipo).toBe("Sumar cardio Z2");
+    expect(rec?.tipo).not.toBe("Sumar cardio Z2");
   });
 
   it("regla 3 no dispara si fc-reposo está ok", () => {
@@ -299,11 +297,11 @@ describe("calcularRecomendacion", () => {
   });
 
   // ── mensaje contiene dato concreto ──────────────────────────────────────
-  it("mensaje de fc-reposo contiene el delta bpm", () => {
+  it("P106: con fc-reposo en atención, el mensaje ya no la menciona (regla 3 inactiva)", () => {
     const motivo = "FC reposo +7.5 bpm vs tus últimas 4 semanas";
     const senales = [mkSenal("fc-reposo", "atencion", 65, motivo)];
     const rec = calcularRecomendacion(senales, [], HOY, MIEMBRO);
-    expect(rec?.mensaje).toContain("+7.5 bpm");
+    expect(rec?.mensaje ?? "").not.toContain("+7.5 bpm");
   });
 
   it("mensaje de deload contiene el número de semanas", () => {

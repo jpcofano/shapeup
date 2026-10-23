@@ -8,7 +8,7 @@ import type {
 import { consolidarNoches } from "../../lib/sueno";
 import { soloShapeUp } from "../../lib/tipoHistorial";
 import { serieTendencia, alcanzaMinimoChip, type RangoTendencia } from "../../lib/tendencias";
-import { textoAntiguedadPresion } from "../../lib/resumenSalud";
+import { textoAntiguedadPresion, HAY_FUENTE_FC_REPOSO } from "../../lib/resumenSalud";
 
 // ── Tendencias de salud (I1) ──────────────────────────────────────────────────
 
@@ -66,7 +66,10 @@ function TendenciasSalud({
     return registro;
   }, [metricas, mediciones, noches]);
 
-  const chips = METRICAS_TENDENCIA.filter((m) => alcanzaMinimoChip(valoresPorClave[m.clave].length));
+  // P106: sin fuente real de FC en reposo, no se ofrece como tendencia.
+  const chips = METRICAS_TENDENCIA
+    .filter((m) => m.clave !== "fc-reposo" || HAY_FUENTE_FC_REPOSO)
+    .filter((m) => alcanzaMinimoChip(valoresPorClave[m.clave].length));
 
   const [claveElegida, setClaveElegida] = useState<ClaveTendencia | null>(null);
   const [rango, setRango] = useState<RangoTendencia>("1a");

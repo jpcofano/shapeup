@@ -1,6 +1,6 @@
 import type { Historial, MiembroId, Recomendacion, SenalSalud as SenalSaludModel } from "../types/models";
 import type { SenalSalud as SenalSaludResumen, EstadoSenal } from "./resumenSalud";
-import { CLAVES_SIN_SEMAFORO, senalPeor } from "./resumenSalud";
+import { CLAVES_SIN_SEMAFORO, senalPeor, HAY_FUENTE_FC_REPOSO } from "./resumenSalud";
 import { lunesDeSemana } from "./semana";
 import { soloShapeUp } from "./tipoHistorial";
 
@@ -141,7 +141,10 @@ export function calcularRecomendacion(
   }
 
   // ── Regla 3: Cardio Z2 (sugerencia) — fc-reposo en atención o alerta ─────
-  if (fcRep?.estado === "atencion" || fcRep?.estado === "alerta") {
+  // P106: INACTIVA. Los `fc-reposo` guardados no son FC de reposo (P56) y no hay
+  // una fuente real; con datos falsos, la regla recomendaría cardio por un
+  // número que no mide lo que dice. Vuelve cuando HAY_FUENTE_FC_REPOSO sea true.
+  if (HAY_FUENTE_FC_REPOSO && (fcRep?.estado === "atencion" || fcRep?.estado === "alerta")) {
     const dato = fcRep.motivo ?? `FC reposo ${fcRep.valorActual ?? "?"} bpm`;
     return {
       idRecom: `REC-${hoy}-z2`, miembro, fecha: hoy,

@@ -31,6 +31,15 @@ export const CLAVES_SIN_SEMAFORO = new Set<SenalSalud["clave"]>(["peso", "presio
 // Desde P106 la presión NO usa este corte: queda visible con su antigüedad.
 const DIAS_RECENCIA_INFORMATIVA = 60;
 
+/**
+ * ¿Hay una fuente real de FC en reposo? (P106) Los `fc-reposo` guardados son el
+ * agregado general mal rotulado de antes de P56, y ni el ZIP ni el SDK 1.1.0
+ * traen una FC de reposo. Mientras sea `false`, no se lee en ningún lado: ni
+ * Resumen, ni Tendencias, ni la regla 3 de las recomendaciones. Los datos no
+ * se tocan.
+ */
+export const HAY_FUENTE_FC_REPOSO = false;
+
 /** A partir de cuántos días la presión se ve como vieja (P106). */
 export const DIAS_PRESION_VIEJA = 7;
 /**
@@ -134,11 +143,15 @@ export function calcularResumenSalud(
   sueno: RegistroSueno[],
   mediciones: MedicionCorporal[],
   hoy: string,                    // "YYYY-MM-DD" inyectado (testeable)
+  /** P106: la FC en reposo se lee solo si hay una fuente real. Los tests de la lógica la prenden. */
+  opciones: { fcReposo?: boolean } = {},
 ): SenalSalud[] {
+  const leerFcReposo = opciones.fcReposo ?? HAY_FUENTE_FC_REPOSO;
   const senales: SenalSalud[] = [];
 
   // ── FC en reposo ────────────────────────────────────────────────────────────
-  {
+  // P106: apagada mientras no haya una fuente real (HAY_FUENTE_FC_REPOSO).
+  if (leerFcReposo) {
     const items = metricas
       .filter((m) => m.tipo === "fc-reposo")
       .map((m) => ({ fecha: m.fecha, valor: m.valor }))

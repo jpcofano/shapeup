@@ -55,3 +55,13 @@ describe("Tendencias: la presión con la fecha de su último dato (P106)", () =>
     expect(div.querySelector("[data-testid=presion-antiguedad]")).toBeNull();
   });
 });
+
+describe("Tendencias sin FC en reposo (P106)", () => {
+  it("con datos fc-reposo guardados, no se ofrece como tendencia", () => {
+    const fc = Array.from({ length: 20 }, (_, i) => met("fc-reposo", dia(i), 60));
+    const div = montar([...fc, ...presion(1)]);
+    const chips = [...div.querySelectorAll("button")].map((b) => b.textContent?.trim());
+    expect(chips).toContain("Presión");
+    expect(chips).not.toContain("FC reposo");
+  });
+});

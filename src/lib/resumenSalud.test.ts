@@ -4,7 +4,7 @@ import {
   senalPeor,
   UMBRAL_FC_REPOSO_ATENCION_BPM,
   UMBRAL_FC_REPOSO_ALERTA_BPM,
-  MIN_DATOS_BASELINE, textoAntiguedadPresion, textoHace, TEXTO_PRESION_VIEJA } from "./resumenSalud";
+  MIN_DATOS_BASELINE, textoAntiguedadPresion, textoHace, TEXTO_PRESION_VIEJA, HAY_FUENTE_FC_REPOSO } from "./resumenSalud";
 import type { MetricaSalud, RegistroSueno, MedicionCorporal } from "../types/models";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ describe("calcularResumenSalud — baseline", () => {
       mkFc(offsetDate(HOY, -34), 50), // añade diversidad para mediana real
     ];
     const actual = actualFc(60);
-    const senales = calcularResumenSalud([...actual, ...items], [], [], HOY);
+    const senales = calcularResumenSalud([...actual, ...items], [], [], HOY, { fcReposo: true });
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.baseline).toBeDefined();
     expect(fc.estado).not.toBe("sin-datos");
@@ -105,7 +105,7 @@ describe("calcularResumenSalud — baseline", () => {
       mkFc(offsetDate(HOY, -35 + i * 4), 60),
     );
     const actual = actualFc(65);
-    const senales = calcularResumenSalud([...actual, ...escasos], [], [], HOY);
+    const senales = calcularResumenSalud([...actual, ...escasos], [], [], HOY, { fcReposo: true });
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.estado).toBe("sin-datos");
     expect(fc.valorActual).toBeUndefined();
@@ -119,14 +119,14 @@ describe("calcularResumenSalud — baseline", () => {
       mkFc(offsetDate(HOY, -10), 60),
     ];
     const actual = actualFc(60);
-    const senales = calcularResumenSalud([...actual, ...conHuecos], [], [], HOY);
+    const senales = calcularResumenSalud([...actual, ...conHuecos], [], [], HOY, { fcReposo: true });
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.baseline).toBeDefined();
     expect(fc.estado).toBe("ok");
   });
 
   it("baseline exact: exactamente 7 datos → computa baseline", () => {
-    const senales = calcularResumenSalud([...actualFc(60), ...baselineFc(60)], [], [], HOY);
+    const senales = calcularResumenSalud([...actualFc(60), ...baselineFc(60)], [], [], HOY, { fcReposo: true });
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.baseline).toBe(60);
     expect(fc.estado).toBe("ok");
@@ -138,14 +138,14 @@ describe("calcularResumenSalud — baseline", () => {
 describe("fc-reposo — umbrales", () => {
   it("+4.9 bpm → ok", () => {
     const senales = calcularResumenSalud(
-      [...actualFc(60 + 4.9), ...baselineFc(60)], [], [], HOY,
+      [...actualFc(60 + 4.9), ...baselineFc(60)], [], [], HOY, { fcReposo: true },
     );
     expect(senales.find((s) => s.clave === "fc-reposo")!.estado).toBe("ok");
   });
 
   it(`+${UMBRAL_FC_REPOSO_ATENCION_BPM}.0 bpm → atencion`, () => {
     const senales = calcularResumenSalud(
-      [...actualFc(60 + UMBRAL_FC_REPOSO_ATENCION_BPM), ...baselineFc(60)], [], [], HOY,
+      [...actualFc(60 + UMBRAL_FC_REPOSO_ATENCION_BPM), ...baselineFc(60)], [], [], HOY, { fcReposo: true },
     );
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.estado).toBe("atencion");
@@ -154,14 +154,14 @@ describe("fc-reposo — umbrales", () => {
 
   it(`+${UMBRAL_FC_REPOSO_ALERTA_BPM - 0.1} bpm → atencion (justo debajo de alerta)`, () => {
     const senales = calcularResumenSalud(
-      [...actualFc(60 + UMBRAL_FC_REPOSO_ALERTA_BPM - 0.1), ...baselineFc(60)], [], [], HOY,
+      [...actualFc(60 + UMBRAL_FC_REPOSO_ALERTA_BPM - 0.1), ...baselineFc(60)], [], [], HOY, { fcReposo: true },
     );
     expect(senales.find((s) => s.clave === "fc-reposo")!.estado).toBe("atencion");
   });
 
   it(`+${UMBRAL_FC_REPOSO_ALERTA_BPM}.0 bpm → alerta`, () => {
     const senales = calcularResumenSalud(
-      [...actualFc(60 + UMBRAL_FC_REPOSO_ALERTA_BPM), ...baselineFc(60)], [], [], HOY,
+      [...actualFc(60 + UMBRAL_FC_REPOSO_ALERTA_BPM), ...baselineFc(60)], [], [], HOY, { fcReposo: true },
     );
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.estado).toBe("alerta");
@@ -170,7 +170,7 @@ describe("fc-reposo — umbrales", () => {
 
   it("motivo contiene el valor concreto en bpm", () => {
     const senales = calcularResumenSalud(
-      [...actualFc(60 + 6.5), ...baselineFc(60)], [], [], HOY,
+      [...actualFc(60 + 6.5), ...baselineFc(60)], [], [], HOY, { fcReposo: true },
     );
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.motivo).toContain("6.5");
@@ -453,11 +453,23 @@ describe("serie14d", () => {
       mkFc(offsetDate(HOY, -7),  62),
       mkFc(offsetDate(HOY, -1),  63),
     ];
-    const senales = calcularResumenSalud([...items, ...baselineFc(60)], [], [], HOY);
+    const senales = calcularResumenSalud([...items, ...baselineFc(60)], [], [], HOY, { fcReposo: true });
     const fc = senales.find((s) => s.clave === "fc-reposo")!;
     expect(fc.serie14d).toHaveLength(3); // -20 excluido
     // cronológico: el primero es el más antiguo
     expect(fc.serie14d[0].fecha).toBe(offsetDate(HOY, -14));
     expect(fc.serie14d[fc.serie14d.length - 1].fecha).toBe(offsetDate(HOY, -1));
+  });
+});
+
+// ── P106: sin fuente real, la FC en reposo no se lee ──────────────────────────
+describe("fc-reposo apagada (P106)", () => {
+  it("con datos fc-reposo guardados, Resumen no la muestra", () => {
+    const fc = Array.from({ length: 30 }, (_, i) => ({
+      idMetrica: `fc-${i}`, miembro: "juanpablo", tipo: "fc-reposo", fecha: offsetDate(HOY, -i),
+      valor: 60 + (i < 3 ? 9 : 0), agregacion: "dia", fuente: "samsung-health-csv",
+    })) as MetricaSalud[];
+    expect(HAY_FUENTE_FC_REPOSO).toBe(false);
+    expect(calcularResumenSalud(fc, [], [], HOY).find((s) => s.clave === "fc-reposo")).toBeUndefined();
   });
 });

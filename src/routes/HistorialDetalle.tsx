@@ -6,6 +6,7 @@ import { getHistorialEntry, getHistorialEnLaApp } from "../data/historial";
 import { getRegistrosSueno, getMetricasSalud } from "../data/salud";
 import { COBERTURA_MINIMA, avisoDeRecorte } from "../lib/matchBiometrico";
 import { consolidarNoches } from "../lib/sueno";
+import { HAY_FUENTE_FC_REPOSO } from "../lib/resumenSalud";
 import type { NocheSueno } from "../lib/sueno";
 import { compararConPrevias } from "../lib/costoCardiaco";
 import { motivoSaltoLabel, MOTIVOS_SUSTITUCION } from "../lib/entrenarState";
@@ -118,12 +119,15 @@ export function HistorialDetalle() {
       setH(r.value);
       setLoading(false);
 
-      // Carga contexto del día: sueño noche anterior consolidada + FC en reposo del día,
-      // y el resto del historial del miembro para el insight de costo cardíaco (I2).
+      // Carga contexto del día: sueño noche anterior consolidada, y el resto del
+      // historial del miembro para el insight de costo cardíaco (I2). La FC en
+      // reposo no se lee (P106): no hay una fuente real (HAY_FUENTE_FC_REPOSO).
       const entry = r.value;
       const [sRes, fRes, histRes] = await Promise.all([
         getRegistrosSueno(entry.miembro as MiembroId),
-        getMetricasSalud(entry.miembro as MiembroId, "fc-reposo"),
+        HAY_FUENTE_FC_REPOSO
+          ? getMetricasSalud(entry.miembro as MiembroId, "fc-reposo")
+          : Promise.resolve({ ok: false as const, error: "sin fuente de FC en reposo" }),
         getHistorialEnLaApp(entry.miembro as MiembroId),
       ]);
       if (sRes.ok) {
