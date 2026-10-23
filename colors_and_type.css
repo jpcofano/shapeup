@@ -193,7 +193,7 @@
 
 [data-theme="pulse"] {
   --bg: #160b12; --card: #23141d; --card-hover: #301d29; --border: #3d2734; --border-dim: #2a1a24;
-  --accent: #ff4d79; --accent-dim: rgba(255,77,121,0.16); --accent-strong: #e11d63; --on-accent: #ffffff;
+  --accent: #ff4d79; --accent-dim: rgba(255,77,121,0.16); --accent-strong: #e11d63; --on-accent: #1f0610;
   --shadow-fab: 0 4px 16px rgba(255,77,121,0.34);
 }
 [data-theme="pulse"][data-mode="light"] {
@@ -206,7 +206,7 @@
    [data-accent="indigo"] de home-redux.css. */
 [data-theme="indigo"] {
   --bg: #0e0d1c; --card: #17162b; --card-hover: #20203c; --border: #2a2a4a; --border-dim: #1d1c33;
-  --accent: #8b90ff; --accent-dim: rgba(139,144,255,0.17); --accent-strong: #6366f1; --on-accent: #ffffff;
+  --accent: #8b90ff; --accent-dim: rgba(139,144,255,0.17); --accent-strong: #6366f1; --on-accent: #0d0e2b;
   --shadow-fab: 0 4px 16px rgba(139,144,255,0.34);
 }
 [data-theme="indigo"][data-mode="light"] {
